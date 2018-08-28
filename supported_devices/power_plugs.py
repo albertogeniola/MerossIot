@@ -80,7 +80,7 @@ class  Mss310:
                        ciphers=None)
 
 
-        self._channel.connect("eu-iot.meross.com", 2001)
+        self._channel.connect("eu-iot.meross.com", 2001, keepalive=30)
         self._set_status(ClientStatus.CONNECTING)
 
         # Starts a new thread that handles mqtt protocol and calls us back via callbacks
