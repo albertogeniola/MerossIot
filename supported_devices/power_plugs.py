@@ -117,13 +117,15 @@ class  Mss310:
     def _on_message(self, client, userdata, msg):
         print(msg.topic + " --> " + str(msg.payload))
 
+        # TODO: Message signature validation
+
         try :
             message = json.loads(str(msg.payload, "utf8"))
 
             # If the message is the RESP for some previous action, process return the control to the "stopped" method.
             if message['header']['messageId'] == self._waiting_message_id:
                 with self._ack_received:
-                    self._msg_response = message
+                    self._ack_response = message
                     self._ack_received.notify()
 
             # Otherwise process it accordingly
@@ -204,10 +206,16 @@ class  Mss310:
             with self._ack_received:
                 self._ack_received.wait()
 
-            return self._ack_response
+            return self._ack_response['payload']
 
     def poll_sys_data(self):
         return self._execute_cmd("GET", "Appliance.System.All", {})
+
+    def get_power_consumptionX(self):
+        return self._execute_cmd("GET", "Appliance.Control.ConsumptionX", {})
+
+    def get_wifi_list(self):
+        return self._execute_cmd("GET", "Appliance.Config.WifiList", {})
 
     def turn_on(self):
         payload = {"channel":0,"toggle":{"onoff":1}}
@@ -216,3 +224,18 @@ class  Mss310:
     def turn_off(self):
         payload = {"channel":0,"toggle":{"onoff":0}}
         return self._execute_cmd("SET", "Appliance.Control.Toggle", payload)
+
+    def get_trace(self):
+        return self._execute_cmd("GET", "Appliance.Config.Trace", {})
+
+    def get_debug(self):
+        return self._execute_cmd("GET", "Appliance.System.Debug", {})
+
+    def get_abilities(self):
+        return self._execute_cmd("GET", "Appliance.System.Ability", {})
+
+    def get_electricity(self):
+        return self._execute_cmd("GET", "Appliance.Control.Electricity", {})
+
+    def get_report(self):
+        return self._execute_cmd("GET", "Appliance.System.Report", {})
