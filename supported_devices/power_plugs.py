@@ -4,7 +4,7 @@ import random
 import string
 import time
 import json
-from threading import RLock, Condition
+from threading import RLock, Condition, Event
 from hashlib import md5
 from enum import Enum, auto
 
@@ -29,14 +29,24 @@ class  Mss310:
     _client_id = None
     _app_id = None
 
-    _client_request_topic = None # Seems to the the topic dedicated where the client should publish to. Every client should have one.
-    _client_response_topic = None  # Seems to be the topic in which the client retrieves his own responses from server
-    _user_topic = None # Seems to be the topic where important notifications are pushed (needed if any other client is dealing with the same device)
+    # Topic name where the client should publish to its commands. Every client should have a dedicated one.
+    _client_request_topic = None
 
+    # Topic name in which the client retrieves its own responses from server.
+    _client_response_topic = None
+
+    # Topic where important notifications are pushed (needed if any other client is dealing with the same device)
+    _user_topic = None
+
+    # Paho mqtt client object
     _channel = None
 
+    # Waiting condition used to wait for command ACKs
     _ack_received = None
     _waiting_message_id = None
+    # Event set when subscription succeeds
+    _subscription_event = None
+
     _ack_response = None
 
     # Block for at most 10 seconds.
@@ -52,6 +62,7 @@ class  Mss310:
 
         self._ack_received = Condition()
         self._waiting_subscribers = Condition()
+        self._subscription_event = Event()
 
         self._set_status(ClientStatus.INITIALIZED)
 
@@ -73,13 +84,13 @@ class  Mss310:
         self._channel.on_connect = self._on_connect
         self._channel.on_message = self._on_message
         self._channel.on_disconnect = self._on_disconnect
+        self._channel.on_subscribe = self._on_subscribe
         self._channel.on_log = self._on_log
         self._channel.username_pw_set(username=self._user_id, password=hashed_password)
         self._channel.tls_set(ca_certs=None, certfile=None, keyfile=None, cert_reqs=ssl.CERT_REQUIRED,
                        tls_version=ssl.PROTOCOL_TLS,
                        ciphers=None)
-
-
+        # TODO: Domain should be obtained as parameter
         self._channel.connect("eu-iot.meross.com", 2001, keepalive=30)
         self._set_status(ClientStatus.CONNECTING)
 
@@ -94,7 +105,11 @@ class  Mss310:
             # TODO: Should we reconnect by calling again the client.loop_start() ?
             client.loop_stop()
 
-    # The callback for when the client receives a CONNACK response from the server.
+    def _on_subscribe(self, client, userdata, mid, granted_qos):
+        # TODO: Check result
+        self._subscription_event.set()
+        self._subscription_event.clear()
+
     def _on_connect(self, client, userdata, rc, other):
         print("Connected with result code " + str(rc))
         self._set_status(ClientStatus.SUBSCRIBED)
@@ -109,9 +124,16 @@ class  Mss310:
         client.subscribe(self._user_topic)
         client.subscribe(self._client_response_topic)
 
-        self._set_status(ClientStatus.SUBSCRIBED)
-        with self._waiting_subscribers:
+        # Wait until we receive the subscription ACK
+        # Once we have it, notify subscribers
+        with self._waiting_subscribers:  # TODO: is this causing deadlock?
+            self._subscription_event.wait()  # TODO: handle timeout so that we can notify the caller that connection has failed
+            self._set_status(ClientStatus.SUBSCRIBED)
             self._waiting_subscribers.notify_all()
+
+    def _on_unsubscribe(self):
+        # TODO
+        pass
 
     # The callback for when a PUBLISH message is received from the server.
     def _on_message(self, client, userdata, msg):
@@ -119,7 +141,7 @@ class  Mss310:
 
         # TODO: Message signature validation
 
-        try :
+        try:
             message = json.loads(str(msg.payload, "utf8"))
 
             # If the message is the RESP for some previous action, process return the control to the "stopped" method.
@@ -136,7 +158,6 @@ class  Mss310:
         except:
             # TODO
             print("UNKNOWN2")
-
 
     def _on_log(self, client, userdata, level, buf):
         # print("Data: %s - Buff: %s" % (userdata, buf))
@@ -208,7 +229,7 @@ class  Mss310:
 
             return self._ack_response['payload']
 
-    def poll_sys_data(self):
+    def _poll_sys_data(self):
         return self._execute_cmd("GET", "Appliance.System.All", {})
 
     def get_power_consumptionX(self):
