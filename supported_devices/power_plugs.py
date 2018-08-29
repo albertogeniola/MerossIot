@@ -7,7 +7,13 @@ import json
 from threading import RLock, Condition, Event
 from hashlib import md5
 from enum import Enum, auto
+import logging
+import sys
+from logging import StreamHandler
 
+l = logging.getLogger("meross_powerplug")
+l.addHandler(StreamHandler(stream=sys.stdout))
+l.setLevel(logging.DEBUG)
 
 class ClientStatus(Enum):
     INITIALIZED = auto()
@@ -24,6 +30,8 @@ class  Mss310:
     _token = None
     _key = None
     _user_id = None
+    _domain = None
+    _port = 2001
 
     _uuid = None
     _client_id = None
@@ -42,15 +50,15 @@ class  Mss310:
     _channel = None
 
     # Waiting condition used to wait for command ACKs
-    _ack_received = None
-    _waiting_message_id = None
-    # Event set when subscription succeeds
-    _subscription_event = None
+    _waiting_message_ack_queue = None
+    _waiting_subscribers_queue = None
 
     _ack_response = None
 
     # Block for at most 10 seconds.
     _command_timeout = 10
+
+    _error = None
 
     def __init__(self,
                  token,
@@ -60,9 +68,9 @@ class  Mss310:
 
         self._status_lock = RLock()
 
-        self._ack_received = Condition()
-        self._waiting_subscribers = Condition()
-        self._subscription_event = Event()
+        self._waiting_message_ack_queue = Condition()
+        self._waiting_subscribers_queue = Condition()
+        self._subscription_count = AtomicCounter(0)
 
         self._set_status(ClientStatus.INITIALIZED)
 
@@ -70,6 +78,10 @@ class  Mss310:
         self._key = key
         self._user_id = user_id
         self._uuid = kwords['uuid']
+        if "domain" in kwords:
+            self._domain = kwords['domain']
+        else:
+            self._domain = "eu-iot.meross.com"
 
         self._generate_client_and_app_id()
 
@@ -90,28 +102,53 @@ class  Mss310:
         self._channel.tls_set(ca_certs=None, certfile=None, keyfile=None, cert_reqs=ssl.CERT_REQUIRED,
                        tls_version=ssl.PROTOCOL_TLS,
                        ciphers=None)
-        # TODO: Domain should be obtained as parameter
-        self._channel.connect("eu-iot.meross.com", 2001, keepalive=30)
+
+        self._channel.connect(self._domain, self._port, keepalive=30)
         self._set_status(ClientStatus.CONNECTING)
 
         # Starts a new thread that handles mqtt protocol and calls us back via callbacks
         self._channel.loop_start()
 
+        with self._waiting_subscribers_queue:
+            self._waiting_subscribers_queue.wait()
+            if self._client_status != ClientStatus.SUBSCRIBED:
+                # An error has occurred
+                raise Exception(self._error)
+
     def _on_disconnect(self, client, userdata, rc):
-        if rc == mqtt.MQTT_ERR_SUCCESS:
-            self._set_status(ClientStatus.DISCONNECTED)
-        else:
+        l.info("Disconnection detected. Reason: %s" % str(rc))
+
+        # We should clean all the data structures.
+        with self._status_lock:
+            self._subscription_count = AtomicCounter(0)
+            self._error = "Connection dropped by the server"
             self._set_status(ClientStatus.CONNECTION_DROPPED)
+
+        with self._waiting_subscribers_queue:
+            self._waiting_subscribers_queue.notify_all()
+
+        with self._waiting_message_ack_queue:
+            self._waiting_message_ack_queue.notify_all()
+
+        if rc == mqtt.MQTT_ERR_SUCCESS:
+            pass
+        else:
             # TODO: Should we reconnect by calling again the client.loop_start() ?
             client.loop_stop()
 
+    def _on_unsubscribe(self):
+        l.info("Unsubscribed from topic")
+        self._subscription_count.dec()
+
     def _on_subscribe(self, client, userdata, mid, granted_qos):
-        # TODO: Check result
-        self._subscription_event.set()
-        self._subscription_event.clear()
+        l.info("Succesfully subscribed!")
+        if self._subscription_count.inc() == 2:
+            with self._waiting_subscribers_queue:
+                self._set_status(ClientStatus.SUBSCRIBED)
+                self._waiting_subscribers_queue.notify_all()
 
     def _on_connect(self, client, userdata, rc, other):
-        print("Connected with result code " + str(rc))
+        l.info("Connected with result code %s" % str(rc))
         self._set_status(ClientStatus.SUBSCRIBED)
 
         self._set_status(ClientStatus.CONNECTED)
@@ -121,19 +158,9 @@ class  Mss310:
         self._user_topic = "/app/%s/subscribe" % self._user_id
 
         # Subscribe to the relevant topics
+        l.info("Subscribing to topics..." )
         client.subscribe(self._user_topic)
         client.subscribe(self._client_response_topic)
-
-        # Wait until we receive the subscription ACK
-        # Once we have it, notify subscribers
-        with self._waiting_subscribers:  # TODO: is this causing deadlock?
-            self._subscription_event.wait()  # TODO: handle timeout so that we can notify the caller that connection has failed
-            self._set_status(ClientStatus.SUBSCRIBED)
-            self._waiting_subscribers.notify_all()
-
-    def _on_unsubscribe(self):
-        # TODO
-        pass
 
     # The callback for when a PUBLISH message is received from the server.
     def _on_message(self, client, userdata, msg):
@@ -146,9 +173,9 @@ class  Mss310:
 
             # If the message is the RESP for some previous action, process return the control to the "stopped" method.
             if message['header']['messageId'] == self._waiting_message_id:
-                with self._ack_received:
+                with self._waiting_message_ack_queue:
                     self._ack_response = message
-                    self._ack_received.notify()
+                    self._waiting_message_ack_queue.notify()
 
             # Otherwise process it accordingly
             else:
@@ -216,20 +243,20 @@ class  Mss310:
             self._client_status = status
 
     def _execute_cmd(self, method, namespace, payload):
-        with self._waiting_subscribers:
+        with self._waiting_subscribers_queue:
             while self._client_status != ClientStatus.SUBSCRIBED:
-                self._waiting_subscribers.wait()
+                self._waiting_subscribers_queue.wait()
 
             # Execute the command and retrieve the message-id
             self._waiting_message_id = self._mqtt_message(method, namespace, payload)
 
             # Wait synchronously until we get the ACK.
-            with self._ack_received:
-                self._ack_received.wait()
+            with self._waiting_message_ack_queue:
+                self._waiting_message_ack_queue.wait()
 
             return self._ack_response['payload']
 
-    def _poll_sys_data(self):
+    def get_sys_data(self):
         return self._execute_cmd("GET", "Appliance.System.All", {})
 
     def get_power_consumptionX(self):
@@ -260,3 +287,21 @@ class  Mss310:
 
     def get_report(self):
         return self._execute_cmd("GET", "Appliance.System.Report", {})
+
+
+class AtomicCounter(object):
+    _lock = None
+
+    def __init__(self, initialValue):
+        self._lock = RLock()
+        self._val = initialValue
+
+    def dec(self):
+        with self._lock:
+            self._val -= 1
+            return self._val
+
+    def inc(self):
+        with self._lock:
+            self._val += 1
+            return self._val

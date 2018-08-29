@@ -5,7 +5,7 @@ import json
 import time
 import string
 import random
-import sys
+import logging
 from device_factory import build_wrapper
 
 
@@ -15,6 +15,7 @@ _MEROSS_URL = "https://iot.meross.com"
 _LOGIN_URL = "%s%s" % (_MEROSS_URL, "/v1/Auth/Login")
 _LOG_URL = "%s%s" % (_MEROSS_URL, "/v1/log/user")
 _DEV_LIST = "%s%s" % (_MEROSS_URL, "/v1/Device/devList")
+
 
 class MerossHttpClient:
     _token = None
