@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(
-    name='Meross MSS310',
+    name='meross-iot',
     version='0.1.0',
     packages=['.', 'supported_devices'],
     url='https://github.com/albertogeniola/MerossIot',
