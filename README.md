@@ -63,7 +63,7 @@ If you want to understand how the Meross protocol works, [have a look at the Wik
 ## Donate!
 I like reverse engineering and protocol inspection, I think it keeps your mind trained and healthy. However, if you liked or appreciated by work, why don't you buy me a beer? It would really motivate me to continue working on this repository to improve documentation, code and extend the supported meross devices.
 
-![https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=6HPAB89UYSZF2](http://4.bp.blogspot.com/-1Md6-deTZ84/VA_lzcxMx1I/AAAAAAAACl8/wP_4rXBXwyI/s1600/PayPal-Donation-Button.png)
+[![Buy me a beer](http://4.bp.blogspot.com/-1Md6-deTZ84/VA_lzcxMx1I/AAAAAAAACl8/wP_4rXBXwyI/s1600/PayPal-Donation-Button.png)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=6HPAB89UYSZF2)
 
 
 
