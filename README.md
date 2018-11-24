@@ -54,24 +54,16 @@ if __name__=='__main__':
 
 ```
 
-## Meross protocol details
+## Protocol details
 This library was implemented by reverse-engineering the network communications between the plug and the meross network.
 Anyone can do the same by simply installing a Man-In-The-Middle proxy and routing the ssl traffic of an Android emulator through the sniffer.
 
-The following section is a work in progress and I'll update it as soon as possible.
+If you want to understand how the Meross protocol works, have a look at the Wiki. Be aware: this is still work in progress, so some pages of the wiki might still be blank/under construction.
 
-### HTTP methods
-#### Login
-#### List devices
-#### Logout
+## Donate!
+I like reverse engineering and protocol inspection, I think it keeps your mind trained and healthy. However, if you liked or appreciated by work, why don't you buy me a beer? It would really motivate me to continue working on this repository to improve documentation, code and extend the supported meross devices.
 
-### MQTT communications
-#### Connect to MQTT server
-client-id
+![https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=6HPAB89UYSZF2](http://4.bp.blogspot.com/-1Md6-deTZ84/VA_lzcxMx1I/AAAAAAAACl8/wP_4rXBXwyI/s1600/PayPal-Donation-Button.png)
 
-#### Topics
 
-#### Command format
-
-#### Some command examples
 
