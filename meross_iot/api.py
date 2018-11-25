@@ -5,8 +5,7 @@ import json
 import time
 import string
 import random
-import logging
-from device_factory import build_wrapper
+from meross_iot.device_factory import build_wrapper
 
 
 # Appears to be used as a part of the signature algorithm as constant "salt" (kinda useless)

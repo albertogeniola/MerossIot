@@ -11,7 +11,7 @@ The following script demonstrates how to use this library.
 ```python
 import time
 import sys
-from meross_cloud import MerossHttpClient
+from meross_iot.api import MerossHttpClient
 
 if __name__=='__main__':
     httpHandler = MerossHttpClient(email="YOUR_MEROSS_CLOUD_EMAIL", password="YOUR_PASSWORD")

@@ -1,4 +1,4 @@
-from supported_devices.power_plugs import Mss310
+from meross_iot.supported_devices.power_plugs import Mss310
 
 def build_wrapper(
         token,
