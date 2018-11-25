@@ -5,6 +5,14 @@ Hopefully, more Meross hardware will be supported in the future.
 
 This library is still work in progress, therefore use it with caution.
 
+## Installation
+Due to the popularity of the library, I've decided to list it publicly on the Pipy index.
+So, the installation is as simple as typing the following command:
+
+```
+pip install meross_iot --upgrade
+```
+
 ## Usage
 The following script demonstrates how to use this library.
 
