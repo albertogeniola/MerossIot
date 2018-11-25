@@ -52,6 +52,7 @@ class Device:
     # Waiting condition used to wait for command ACKs
     _waiting_message_ack_queue = None
     _waiting_subscribers_queue = None
+    _waiting_message_id = None
 
     _ack_response = None
 
@@ -59,6 +60,8 @@ class Device:
     _command_timeout = 10
 
     _error = None
+
+    _status = None
 
     def __init__(self,
                  token,
@@ -178,13 +181,18 @@ class Device:
                     self._waiting_message_ack_queue.notify()
 
             # Otherwise process it accordingly
+            elif self._message_from_self(message):
+                if message['header']['method'] == "PUSH" and 'payload' in message and 'toggle' in message['payload']:
+                    self._handle_toggle(message)
+                else:
+                    l.debug("UNKNOWN msg received by %s" % self._uuid)
+                    # if message['header']['method'] == "PUSH":
+                    # TODO
             else:
-                l.debug("UNKNOWN msg = %s" % message)
-                # if message['header']['method'] == "PUSH":
-                # TODO
-        except:
-            # TODO
-            l.debug("UNKNOWN2")
+                # do nothing because the message was from a different device
+                pass
+        except Exception as e:
+            l.debug("%s failed to process message because: %s" % (self._uuid, e))
 
     def _on_log(self, client, userdata, level, buf):
         # print("Data: %s - Buff: %s" % (userdata, buf))
@@ -256,6 +264,16 @@ class Device:
 
             return self._ack_response['payload']
 
+    def _message_from_self(self, message):
+        try:
+            return 'from' in message['header'] and message['header']['from'].split('/')[2] == self._uuid
+        except:
+            return false
+
+    def _handle_toggle(self, message):
+        if 'onoff' in message['payload']['toggle']:
+            self._status = (message['payload']['toggle']['onoff'] == 1)
+
     def get_sys_data(self):
         return self._execute_cmd("GET", "Appliance.System.All", {})
 
@@ -264,10 +282,12 @@ class Device:
 
     def turn_on(self):
         payload = {"channel":0,"toggle":{"onoff":1}}
+        self._status = True
         return self._execute_cmd("SET", "Appliance.Control.Toggle", payload)
 
     def turn_off(self):
         payload = {"channel":0,"toggle":{"onoff":0}}
+        self._status = False
         return self._execute_cmd("SET", "Appliance.Control.Toggle", payload)
 
     def get_trace(self):
@@ -281,6 +301,11 @@ class Device:
 
     def get_report(self):
         return self._execute_cmd("GET", "Appliance.System.Report", {})
+
+    def get_status(self):
+        if self._status is None:
+            self._status = self.get_sys_data()['all']['control']['toggle']['onoff'] == 1
+        return self._status
 
     def device_id(self):
         return self._uuid
