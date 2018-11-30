@@ -23,7 +23,7 @@ class ClientStatus(Enum):
     CONNECTION_DROPPED = auto()
 
 
-class  Mss310:
+class Device:
     _status_lock = None
     _client_status = None
 
@@ -277,21 +277,8 @@ class  Mss310:
     def get_sys_data(self):
         return self._execute_cmd("GET", "Appliance.System.All", {})
 
-    def get_power_consumptionX(self):
-        return self._execute_cmd("GET", "Appliance.Control.ConsumptionX", {})
-
     def get_wifi_list(self):
         return self._execute_cmd("GET", "Appliance.Config.WifiList", {})
-
-    def turn_on(self):
-        payload = {"channel":0,"toggle":{"onoff":1}}
-        self._status = True
-        return self._execute_cmd("SET", "Appliance.Control.Toggle", payload)
-
-    def turn_off(self):
-        payload = {"channel":0,"toggle":{"onoff":0}}
-        self._status = False
-        return self._execute_cmd("SET", "Appliance.Control.Toggle", payload)
 
     def get_trace(self):
         return self._execute_cmd("GET", "Appliance.Config.Trace", {})
@@ -302,9 +289,6 @@ class  Mss310:
     def get_abilities(self):
         return self._execute_cmd("GET", "Appliance.System.Ability", {})
 
-    def get_electricity(self):
-        return self._execute_cmd("GET", "Appliance.Control.Electricity", {})
-
     def get_report(self):
         return self._execute_cmd("GET", "Appliance.System.Report", {})
 
@@ -313,6 +297,56 @@ class  Mss310:
             self._status = self.get_sys_data()['all']['control']['toggle']['onoff'] == 1
         return self._status
 
+    def device_id(self):
+        return self._uuid
+
+class Mss310(Device):
+    def turn_on(self):
+        self._status = True
+        payload = {"channel":0,"toggle":{"onoff":1}}
+        return self._execute_cmd("SET", "Appliance.Control.Toggle", payload)
+
+    def turn_off(self):
+        self._status = False
+        payload = {"channel":0,"toggle":{"onoff":0}}
+        return self._execute_cmd("SET", "Appliance.Control.Toggle", payload)
+
+    def get_power_consumptionX(self):
+        return self._execute_cmd("GET", "Appliance.Control.ConsumptionX", {})
+
+    def get_electricity(self):
+        return self._execute_cmd("GET", "Appliance.Control.Electricity", {})
+
+class Mss425e(Device):
+    # TODO Implement for all channels
+    def _handle_toggle(self, message):
+        return None
+
+    # TODO Implement for all channels
+    def get_status(self):
+        return None
+
+    def turn_on(self):
+        payload = {'togglex':{"onoff":1}}
+        return self._execute_cmd("SET", "Appliance.Control.ToggleX", payload)
+
+    def turn_off(self):
+        payload = {'togglex':{"onoff":0}}
+        return self._execute_cmd("SET", "Appliance.Control.ToggleX", payload)
+
+    def turn_on_channel(self, channel):
+        payload = {'togglex':{'channel':channel, 'onoff':1}}
+        return self._execute_cmd("SET", "Appliance.Control.ToggleX", payload)
+
+    def turn_off_channel(self, channel):
+        payload = {'togglex':{'channel':channel,'onoff': 0}}
+        return self._execute_cmd("SET", "Appliance.Control.ToggleX", payload)
+
+    def enable_usb(self):
+        return self.turn_on_channel(4)
+
+    def disable_usb(self):
+        return self.turn_off_channel(4)
 
 class AtomicCounter(object):
     _lock = None
