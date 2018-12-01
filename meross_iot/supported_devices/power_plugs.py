@@ -32,6 +32,7 @@ class Device:
     _user_id = None
     _domain = None
     _port = 2001
+    _channels = []
 
     _uuid = None
     _client_id = None
@@ -47,7 +48,7 @@ class Device:
     _user_topic = None
 
     # Paho mqtt client object
-    _channel = None
+    _mqtt_client = None
 
     # Waiting condition used to wait for command ACKs
     _waiting_message_ack_queue = None
@@ -85,6 +86,8 @@ class Device:
             self._domain = kwords['domain']
         else:
             self._domain = "eu-iot.meross.com"
+        if "channels" in kwords:
+            self._channels = kwords['channels']
 
         self._generate_client_and_app_id()
 
@@ -95,22 +98,22 @@ class Device:
         hashed_password = md5_hash.hexdigest()
 
         # Start the mqtt client
-        self._channel = mqtt.Client(client_id=self._client_id, protocol=mqtt.MQTTv311)  # ex. app-id -> app:08d4c9f99da40203ebc798a76512ec14
-        self._channel.on_connect = self._on_connect
-        self._channel.on_message = self._on_message
-        self._channel.on_disconnect = self._on_disconnect
-        self._channel.on_subscribe = self._on_subscribe
-        self._channel.on_log = self._on_log
-        self._channel.username_pw_set(username=self._user_id, password=hashed_password)
-        self._channel.tls_set(ca_certs=None, certfile=None, keyfile=None, cert_reqs=ssl.CERT_REQUIRED,
+        self._mqtt_client = mqtt.Client(client_id=self._client_id, protocol=mqtt.MQTTv311)  # ex. app-id -> app:08d4c9f99da40203ebc798a76512ec14
+        self._mqtt_client.on_connect = self._on_connect
+        self._mqtt_client.on_message = self._on_message
+        self._mqtt_client.on_disconnect = self._on_disconnect
+        self._mqtt_client.on_subscribe = self._on_subscribe
+        self._mqtt_client.on_log = self._on_log
+        self._mqtt_client.username_pw_set(username=self._user_id, password=hashed_password)
+        self._mqtt_client.tls_set(ca_certs=None, certfile=None, keyfile=None, cert_reqs=ssl.CERT_REQUIRED,
                        tls_version=ssl.PROTOCOL_TLS,
                        ciphers=None)
 
-        self._channel.connect(self._domain, self._port, keepalive=30)
+        self._mqtt_client.connect(self._domain, self._port, keepalive=30)
         self._set_status(ClientStatus.CONNECTING)
 
         # Starts a new thread that handles mqtt protocol and calls us back via callbacks
-        self._channel.loop_start()
+        self._mqtt_client.loop_start()
 
         with self._waiting_subscribers_queue:
             self._waiting_subscribers_queue.wait()
@@ -235,7 +238,7 @@ class Device:
         }
         strdata = json.dumps(data)
         print("--> %s" % strdata)
-        self._channel.publish(topic=self._client_request_topic, payload=strdata.encode("utf-8"))
+        self._mqtt_client.publish(topic=self._client_request_topic, payload=strdata.encode("utf-8"))
         return messageId
 
     def _wait_for_status(self, status):
@@ -292,6 +295,9 @@ class Device:
     def get_report(self):
         return self._execute_cmd("GET", "Appliance.System.Report", {})
 
+    def listen(self):
+        return self._execute_cmd("GET", "Appliance.System.DoesNotExist", {})
+
     def get_status(self):
         if self._status is None:
             self._status = self.get_sys_data()['all']['control']['toggle']['onoff'] == 1
@@ -299,6 +305,9 @@ class Device:
 
     def device_id(self):
         return self._uuid
+
+    def get_channels(self):
+        return self._channels
 
 class Mss310(Device):
     def turn_on(self):
