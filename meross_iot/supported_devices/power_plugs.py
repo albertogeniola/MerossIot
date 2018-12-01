@@ -295,9 +295,6 @@ class Device:
     def get_report(self):
         return self._execute_cmd("GET", "Appliance.System.Report", {})
 
-    def listen(self):
-        return self._execute_cmd("GET", "Appliance.System.DoesNotExist", {})
-
     def get_status(self):
         if self._status is None:
             self._status = self.get_sys_data()['all']['control']['toggle']['onoff'] == 1
