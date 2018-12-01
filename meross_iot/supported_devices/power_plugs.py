@@ -4,11 +4,13 @@ import random
 import string
 import time
 import json
+import sys
+import logging
+
+from paho.mqtt import MQTTException
 from threading import RLock, Condition, Event
 from hashlib import md5
 from enum import Enum, auto
-import logging
-import sys
 from logging import StreamHandler
 
 l = logging.getLogger("meross_powerplug")
@@ -21,7 +23,6 @@ class ClientStatus(Enum):
     CONNECTED = auto()
     SUBSCRIBED = auto()
     CONNECTION_DROPPED = auto()
-
 
 class  Mss310:
     _status_lock = None
@@ -169,24 +170,31 @@ class  Mss310:
     def _on_message(self, client, userdata, msg):
         print(msg.topic + " --> " + str(msg.payload))
 
-        # TODO: Message signature validation
-
         try:
             message = json.loads(str(msg.payload, "utf8"))
+            header = message['header']
+
+            md5_hash = md5()
+            strtohash = "%s%s%s" % (header['messageId'], self._key, header['timestamp'])
+            md5_hash.update(strtohash.encode("utf8"))
+            signature = md5_hash.hexdigest().lower()
+
+            if(header['sign'] != md5_hash.hexdigest().lower()):
+                raise MQTTException('The signature did not match!')
 
             # If the message is the RESP for some previous action, process return the control to the "stopped" method.
-            if message['header']['messageId'] == self._waiting_message_id:
+            if header['messageId'] == self._waiting_message_id:
                 with self._waiting_message_ack_queue:
                     self._ack_response = message
                     self._waiting_message_ack_queue.notify()
 
             # Otherwise process it accordingly
             elif self._message_from_self(message):
-                if message['header']['method'] == "PUSH" and 'payload' in message and 'toggle' in message['payload']:
+                if header['method'] == "PUSH" and 'payload' in message and 'toggle' in message['payload']:
                     self._handle_toggle(message)
                 else:
                     l.debug("UNKNOWN msg received by %s" % self._uuid)
-                    # if message['header']['method'] == "PUSH":
+                    # if header['method'] == "PUSH":
                     # TODO
             else:
                 # do nothing because the message was from a different device
