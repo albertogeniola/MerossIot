@@ -174,12 +174,12 @@ class  Mss310:
             message = json.loads(str(msg.payload, "utf8"))
             header = message['header']
 
-            md5_hash = md5()
+            message_hash = md5()
             strtohash = "%s%s%s" % (header['messageId'], self._key, header['timestamp'])
-            md5_hash.update(strtohash.encode("utf8"))
-            signature = md5_hash.hexdigest().lower()
+            message_hash.update(strtohash.encode("utf8"))
+            expected_signature = message_hash.hexdigest().lower()
 
-            if(header['sign'] != md5_hash.hexdigest().lower()):
+            if(header['sign'] != expected_signature):
                 raise MQTTException('The signature did not match!')
 
             # If the message is the RESP for some previous action, process return the control to the "stopped" method.
