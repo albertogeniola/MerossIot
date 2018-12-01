@@ -321,11 +321,6 @@ class Mss310(Device):
 class Mss110(Device):
     pass
 
-    def get_status(self):
-        if self._status is None:
-            self._status = self.get_sys_data()['all']['control']['toggle']['onoff'] == 1
-        return self._status
-
 
 class AtomicCounter(object):
     _lock = None
