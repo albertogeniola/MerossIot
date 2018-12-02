@@ -33,6 +33,7 @@ class Device:
     _user_id = None
     _domain = None
     _port = 2001
+    _channels = []
 
     _uuid = None
     _client_id = None
@@ -48,7 +49,7 @@ class Device:
     _user_topic = None
 
     # Paho mqtt client object
-    _channel = None
+    _mqtt_client = None
 
     # Waiting condition used to wait for command ACKs
     _waiting_message_ack_queue = None
@@ -86,6 +87,8 @@ class Device:
             self._domain = kwords['domain']
         else:
             self._domain = "eu-iot.meross.com"
+        if "channels" in kwords:
+            self._channels = kwords['channels']
 
         self._generate_client_and_app_id()
 
@@ -96,22 +99,22 @@ class Device:
         hashed_password = md5_hash.hexdigest()
 
         # Start the mqtt client
-        self._channel = mqtt.Client(client_id=self._client_id, protocol=mqtt.MQTTv311)  # ex. app-id -> app:08d4c9f99da40203ebc798a76512ec14
-        self._channel.on_connect = self._on_connect
-        self._channel.on_message = self._on_message
-        self._channel.on_disconnect = self._on_disconnect
-        self._channel.on_subscribe = self._on_subscribe
-        self._channel.on_log = self._on_log
-        self._channel.username_pw_set(username=self._user_id, password=hashed_password)
-        self._channel.tls_set(ca_certs=None, certfile=None, keyfile=None, cert_reqs=ssl.CERT_REQUIRED,
+        self._mqtt_client = mqtt.Client(client_id=self._client_id, protocol=mqtt.MQTTv311)  # ex. app-id -> app:08d4c9f99da40203ebc798a76512ec14
+        self._mqtt_client.on_connect = self._on_connect
+        self._mqtt_client.on_message = self._on_message
+        self._mqtt_client.on_disconnect = self._on_disconnect
+        self._mqtt_client.on_subscribe = self._on_subscribe
+        self._mqtt_client.on_log = self._on_log
+        self._mqtt_client.username_pw_set(username=self._user_id, password=hashed_password)
+        self._mqtt_client.tls_set(ca_certs=None, certfile=None, keyfile=None, cert_reqs=ssl.CERT_REQUIRED,
                        tls_version=ssl.PROTOCOL_TLS,
                        ciphers=None)
 
-        self._channel.connect(self._domain, self._port, keepalive=30)
+        self._mqtt_client.connect(self._domain, self._port, keepalive=30)
         self._set_status(ClientStatus.CONNECTING)
 
         # Starts a new thread that handles mqtt protocol and calls us back via callbacks
-        self._channel.loop_start()
+        self._mqtt_client.loop_start()
 
         with self._waiting_subscribers_queue:
             self._waiting_subscribers_queue.wait()
@@ -243,7 +246,7 @@ class Device:
         }
         strdata = json.dumps(data)
         l.debug("--> %s" % strdata)
-        self._channel.publish(topic=self._client_request_topic, payload=strdata.encode("utf-8"))
+        self._mqtt_client.publish(topic=self._client_request_topic, payload=strdata.encode("utf-8"))
         return messageId
 
     def _wait_for_status(self, status):
@@ -288,16 +291,6 @@ class Device:
     def get_wifi_list(self):
         return self._execute_cmd("GET", "Appliance.Config.WifiList", {})
 
-    def turn_on(self):
-        payload = {"channel":0,"toggle":{"onoff":1}}
-        self._status = True
-        return self._execute_cmd("SET", "Appliance.Control.Toggle", payload)
-
-    def turn_off(self):
-        payload = {"channel":0,"toggle":{"onoff":0}}
-        self._status = False
-        return self._execute_cmd("SET", "Appliance.Control.Toggle", payload)
-
     def get_trace(self):
         return self._execute_cmd("GET", "Appliance.Config.Trace", {})
 
@@ -318,6 +311,19 @@ class Device:
     def device_id(self):
         return self._uuid
 
+    def get_channels(self):
+        return self._channels
+
+    def turn_on(self):
+        self._status = True
+        payload = {"channel":0,"toggle":{"onoff":1}}
+        return self._execute_cmd("SET", "Appliance.Control.Toggle", payload)
+
+    def turn_off(self):
+        self._status = False
+        payload = {"channel":0,"toggle":{"onoff":0}}
+        return self._execute_cmd("SET", "Appliance.Control.Toggle", payload)
+      
 class Mss310(Device):
     def get_power_consumptionX(self):
         return self._execute_cmd("GET", "Appliance.Control.ConsumptionX", {})
@@ -325,10 +331,39 @@ class Mss310(Device):
     def get_electricity(self):
         return self._execute_cmd("GET", "Appliance.Control.Electricity", {})
 
+class Mss425e(Device):
+    # TODO Implement for all channels
+    def _handle_toggle(self, message):
+        return None
+
+    # TODO Implement for all channels
+    def get_status(self):
+        return None
+
+    def turn_on(self):
+        payload = {'togglex':{"onoff":1}}
+        return self._execute_cmd("SET", "Appliance.Control.ToggleX", payload)
+
+    def turn_off(self):
+        payload = {'togglex':{"onoff":0}}
+        return self._execute_cmd("SET", "Appliance.Control.ToggleX", payload)
+
+    def turn_on_channel(self, channel):
+        payload = {'togglex':{'channel':channel, 'onoff':1}}
+        return self._execute_cmd("SET", "Appliance.Control.ToggleX", payload)
+
+    def turn_off_channel(self, channel):
+        payload = {'togglex':{'channel':channel,'onoff': 0}}
+        return self._execute_cmd("SET", "Appliance.Control.ToggleX", payload)
+
+    def enable_usb(self):
+        return self.turn_on_channel(4)
+
+    def disable_usb(self):
+        return self.turn_off_channel(4)
 
 class Mss110(Device):
     pass
-
 
 class AtomicCounter(object):
     _lock = None
