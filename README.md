@@ -62,6 +62,15 @@ if __name__=='__main__':
 
 ```
 
+## Currently supported devices
+Even though this library was firstly meant to drive only the Meross MSS310, 
+other nice developers contributed to its realization. The following is the 
+currently supported list of devices:
+
+- MSS310
+- MSS110 (Thanks to [soberstadt](https://github.com/soberstadt))
+- MSS425E (Thanks to [ping-localhost](https://github.com/ping-localhost))
+
 ## Protocol details
 This library was implemented by reverse-engineering the network communications between the plug and the meross network.
 Anyone can do the same by simply installing a Man-In-The-Middle proxy and routing the ssl traffic of an Android emulator through the sniffer.
