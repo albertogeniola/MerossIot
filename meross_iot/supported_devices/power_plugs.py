@@ -68,7 +68,7 @@ class Device:
                  token,
                  key,
                  user_id,
-                 **kwords):
+                **kwords):
 
         self._status_lock = RLock()
 
@@ -170,7 +170,7 @@ class Device:
 
     # The callback for when a PUBLISH message is received from the server.
     def _on_message(self, client, userdata, msg):
-        print(msg.topic + " --> " + str(msg.payload))
+        l.debug(msg.topic + " --> " + str(msg.payload))
 
         # TODO: Message signature validation
 
@@ -237,7 +237,7 @@ class Device:
             "payload": payload
         }
         strdata = json.dumps(data)
-        print("--> %s" % strdata)
+        l.debug("--> %s" % strdata)
         self._mqtt_client.publish(topic=self._client_request_topic, payload=strdata.encode("utf-8"))
         return messageId
 
@@ -306,7 +306,6 @@ class Device:
     def get_channels(self):
         return self._channels
 
-class Mss310(Device):
     def turn_on(self):
         self._status = True
         payload = {"channel":0,"toggle":{"onoff":1}}
@@ -316,7 +315,8 @@ class Mss310(Device):
         self._status = False
         payload = {"channel":0,"toggle":{"onoff":0}}
         return self._execute_cmd("SET", "Appliance.Control.Toggle", payload)
-
+      
+class Mss310(Device):
     def get_power_consumptionX(self):
         return self._execute_cmd("GET", "Appliance.Control.ConsumptionX", {})
 
@@ -353,6 +353,9 @@ class Mss425e(Device):
 
     def disable_usb(self):
         return self.turn_off_channel(4)
+
+class Mss110(Device):
+    pass
 
 class AtomicCounter(object):
     _lock = None
