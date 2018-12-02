@@ -23,7 +23,7 @@ class ClientStatus(Enum):
     CONNECTION_DROPPED = auto()
 
 
-class  Mss310:
+class Device:
     _status_lock = None
     _client_status = None
 
@@ -67,7 +67,7 @@ class  Mss310:
                  token,
                  key,
                  user_id,
-                 **kwords):
+                **kwords):
 
         self._status_lock = RLock()
 
@@ -167,7 +167,7 @@ class  Mss310:
 
     # The callback for when a PUBLISH message is received from the server.
     def _on_message(self, client, userdata, msg):
-        print(msg.topic + " --> " + str(msg.payload))
+        l.debug(msg.topic + " --> " + str(msg.payload))
 
         # TODO: Message signature validation
 
@@ -234,7 +234,7 @@ class  Mss310:
             "payload": payload
         }
         strdata = json.dumps(data)
-        print("--> %s" % strdata)
+        l.debug("--> %s" % strdata)
         self._channel.publish(topic=self._client_request_topic, payload=strdata.encode("utf-8"))
         return messageId
 
@@ -277,9 +277,6 @@ class  Mss310:
     def get_sys_data(self):
         return self._execute_cmd("GET", "Appliance.System.All", {})
 
-    def get_power_consumptionX(self):
-        return self._execute_cmd("GET", "Appliance.Control.ConsumptionX", {})
-
     def get_wifi_list(self):
         return self._execute_cmd("GET", "Appliance.Config.WifiList", {})
 
@@ -302,9 +299,6 @@ class  Mss310:
     def get_abilities(self):
         return self._execute_cmd("GET", "Appliance.System.Ability", {})
 
-    def get_electricity(self):
-        return self._execute_cmd("GET", "Appliance.Control.Electricity", {})
-
     def get_report(self):
         return self._execute_cmd("GET", "Appliance.System.Report", {})
 
@@ -312,6 +306,20 @@ class  Mss310:
         if self._status is None:
             self._status = self.get_sys_data()['all']['control']['toggle']['onoff'] == 1
         return self._status
+
+    def device_id(self):
+        return self._uuid
+
+class Mss310(Device):
+    def get_power_consumptionX(self):
+        return self._execute_cmd("GET", "Appliance.Control.ConsumptionX", {})
+
+    def get_electricity(self):
+        return self._execute_cmd("GET", "Appliance.Control.Electricity", {})
+
+
+class Mss110(Device):
+    pass
 
 
 class AtomicCounter(object):
