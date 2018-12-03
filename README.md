@@ -1,7 +1,7 @@
 # Meross IoT library
 A pure-python based library providing API for controlling Meross IoT devices over the internet.
 
-To see what devices are currently supported, checkout the `Currently supported devices`-section. 
+To see what devices are currently supported, checkout the *Currently supported devices* section. 
 Hopefully, more Meross hardware will be supported in the future.
 
 This library is still work in progress, therefore use it with caution.
