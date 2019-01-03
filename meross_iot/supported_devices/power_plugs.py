@@ -391,8 +391,6 @@ class Wp110b(Device):
     # TODO Implement for all channels
     def get_status(self):
         return None
-    def get_electricity(self):
-        return self._execute_cmd("GET", "Appliance.Control.Electricity", {})
 
     def turn_on(self):
         payload = {'togglex':{"onoff":1}}
