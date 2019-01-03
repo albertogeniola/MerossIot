@@ -323,7 +323,25 @@ class Device:
         self._status = False
         payload = {"channel":0,"toggle":{"onoff":0}}
         return self._execute_cmd("SET", "Appliance.Control.Toggle", payload)
-      
+
+    def turn_on_channel(self, channel):
+        return None
+
+    def turn_off_channel(self, channel):
+        return None
+
+    def get_power_consumptionX(self):
+        return None
+
+    def get_electricity(self):
+        return None
+
+    def enable_usb(self):
+        return None
+
+    def disable_usb(self):
+        return None
+
 class Mss310(Device):
     def get_power_consumptionX(self):
         return self._execute_cmd("GET", "Appliance.Control.ConsumptionX", {})
@@ -364,6 +382,25 @@ class Mss425e(Device):
 
 class Mss110(Device):
     pass
+
+class Wp110b(Device):
+    # TODO Implement for all channels
+    def _handle_toggle(self, message):
+        return None
+
+    # TODO Implement for all channels
+    def get_status(self):
+        return None
+    def get_electricity(self):
+        return self._execute_cmd("GET", "Appliance.Control.Electricity", {})
+
+    def turn_on(self):
+        payload = {'togglex':{"onoff":1}}
+        return self._execute_cmd("SET", "Appliance.Control.ToggleX", payload)
+
+    def turn_off(self):
+        payload = {'togglex':{"onoff":0}}
+        return self._execute_cmd("SET", "Appliance.Control.ToggleX", payload)
 
 class AtomicCounter(object):
     _lock = None
