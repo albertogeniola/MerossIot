@@ -10,7 +10,7 @@ import logging
 from paho.mqtt import MQTTException
 from threading import RLock, Condition, Event
 from hashlib import md5
-from enum import Enum, auto
+from enum import Enum
 from logging import StreamHandler
 
 l = logging.getLogger("meross_powerplug")
@@ -18,11 +18,11 @@ l.addHandler(StreamHandler(stream=sys.stdout))
 l.setLevel(logging.DEBUG)
 
 class ClientStatus(Enum):
-    INITIALIZED = auto()
-    CONNECTING = auto()
-    CONNECTED = auto()
-    SUBSCRIBED = auto()
-    CONNECTION_DROPPED = auto()
+    INITIALIZED = 1
+    CONNECTING = 2
+    CONNECTED = 3
+    SUBSCRIBED = 4
+    CONNECTION_DROPPED = 5
 
 class Device:
     _status_lock = None
