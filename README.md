@@ -29,40 +29,51 @@ if __name__=='__main__':
     httpHandler = MerossHttpClient(email="YOUR_MEROSS_CLOUD_EMAIL", password="YOUR_PASSWORD")
 
     # Retrieves the list of supported devices
+    print("Listing Devices...")
     devices = httpHandler.list_supported_devices()
 
-    # Returns most of the info about the power plug
-    data = devices[0].get_sys_data()
+    for counter, device in enumerate(devices):
+        print("Playing with device: %d" % counter)
+        # Returns most of the info about the power plug
+        print("\nGetting system data...")
+        data = device.get_sys_data()
 
-    # Turns the power-plug on
-    devices[0].turn_off()
+        # Turns the power-plug on
+        print("\nTurning the device on...")
+        device.turn_off()
 
-    # Turns the power-plug off
-    devices[0].turn_on()
+        # Turns the power-plug off
+        print("\nTurning the device off...")
+        device.turn_on()
 
-    # Reads the historical device consumption
-    consumption = devices[0].get_power_consumptionX()
+        # Reads the historical device consumption
+        print("\nReading consumption data...")
+        consumption = device.get_power_consumptionX()
 
-    # Returns the list of WIFI Network available for the plug
-    # (Note. this takes some time to complete)
-    wifi_list = devices[0].get_wifi_list()
+        # Returns the list of WIFI Network available for the plug
+        # (Note. this takes some time to complete)
+        print("\nScanning Wifi...")
+        wifi_list = device.get_wifi_list()
 
-    # Info about the device
-    trace = devices[0].get_trace()
-    debug = devices[0].get_debug()
+        # Info about the device
+        print("\nGetting device trace...")
+        trace = device.get_trace()
+        print("\nGetting device debug...")
+        debug = device.get_debug()
 
-    # Returns the capabilities of this device
-    abilities = devices[0].get_abilities()
+        # Returns the capabilities of this device
+        print("\nRetrieving device abilities...")
+        abilities = device.get_abilities()
 
-    # I still have to figure this out :S
-    report = devices[0].get_report()
+        # I still have to figure this out :S
+        # The following command is not yet implemented on all devices
+        # and might not work as expected.
+        # report = device.get_report()
 
-    # Returns the current power consumption and voltage from the plug
-    # (Note: this is not really realtime, but close enough)
-    electricity = devices[0].get_electricity()
-
-    current_status = devices[0].get_electricity()
-    print(current_status)
+        # Returns the current power consumption and voltage from the plug
+        # (Note: this is not really realtime, but close enough)
+        print("\nReading electricity...")
+        electricity = device.get_electricity()
 
 ```
 
