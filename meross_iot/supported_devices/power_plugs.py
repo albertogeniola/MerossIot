@@ -362,7 +362,7 @@ class Mss310(Device):
             payload = {'togglex':{"onoff":0}}
             return self._execute_cmd("SET", "Appliance.Control.ToggleX", payload)
         else:
-            payload = {"channel":0,"toggle":{"onoff":1}}
+            payload = {"channel":0,"toggle":{"onoff":0}}
             return self._execute_cmd("SET", "Appliance.Control.Toggle", payload)
 
 class Mss425e(Device):
