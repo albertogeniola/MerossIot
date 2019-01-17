@@ -105,3 +105,6 @@ venv.bak/
 
 # Local test
 local_test/
+
+# IntelliJ
+.idea
