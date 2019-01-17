@@ -82,7 +82,7 @@ Even though this library was firstly meant to drive only the Meross MSS310,
 other nice developers contributed to its realization. The following is the 
 currently supported list of devices:
 
-- MSS310
+- MSS310 both hw v1 and v2 (Thanks to [DanoneKiD](https://github.com/DanoneKiD))
 - MSS110 (Thanks to [soberstadt](https://github.com/soberstadt))
 - MSS425E (Thanks to [ping-localhost](https://github.com/ping-localhost))
 
