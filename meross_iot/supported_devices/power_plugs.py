@@ -362,6 +362,9 @@ class Mss425e(Device):
     def disable_usb(self):
         return self.turn_off_channel(4)
 
+class Mss210(Device):
+    pass    
+    
 class Mss110(Device):
     pass
 
