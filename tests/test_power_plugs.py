@@ -9,7 +9,7 @@ EMAIL = os.environ.get('MEROSS_EMAIL')
 PASSWORD = os.environ.get('MEROSS_PASSWORD')
 
 
-class HttpMethods(unittest.TestCase):
+class TestHttpMethods(unittest.TestCase):
     def setUp(self):
         self.client = MerossHttpClient(email=EMAIL, password=PASSWORD)
 
@@ -24,7 +24,7 @@ class HttpMethods(unittest.TestCase):
         assert len(devices) > 0
 
 
-class MSS310Test(unittest.TestCase):
+class TestMSS310Test(unittest.TestCase):
     def setUp(self):
         httpHandler = MerossHttpClient(email=EMAIL, password=PASSWORD)
 
