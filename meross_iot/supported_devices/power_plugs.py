@@ -341,7 +341,7 @@ class Device:
         self._status = False
         payload = {"channel":0,"toggle":{"onoff":0}}
         return self._execute_cmd("SET", "Appliance.Control.Toggle", payload)
-      
+
 class Mss310(Device):
     def get_power_consumptionX(self):
         return self._execute_cmd("GET", "Appliance.Control.ConsumptionX", {})
@@ -395,6 +395,9 @@ class Mss425e(Device):
 
     def disable_usb(self):
         return self.turn_off_channel(4)
+
+class Mss210(Device):
+    pass
 
 class Mss110(Device):
     pass

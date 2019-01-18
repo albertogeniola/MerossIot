@@ -19,10 +19,10 @@ setup(
               'Programming Language :: Python :: 3',
               'Operating System :: OS Independent'
     ],
-    description='A simple library to deal with Meross devices. At the moment MSS110, MSS310 smart plugs and the MSS425E power stirp',
+    description='A simple library to deal with Meross devices. At the moment MSS110, MSS210, MSS310 smart plugs and the MSS425E power strip',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    keywords='meross smartplug iot mqtt domotic switch mss310 mss110 mss425e',
+    keywords='meross smartplug iot mqtt domotic switch mss310 mss210 mss110 mss425e',
     project_urls={
     'Documentation': 'https://github.com/albertogeniola/MerossIot',
     'Funding': 'https://donate.pypi.org',
