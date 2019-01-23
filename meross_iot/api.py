@@ -1,12 +1,13 @@
-import requests
 import base64
 import hashlib
 import json
-import time
-import string
 import random
-from meross_iot.device_factory import build_wrapper
+import string
+import time
 
+import requests
+
+from meross_iot.device_factory import build_wrapper
 
 # Appears to be used as a part of the signature algorithm as constant "salt" (kinda useless)
 _SECRET = "23x17ahWarFH6w29"
@@ -33,7 +34,7 @@ class MerossHttpClient:
     def _authenticated_post(self,
                             url,  # type: str
                             params_data  # type: dict
-        ):
+                            ):
 
         nonce = self._generate_nonce(16)
         timestamp_millis = int(round(time.time() * 1000))
@@ -69,7 +70,7 @@ class MerossHttpClient:
 
         # Save returned value
         jsondata = r.json()
-        #print(jsondata)
+        # print(jsondata)
 
         if jsondata["info"].lower() != "success":
             raise AuthenticatedPostException()
@@ -77,7 +78,7 @@ class MerossHttpClient:
         return jsondata["data"]
 
     def _encode_params(self,
-                       parameters # type: dict
+                       parameters  # type: dict
                        ):
         jsonstring = json.dumps(parameters)
         return str(base64.b64encode(jsonstring.encode("utf8")), "utf8")
@@ -105,8 +106,9 @@ class MerossHttpClient:
 
         return True
 
-    def _log(self,):
-        data = {'extra': {}, 'model': 'Android,Android SDK built for x86_64', 'system':'Android', 'uuid':'493dd9174941ed58waitForOpenWifi', 'vendor':'Meross', 'version':'6.0'}
+    def _log(self, ):
+        data = {'extra': {}, 'model': 'Android,Android SDK built for x86_64', 'system': 'Android',
+                'uuid': '493dd9174941ed58waitForOpenWifi', 'vendor': 'Meross', 'version': '6.0'}
         response_data = self._authenticated_post(_LOG_URL, params_data=data)
 
     def list_devices(self):
@@ -122,7 +124,7 @@ class MerossHttpClient:
             device = build_wrapper(self._token, self._key, self._userid, deviceType, dev)
             if device is not None:
                 supported_devices.append(device)
-            #else log...
+            # else log...
 
         return supported_devices
 
@@ -133,5 +135,3 @@ class AuthenticatedPostException(Exception):
 
 class UnauthorizedException(Exception):
     pass
-
-

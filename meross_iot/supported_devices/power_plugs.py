@@ -1,23 +1,26 @@
 debug = False
 
-import paho.mqtt.client as mqtt
-import ssl
-import random
-import string
-import time
 import json
-import sys
 import logging
-
-from paho.mqtt import MQTTException
-from threading import RLock, Condition, Event
-from hashlib import md5
+import random
+import ssl
+import string
+import sys
+import time
 from enum import Enum
+from hashlib import md5
 from logging import StreamHandler
+from threading import RLock, Condition
+
+import paho.mqtt.client as mqtt
+from paho.mqtt import MQTTException
+
+from meross_iot.utilities.synchronization import AtomicCounter
 
 l = logging.getLogger("meross_powerplug")
 l.addHandler(StreamHandler(stream=sys.stdout))
 l.setLevel(logging.DEBUG)
+
 
 class ClientStatus(Enum):
     INITIALIZED = 1
@@ -25,6 +28,7 @@ class ClientStatus(Enum):
     CONNECTED = 3
     SUBSCRIBED = 4
     CONNECTION_DROPPED = 5
+
 
 class Device:
     _status_lock = None
@@ -77,7 +81,7 @@ class Device:
                  token,
                  key,
                  user_id,
-                **kwords):
+                 **kwords):
 
         self._status_lock = RLock()
 
@@ -117,7 +121,8 @@ class Device:
         hashed_password = md5_hash.hexdigest()
 
         # Start the mqtt client
-        self._mqtt_client = mqtt.Client(client_id=self._client_id, protocol=mqtt.MQTTv311)  # ex. app-id -> app:08d4c9f99da40203ebc798a76512ec14
+        self._mqtt_client = mqtt.Client(client_id=self._client_id,
+                                        protocol=mqtt.MQTTv311)  # ex. app-id -> app:08d4c9f99da40203ebc798a76512ec14
         self._mqtt_client.on_connect = self._on_connect
         self._mqtt_client.on_message = self._on_message
         self._mqtt_client.on_disconnect = self._on_disconnect
@@ -125,8 +130,8 @@ class Device:
         self._mqtt_client.on_log = self._on_log
         self._mqtt_client.username_pw_set(username=self._user_id, password=hashed_password)
         self._mqtt_client.tls_set(ca_certs=None, certfile=None, keyfile=None, cert_reqs=ssl.CERT_REQUIRED,
-                       tls_version=ssl.PROTOCOL_TLS,
-                       ciphers=None)
+                                  tls_version=ssl.PROTOCOL_TLS,
+                                  ciphers=None)
 
         self._mqtt_client.connect(self._domain, self._port, keepalive=30)
         self._set_status(ClientStatus.CONNECTING)
@@ -183,7 +188,7 @@ class Device:
         self._user_topic = "/app/%s/subscribe" % self._user_id
 
         # Subscribe to the relevant topics
-        l.info("Subscribing to topics..." )
+        l.info("Subscribing to topics...")
         client.subscribe(self._user_topic)
         client.subscribe(self._client_response_topic)
 
@@ -200,7 +205,7 @@ class Device:
             message_hash.update(strtohash.encode("utf8"))
             expected_signature = message_hash.hexdigest().lower()
 
-            if(header['sign'] != expected_signature):
+            if (header['sign'] != expected_signature):
                 raise MQTTException('The signature did not match!')
 
             # If the message is the RESP for some previous action, process return the control to the "stopped" method.
@@ -253,11 +258,11 @@ class Device:
             "header":
                 {
                     "from": self._client_response_topic,
-                    "messageId": messageId, # Example: "122e3e47835fefcd8aaf22d13ce21859"
-                    "method": method, # Example: "GET",
-                    "namespace": namespace, # Example: "Appliance.System.All",
+                    "messageId": messageId,  # Example: "122e3e47835fefcd8aaf22d13ce21859"
+                    "method": method,  # Example: "GET",
+                    "namespace": namespace,  # Example: "Appliance.System.All",
                     "payloadVersion": 1,
-                    "sign": signature, # Example: "b4236ac6fb399e70c3d61e98fcb68b74",
+                    "sign": signature,  # Example: "b4236ac6fb399e70c3d61e98fcb68b74",
                     "timestamp": timestamp
                 },
             "payload": payload
@@ -334,13 +339,14 @@ class Device:
 
     def turn_on(self):
         self._status = True
-        payload = {"channel":0,"toggle":{"onoff":1}}
+        payload = {"channel": 0, "toggle": {"onoff": 1}}
         return self._execute_cmd("SET", "Appliance.Control.Toggle", payload)
 
     def turn_off(self):
         self._status = False
-        payload = {"channel":0,"toggle":{"onoff":0}}
+        payload = {"channel": 0, "toggle": {"onoff": 0}}
         return self._execute_cmd("SET", "Appliance.Control.Toggle", payload)
+
 
 class Mss310(Device):
     def get_power_consumptionX(self):
@@ -351,19 +357,20 @@ class Mss310(Device):
 
     def turn_on(self):
         if self._hwversion.split(".")[0] == "2":
-            payload = {'togglex':{"onoff":1}}
+            payload = {'togglex': {"onoff": 1}}
             return self._execute_cmd("SET", "Appliance.Control.ToggleX", payload)
         else:
-            payload = {"channel":0,"toggle":{"onoff":1}}
+            payload = {"channel": 0, "toggle": {"onoff": 1}}
             return self._execute_cmd("SET", "Appliance.Control.Toggle", payload)
 
     def turn_off(self):
         if self._hwversion.split(".")[0] == "2":
-            payload = {'togglex':{"onoff":0}}
+            payload = {'togglex': {"onoff": 0}}
             return self._execute_cmd("SET", "Appliance.Control.ToggleX", payload)
         else:
-            payload = {"channel":0,"toggle":{"onoff":0}}
+            payload = {"channel": 0, "toggle": {"onoff": 0}}
             return self._execute_cmd("SET", "Appliance.Control.Toggle", payload)
+
 
 class Mss425e(Device):
     # TODO Implement for all channels
@@ -375,19 +382,19 @@ class Mss425e(Device):
         return None
 
     def turn_on(self):
-        payload = {'togglex':{"onoff":1}}
+        payload = {'togglex': {"onoff": 1}}
         return self._execute_cmd("SET", "Appliance.Control.ToggleX", payload)
 
     def turn_off(self):
-        payload = {'togglex':{"onoff":0}}
+        payload = {'togglex': {"onoff": 0}}
         return self._execute_cmd("SET", "Appliance.Control.ToggleX", payload)
 
     def turn_on_channel(self, channel):
-        payload = {'togglex':{'channel':channel, 'onoff':1}}
+        payload = {'togglex': {'channel': channel, 'onoff': 1}}
         return self._execute_cmd("SET", "Appliance.Control.ToggleX", payload)
 
     def turn_off_channel(self, channel):
-        payload = {'togglex':{'channel':channel,'onoff': 0}}
+        payload = {'togglex': {'channel': channel, 'onoff': 0}}
         return self._execute_cmd("SET", "Appliance.Control.ToggleX", payload)
 
     def enable_usb(self):
@@ -396,25 +403,10 @@ class Mss425e(Device):
     def disable_usb(self):
         return self.turn_off_channel(4)
 
+
 class Mss210(Device):
     pass
 
+
 class Mss110(Device):
     pass
-
-class AtomicCounter(object):
-    _lock = None
-
-    def __init__(self, initialValue):
-        self._lock = RLock()
-        self._val = initialValue
-
-    def dec(self):
-        with self._lock:
-            self._val -= 1
-            return self._val
-
-    def inc(self):
-        with self._lock:
-            self._val += 1
-            return self._val

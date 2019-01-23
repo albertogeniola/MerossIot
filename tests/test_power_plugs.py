@@ -1,9 +1,9 @@
+import os
+import time
+import unittest
+
 from meross_iot.api import MerossHttpClient
 from meross_iot.supported_devices.power_plugs import Mss310
-import os
-import unittest
-import time
-
 
 EMAIL = os.environ.get('MEROSS_EMAIL')
 PASSWORD = os.environ.get('MEROSS_PASSWORD')
@@ -56,7 +56,7 @@ class TestMSS310Test(unittest.TestCase):
         wifi_list = self.device.get_wifi_list()
         assert wifi_list is not None
 
-        trace = self. device.get_trace()
+        trace = self.device.get_trace()
         assert trace is not None
 
         debug = self.device.get_debug()
@@ -67,4 +67,3 @@ class TestMSS310Test(unittest.TestCase):
 
         electricity = self.device.get_electricity()
         assert electricity is not None
-
