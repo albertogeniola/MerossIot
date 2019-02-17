@@ -83,6 +83,7 @@ other nice developers contributed to its realization. The following is the
 currently supported list of devices:
 
 - MSS310 both hw v1 and v2 (Thanks to [DanoneKiD](https://github.com/DanoneKiD))
+- MSS310H (Beta, status not updated) (Thanks to [virtualdj](https://github.com/virtualdj))
 - MSS210 (Thanks to [ictes](https://github.com/ictes))
 - MSS110 (Thanks to [soberstadt](https://github.com/soberstadt))
 - MSS425E (Thanks to [ping-localhost](https://github.com/ping-localhost))

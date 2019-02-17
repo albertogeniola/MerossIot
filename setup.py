@@ -9,7 +9,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='meross_iot',
-    version='0.1.4.2',
+    version='0.1.4.3',
     packages=find_packages(exclude=('tests',)),
     url='https://github.com/albertogeniola/MerossIot',
     license='MIT',
@@ -20,8 +20,8 @@ setup(
         'Programming Language :: Python :: 3',
         'Operating System :: OS Independent'
     ],
-    description='A simple library to deal with Meross devices. At the moment MSS110, MSS210, MSS310 smart plugs and '
-                'the MSS425E power strip',
+    description='A simple library to deal with Meross devices. At the moment MSS110, MSS210, MSS310, MSS310H '
+                'smart plugs and the MSS425E power strip',
     long_description=long_description,
     long_description_content_type='text/markdown',
     keywords='meross smartplug iot mqtt domotic switch mss310 mss210 mss110 mss425e',
@@ -35,6 +35,6 @@ setup(
         'paho-mqtt>=1.3.1',
         'requests>=2.19.1'
     ],
-    python_requires='>=3',
+    python_requires='>=3.5',
     test_suite='tests'
 )

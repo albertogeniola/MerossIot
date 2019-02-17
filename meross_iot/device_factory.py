@@ -10,6 +10,9 @@ def build_wrapper(
 ):
     if device_type.lower() == "mss310":
         return Mss310(token, key, user_id, **device_specs)
+    # Beta support for mss310h using the Mss310
+    elif device_type.lower() == "mss310h":
+        return Mss310(token, key, user_id, **device_specs)
     elif device_type.lower() == "mss210":
         return Mss210(token, key, user_id, **device_specs)
     elif device_type.lower() == "mss110":
