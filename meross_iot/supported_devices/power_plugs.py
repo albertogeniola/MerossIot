@@ -409,4 +409,20 @@ class Mss210(Device):
 
 
 class Mss110(Device):
-    pass
+    # TODO Implement for all channels
+    def _handle_toggle(self, message):
+        return None
+
+    # TODO Implement for all channels
+    def get_status(self):
+        return None
+
+    def turn_on(self):
+        self._status = True
+        payload = {'togglex':{"onoff":1}}
+        return self._execute_cmd("SET", "Appliance.Control.ToggleX", payload)
+
+    def turn_off(self):
+        self._status = False
+        payload = {'togglex':{"onoff":0}}
+        return self._execute_cmd("SET", "Appliance.Control.ToggleX", payload)
