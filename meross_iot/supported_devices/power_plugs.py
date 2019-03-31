@@ -74,7 +74,7 @@ class Device(ABC):
     _error = None
 
     # Dictionary {channel->status}
-    _status = {}  # type:dict
+    _status = None
 
     def __init__(self,
                  token,
@@ -341,30 +341,39 @@ class Device(ABC):
         return self._status.get(channel)
 
     def turn_on(self, channel=0):
-        if channel > self._channels:
+        if channel >= len(self._channels):
             raise Exception("The current device only has %d channels." % self._channels)
 
         # Set the local status for channel
         return self._channel_control_impl(channel, 1)
 
     def turn_off(self, channel=0):
-        if channel > self._channels:
+        if channel >= len(self._channels):
             raise Exception("The current device only has %d channels." % self._channels)
 
         # Set the local status for channel
-        return self._channel_control_impl(channel, 1)
+        return self._channel_control_impl(channel, 0)
+
+    def get_status(self, channel=0):
+        if channel >= len(self._channels):
+            raise Exception("The current device only has %d channels." % self._channels)
+
+        if self._status is None:
+            self._status = self._get_status_impl()
+
+        return self._status[channel]
 
     # Abstract methods: every child class should implement its specific logic, also taking into account the
     # FW/HW versions of the device.
     # ---------------------------------------------------
     @abstractmethod
-    def _handle_toggle(self, message):
-        pass
-
-    @abstractmethod
-    def get_status(self):
-        pass
-
-    @abstractmethod
     def _channel_control_impl(self, channel, status):
+        pass
+
+    @abstractmethod
+    def _get_status_impl(self):
+        pass
+
+    @abstractmethod
+    def _handle_toggle(self, message):
         pass

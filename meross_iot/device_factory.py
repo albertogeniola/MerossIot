@@ -1,4 +1,7 @@
-from meross_iot.supported_devices.power_plugs import Mss310, Mss210, Mss110, Mss425e
+from meross_iot.supported_devices.power_plug_impl.mss110 import Mss110
+from meross_iot.supported_devices.power_plug_impl.mss210 import Mss210
+from meross_iot.supported_devices.power_plug_impl.mss310 import Mss310
+from meross_iot.supported_devices.power_plug_impl.mss425 import Mss425e
 
 
 def build_wrapper(
