@@ -1,5 +1,3 @@
-debug = False
-
 import json
 import logging
 import random
@@ -11,7 +9,7 @@ from enum import Enum
 from hashlib import md5
 from logging import StreamHandler
 from threading import RLock, Condition
-
+from abc import ABC, abstractmethod
 import paho.mqtt.client as mqtt
 from paho.mqtt import MQTTException
 
@@ -30,7 +28,7 @@ class ClientStatus(Enum):
     CONNECTION_DROPPED = 5
 
 
-class Device:
+class Device(ABC):
     _status_lock = None
     _client_status = None
 
@@ -45,7 +43,7 @@ class Device:
     _client_id = None
     _app_id = None
 
-    # Device informations
+    # Device info
     _name = None
     _type = None
     _hwversion = None
@@ -75,7 +73,8 @@ class Device:
 
     _error = None
 
-    _status = None
+    # Dictionary {channel->status}
+    _status = {}  # type:dict
 
     def __init__(self,
                  token,
@@ -145,6 +144,8 @@ class Device:
                 # An error has occurred
                 raise Exception(self._error)
 
+    # Private methods used by the base class in order to handle basic protocol communication
+    # --------------------------------------------------------------------------------------
     def _on_disconnect(self, client, userdata, rc):
         l.info("Disconnection detected. Reason: %s" % str(rc))
 
@@ -193,6 +194,7 @@ class Device:
         client.subscribe(self._client_response_topic)
 
     # The callback for when a PUBLISH message is received from the server.
+    # --------------------------------------------------------------------
     def _on_message(self, client, userdata, msg):
         l.debug(msg.topic + " --> " + str(msg.payload))
 
@@ -304,12 +306,17 @@ class Device:
         except:
             return False
 
-    def _handle_toggle(self, message):
-        if 'onoff' in message['payload']['toggle']:
-            self._status = (message['payload']['toggle']['onoff'] == 1)
+    # The following methods might be overridden by the child class in case it's needed.
+    # For now, we assume the following implementations fit every device that is on the market
+    # (yeah, I know, that is a big assumption...).
+    def device_id(self):
+        return self._uuid
 
     def get_sys_data(self):
         return self._execute_cmd("GET", "Appliance.System.All", {})
+
+    def get_channels(self):
+        return self._channels
 
     def get_wifi_list(self):
         return self._execute_cmd("GET", "Appliance.Config.WifiList", {})
@@ -326,103 +333,38 @@ class Device:
     def get_report(self):
         return self._execute_cmd("GET", "Appliance.System.Report", {})
 
-    def get_status(self):
+    def get_channel_status(self, channel):
         if self._status is None:
-            self._status = self.get_sys_data()['all']['control']['toggle']['onoff'] == 1
-        return self._status
+            return None
+        if channel >= self._channels:
+            raise Exception("The current device only has %d channels." % self._channels)
+        return self._status.get(channel)
 
-    def device_id(self):
-        return self._uuid
+    def turn_on(self, channel=0):
+        if channel > self._channels:
+            raise Exception("The current device only has %d channels." % self._channels)
 
-    def get_channels(self):
-        return self._channels
+        # Set the local status for channel
+        return self._channel_control_impl(channel, 1)
 
-    def turn_on(self):
-        self._status = True
-        payload = {"channel": 0, "toggle": {"onoff": 1}}
-        return self._execute_cmd("SET", "Appliance.Control.Toggle", payload)
+    def turn_off(self, channel=0):
+        if channel > self._channels:
+            raise Exception("The current device only has %d channels." % self._channels)
 
-    def turn_off(self):
-        self._status = False
-        payload = {"channel": 0, "toggle": {"onoff": 0}}
-        return self._execute_cmd("SET", "Appliance.Control.Toggle", payload)
+        # Set the local status for channel
+        return self._channel_control_impl(channel, 1)
 
-
-class Mss310(Device):
-    def get_power_consumptionX(self):
-        return self._execute_cmd("GET", "Appliance.Control.ConsumptionX", {})
-
-    def get_electricity(self):
-        return self._execute_cmd("GET", "Appliance.Control.Electricity", {})
-
-    def turn_on(self):
-        if self._hwversion.split(".")[0] == "2":
-            payload = {'togglex': {"onoff": 1}}
-            return self._execute_cmd("SET", "Appliance.Control.ToggleX", payload)
-        else:
-            payload = {"channel": 0, "toggle": {"onoff": 1}}
-            return self._execute_cmd("SET", "Appliance.Control.Toggle", payload)
-
-    def turn_off(self):
-        if self._hwversion.split(".")[0] == "2":
-            payload = {'togglex': {"onoff": 0}}
-            return self._execute_cmd("SET", "Appliance.Control.ToggleX", payload)
-        else:
-            payload = {"channel": 0, "toggle": {"onoff": 0}}
-            return self._execute_cmd("SET", "Appliance.Control.Toggle", payload)
-
-
-class Mss425e(Device):
-    # TODO Implement for all channels
+    # Abstract methods: every child class should implement its specific logic, also taking into account the
+    # FW/HW versions of the device.
+    # ---------------------------------------------------
+    @abstractmethod
     def _handle_toggle(self, message):
-        return None
+        pass
 
-    # TODO Implement for all channels
+    @abstractmethod
     def get_status(self):
-        return None
+        pass
 
-    def turn_on(self):
-        payload = {'togglex': {"onoff": 1}}
-        return self._execute_cmd("SET", "Appliance.Control.ToggleX", payload)
-
-    def turn_off(self):
-        payload = {'togglex': {"onoff": 0}}
-        return self._execute_cmd("SET", "Appliance.Control.ToggleX", payload)
-
-    def turn_on_channel(self, channel):
-        payload = {'togglex': {'channel': channel, 'onoff': 1}}
-        return self._execute_cmd("SET", "Appliance.Control.ToggleX", payload)
-
-    def turn_off_channel(self, channel):
-        payload = {'togglex': {'channel': channel, 'onoff': 0}}
-        return self._execute_cmd("SET", "Appliance.Control.ToggleX", payload)
-
-    def enable_usb(self):
-        return self.turn_on_channel(4)
-
-    def disable_usb(self):
-        return self.turn_off_channel(4)
-
-
-class Mss210(Device):
-    pass
-
-
-class Mss110(Device):
-    # TODO Implement for all channels
-    def _handle_toggle(self, message):
-        return None
-
-    # TODO Implement for all channels
-    def get_status(self):
-        return None
-
-    def turn_on(self):
-        self._status = True
-        payload = {'togglex':{"onoff":1}}
-        return self._execute_cmd("SET", "Appliance.Control.ToggleX", payload)
-
-    def turn_off(self):
-        self._status = False
-        payload = {'togglex':{"onoff":0}}
-        return self._execute_cmd("SET", "Appliance.Control.ToggleX", payload)
+    @abstractmethod
+    def _channel_control_impl(self, channel, status):
+        pass
