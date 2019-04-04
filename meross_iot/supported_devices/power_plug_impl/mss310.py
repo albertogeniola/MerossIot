@@ -2,21 +2,13 @@ from meross_iot.supported_devices.power_plugs import Device
 
 
 class Mss310(Device):
-    """
-    Specific logic for MSS310 devices.
-    """
-
-    def _channel_control_impl(self, channel, status):
-        if self._hwversion.split(".")[0] == "2":
-            payload = {'togglex': {"onoff": status}}
-            return self._execute_cmd("SET", "Appliance.Control.ToggleX", payload)
-        else:
-            payload = {"channel": 0, "toggle": {"onoff": status}}
-            return self._execute_cmd("SET", "Appliance.Control.Toggle", payload)
-
     def _get_status_impl(self):
         res = {}
-        res[0] = self.get_sys_data()['all']['control']['toggle']['onoff'] == 1
+        if self._hwversion.split(".")[0] >= "2":
+            res[0] = self.get_sys_data()['all']['digest']['togglex'][0]['onoff'] == 1
+        else:
+            res = {}
+            res[0] = self.get_sys_data()['all']['control']['toggle']['onoff'] == 1
         return res
 
     def _handle_toggle(self, message):

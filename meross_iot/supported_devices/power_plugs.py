@@ -12,6 +12,7 @@ from threading import RLock, Condition
 from abc import ABC, abstractmethod
 import paho.mqtt.client as mqtt
 from paho.mqtt import MQTTException
+from meross_iot.supported_devices.abilities import *
 
 from meross_iot.utilities.synchronization import AtomicCounter
 
@@ -72,6 +73,9 @@ class Device(ABC):
     _command_timeout = 10
 
     _error = None
+
+    # Cached list of abilities
+    _abilities = None
 
     # Dictionary {channel->status}
     _status = None
@@ -328,48 +332,61 @@ class Device(ABC):
         return self._execute_cmd("GET", "Appliance.System.Debug", {})
 
     def get_abilities(self):
-        return self._execute_cmd("GET", "Appliance.System.Ability", {})
+        # TODO: Make this cached value expire after a bit...
+        if self._abilities is None:
+            self._abilities = self._execute_cmd("GET", "Appliance.System.Ability", {})
+        return self._abilities
 
     def get_report(self):
         return self._execute_cmd("GET", "Appliance.System.Report", {})
 
     def get_channel_status(self, channel):
-        if self._status is None:
-            return None
-        if channel >= self._channels:
-            raise Exception("The current device only has %d channels." % self._channels)
-        return self._status.get(channel)
+        return self.get_status(channel)
+
+    def turn_on_channel(self, channel):
+        return self._channel_control_impl(channel, 1)
+
+    def turn_off_channel(self, channel):
+        return self._channel_control_impl(channel, 0)
 
     def turn_on(self, channel=0):
         if channel >= len(self._channels):
             raise Exception("The current device only has %d channels." % self._channels)
-
         # Set the local status for channel
         return self._channel_control_impl(channel, 1)
 
     def turn_off(self, channel=0):
         if channel >= len(self._channels):
             raise Exception("The current device only has %d channels." % self._channels)
-
         # Set the local status for channel
         return self._channel_control_impl(channel, 0)
 
     def get_status(self, channel=0):
         if channel >= len(self._channels):
             raise Exception("The current device only has %d channels." % self._channels)
-
         if self._status is None:
             self._status = self._get_status_impl()
-
         return self._status[channel]
+
+    def _toggle(self, channel, status):
+        payload = {"channel": 0, "toggle": {"onoff": status}}
+        return self._execute_cmd("SET", TOGGLE, payload)
+
+    def _togglex(self, channel, status):
+        payload = {'togglex': {"onoff": status}}
+        return self._execute_cmd("SET", TOGGLEX, payload)
+
+    def _channel_control_impl(self, channel, status):
+        if TOGGLE in self.get_abilities():
+            self._toggle(channel, status)
+        elif TOGGLEX in self.get_abilities():
+            self._togglex(channel, status)
+        else:
+            raise Exception("The current device does not support neither TOGGLE nor TOGGLEX.")
 
     # Abstract methods: every child class should implement its specific logic, also taking into account the
     # FW/HW versions of the device.
     # ---------------------------------------------------
-    @abstractmethod
-    def _channel_control_impl(self, channel, status):
-        pass
-
     @abstractmethod
     def _get_status_impl(self):
         pass

@@ -1,6 +1,5 @@
 from meross_iot.api import MerossHttpClient
 import csv, io
-import json
 
 EMAIL = 'YOUR_EMAIL'
 PASSWORD = 'YOUR_PASSWORD'
@@ -32,6 +31,7 @@ if __name__ == '__main__':
     for d in devices:
         # TODO: purge mac, user IDS and IPs from responses.
         r = []
+        r.append(d._type)
         r.append(d._hwversion)
         r.append(d._fwversion)
         r.append(sanitize_personal_info(d.get_sys_data()))

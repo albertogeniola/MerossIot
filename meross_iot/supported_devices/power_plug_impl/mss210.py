@@ -1,13 +1,13 @@
 from meross_iot.supported_devices.power_plugs import Device
 
 
+ABILITY_TOGGLE = 'Appliance.Control.Toggle'
+
 class Mss210(Device):
-    def get_status(self):
-        # TODO: check
-        if self._status is None:
-            # Mss310, firmware
-            self._status = self.get_sys_data()['all']['control']['toggle']['onoff'] == 1
-        return self._status
+    def _get_status_impl(self):
+        res = {}
+        res[0] = self.get_sys_data()['all']['digest']['togglex'][0]['onoff'] == 1
+        return res
 
     def _handle_toggle(self, message):
         if 'onoff' in message['payload']['toggle']:
