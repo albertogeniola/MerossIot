@@ -9,7 +9,6 @@ from enum import Enum
 from hashlib import md5
 from logging import StreamHandler
 from threading import RLock, Condition
-from abc import ABC, abstractmethod
 import paho.mqtt.client as mqtt
 from paho.mqtt import MQTTException
 from meross_iot.supported_devices.abilities import *
@@ -17,8 +16,15 @@ from meross_iot.supported_devices.abilities import *
 from meross_iot.utilities.synchronization import AtomicCounter
 
 l = logging.getLogger("meross_powerplug")
-l.addHandler(StreamHandler(stream=sys.stdout))
-l.setLevel(logging.DEBUG)
+h = StreamHandler(stream=sys.stdout)
+h.setLevel(logging.DEBUG)
+l.addHandler(h)
+l.setLevel(logging.INFO)
+
+
+# Call this module to adjust the verbosity of the stream output. By default, only INFO is written to STDOUT log.
+def set_debug_level(level):
+    l.setLevel(level)
 
 
 class ClientStatus(Enum):
@@ -29,7 +35,7 @@ class ClientStatus(Enum):
     CONNECTION_DROPPED = 5
 
 
-class Device(ABC):
+class GenericPlug:
     _status_lock = None
     _client_status = None
 
@@ -78,7 +84,7 @@ class Device(ABC):
     _abilities = None
 
     # Dictionary {channel->status}
-    _status = None
+    _state = None
 
     def __init__(self,
                  token,
@@ -222,12 +228,10 @@ class Device(ABC):
 
             # Otherwise process it accordingly
             elif self._message_from_self(message):
-                if header['method'] == "PUSH" and 'payload' in message and 'toggle' in message['payload']:
-                    self._handle_toggle(message)
+                if header['method'] == "PUSH" and 'namespace' in header:
+                    self._handle_namespace_payload(header['namespace'], message['payload'])
                 else:
                     l.debug("UNKNOWN msg received by %s" % self._uuid)
-                    # if header['method'] == "PUSH":
-                    # TODO
             else:
                 # do nothing because the message was from a different device
                 pass
@@ -310,9 +314,43 @@ class Device(ABC):
         except:
             return False
 
-    # The following methods might be overridden by the child class in case it's needed.
-    # For now, we assume the following implementations fit every device that is on the market
-    # (yeah, I know, that is a big assumption...).
+    def _toggle(self, status):
+        payload = {"channel": 0, "toggle": {"onoff": status}}
+        return self._execute_cmd("SET", TOGGLE, payload)
+
+    def _togglex(self, channel, status):
+        payload = {'togglex': {"onoff": status, "channel": channel}}
+        return self._execute_cmd("SET", TOGGLEX, payload)
+
+    def _channel_control_impl(self, channel, status):
+        if TOGGLE in self.get_abilities():
+            self._toggle(status)
+        elif TOGGLEX in self.get_abilities():
+            self._togglex(channel, status)
+        else:
+            raise Exception("The current device does not support neither TOGGLE nor TOGGLEX.")
+
+    def _handle_namespace_payload(self, namespace, payload):
+        if namespace == TOGGLE:
+            self._state[0] = payload['toggle']['onoff'] == 1
+
+        elif namespace == TOGGLEX:
+            for c in payload['togglex']:
+                channel_index = c['channel']
+                self._state[channel_index] = c['onoff'] == 1
+        else:
+            raise Exception("Unknown/Unsupported namespace/command: %s" % namespace)
+
+    def _get_status_impl(self):
+        res = {}
+        data = self.get_sys_data()['all']
+        if 'digest' in data:
+            for c in data['digest']['togglex']:
+                res[c['channel']] = c['onoff'] == 1
+        elif 'control' in data:
+            res[0] = data['control']['toggle']['onoff'] == 1
+        return res
+
     def device_id(self):
         return self._uuid
 
@@ -334,7 +372,7 @@ class Device(ABC):
     def get_abilities(self):
         # TODO: Make this cached value expire after a bit...
         if self._abilities is None:
-            self._abilities = self._execute_cmd("GET", "Appliance.System.Ability", {})
+            self._abilities = self._execute_cmd("GET", "Appliance.System.Ability", {})['ability']
         return self._abilities
 
     def get_report(self):
@@ -364,33 +402,9 @@ class Device(ABC):
     def get_status(self, channel=0):
         if channel >= len(self._channels):
             raise Exception("The current device only has %d channels." % self._channels)
-        if self._status is None:
-            self._status = self._get_status_impl()
-        return self._status[channel]
+        if self._state is None:
+            self._state = self._get_status_impl()
+        return self._state[channel]
 
-    def _toggle(self, channel, status):
-        payload = {"channel": 0, "toggle": {"onoff": status}}
-        return self._execute_cmd("SET", TOGGLE, payload)
 
-    def _togglex(self, channel, status):
-        payload = {'togglex': {"onoff": status}}
-        return self._execute_cmd("SET", TOGGLEX, payload)
 
-    def _channel_control_impl(self, channel, status):
-        if TOGGLE in self.get_abilities():
-            self._toggle(channel, status)
-        elif TOGGLEX in self.get_abilities():
-            self._togglex(channel, status)
-        else:
-            raise Exception("The current device does not support neither TOGGLE nor TOGGLEX.")
-
-    # Abstract methods: every child class should implement its specific logic, also taking into account the
-    # FW/HW versions of the device.
-    # ---------------------------------------------------
-    @abstractmethod
-    def _get_status_impl(self):
-        pass
-
-    @abstractmethod
-    def _handle_toggle(self, message):
-        pass
