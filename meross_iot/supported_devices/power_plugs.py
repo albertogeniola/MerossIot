@@ -314,6 +314,12 @@ class GenericPlug:
         except:
             return False
 
+    def _get_consumptionx(self):
+        return self._execute_cmd("GET", CONSUMPTIONX, {})
+
+    def _get_electricity(self):
+        return self._execute_cmd("GET", "Appliance.Control.Electricity", {})
+
     def _toggle(self, status):
         payload = {"channel": 0, "toggle": {"onoff": status}}
         return self._execute_cmd("SET", TOGGLE, payload)
@@ -351,6 +357,41 @@ class GenericPlug:
             res[0] = data['control']['toggle']['onoff'] == 1
         return res
 
+    def _get_channel_id(self, channel):
+        if channel is None:
+            return 0
+
+        k = None
+        if isinstance(channel, str):
+            k = 'name'
+        elif isinstance(channel, int):
+            k = 'channel'
+        else:
+            raise Exception("Invalid channel specified.")
+
+        for c in self.get_channels():
+            if c[k] == channel:
+                return c['channel']
+
+        raise Exception("Invalid channel specified.")
+
+    def get_consumption(self):
+        if CONSUMPTIONX in self.get_abilities():
+            return self._get_consumptionx()
+        else:
+            # Not supported!
+            return None
+
+    def get_electricity(self):
+        if ELECTRICITY in self.get_abilities():
+            return self._get_electricity()
+        else:
+            # Not supported!
+            return None
+
+    def get_power_consumptionX(self):
+        return self.get_consumption()
+
     def device_id(self):
         return self._uuid
 
@@ -379,32 +420,55 @@ class GenericPlug:
         return self._execute_cmd("GET", "Appliance.System.Report", {})
 
     def get_channel_status(self, channel):
-        return self.get_status(channel)
+        c = self._get_channel_id(channel)
+        return self.get_status(c)
 
     def turn_on_channel(self, channel):
-        return self._channel_control_impl(channel, 1)
+        c = self._get_channel_id(channel)
+        return self._channel_control_impl(c, 1)
 
     def turn_off_channel(self, channel):
-        return self._channel_control_impl(channel, 0)
+        c = self._get_channel_id(channel)
+        return self._channel_control_impl(c, 0)
 
-    def turn_on(self, channel=0):
-        if channel >= len(self._channels):
-            raise Exception("The current device only has %d channels." % self._channels)
-        # Set the local status for channel
-        return self._channel_control_impl(channel, 1)
+    def turn_on(self, channel=None):
+        c = self._get_channel_id(channel)
+        return self._channel_control_impl(c, 1)
 
-    def turn_off(self, channel=0):
-        if channel >= len(self._channels):
-            raise Exception("The current device only has %d channels." % self._channels)
-        # Set the local status for channel
-        return self._channel_control_impl(channel, 0)
+    def turn_off(self, channel=None):
+        c = self._get_channel_id(channel)
+        return self._channel_control_impl(c, 0)
 
-    def get_status(self, channel=0):
-        if channel >= len(self._channels):
-            raise Exception("The current device only has %d channels." % self._channels)
+    def get_status(self, channel=None):
+        c = self._get_channel_id(channel)
         if self._state is None:
             self._state = self._get_status_impl()
-        return self._state[channel]
+        return self._state[c]
 
+    def get_usb_channel_index(self):
+        # Look for the usb channel
+        for c in self.get_channels():
+            if c['type'] == 'USB':
+                return c['channel']
+        return None
 
+    def enable_usb(self):
+        c = self.get_usb_channel_index()
+        if c is None:
+            return
+        else:
+            return self.turn_on_channel(c)
 
+    def disable_usb(self):
+        c = self.get_usb_channel_index()
+        if c is None:
+            return
+        else:
+            return self.turn_off_channel(c)
+
+    def get_usb_status(self):
+        c = self.get_usb_channel_index()
+        if c is None:
+            return
+        else:
+            return self.get_channel_status(c)
