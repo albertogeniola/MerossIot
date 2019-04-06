@@ -138,3 +138,8 @@ Look at these babies!
 ![Devices I own](ext-res/plugs/devices.jpg)
 
 ![My test environment](ext-res/plugs/testdevices.jpg)
+
+## Support on Beerpay
+Hey dude! Help me out for a couple of :beers:!
+
+[![Beerpay](https://beerpay.io/albertogeniola/MerossIot/badge.svg?style=beer-square)](https://beerpay.io/albertogeniola/MerossIot)  [![Beerpay](https://beerpay.io/albertogeniola/MerossIot/make-wish.svg?style=flat-square)](https://beerpay.io/albertogeniola/MerossIot?focus=wish)
