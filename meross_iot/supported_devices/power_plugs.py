@@ -12,6 +12,7 @@ from threading import RLock, Condition
 import paho.mqtt.client as mqtt
 from paho.mqtt import MQTTException
 from meross_iot.supported_devices.abilities import *
+from meross_iot.supported_devices.exceptions.CommandTimeoutException import CommandTimeoutException
 
 from meross_iot.utilities.synchronization import AtomicCounter
 
@@ -20,6 +21,10 @@ h = StreamHandler(stream=sys.stdout)
 h.setLevel(logging.DEBUG)
 l.addHandler(h)
 l.setLevel(logging.INFO)
+
+
+LONG_TIMEOUT = 30.0  # For wifi scan
+SHORT_TIMEOUT = 5.0  # For any other command
 
 
 # Call this module to adjust the verbosity of the stream output. By default, only INFO is written to STDOUT log.
@@ -296,7 +301,7 @@ class GenericPlug:
         with self._status_lock:
             self._client_status = status
 
-    def _execute_cmd(self, method, namespace, payload):
+    def _execute_cmd(self, method, namespace, payload, timeout=SHORT_TIMEOUT):
         # Before executing any command, we need to be subscribed to the MQTT topics where to listen for ACKS.
         with self._waiting_subscribers_queue:
             while self._client_status != ClientStatus.SUBSCRIBED:
@@ -307,7 +312,9 @@ class GenericPlug:
 
             # Wait synchronously until we get the ACK.
             with self._waiting_message_ack_queue:
-                self._waiting_message_ack_queue.wait()
+                if not self._waiting_message_ack_queue.wait(timeout=timeout):
+                    # Timeout expired.
+                    raise CommandTimeoutException()
 
             return self._ack_response['payload']
 
@@ -321,7 +328,7 @@ class GenericPlug:
         return self._execute_cmd("GET", CONSUMPTIONX, {})
 
     def _get_electricity(self):
-        return self._execute_cmd("GET", "Appliance.Control.Electricity", {})
+        return self._execute_cmd("GET", ELECTRICITY, {})
 
     def _toggle(self, status):
         payload = {"channel": 0, "toggle": {"onoff": status}}
@@ -433,7 +440,7 @@ class GenericPlug:
         return self._channels
 
     def get_wifi_list(self):
-        return self._execute_cmd("GET", "Appliance.Config.WifiList", {})
+        return self._execute_cmd("GET", "Appliance.Config.WifiList", {}, timeout=LONG_TIMEOUT)
 
     def get_trace(self):
         return self._execute_cmd("GET", "Appliance.Config.Trace", {})

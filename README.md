@@ -26,8 +26,11 @@ from meross_iot.api import MerossHttpClient
 if __name__=='__main__':
     httpHandler = MerossHttpClient(email="YOUR_MEROSS_CLOUD_EMAIL", password="YOUR_PASSWORD")
 
-    # Retrieves the list of supported devices
-    print("Listing Devices...")
+    print("Listing online devices...")
+
+    # Retrieves the list of supported and ONLINE devices.
+    # If you also want to list offline devices, pass the online_only=False parameter.
+    # Note! Trying to control an offline device will generate an exception.
     devices = httpHandler.list_supported_devices()
     for d in devices:
         print("-", d)

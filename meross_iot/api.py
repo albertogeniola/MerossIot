@@ -117,10 +117,16 @@ class MerossHttpClient:
 
         return self._authenticated_post(_DEV_LIST, {})
 
-    def list_supported_devices(self):
+    def list_supported_devices(self, online_only=True):
         supported_devices = []
         for dev in self.list_devices():
             deviceType = dev['deviceType']
+            online = dev['onlineStatus']
+
+            if online_only and online != 1:
+                # The device is not online, so we skip it.
+                continue
+
             device = build_wrapper(self._token, self._key, self._userid, deviceType, dev)
             if device is not None:
                 supported_devices.append(device)

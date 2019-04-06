@@ -1,0 +1,2 @@
+class CommandTimeoutException(Exception):
+    pass
