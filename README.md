@@ -1,6 +1,7 @@
 [![Build status](https://albertogeniola.visualstudio.com/Meross/_apis/build/status/Meross-Python%20package-CI)](https://albertogeniola.visualstudio.com/Meross/_build/latest?definitionId=1)
 ![Deployment](https://albertogeniola.vsrm.visualstudio.com/_apis/public/Release/badge/c4128d1b-c23c-418d-95c5-2de061954ee5/1/1)
-
+[![Downloads](https://pepy.tech/badge/meross-iot)](https://pepy.tech/project/meross-iot)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/meross-iot.svg?label=Pypi%20Downloads)
 # Meross IoT library
 A pure-python based library providing API for controlling Meross IoT devices over the internet.
 
