@@ -127,7 +127,7 @@ class GenericPlug:
             self._hwversion = kwords['hdwareVersion']
 
         # Lookup port and certificate for MQTT server
-        self._port = kwords.get('port', Device._port)
+        self._port = kwords.get('port', GenericPlug._port)
         self._ca_cert = kwords.get('ca_cert', None)
 
         self._generate_client_and_app_id()
