@@ -3,6 +3,7 @@
 [![PyPI version](https://badge.fury.io/py/meross-iot.svg)](https://badge.fury.io/py/meross-iot)
 [![Downloads](https://pepy.tech/badge/meross-iot)](https://pepy.tech/project/meross-iot)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/meross-iot.svg?label=Pypi%20Downloads)
+[![Beerpay](https://beerpay.io/albertogeniola/MerossIot/badge.svg?style=flat)](https://beerpay.io/albertogeniola/MerossIot)
 
 # Meross IoT library
 A pure-python based library providing API for controlling Meross IoT devices over the internet.
