@@ -21,8 +21,6 @@ pip install meross_iot --upgrade
 The following script demonstrates how to use this library.
 
 ```python
-import time
-import sys
 from meross_iot.api import MerossHttpClient
 
 if __name__=='__main__':
@@ -31,62 +29,75 @@ if __name__=='__main__':
     # Retrieves the list of supported devices
     print("Listing Devices...")
     devices = httpHandler.list_supported_devices()
+    for d in devices:
+        print("-", d)
 
-    for counter, device in enumerate(devices):
-        print("Playing with device: %d" % counter)
+    for device in devices:
+        print("\n-------------------------------\n"
+              "Playing with device: %s"
+              "\n-------------------------------" % device)
+
         # Returns most of the info about the power plug
         print("\nGetting system data...")
         data = device.get_sys_data()
+        print(data)
 
-        # Turns the power-plug on
-        print("\nTurning the device on...")
-        device.turn_off()
+        # If the device supports multiple channels, let's play with each one.
+        n_channels = len(device.get_channels())
+        print("The device supports %d channels" % n_channels)
 
-        # Turns the power-plug off
-        print("\nTurning the device off...")
-        device.turn_on()
+        for channel in range(0, n_channels):
+            # Turns the power-plug on
+            print("\nTurning channel %d on..." % channel)
+            device.turn_on_channel(channel)
 
-        # Reads the historical device consumption
-        print("\nReading consumption data...")
-        consumption = device.get_power_consumptionX()
+            # Turns the power-plug off
+            print("Turning channel %d off..." % channel)
+            device.turn_off_channel(channel)
+
+        # Some devices also have a dedicated channel for USB
+        usb_channel_index = device.get_usb_channel_index()
+        if usb_channel_index is not None:
+            # Turns the USB on
+            print("\nTurning on USB...")
+            device.turn_on_channel(usb_channel_index)
+
+            # Turns the power-plug off
+            print("Turning off USB...")
+            device.turn_off_channel(usb_channel_index)
+
+        # Some devices support reading consumption data
+        if device.supports_consumption_reading():
+            print("\nReading consumption data...")
+            consumption = device.get_power_consumption()
+            print(consumption)
+
+        # Some devices support reading consumption data
+        if device.supports_electricity_reading():
+            print("\nReading electricity data...")
+            electricity = device.get_electricity()
+            print(electricity)
 
         # Returns the list of WIFI Network available for the plug
         # (Note. this takes some time to complete)
         print("\nScanning Wifi...")
         wifi_list = device.get_wifi_list()
 
-        # Info about the device
-        print("\nGetting device trace...")
-        trace = device.get_trace()
-        print("\nGetting device debug...")
-        debug = device.get_debug()
-
-        # Returns the capabilities of this device
-        print("\nRetrieving device abilities...")
-        abilities = device.get_abilities()
-
-        # I still have to figure this out :S
-        # The following command is not yet implemented on all devices
-        # and might not work as expected.
-        # report = device.get_report()
-
-        # Returns the current power consumption and voltage from the plug
-        # (Note: this is not really realtime, but close enough)
-        print("\nReading electricity...")
-        electricity = device.get_electricity()
-
 ```
 
 ## Currently supported devices
-Even though this library was firstly meant to drive only the Meross MSS310, 
-other nice developers contributed to its realization. The following is the 
-currently supported list of devices:
+Starting from v0.2.0.0, this library should support the majority of Meross devices on the market.
+The list of tested devices is the following:
+- MSS110
+- MSS210
+- MSS310
+- MSS310h
+- MSS425e
 
-- MSS310 both hw v1 and v2 (Thanks to [DanoneKiD](https://github.com/DanoneKiD))
-- MSS310H (Beta, status not updated) (Thanks to [virtualdj](https://github.com/virtualdj))
-- MSS210 (Thanks to [ictes](https://github.com/ictes))
-- MSS110 (Thanks to [soberstadt](https://github.com/soberstadt))
-- MSS425E (Thanks to [ping-localhost](https://github.com/ping-localhost))
+I'd like to thank all the people who contributed to the early stage of library development,
+who stimulated me to continue the development and making this library support more devices:
+
+Thanks to [DanoneKiD](https://github.com/DanoneKiD), [virtualdj](https://github.com/virtualdj), [ictes](https://github.com/ictes), [soberstadt](https://github.com/soberstadt), [ping-localhost](https://github.com/ping-localhost).
 
 ## Protocol details
 This library was implemented by reverse-engineering the network communications between the plug and the meross network.
@@ -95,9 +106,28 @@ Anyone can do the same by simply installing a Man-In-The-Middle proxy and routin
 If you want to understand how the Meross protocol works, [have a look at the Wiki](https://github.com/albertogeniola/MerossIot/wiki). Be aware: this is still work in progress, so some pages of the wiki might still be blank/under construction.
 
 ## Donate!
-I like reverse engineering and protocol inspection, I think it keeps your mind trained and healthy. However, if you liked or appreciated by work, why don't you buy me a beer? It would really motivate me to continue working on this repository to improve documentation, code and extend the supported meross devices.
+I like reverse engineering and protocol inspection, I think it keeps your mind trained and healthy. 
+However, if you liked or appreciated by work, why don't you buy me a beer? 
+It would really motivate me to continue working on this repository to improve documentation, code and extend the supported meross devices.
+
+
+Moreover, donations will make me raise money to spend on other Meross devices. 
+So far, I've bought the following devices:
+- MSS210
+- MSS310
+- MSS425E
+
+By issuing a donation, you will:
+1. Give me the opportunity to buy new devices and support them in this library
+1. Pay part of electricity bill used to keep running the plugs 24/7 
+(Note that they are used for Unit-Testing on the continuous integration engine when someone pushes a PR... I love DEVOPing!)  
+1. You'll increase the quality of my coding sessions with free-beer!
 
 [![Buy me a beer](http://4.bp.blogspot.com/-1Md6-deTZ84/VA_lzcxMx1I/AAAAAAAACl8/wP_4rXBXwyI/s1600/PayPal-Donation-Button.png)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=6HPAB89UYSZF2)
 
 
+Look at these babies!
 
+![Devices I own](plugs/devices.jpg)
+
+![My test environment](plugs/testdevices.jpg)

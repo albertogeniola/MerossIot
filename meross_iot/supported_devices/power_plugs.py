@@ -154,6 +154,8 @@ class GenericPlug:
                 # An error has occurred
                 raise Exception(self._error)
 
+        self.get_status()
+
     # Private methods used by the base class in order to handle basic protocol communication
     # --------------------------------------------------------------------------------------
     def _on_disconnect(self, client, userdata, rc):
@@ -178,18 +180,18 @@ class GenericPlug:
             client.loop_stop()
 
     def _on_unsubscribe(self):
-        l.info("Unsubscribed from topic")
+        l.debug("Unsubscribed from topic")
         self._subscription_count.dec()
 
     def _on_subscribe(self, client, userdata, mid, granted_qos):
-        l.info("Succesfully subscribed!")
+        l.debug("Succesfully subscribed!")
         if self._subscription_count.inc() == 2:
             with self._waiting_subscribers_queue:
                 self._set_status(ClientStatus.SUBSCRIBED)
                 self._waiting_subscribers_queue.notify_all()
 
     def _on_connect(self, client, userdata, rc, other):
-        l.info("Connected with result code %s" % str(rc))
+        l.debug("Connected with result code %s" % str(rc))
         self._set_status(ClientStatus.SUBSCRIBED)
 
         self._set_status(ClientStatus.CONNECTED)
@@ -199,7 +201,7 @@ class GenericPlug:
         self._user_topic = "/app/%s/subscribe" % self._user_id
 
         # Subscribe to the relevant topics
-        l.info("Subscribing to topics...")
+        l.debug("Subscribing to topics...")
         client.subscribe(self._user_topic)
         client.subscribe(self._client_response_topic)
 
@@ -227,7 +229,7 @@ class GenericPlug:
                     self._waiting_message_ack_queue.notify()
 
             # Otherwise process it accordingly
-            elif self._message_from_self(message):
+            if self._message_from_self(message):
                 if header['method'] == "PUSH" and 'namespace' in header:
                     self._handle_namespace_payload(header['namespace'], message['payload'])
                 else:
@@ -236,7 +238,7 @@ class GenericPlug:
                 # do nothing because the message was from a different device
                 pass
         except Exception as e:
-            l.debug("%s failed to process message because: %s" % (self._uuid, e))
+            l.error("%s failed to process message because: %s" % (self._uuid, e))
 
     def _on_log(self, client, userdata, level, buf):
         # print("Data: %s - Buff: %s" % (userdata, buf))
@@ -295,6 +297,7 @@ class GenericPlug:
             self._client_status = status
 
     def _execute_cmd(self, method, namespace, payload):
+        # Before executing any command, we need to be subscribed to the MQTT topics where to listen for ACKS.
         with self._waiting_subscribers_queue:
             while self._client_status != ClientStatus.SUBSCRIBED:
                 self._waiting_subscribers_queue.wait()
@@ -330,22 +333,27 @@ class GenericPlug:
 
     def _channel_control_impl(self, channel, status):
         if TOGGLE in self.get_abilities():
-            self._toggle(status)
+            return self._toggle(status)
         elif TOGGLEX in self.get_abilities():
-            self._togglex(channel, status)
+            return self._togglex(channel, status)
         else:
             raise Exception("The current device does not support neither TOGGLE nor TOGGLEX.")
 
     def _handle_namespace_payload(self, namespace, payload):
-        if namespace == TOGGLE:
-            self._state[0] = payload['toggle']['onoff'] == 1
+        with self._status_lock:
+            if namespace == TOGGLE:
+                self._state[0] = payload['toggle']['onoff'] == 1
 
-        elif namespace == TOGGLEX:
-            for c in payload['togglex']:
-                channel_index = c['channel']
-                self._state[channel_index] = c['onoff'] == 1
-        else:
-            raise Exception("Unknown/Unsupported namespace/command: %s" % namespace)
+            elif namespace == TOGGLEX:
+                if isinstance(payload['togglex'], list):
+                    for c in payload['togglex']:
+                        channel_index = c['channel']
+                        self._state[channel_index] = c['onoff'] == 1
+                elif isinstance(payload['togglex'], dict):
+                    channel_index = payload['togglex']['channel']
+                    self._state[channel_index] = payload['togglex']['onoff'] == 1
+            else:
+                raise Exception("Unknown/Unsupported namespace/command: %s" % namespace)
 
     def _get_status_impl(self):
         res = {}
@@ -358,24 +366,47 @@ class GenericPlug:
         return res
 
     def _get_channel_id(self, channel):
-        if channel is None:
-            return 0
+        # Otherwise, if the passed channel looks like the channel spec, lookup its array indexindex
+        if channel in self._channels:
+            return self._channels.index(channel)
 
-        k = None
+        # if a channel name is given, lookup the channel id from the name
         if isinstance(channel, str):
-            k = 'name'
+            for i, c in enumerate(self.get_channels()):
+                if c['devName'] == channel:
+                    return c['channel']
+
+        # If an integer is given assume that is the channel ID
         elif isinstance(channel, int):
-            k = 'channel'
-        else:
-            raise Exception("Invalid channel specified.")
+            return channel
 
-        for c in self.get_channels():
-            if c[k] == channel:
-                return c['channel']
-
+        # In other cases return an error
         raise Exception("Invalid channel specified.")
 
-    def get_consumption(self):
+    def __str__(self):
+        basic_info = "%s (%s, %d channels, HW %s, FW %s): " % (
+            self._name,
+            self._type,
+            len(self._channels),
+            self._hwversion,
+            self._fwversion
+        )
+
+        for i, c in enumerate(self._channels):
+            channel_type = c['type'] if 'type' in c else "Master" if c == {} else "Unknown"
+            channel_state = "On" if self.get_status(i) else "Off"
+            channel_desc = "%s=%s" % (channel_type, channel_state)
+            basic_info += channel_desc + ", "
+
+        return basic_info
+
+    def supports_consumption_reading(self):
+        return CONSUMPTIONX in self.get_abilities()
+
+    def supports_electricity_reading(self):
+        return ELECTRICITY in self.get_abilities()
+
+    def get_power_consumption(self):
         if CONSUMPTIONX in self.get_abilities():
             return self._get_consumptionx()
         else:
@@ -431,25 +462,35 @@ class GenericPlug:
         c = self._get_channel_id(channel)
         return self._channel_control_impl(c, 0)
 
-    def turn_on(self, channel=None):
+    def turn_on(self, channel=0):
         c = self._get_channel_id(channel)
         return self._channel_control_impl(c, 1)
 
-    def turn_off(self, channel=None):
+    def turn_off(self, channel=0):
         c = self._get_channel_id(channel)
         return self._channel_control_impl(c, 0)
 
-    def get_status(self, channel=None):
-        c = self._get_channel_id(channel)
-        if self._state is None:
-            self._state = self._get_status_impl()
-        return self._state[c]
+    def get_status(self, channel=0):
+        # In order to optimize the network traffic, we don't call the get_status() api at every request.
+        # On the contrary, we only call it the first time. Then, the rest of the API will silently listen
+        # for state changes and will automatically update the self._state structure listening for
+        # messages of the device.
+        # Such approach, however, has a side effect. If we call TOGGLE/TOGGLEX and immediately after we call
+        # get_status(), the reported status will be still the old one. This is a race condition because the
+        # "status" RESPONSE will be delivered some time after the TOGGLE REQUEST. It's not a big issue for now,
+        # and synchronizing the two things would be inefficient and probably not very useful.
+        # Just remember to wait some time before testing the status of the item after a toggle.
+        with self._status_lock:
+            c = self._get_channel_id(channel)
+            if self._state is None:
+                self._state = self._get_status_impl()
+            return self._state[c]
 
     def get_usb_channel_index(self):
         # Look for the usb channel
-        for c in self.get_channels():
-            if c['type'] == 'USB':
-                return c['channel']
+        for i, c in enumerate(self.get_channels()):
+            if 'type' in c and c['type'] == 'USB':
+                return i
         return None
 
     def enable_usb(self):

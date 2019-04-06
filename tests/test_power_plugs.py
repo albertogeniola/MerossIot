@@ -129,16 +129,15 @@ class TestMSS425ETest(unittest.TestCase):
 
         self.device.turn_on()
         time.sleep(2)
-
         self.assertTrue(self.device.get_status())
 
     def test_usb(self):
         self.device.enable_usb()
-        time.sleep(4)
+        time.sleep(2)
         self.assertTrue(self.device.get_usb_status())
 
         self.device.enable_usb()
-        time.sleep(4)
+        time.sleep(2)
         self.assertTrue(self.device.get_usb_status())
 
     def test_channels(self):
@@ -147,16 +146,15 @@ class TestMSS425ETest(unittest.TestCase):
         self.assertFalse(self.device.get_status())
 
         # Test each channel one by one
-        for i, c in enumerate(self.device.get_channels()):
+        for c in self.device.get_channels():
+            self.device.turn_on_channel(c)
             time.sleep(2)
-            self.device.turn_on_channel(i)
-            time.sleep(2)
-            self.assertTrue(self.device.get_channel_status(i))
+            self.assertTrue(self.device.get_channel_status(c))
 
             time.sleep(2)
-            self.device.turn_off_channel(i)
+            self.device.turn_off_channel(c)
             time.sleep(2)
-            self.assertFalse(self.device.get_channel_status(i))
+            self.assertFalse(self.device.get_channel_status(c))
 
     def test_get_info(self):
         state = self.device.get_status()
