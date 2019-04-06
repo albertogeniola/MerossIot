@@ -427,9 +427,6 @@ class GenericPlug:
             # Not supported!
             return None
 
-    def get_power_consumptionX(self):
-        return self.get_consumption()
-
     def device_id(self):
         return self._uuid
 

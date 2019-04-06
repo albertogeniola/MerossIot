@@ -88,7 +88,7 @@ class TestMSS310Test(unittest.TestCase):
         self.assertTrue(self.device.get_status())
 
     def test_get_info(self):
-        consumption = self.device.get_power_consumptionX()
+        consumption = self.device.get_power_consumption()
         assert consumption is not None
 
         wifi_list = self.device.get_wifi_list()

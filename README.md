@@ -85,6 +85,7 @@ if __name__=='__main__':
         # (Note. this takes some time to complete)
         print("\nScanning Wifi...")
         wifi_list = device.get_wifi_list()
+        print(wifi_list)
 
 ```
 
