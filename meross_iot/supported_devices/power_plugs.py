@@ -126,6 +126,10 @@ class GenericPlug:
         if "hdwareVersion" in kwords:
             self._hwversion = kwords['hdwareVersion']
 
+        # Lookup port and certificate for MQTT server
+        self._port = kwords.get('port', Device._port)
+        self._ca_cert = kwords.get('ca_cert', None)
+
         self._generate_client_and_app_id()
 
         # Password is calculated as the MD5 of USERID concatenated with KEY
@@ -142,8 +146,12 @@ class GenericPlug:
         self._mqtt_client.on_disconnect = self._on_disconnect
         self._mqtt_client.on_subscribe = self._on_subscribe
         self._mqtt_client.on_log = self._on_log
-        self._mqtt_client.username_pw_set(username=self._user_id, password=hashed_password)
-        self._mqtt_client.tls_set(ca_certs=None, certfile=None, keyfile=None, cert_reqs=ssl.CERT_REQUIRED,
+        # Avoid login if user_id is None
+        if self._user_id is not None:
+            self._mqtt_client.username_pw_set(username=self._user_id,
+                                              password=hashed_password)
+        self._mqtt_client.tls_set(ca_certs=self._ca_cert, certfile=None,
+                                  keyfile=None, cert_reqs=ssl.CERT_REQUIRED,
                                   tls_version=ssl.PROTOCOL_TLS,
                                   ciphers=None)
 
