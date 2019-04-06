@@ -132,6 +132,6 @@ By issuing a donation, you will:
 
 Look at these babies!
 
-![Devices I own](plugs/devices.jpg)
+![Devices I own](ext-res/plugs/devices.jpg)
 
-![My test environment](plugs/testdevices.jpg)
+![My test environment](ext-res/plugs/testdevices.jpg)
