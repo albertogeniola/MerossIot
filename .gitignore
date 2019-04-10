@@ -105,6 +105,7 @@ venv.bak/
 
 # Local test
 local_test/
+utilities/InfoGather.py
 
 # IntelliJ
 .idea
