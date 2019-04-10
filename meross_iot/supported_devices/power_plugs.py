@@ -246,7 +246,7 @@ class GenericPlug:
                 if header['method'] == "PUSH" and 'namespace' in header:
                     self._handle_namespace_payload(header['namespace'], message['payload'])
                 else:
-                    l.debug("UNKNOWN msg received by %s" % self._uuid)
+                    l.debug("The following message was unhandled: %s" % message)
             else:
                 # do nothing because the message was from a different device
                 pass
@@ -368,7 +368,7 @@ class GenericPlug:
                     channel_index = payload['togglex']['channel']
                     self._state[channel_index] = payload['togglex']['onoff'] == 1
             else:
-                raise Exception("Unknown/Unsupported namespace/command: %s" % namespace)
+                l.error("Unknown/Unsupported namespace/command: %s" % namespace)
 
     def _get_status_impl(self):
         res = {}
