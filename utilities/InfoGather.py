@@ -1,4 +1,6 @@
 from meross_iot.api import MerossHttpClient
+from meross_iot.supported_devices.power_plugs import set_debug_level
+from logging import DEBUG
 import csv, io
 
 EMAIL = 'YOUR_EMAIL'
@@ -25,11 +27,11 @@ def sanitize_personal_info(d):
 
 
 if __name__ == '__main__':
+    set_debug_level(DEBUG)
     output = io.StringIO()
     writer = csv.writer(output, delimiter=';')
 
     for d in devices:
-        # TODO: purge mac, user IDS and IPs from responses.
         r = []
         r.append(d._type)
         r.append(d._hwversion)
@@ -39,19 +41,9 @@ if __name__ == '__main__':
 
         abilities = d.get_abilities()
         r.append(sanitize_personal_info(abilities))
-
-        if 'Appliance.Control.Electricity' in abilities['ability'].keys():
-            r.append(sanitize_personal_info(d.get_electricity()))
-        else:
-            r.append(None)
-
-        if 'Appliance.Control.ConsumptionX' in abilities['ability'].keys():
-            r.append(sanitize_personal_info(d.get_power_consumptionX()))
-        else:
-            r.append(None)
-
-        r.append(sanitize_personal_info(d.get_trace()))
+        r.append(sanitize_personal_info(d.get_channels()))
 
         writer.writerow(r)
 
+    print("\n\n---------------------------------------")
     print(str(output.getvalue()))
