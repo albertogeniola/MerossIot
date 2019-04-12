@@ -358,7 +358,6 @@ class GenericPlug:
         with self._status_lock:
             if namespace == TOGGLE:
                 self._state[0] = payload['toggle']['onoff'] == 1
-
             elif namespace == TOGGLEX:
                 if isinstance(payload['togglex'], list):
                     for c in payload['togglex']:
@@ -367,6 +366,8 @@ class GenericPlug:
                 elif isinstance(payload['togglex'], dict):
                     channel_index = payload['togglex']['channel']
                     self._state[channel_index] = payload['togglex']['onoff'] == 1
+            elif namespace == ONLINE:
+                l.info("Online keep alive received: %s" % payload)
             else:
                 l.error("Unknown/Unsupported namespace/command: %s" % namespace)
 
