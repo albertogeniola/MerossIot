@@ -251,7 +251,7 @@ class GenericPlug:
                 # do nothing because the message was from a different device
                 pass
         except Exception as e:
-            l.error("%s failed to process message because: %s" % (self._uuid, e))
+            l.exception("%s failed to process message." % self._uuid)
 
     def _on_log(self, client, userdata, level, buf):
         # print("Data: %s - Buff: %s" % (userdata, buf))
@@ -321,7 +321,8 @@ class GenericPlug:
             # Wait synchronously until we get the ACK.
             with self._waiting_message_ack_queue:
                 if not self._waiting_message_ack_queue.wait(timeout=timeout):
-                    # Timeout expired.
+                    # Timeout expired. Give up waiting for that message_id.
+                    self._waiting_message_id = None
                     raise CommandTimeoutException()
 
             return self._ack_response['payload']
