@@ -104,7 +104,7 @@ venv.bak/
 .mypy_cache/
 
 # Local test
-local_test/
+local_test/*
 utilities/InfoGather.py
 
 # IntelliJ
