@@ -1,8 +1,8 @@
 import os
 import time
 import unittest
-from meross_iot.api import MerossHttpClient
 
+from meross_iot.api import MerossHttpClient
 
 EMAIL = os.environ.get('MEROSS_EMAIL')
 PASSWORD = os.environ.get('MEROSS_PASSWORD')

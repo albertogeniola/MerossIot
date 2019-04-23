@@ -1,30 +1,30 @@
+import json
+import logging
 import random
 import ssl
 import string
-from threading import RLock, Condition
+import sys
+import time
+from abc import ABC, abstractmethod
+from hashlib import md5
+from logging import StreamHandler
+from threading import Condition
+from retrying import retry
 import paho.mqtt.client as mqtt
 from paho.mqtt import MQTTException
+
+from meross_iot.supported_devices.timeouts import LONG_TIMEOUT, SHORT_TIMEOUT
+from meross_iot.supported_devices.client_status import ClientStatus
+from meross_iot.supported_devices.connection import ConnectionManager
 from meross_iot.supported_devices.exceptions.CommandTimeoutException import CommandTimeoutException
 from meross_iot.supported_devices.exceptions.ConnectionDroppedException import ConnectionDroppedException
 from meross_iot.utilities.synchronization import AtomicCounter
-import json
-import time
-from hashlib import md5
-import logging
-import sys
-from logging import StreamHandler
-
-from abc import ABC, abstractmethod
-from enum import Enum
-
 
 l = logging.getLogger("meross_protocol")
 h = StreamHandler(stream=sys.stdout)
 h.setLevel(logging.DEBUG)
 l.addHandler(h)
 l.setLevel(logging.INFO)
-LONG_TIMEOUT = 30.0  # For wifi scan
-SHORT_TIMEOUT = 10.0  # For any other command
 
 
 # Call this module to adjust the verbosity of the stream output. By default, only INFO is written to STDOUT log.
@@ -32,21 +32,7 @@ def set_debug_level(level):
     l.setLevel(level)
 
 
-class ClientStatus(Enum):
-    INITIALIZED = 1
-    CONNECTING = 2
-    CONNECTED = 3
-    SUBSCRIBED = 4
-    CONNECTION_DROPPED = 5
-
-
 class AbstractMerossDevice(ABC):
-    # The connection status of the device is represented by the following variable.
-    # It is protected by the following variable, called _client_connection_status_lock.
-    # The child classes should never change/access these variables directly, though.
-    _client_connection_status = None
-    _client_connection_status_lock = None
-
     # Device info and connection parameters
     _token = None
     _key = None
@@ -60,6 +46,7 @@ class AbstractMerossDevice(ABC):
     _fwversion = None
 
     # Connection info
+    _connection_manager = None
     _domain = None
     _port = 2001
 
@@ -75,9 +62,13 @@ class AbstractMerossDevice(ABC):
     # Paho mqtt client object
     _mqtt_client = None
 
+    # The subscription counter is used to keep count of completed subscriptions.
+    # In particular, the mqtt client needs to subscribe to two different topics before considering
+    # ready to talk with the network. We used the following variable to synchronize this.
+    _subscription_count = None
+
     # Waiting condition used to wait for command ACKs
     _waiting_message_ack_condition = None
-    _connection_status_condition = None
     _waiting_message_id = None
 
     _ack_response = None
@@ -91,16 +82,11 @@ class AbstractMerossDevice(ABC):
                  key,
                  user_id,
                  **kwords):
-
-        self._client_connection_status_lock = RLock()
-        self._connection_status_condition = Condition(self._client_connection_status_lock)
-
+        self._connection_manager = ConnectionManager()
         self._waiting_message_ack_condition = Condition()
         self._subscription_count = AtomicCounter(0)
 
-        self._set_status(ClientStatus.INITIALIZED)
-
-        self._token = token,
+        self._token = token
         self._key = key
         self._user_id = user_id
         self._uuid = kwords['uuid']
@@ -151,18 +137,40 @@ class AbstractMerossDevice(ABC):
                                   tls_version=ssl.PROTOCOL_TLS,
                                   ciphers=None)
 
+    @retry(wait_exponential_multiplier=1000, wait_exponential_max=10000)
+    def _ensure_connected(self):
+        l.info("Current client connection status is: %s" % self._connection_manager.get_status())
+
+        if self._connection_manager.check_status_in((ClientStatus.CONNECTION_DROPPED, ClientStatus.INITIALIZED)):
+            # Check if the client needs to connect.
+            l.info("The client needs to connect to the MQTT broker. Attempting it now...")
+            self._connect()
+            return True
+
+        if not self._connection_manager.check_status(ClientStatus.SUBSCRIBED):
+            # If the client is "connecting" to the broker, it might need some more time
+            if self._connection_manager.check_status_in((ClientStatus.CONNECTED, ClientStatus.CONNECTING)):
+                l.info("The client is connecting already, let's wait a bit...")
+                self._connection_manager.wait_for_status(ClientStatus.SUBSCRIBED)
+            else:
+                # Check if the client needs to connect.
+                l.info("The client needs to connect to the MQTT broker. Attempting it now...")
+                self._connect()
+                return True
+
+    def _connect(self):
+        """
+        Starts the connection to the MQTT broker
+        :return:
+        """
+        l.info("Initializing the MQTT connection...")
         self._mqtt_client.connect(self._domain, self._port, keepalive=30)
-        self._set_status(ClientStatus.CONNECTING)
+        self._connection_manager.update_status(ClientStatus.CONNECTING)
 
         # Starts a new thread that handles mqtt protocol and calls us back via callbacks
+        self._mqtt_client.loop_stop(True)
         self._mqtt_client.loop_start()
-
-        with self._connection_status_condition:
-            self._connection_status_condition.wait()
-            if self._client_connection_status != ClientStatus.SUBSCRIBED:
-                # An error has occurred
-                raise Exception(self._error)
-
+        self._connection_manager.wait_for_status(ClientStatus.SUBSCRIBED)
         self.get_status()
 
     # ------------------------------------------------------------------------------------------------
@@ -171,22 +179,17 @@ class AbstractMerossDevice(ABC):
     def _on_disconnect(self, client, userdata, rc):
         l.info("Disconnection detected. Reason: %s" % str(rc))
 
-        # We should clean all the data structures.
-        with self._client_connection_status_lock:
-            self._subscription_count = AtomicCounter(0)
-            self._error = "Connection dropped by the server"
-            self._set_status(ClientStatus.CONNECTION_DROPPED)
+        # When the mqtt connection is dropped, we need to reset the subscription counter.
+        self._subscription_count = AtomicCounter(0)
+        self._connection_manager.update_status(ClientStatus.CONNECTION_DROPPED)
 
-        with self._connection_status_condition:
-            self._connection_status_condition.notify_all()
-
+        # Then, we also want to release any thread waiting for a message, so they realized they have failed.
         with self._waiting_message_ack_condition:
             self._waiting_message_ack_condition.notify_all()
 
         if rc == mqtt.MQTT_ERR_SUCCESS:
             pass
         else:
-            # TODO: Should we reconnect by calling again the client.loop_start() ?
             client.loop_stop()
 
     def _on_unsubscribe(self):
@@ -194,17 +197,13 @@ class AbstractMerossDevice(ABC):
         self._subscription_count.dec()
 
     def _on_subscribe(self, client, userdata, mid, granted_qos):
-        l.debug("Succesfully subscribed!")
+        l.debug("Succesfully subscribed to topic. Subscription count: %d" % self._subscription_count.get())
         if self._subscription_count.inc() == 2:
-            with self._connection_status_condition:
-                self._set_status(ClientStatus.SUBSCRIBED)
-                self._connection_status_condition.notify_all()
+            self._connection_manager.update_status(ClientStatus.SUBSCRIBED)
 
     def _on_connect(self, client, userdata, rc, other):
         l.debug("Connected with result code %s" % str(rc))
-        self._set_status(ClientStatus.SUBSCRIBED)
-
-        self._set_status(ClientStatus.CONNECTED)
+        self._connection_manager.update_status(ClientStatus.CONNECTED)
 
         self._client_request_topic = "/appliance/%s/subscribe" % self._uuid
         self._client_response_topic = "/app/%s-%s/subscribe" % (self._user_id, self._app_id)
@@ -268,43 +267,29 @@ class AbstractMerossDevice(ABC):
         pass
 
     # ------------------------------------------------------------------------------------------------
-    # State Helpers
-    # ------------------------------------------------------------------------------------------------
-    def _set_status(self, status):
-        with self._client_connection_status_lock:
-            self._client_connection_status = status
-
-    # ------------------------------------------------------------------------------------------------
     # Protocol Handlers
     # ------------------------------------------------------------------------------------------------
+    @retry(wait_exponential_multiplier=1000, wait_exponential_max=10000)
     def _execute_cmd(self, method, namespace, payload, timeout=SHORT_TIMEOUT):
-        # Before executing any command, we need to be subscribed to the MQTT topics where to listen to ACKS.
-        with self._connection_status_condition:
-            while self._client_connection_status in (ClientStatus.CONNECTED, ClientStatus.CONNECTING):
-                l.warning("The device is still connecting. Waiting until it connects...")
-                self._connection_status_condition.wait()
 
-            # If the connection was previously dropped, we need to take counter-measures here.
-            if self._client_connection_status != ClientStatus.SUBSCRIBED:
-                #TODO: connection retry?
-                raise ConnectionDroppedException("The MQTT connection was dropped at some point.")
+        # Wait the client to be in a valid state before issuing a command
+        self._ensure_connected()
 
-            # Execute the command and retrieve the message-id
-            self._waiting_message_id = self._mqtt_message(method, namespace, payload)
+        # Execute the command and retrieve the message-id
+        self._waiting_message_id = self._mqtt_message(method, namespace, payload)
 
-        # Wait synchronously until we get the ACK.
+        # Let's now wait synchronously until we get back the ACK for that command
         with self._waiting_message_ack_condition:
             if not self._waiting_message_ack_condition.wait(timeout=timeout):
                 # Timeout expired. Give up waiting for that message_id.
                 self._waiting_message_id = None
                 raise CommandTimeoutException("A timeout occurred while waiting fot the ACK.")
 
-        with self._connection_status_condition:
-            # Check for disconnections. In case the connection was dropped before the ack is received,
-            # we should ignore that.
-            if self._client_connection_status != ClientStatus.SUBSCRIBED:
-                #TODO: connection retry?
-                raise ConnectionDroppedException("The MQTT connection was dropped at some point.")
+        # Check for disconnections. In case the connection drops while we are waiting for an ACK,
+        # the previous block of code won't throw any exception. In fact, it will just return. It is our
+        # duty, at this stage, to make sure that the connection is still healthy.
+        if not self._connection_manager.check_status(ClientStatus.SUBSCRIBED):
+            raise ConnectionDroppedException("The MQTT connection was dropped at some point.")
 
         return self._ack_response['payload']
 

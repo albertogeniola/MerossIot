@@ -1,6 +1,7 @@
 from threading import RLock
-from meross_iot.supported_devices.protocol import AbstractMerossDevice, l, LONG_TIMEOUT
+
 from meross_iot.supported_devices.abilities import *
+from meross_iot.supported_devices.protocol import AbstractMerossDevice, l, LONG_TIMEOUT
 
 
 class GenericPlug(AbstractMerossDevice):
@@ -13,8 +14,8 @@ class GenericPlug(AbstractMerossDevice):
     _state = None
 
     def __init__(self, token, key, user_id, **kwords):
-        super(GenericPlug, self).__init__(token, key, user_id, **kwords)
         self._state_lock = RLock()
+        super(GenericPlug, self).__init__(token, key, user_id, **kwords)
 
     def _get_consumptionx(self):
         return self._execute_cmd("GET", CONSUMPTIONX, {})
@@ -93,7 +94,7 @@ class GenericPlug(AbstractMerossDevice):
         # "status" RESPONSE will be delivered some time after the TOGGLE REQUEST. It's not a big issue for now,
         # and synchronizing the two things would be inefficient and probably not very useful.
         # Just remember to wait some time before testing the status of the item after a toggle.
-        with self._client_connection_status_lock:
+        with self._state_lock:
             c = self._get_channel_id(channel)
             if self._state is None:
                 self._state = self._get_status_impl()

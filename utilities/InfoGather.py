@@ -1,7 +1,9 @@
+import csv
+import io
+from logging import DEBUG
+
 from meross_iot.api import MerossHttpClient
 from meross_iot.supported_devices.power_plugs import set_debug_level
-from logging import DEBUG
-import csv, io
 
 EMAIL = 'YOUR_EMAIL'
 PASSWORD = 'YOUR_PASSWORD'
