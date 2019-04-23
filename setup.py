@@ -9,7 +9,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='meross_iot',
-    version='0.2.1.0',
+    version='0.2.1.1',
     packages=find_packages(exclude=('tests',)),
     url='https://github.com/albertogeniola/MerossIot',
     license='MIT',
@@ -35,7 +35,8 @@ setup(
     },
     install_requires=[
         'paho-mqtt>=1.3.1',
-        'requests>=2.19.1'
+        'requests>=2.19.1',
+        'retrying>=1.3.3',
     ],
     python_requires='>=3.5',
     test_suite='tests'
