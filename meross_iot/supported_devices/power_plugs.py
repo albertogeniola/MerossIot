@@ -1,7 +1,8 @@
 from threading import RLock
 
 from meross_iot.supported_devices.abilities import *
-from meross_iot.supported_devices.protocol import AbstractMerossDevice, l, LONG_TIMEOUT
+from meross_iot.supported_devices.timeouts import SHORT_TIMEOUT, LONG_TIMEOUT
+from meross_iot.supported_devices.protocol import AbstractMerossDevice, l
 
 
 class GenericPlug(AbstractMerossDevice):
@@ -51,8 +52,6 @@ class GenericPlug(AbstractMerossDevice):
                 elif isinstance(payload['togglex'], dict):
                     channel_index = payload['togglex']['channel']
                     self._state[channel_index] = payload['togglex']['onoff'] == 1
-            elif namespace == ONLINE:
-                l.info("Online keep alive received: %s" % payload)
             else:
                 l.error("Unknown/Unsupported namespace/command: %s" % namespace)
 

@@ -13,12 +13,13 @@ from retrying import retry
 import paho.mqtt.client as mqtt
 from paho.mqtt import MQTTException
 
-from meross_iot.supported_devices.timeouts import LONG_TIMEOUT, SHORT_TIMEOUT
+from meross_iot.supported_devices.timeouts import SHORT_TIMEOUT
 from meross_iot.supported_devices.client_status import ClientStatus
 from meross_iot.supported_devices.connection import ConnectionManager
 from meross_iot.supported_devices.exceptions.CommandTimeoutException import CommandTimeoutException
 from meross_iot.supported_devices.exceptions.ConnectionDroppedException import ConnectionDroppedException
 from meross_iot.utilities.synchronization import AtomicCounter
+from meross_iot.supported_devices.abilities import ONLINE
 
 l = logging.getLogger("meross_protocol")
 h = StreamHandler(stream=sys.stdout)
@@ -137,7 +138,7 @@ class AbstractMerossDevice(ABC):
                                   tls_version=ssl.PROTOCOL_TLS,
                                   ciphers=None)
 
-    @retry(wait_exponential_multiplier=1000, wait_exponential_max=10000)
+    @retry(wait_exponential_multiplier=1000, wait_exponential_max=10000, stop_max_attempt_number=5)
     def _ensure_connected(self):
         l.info("Current client connection status is: %s" % self._connection_manager.get_status())
 
@@ -252,7 +253,12 @@ class AbstractMerossDevice(ABC):
             # we should process (i.e. an update from another client). If so, process it accordingly.
             if not processed and self._message_from_self(message):
                 if header['method'] == "PUSH" and 'namespace' in header:
-                    self._handle_namespace_payload(header['namespace'], message['payload'])
+                    # Handle online messages at this level
+                    if header['namespace'] == ONLINE and message['payload']['online']['status'] != 1:
+                        # The device has gone offline!
+                        self._connection_manager.update_status(ClientStatus.CONNECTION_DROPPED)
+                    else:
+                        self._handle_namespace_payload(header['namespace'], message['payload'])
                 else:
                     l.debug("The following message was unhandled: %s" % message)
             else:
@@ -269,7 +275,7 @@ class AbstractMerossDevice(ABC):
     # ------------------------------------------------------------------------------------------------
     # Protocol Handlers
     # ------------------------------------------------------------------------------------------------
-    @retry(wait_exponential_multiplier=1000, wait_exponential_max=10000)
+    @retry(wait_exponential_multiplier=1000, wait_exponential_max=10000, stop_max_attempt_number=3)
     def _execute_cmd(self, method, namespace, payload, timeout=SHORT_TIMEOUT):
 
         # Wait the client to be in a valid state before issuing a command

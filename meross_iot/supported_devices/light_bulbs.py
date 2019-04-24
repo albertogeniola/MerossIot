@@ -1,7 +1,8 @@
 from threading import RLock
 
 from meross_iot.supported_devices.abilities import *
-from meross_iot.supported_devices.protocol import AbstractMerossDevice, l, LONG_TIMEOUT
+from meross_iot.supported_devices.timeouts import SHORT_TIMEOUT, LONG_TIMEOUT
+from meross_iot.supported_devices.protocol import AbstractMerossDevice, l
 
 
 def to_rgb(rgb):
@@ -82,8 +83,6 @@ class GenericBulb(AbstractMerossDevice):
             c = payload['light']['channel']
             self._update_state(channel=c, kwargs=payload['light'])
 
-        elif namespace == ONLINE:
-            l.info("Online keep alive received: %s" % payload)
         else:
             l.error("Unknown/Unsupported namespace/command: %s" % namespace)
 
@@ -187,6 +186,9 @@ class GenericBulb(AbstractMerossDevice):
     def get_light_color(self, channel=0):
         ch_id = self._get_channel_id(channel)
         return self.get_status(channel=ch_id)
+
+    def supports_light_control(self):
+        return LIGHT in self.get_abilities()
 
     def __str__(self):
         basic_info = "%s (%s, %d channels, HW %s, FW %s): " % (

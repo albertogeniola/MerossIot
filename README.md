@@ -63,28 +63,35 @@ if __name__=='__main__':
             print("Turning channel %d off..." % channel)
             device.turn_off_channel(channel)
 
+        # If the current device is a bulb, let's play with it!
+        if isinstance(device, GenericBulb) and device.supports_light_control():
+            print("Controlling light color: make it blue at 50% power")
+            device.set_light_color(rgb=(0, 0, 255), luminance=50)
+            device.turn_on()
+
         # Some devices also have a dedicated channel for USB
-        usb_channel_index = device.get_usb_channel_index()
-        if usb_channel_index is not None:
-            # Turns the USB on
-            print("\nTurning on USB...")
-            device.turn_on_channel(usb_channel_index)
+        if isinstance(device, GenericPlug):
+            usb_channel_index = device.get_usb_channel_index()
+            if usb_channel_index is not None:
+                # Turns the USB on
+                print("\nTurning on USB...")
+                device.turn_on_channel(usb_channel_index)
 
-            # Turns the power-plug off
-            print("Turning off USB...")
-            device.turn_off_channel(usb_channel_index)
+                # Turns the power-plug off
+                print("Turning off USB...")
+                device.turn_off_channel(usb_channel_index)
 
-        # Some devices support reading consumption data
-        if device.supports_consumption_reading():
-            print("\nReading consumption data...")
-            consumption = device.get_power_consumption()
-            print(consumption)
+            # Some devices support reading consumption data
+            if device.supports_consumption_reading():
+                print("\nReading consumption data...")
+                consumption = device.get_power_consumption()
+                print(consumption)
 
-        # Some devices support reading consumption data
-        if device.supports_electricity_reading():
-            print("\nReading electricity data...")
-            electricity = device.get_electricity()
-            print(electricity)
+            # Some devices support reading consumption data
+            if device.supports_electricity_reading():
+                print("\nReading electricity data...")
+                electricity = device.get_electricity()
+                print(electricity)
 
         # Returns the list of WIFI Network available for the plug
         # (Note. this takes some time to complete)
@@ -97,6 +104,7 @@ if __name__=='__main__':
 ## Currently supported devices
 Starting from v0.2.0.0, this library should support the majority of Meross devices on the market.
 The list of tested devices is the following:
+- MSL120
 - MSS110
 - MSS210
 - MSS310
@@ -122,6 +130,7 @@ It would really motivate me to continue working on this repository to improve do
 
 Moreover, donations will make me raise money to spend on other Meross devices. 
 So far, I've bought the following devices:
+- MSL120
 - MSS210
 - MSS310
 - MSS425E
@@ -139,6 +148,18 @@ By issuing a donation, you will:
 
 ### Look at these babies!
 
-![Devices I own](ext-res/plugs/devices.jpg)
+<img src="ext-res/plugs/devices.jpg" alt="Devices I own" width="200" />
+<img src="ext-res/plugs/testdevices.jpg" alt="Current Test environment" width="200" />
 
-![My test environment](ext-res/plugs/testdevices.jpg)
+## Changelog
+### 0.2.2.1
+- Added basic bulb support: turning on/off and light control
+- Implemented MSL120 support
+- Implemented MSL120 automatic test
+- Extended example script usage to show how to control the light bulbs
+- Added maximum retry limit for execute_command and connect()
+### 0.2.1.1
+- Code refactoring to support heterogeneous devices (bulbs, plugs, garage openers)
+### 0.2.1.0
+- Implemented auto-reconnect on lost connection
+- Improving locking system in order to prevent library hangs when no ack is received

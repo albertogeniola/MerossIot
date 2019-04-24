@@ -3,7 +3,7 @@ from threading import RLock, Condition
 
 from meross_iot.supported_devices.client_status import ClientStatus
 from meross_iot.supported_devices.exceptions.StatusTimeoutException import StatusTimeoutException
-from meross_iot.supported_devices.timeouts import SHORT_TIMEOUT, LONG_TIMEOUT
+from meross_iot.supported_devices.timeouts import SHORT_TIMEOUT
 
 
 class ConnectionManager(object):
