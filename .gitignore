@@ -107,5 +107,9 @@ venv.bak/
 local_test/*
 utilities/InfoGather.py
 
+# Dev utils
+ext-res/tests/node_modules
+ext-res/tests/package-lock.json
+
 # IntelliJ
 .idea
