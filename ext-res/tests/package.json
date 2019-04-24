@@ -1,8 +1,9 @@
 {
-  "name": "meross-lab-master-switch",
+  "name": "lab-master-switch",
   "version": "0.0.1",
   "email": "albertogeniola@gmail.com",
-  "main": "tplink-master-switch.js",
+  "main": "switch.js",
+  "bin": "./switch.js",
   "dependencies": {
     "minimist": ">=1.2.0",
     "tplink-cloud-api": ">=0.3.8",
