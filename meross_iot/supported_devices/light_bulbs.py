@@ -142,33 +142,40 @@ class GenericBulb(AbstractMerossDevice):
         return self._execute_cmd("GET", WIFI_LIST, {}, timeout=LONG_TIMEOUT)
 
     def get_channel_status(self, channel):
-        c = self._get_channel_id(channel)
+        ch_id = self._get_channel_id(channel)
+        c = self._get_channel_id(ch_id)
         return self.get_status(c)
 
     def turn_on_channel(self, channel):
-        c = self._get_channel_id(channel)
+        ch_id = self._get_channel_id(channel)
+        c = self._get_channel_id(ch_id)
         return self._channel_control_impl(c, 1)
 
     def turn_off_channel(self, channel):
-        c = self._get_channel_id(channel)
+        ch_id = self._get_channel_id(channel)
+        c = self._get_channel_id(ch_id)
         return self._channel_control_impl(c, 0)
 
     def turn_on(self, channel=0):
-        c = self._get_channel_id(channel)
+        ch_id = self._get_channel_id(channel)
+        c = self._get_channel_id(ch_id)
         return self._channel_control_impl(c, 1)
 
     def turn_off(self, channel=0):
-        c = self._get_channel_id(channel)
+        ch_id = self._get_channel_id(channel)
+        c = self._get_channel_id(ch_id)
         return self._channel_control_impl(c, 0)
 
     def set_light_color(self, channel=0, rgb=None, luminance=100, temperature=100, capacity=5):
+        ch_id = self._get_channel_id(channel)
+
         # Convert the RGB to integer
         color = to_rgb(rgb)
 
         payload = {
             'light': {
                 'capacity': capacity,
-                'channel': channel,
+                'channel': ch_id,
                 'gradual': 0,
                 'luminance': luminance,
                 'rgb': color,
@@ -176,6 +183,10 @@ class GenericBulb(AbstractMerossDevice):
             }
         }
         self._execute_cmd(method='SET', namespace=LIGHT, payload=payload)
+
+    def get_light_color(self, channel=0):
+        ch_id = self._get_channel_id(channel)
+        return self.get_status(channel=ch_id)
 
     def __str__(self):
         basic_info = "%s (%s, %d channels, HW %s, FW %s): " % (
