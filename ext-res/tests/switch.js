@@ -43,6 +43,8 @@ async function main() {
   // log in to cloud, return a connected tplink object
   const tplink = await login(username, password, TPLINK_TERM);
 
+  let deviceList = await tplink.getDeviceList();
+
   console.log("Controlling", args.dev);
   if (args.toggle==='on' || args.toggle===1)
     await tplink.getHS110(args.dev).powerOn();
