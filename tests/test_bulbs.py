@@ -1,6 +1,7 @@
 import os
 import time
 import unittest
+import random
 
 from meross_iot.api import MerossHttpClient
 
@@ -53,11 +54,15 @@ class TestMSL120Test(unittest.TestCase):
         assert state is not None
 
     def test_set_light_color(self):
-        self.device.set_light_color(channel=0, rgb=(255, 0, 0))
-        time.sleep(2)
+        r = int(random.random() * 255)
+        g = int(random.random() * 255)
+        b = int(random.random() * 255)
+        self.device.set_light_color(channel=0, rgb=(r, g, b))
+        time.sleep(5)
         bulb_state = self.device.get_light_color(channel=0)
         assert bulb_state is not None
-        assert bulb_state['rgb'] == 16711680
+        rgb = (r << 16) + (g << 8) + b
+        assert bulb_state['rgb'] == rgb
 
     def tearDown(self):
         self.device.turn_off()
