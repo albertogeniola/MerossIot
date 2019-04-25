@@ -169,3 +169,44 @@ class TestMSS425ETest(unittest.TestCase):
         debug = self.device.get_debug()
         assert debug is not None
 
+
+class TestMSS530HTest(unittest.TestCase):
+    def setUp(self):
+        httpHandler = MerossHttpClient(email=EMAIL, password=PASSWORD)
+
+        # Retrieves the list of supported devices
+        devices = httpHandler.list_supported_devices()
+        for counter, device in enumerate(devices):
+            if device._type == 'mss530h':
+                self.device = device
+                break
+
+    def test_power_cycle(self):
+        self.device.turn_on()
+        time.sleep(2)
+        self.assertTrue(self.device.get_status())
+
+        self.device.turn_off()
+        time.sleep(2)
+        self.assertFalse(self.device.get_status())
+
+        self.device.turn_on()
+        time.sleep(2)
+        self.assertTrue(self.device.get_status())
+
+        self.device.turn_off()
+        time.sleep(2)
+        self.assertFalse(self.device.get_status())
+
+    def test_get_info(self):
+        state = self.device.get_status()
+        assert state is not None
+
+        wifi_list = self.device.get_wifi_list()
+        assert wifi_list is not None
+
+        trace = self.device.get_trace()
+        assert trace is not None
+
+        debug = self.device.get_debug()
+        assert debug is not None

@@ -110,6 +110,7 @@ The list of tested devices is the following:
 - MSS310
 - MSS310h
 - MSS425e
+- MSS530H
 
 I'd like to thank all the people who contributed to the early stage of library development,
 who stimulated me to continue the development and making this library support more devices:
@@ -134,6 +135,7 @@ So far, I've bought the following devices:
 - MSS210
 - MSS310
 - MSS425E
+- MSS530H
 
 By issuing a donation, you will:
 1. Give me the opportunity to buy new devices and support them in this library
@@ -143,13 +145,22 @@ By issuing a donation, you will:
 
 [![Buy me a beer](http://4.bp.blogspot.com/-1Md6-deTZ84/VA_lzcxMx1I/AAAAAAAACl8/wP_4rXBXwyI/s1600/PayPal-Donation-Button.png)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CQQCK3RN32BHL&source=url)
 
-
 [![Beerpay](https://beerpay.io/albertogeniola/MerossIot/badge.svg?style=beer-square)](https://beerpay.io/albertogeniola/MerossIot)  [![Beerpay](https://beerpay.io/albertogeniola/MerossIot/make-wish.svg?style=flat-square)](https://beerpay.io/albertogeniola/MerossIot?focus=wish)
 
 ### Look at these babies!
 
-<img src="ext-res/plugs/devices.jpg" alt="Devices I own" width="200" />
-<img src="ext-res/plugs/testdevices.jpg" alt="Current Test environment" width="200" />
+<p>
+Look at the test environment that ensures high quality code of the library!
+</p>
+<img src="ext-res/plugs/test-env.jpg" alt="Current test environemnt" width="400" />
+<p>When a pull-request is performed against this repository, a CI pipeline takes care of building the code, 
+testing it on Python 3.5/3.6/3.7, relying on some junit tests and, if all the tests pass as expected, the library
+is released on Pypi. However, to ensure that the code <i>really works</i>,
+the pipeline will issue on/off commands against real devices, that are dedicated 24/7 to the tests. 
+Such devices have been bought by myself (with contributions received by donators). 
+Hoever, keeping such devices connected 24/7 has a cost, which I sustain happily due to the success of the library.
+Anyways, feel free to contribute via donations! 
+</p>
 
 ## Changelog
 ### 0.2.2.1
