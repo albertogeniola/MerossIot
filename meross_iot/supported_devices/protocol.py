@@ -20,6 +20,8 @@ from meross_iot.supported_devices.exceptions.CommandTimeoutException import Comm
 from meross_iot.supported_devices.exceptions.ConnectionDroppedException import ConnectionDroppedException
 from meross_iot.utilities.synchronization import AtomicCounter
 from meross_iot.supported_devices.abilities import ONLINE
+import uuid
+
 
 l = logging.getLogger("meross_protocol")
 h = StreamHandler(stream=sys.stdout)
@@ -352,7 +354,8 @@ class AbstractMerossDevice(ABC):
 
     def _generate_client_and_app_id(self):
         md5_hash = md5()
-        md5_hash.update(("%s%s" % ("API", self._uuid)).encode("utf8"))
+        rnduuid = uuid.uuid4()
+        md5_hash.update(("%s%s" % ("API", rnduuid)).encode("utf8"))
         self._app_id = md5_hash.hexdigest()
         self._client_id = 'app:%s' % md5_hash.hexdigest()
 

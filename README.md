@@ -166,6 +166,9 @@ Anyways, feel free to contribute via donations!
 
 
 ## Changelog
+### 0.2.2.3
+- Implemented random UUID generation when connecting to the Meross MQTT broker 
+
 ### 0.2.2.2
 - Updated README documentation: added missing imports
 - Handled MSS560 as a bulb
