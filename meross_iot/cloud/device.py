@@ -83,7 +83,8 @@ class AbstractMerossDevice(ABC):
         with self._state_lock:
             # If the device is not online, what's the point of issuing the command?
             if not self.online:
-                raise OfflineDeviceException("The device %s is offline. The command cannot be executed" % str(self))
+                raise OfflineDeviceException("The device %s (%s) is offline. The command cannot be executed" %
+                                             (self.name, self.uuid))
 
         return self.__cloud_client.execute_cmd(self.uuid, command, namespace, payload, timeout=timeout)
 

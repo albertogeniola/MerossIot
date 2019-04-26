@@ -20,11 +20,18 @@ class MerossManager(object):
 
     _cloud_client = None
 
+    # List of callbacks that should be called when an event occurs
+    _event_handlers = None
+    _event_handlers_lock = None
+
     def __init__(self, meross_email, meross_password):
         self._devices_lock = RLock()
+        self._devices = dict()
+        self._event_handlers_lock = RLock()
+        self._event_handlers = []
+
         self._http_client = MerossHttpClient(email=meross_email, password=meross_password)
         self._cloud_creds = self._http_client.get_cloud_credentials()
-        self._devices = dict()
 
     def start(self):
         # Instantiate and start the mqtt cloud client
@@ -32,6 +39,56 @@ class MerossManager(object):
                                                push_message_callback=self._dispatch_push_notification)
         self._cloud_client.start()
         self._discover_devices()
+
+    def stop(self):
+        self._cloud_client.close()
+
+    def register_event_handler(self, callback):
+        with self._event_handlers_lock:
+            if callback in self._event_handlers:
+                pass
+            else:
+                self._event_handlers.append(callback)
+
+    def unregister_event_handler(self, callback):
+        with self._event_handlers_lock:
+            if callback not in self._event_handlers:
+                pass
+            else:
+                self._event_handlers.remove(callback)
+
+    def get_device_by_uuid(self, uuid):
+        dev = None
+        with self._devices_lock:
+            dev = self._devices.get(uuid)
+
+        return dev
+
+    def get_device_by_name(self, name):
+        with self._devices_lock:
+            for k, v in self._devices.items():
+                if v.name.lower() == name.lower():
+                    return v
+        return None
+
+    def get_supported_devices(self):
+        return [x for k, x in self._devices.items()]
+
+    def get_devices_by_kind(self, clazz):
+        res = []
+        with self._devices_lock:
+            for k, v in self._devices.items():
+                if isinstance(v, clazz):
+                    res.append(v)
+        return res
+
+    def get_devices_by_type(self, type_name):
+        res = []
+        with self._devices_lock:
+            for k, v in self._devices.items():
+                if v.type.lower() == type_name.lower():
+                    res.append(v)
+        return res
 
     def _dispatch_push_notification(self, message):
         header = message['header']      # type: dict
@@ -91,16 +148,3 @@ class MerossManager(object):
                 # TODO: Notify a new device has been discovered!
                 pass
 
-    def get_device_by_uuid(self, uuid):
-        dev = None
-        with self._devices_lock:
-            dev = self._devices.get(uuid)
-
-        return dev
-
-    def get_device_by_name(self, name):
-        with self._devices_lock:
-            for k, v in self._devices.items():
-                if v.name.lower() == name.lower():
-                    return v
-        return None

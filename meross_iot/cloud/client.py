@@ -143,6 +143,18 @@ class MerossCloudClient(object):
                                   tls_version=ssl.PROTOCOL_TLS,
                                   ciphers=None)
 
+    def close(self):
+        l.info("Closing the MQTT connection...")
+        self._mqtt_client.disconnect()
+        l.debug("Waiting for the client to disconnect...")
+        self._connection_status.wait_for_status(ClientStatus.CONNECTION_DROPPED)
+
+        # Starts a new thread that handles mqtt protocol and calls us back via callbacks
+        l.debug("Stopping the MQTT looper.")
+        self._mqtt_client.loop_stop(True)
+
+        l.info("Client has been fully disconnected.")
+
     def start(self):
         """
         Starts the connection to the MQTT broker

@@ -102,14 +102,14 @@ class GenericPlug(AbstractMerossDevice):
 
     def get_power_consumption(self):
         if CONSUMPTIONX in self.get_abilities():
-            return self._get_consumptionx()
+            return self._get_consumptionx()['consumptionx']
         else:
             # Not supported!
             return None
 
     def get_electricity(self):
         if ELECTRICITY in self.get_abilities():
-            return self._get_electricity()
+            return self._get_electricity()['electricity']
         else:
             # Not supported!
             return None

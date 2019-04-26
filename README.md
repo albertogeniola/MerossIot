@@ -26,78 +26,97 @@ pip install meross_iot --upgrade
 The following script demonstrates how to use this library.
 
 ```python
-from meross_iot.api import MerossHttpClient
+from meross_iot.manager import MerossManager
+from meross_iot.cloud.devices.light_bulbs import GenericBulb
+from meross_iot.cloud.devices.power_plugs import GenericPlug
+import time
 
 if __name__=='__main__':
-    httpHandler = MerossHttpClient(email="YOUR_MEROSS_CLOUD_EMAIL", password="YOUR_PASSWORD")
+    # Initiates the Meross Cloud Manager. This is in charge of handling the communication with the remote endpoint
+    manager = MerossManager(meross_email="YOUR_MEROSS_CLOUD_EMAIL", meross_password="YOUR_MEROSS_CLOUD_PASSWORD")
 
-    print("Listing online devices...")
+    # Register event handlers for the manager...
+    # TODO
 
-    # Retrieves the list of supported and ONLINE devices.
-    # If you also want to list offline devices, pass the online_only=False parameter.
-    # Note! Trying to control an offline device will generate an exception.
-    devices = httpHandler.list_supported_devices()
-    for d in devices:
-        print("-", d)
+    # Starts the manager
+    manager.start()
 
-    for device in devices:
-        print("\n-------------------------------\n"
-              "Playing with device: %s"
-              "\n-------------------------------" % device)
+    # You can retrieve the device you are looking for in various ways:
+    # By kind
+    bulbs = manager.get_devices_by_kind(GenericBulb)
+    plugs = manager.get_devices_by_kind(GenericPlug)
+    all_devices = manager.get_supported_devices()
 
-        # Returns most of the info about the power plug
-        print("\nGetting system data...")
-        data = device.get_sys_data()
-        print(data)
+    # Print some basic specs about the discovered devices
+    print("All the bulbs I found:")
+    for b in bulbs:
+        print(b)
 
-        # If the device supports multiple channels, let's play with each one.
-        n_channels = len(device.get_channels())
-        print("The device supports %d channels" % n_channels)
+    print("All the plugs I found:")
+    for p in plugs:
+        print(p)
 
-        for channel in range(0, n_channels):
-            # Turns the power-plug on
-            print("\nTurning channel %d on..." % channel)
-            device.turn_on_channel(channel)
+    print("All the supported devices I found:")
+    for d in all_devices:
+        print(d)
 
-            # Turns the power-plug off
-            print("Turning channel %d off..." % channel)
-            device.turn_off_channel(channel)
+    # You can also retrieve devices by the UUID/name
+    # a_device = manager.get_device_by_name("My Plug")
+    # a_device = manager.get_device_by_uuid("My Plug")
 
-        # If the current device is a bulb, let's play with it!
-        if isinstance(device, GenericBulb) and device.supports_light_control():
-            print("Controlling light color: make it blue at 50% power")
-            device.set_light_color(rgb=(0, 0, 255), luminance=50)
-            device.turn_on()
+    # Or you can retrieve all the device by the HW type
+    # all_mss310 = manager.get_devices_by_type("mss310")
 
-        # Some devices also have a dedicated channel for USB
-        if isinstance(device, GenericPlug):
-            usb_channel_index = device.get_usb_channel_index()
-            if usb_channel_index is not None:
-                # Turns the USB on
-                print("\nTurning on USB...")
-                device.turn_on_channel(usb_channel_index)
+    # ---------------------
+    # Let's play with bulbs
+    # ---------------------
+    for b in bulbs:  # type: GenericBulb
+        if not b.online:
+            print("The bulb %s seems to be offline. Cannot play with that..." % b.name)
+        print("Let's play with bulb %s" % b.name)
+        if not b.supports_light_control():
+            print("Too bad bulb %s does not support light control %s" % b.name)
+        else:
+            # Let's make it red!
+            b.set_light_color(rgb=(255, 0, 0))
 
-                # Turns the power-plug off
-                print("Turning off USB...")
-                device.turn_off_channel(usb_channel_index)
+        b.turn_on()
 
-            # Some devices support reading consumption data
-            if device.supports_consumption_reading():
-                print("\nReading consumption data...")
-                consumption = device.get_power_consumption()
-                print(consumption)
+    # ---------------------------
+    # Let's play with smart plugs
+    # ---------------------------
+    for p in plugs:  # type: GenericPlug
+        if not p.online:
+            print("The plug %s seems to be offline. Cannot play with that..." % p.name)
+        print("Let's play with smart plug %s" % p.name)
 
-            # Some devices support reading consumption data
-            if device.supports_electricity_reading():
-                print("\nReading electricity data...")
-                electricity = device.get_electricity()
-                print(electricity)
+        channels = len(p.get_channels())
+        print("The plug %s supports %d channels." % (p.name, channels))
+        for i in range(0, channels):
+            print("Turning on channel %d of %s" % (i, p.name))
+            p.turn_on_channel(i)
 
-        # Returns the list of WIFI Network available for the plug
-        # (Note. this takes some time to complete)
-        print("\nScanning Wifi...")
-        wifi_list = device.get_wifi_list()
-        print(wifi_list)
+            time.sleep(1)
+
+            print("Turning off channel %d of %s" % (i, p.name))
+            p.turn_off_channel(i)
+
+        usb_channel = p.get_usb_channel_index()
+        if usb_channel is not None:
+            print("Awesome! This device also supports USB power.")
+            p.enable_usb()
+            time.sleep(1)
+            p.disable_usb()
+
+        if p.supports_electricity_reading():
+            print("Awesome! This device also supports power consumption reading.")
+            print("Current consumption is: %s" % str(p.get_electricity()))
+
+    # At this point, we are all done playing with the library, so we gracefully disconnect and clean resources.
+    print("We are done playing. Cleaning resources...")
+    manager.stop()
+
+    print("Bye bye!")
 
 ```
 
