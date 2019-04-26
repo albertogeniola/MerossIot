@@ -1,7 +1,4 @@
-from threading import RLock
-
 from meross_iot.cloud.abilities import *
-from meross_iot.cloud.timeouts import SHORT_TIMEOUT, LONG_TIMEOUT
 from meross_iot.cloud.device import AbstractMerossDevice
 from meross_iot.logger import POWER_PLUGS_LOGGER as l
 
