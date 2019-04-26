@@ -28,13 +28,10 @@ def to_rgb(rgb):
 
 
 class GenericBulb(AbstractMerossDevice):
-    _state_lock = None
-
     # Bulb state: dictionary of channel-id/bulb-state
     _state = None
 
     def __init__(self, cloud_client, device_uuid, **kwords):
-        self._state_lock = RLock()
         self._state = {}
         super(GenericBulb, self).__init__(cloud_client, device_uuid, **kwords)
 
@@ -58,13 +55,13 @@ class GenericBulb(AbstractMerossDevice):
 
     def _toggle(self, status):
         payload = {"channel": 0, "toggle": {"onoff": status}}
-        return self._execute_cmd("SET", TOGGLE, payload)
+        return self._cloud_client.execute_cmd(self.uuid, "SET", TOGGLE, payload)
 
     def _togglex(self, channel, status):
         payload = {'togglex': {"onoff": status, "channel": channel}}
-        return self._execute_cmd("SET", TOGGLEX, payload)
+        return self._cloud_client.execute_cmd(self.uuid, "SET", TOGGLEX, payload)
 
-    def _handle_namespace_payload(self, namespace, payload):
+    def _handle_push_notification(self, namespace, payload):
         if namespace == TOGGLE:
             on_status=payload['toggle']['onoff'] == 1
             self._update_state(channel=0, on=on_status)
@@ -138,9 +135,6 @@ class GenericBulb(AbstractMerossDevice):
     def get_channels(self):
         return self._channels
 
-    def get_wifi_list(self):
-        return self._execute_cmd("GET", WIFI_LIST, {}, timeout=LONG_TIMEOUT)
-
     def get_channel_status(self, channel):
         ch_id = self._get_channel_id(channel)
         c = self._get_channel_id(ch_id)
@@ -182,7 +176,7 @@ class GenericBulb(AbstractMerossDevice):
                 'temperature': temperature
             }
         }
-        self._execute_cmd(method='SET', namespace=LIGHT, payload=payload)
+        self._cloud_client.execute_cmd(self.uuid, method='SET', namespace=LIGHT, payload=payload)
 
     def get_light_color(self, channel=0):
         ch_id = self._get_channel_id(channel)
@@ -193,11 +187,11 @@ class GenericBulb(AbstractMerossDevice):
 
     def __str__(self):
         basic_info = "%s (%s, %d channels, HW %s, FW %s): " % (
-            self._name,
-            self._type,
+            self.name,
+            self.type,
             len(self._channels),
-            self._hwversion,
-            self._fwversion
+            self.hwversion,
+            self.fwversion
         )
 
         for i, c in enumerate(self._channels):

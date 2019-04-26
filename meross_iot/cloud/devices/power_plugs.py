@@ -7,31 +7,28 @@ from meross_iot.logger import POWER_PLUGS_LOGGER as l
 
 
 class GenericPlug(AbstractMerossDevice):
-    _state_lock = None
-
     # Channels
     _channels = []
 
     # Dictionary {channel->status}
-    _state = None
+    _state = {}
 
     def __init__(self, cloud_client, device_uuid, **kwords):
-        self._state_lock = RLock()
         super(GenericPlug, self).__init__(cloud_client, device_uuid, **kwords)
 
     def _get_consumptionx(self):
-        return self._execute_cmd("GET", CONSUMPTIONX, {})
+        return self._cloud_client.execute_cmd(self.uuid, "GET", CONSUMPTIONX, {})
 
     def _get_electricity(self):
-        return self._execute_cmd("GET", ELECTRICITY, {})
+        return self._cloud_client.execute_cmd(self.uuid, "GET", ELECTRICITY, {})
 
     def _toggle(self, status):
         payload = {"channel": 0, "toggle": {"onoff": status}}
-        return self._execute_cmd("SET", TOGGLE, payload)
+        return self._cloud_client.execute_cmd(self.uuid, "SET", TOGGLE, payload)
 
     def _togglex(self, channel, status):
         payload = {'togglex': {"onoff": status, "channel": channel}}
-        return self._execute_cmd("SET", TOGGLEX, payload)
+        return self._cloud_client.execute_cmd(self.uuid, "SET", TOGGLEX, payload)
 
     def _channel_control_impl(self, channel, status):
         if TOGGLE in self.get_abilities():
@@ -41,7 +38,7 @@ class GenericPlug(AbstractMerossDevice):
         else:
             raise Exception("The current device does not support neither TOGGLE nor TOGGLEX.")
 
-    def _handle_namespace_payload(self, namespace, payload):
+    def _handle_push_notification(self, namespace, payload):
         with self._state_lock:
             if namespace == TOGGLE:
                 self._state[0] = payload['toggle']['onoff'] == 1
@@ -123,15 +120,6 @@ class GenericPlug(AbstractMerossDevice):
     def get_channels(self):
         return self._channels
 
-    def get_wifi_list(self):
-        return self._execute_cmd("GET", WIFI_LIST, {}, timeout=LONG_TIMEOUT)
-
-    def get_trace(self):
-        return self._execute_cmd("GET", "Appliance.Config.Trace", {})
-
-    def get_debug(self):
-        return self._execute_cmd("GET", "Appliance.System.Debug", {})
-
     def get_channel_status(self, channel):
         c = self._get_channel_id(channel)
         return self.get_status(c)
@@ -182,11 +170,11 @@ class GenericPlug(AbstractMerossDevice):
 
     def __str__(self):
         basic_info = "%s (%s, %d channels, HW %s, FW %s): " % (
-            self._name,
-            self._type,
+            self.name,
+            self.type,
             len(self._channels),
-            self._hwversion,
-            self._fwversion
+            self.hwversion,
+            self.fwversion
         )
 
         for i, c in enumerate(self._channels):
