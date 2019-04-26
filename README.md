@@ -169,14 +169,17 @@ Anyways, feel free to contribute via donations!
 - Updated README documentation: added missing imports
 - Handled MSS560 as a bulb
 - Handling max_capacity parameter by looking at the get_abilities response.
+
 ### 0.2.2.1
 - Added basic bulb support: turning on/off and light control
 - Implemented MSL120 support
 - Implemented MSL120 automatic test
 - Extended example script usage to show how to control the light bulbs
 - Added maximum retry limit for execute_command and connect()
+
 ### 0.2.1.1
 - Code refactoring to support heterogeneous devices (bulbs, plugs, garage openers)
+
 ### 0.2.1.0
 - Implemented auto-reconnect on lost connection
 - Improving locking system in order to prevent library hangs when no ack is received
