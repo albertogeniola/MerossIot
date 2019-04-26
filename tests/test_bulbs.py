@@ -1,39 +1,25 @@
+from meross_iot.manager import MerossManager
 import os
 import time
 import unittest
 import random
 
-from meross_iot.api import MerossHttpClient
 
 EMAIL = os.environ.get('MEROSS_EMAIL')
 PASSWORD = os.environ.get('MEROSS_PASSWORD')
 
 
-class TestHttpMethods(unittest.TestCase):
-    def setUp(self):
-        self.client = MerossHttpClient(email=EMAIL, password=PASSWORD)
-
-    def test_device_listing(self):
-        devices = self.client.list_devices()
-        assert devices is not None
-        assert len(devices) > 0
-
-    def test_supported_device_listing(self):
-        devices = self.client.list_supported_devices()
-        assert devices is not None
-        assert len(devices) > 0
-
-
 class TestMSL120Test(unittest.TestCase):
     def setUp(self):
-        httpHandler = MerossHttpClient(email=EMAIL, password=PASSWORD)
+        self.manager = MerossManager(meross_email=EMAIL, meross_password=PASSWORD)
+        self.manager.start()
 
         # Retrieves the list of supported devices
-        devices = httpHandler.list_supported_devices()
-        for counter, device in enumerate(devices):
-            if device._type == 'msl120':
-                self.device = device
-                break
+        devices = self.manager.get_devices_by_type('msl120')
+        if len(devices) > 0:
+            self.device = devices[0]
+        else:
+            raise Exception("Could not find device msl120")
 
     def test_power_cycle(self):
         self.device.turn_on()
@@ -64,3 +50,4 @@ class TestMSL120Test(unittest.TestCase):
 
     def tearDown(self):
         self.device.turn_off()
+        self.manager.stop()

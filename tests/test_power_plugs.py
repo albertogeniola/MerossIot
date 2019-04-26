@@ -1,38 +1,23 @@
 import os
 import time
 import unittest
-
-from meross_iot.api import MerossHttpClient
+from meross_iot.manager import MerossManager
 
 EMAIL = os.environ.get('MEROSS_EMAIL')
 PASSWORD = os.environ.get('MEROSS_PASSWORD')
 
 
-class TestHttpMethods(unittest.TestCase):
-    def setUp(self):
-        self.client = MerossHttpClient(email=EMAIL, password=PASSWORD)
-
-    def test_device_listing(self):
-        devices = self.client.list_devices()
-        assert devices is not None
-        assert len(devices) > 0
-
-    def test_supported_device_listing(self):
-        devices = self.client.list_supported_devices()
-        assert devices is not None
-        assert len(devices) > 0
-
-
 class TestMSS210Test(unittest.TestCase):
     def setUp(self):
-        httpHandler = MerossHttpClient(email=EMAIL, password=PASSWORD)
+        self.manager = MerossManager(meross_email=EMAIL, meross_password=PASSWORD)
+        self.manager.start()
 
         # Retrieves the list of supported devices
-        devices = httpHandler.list_supported_devices()
-        for counter, device in enumerate(devices):
-            if (device._type == 'mss210'):
-                self.device = device
-                break
+        devices = self.manager.get_devices_by_type('mss210')
+        if len(devices) > 0:
+            self.device = devices[0]
+        else:
+            raise Exception("Could not find device ms210")
 
     def test_power_cycle(self):
         self.device.turn_on()
@@ -61,17 +46,21 @@ class TestMSS210Test(unittest.TestCase):
         debug = self.device.get_debug()
         assert debug is not None
 
+    def tearDown(self):
+        self.manager.stop()
+
 
 class TestMSS310Test(unittest.TestCase):
     def setUp(self):
-        httpHandler = MerossHttpClient(email=EMAIL, password=PASSWORD)
+        self.manager = MerossManager(meross_email=EMAIL, meross_password=PASSWORD)
+        self.manager.start()
 
         # Retrieves the list of supported devices
-        devices = httpHandler.list_supported_devices()
-        for counter, device in enumerate(devices):
-            if (device._type == 'mss310'):
-                self.device = device
-                break
+        devices = self.manager.get_devices_by_type('mss310')
+        if len(devices) > 0:
+            self.device = devices[0]
+        else:
+            raise Exception("Could not find device mss310")
 
     def test_power_cycle(self):
         self.device.turn_on()
@@ -106,17 +95,21 @@ class TestMSS310Test(unittest.TestCase):
         electricity = self.device.get_electricity()
         assert electricity is not None
 
+    def tearDown(self):
+        self.manager.stop()
+
 
 class TestMSS425ETest(unittest.TestCase):
     def setUp(self):
-        httpHandler = MerossHttpClient(email=EMAIL, password=PASSWORD)
+        self.manager = MerossManager(meross_email=EMAIL, meross_password=PASSWORD)
+        self.manager.start()
 
         # Retrieves the list of supported devices
-        devices = httpHandler.list_supported_devices()
-        for counter, device in enumerate(devices):
-            if (device._type == 'mss425e'):
-                self.device = device
-                break
+        devices = self.manager.get_devices_by_type('mss425e')
+        if len(devices) > 0:
+            self.device = devices[0]
+        else:
+            raise Exception("Could not find device mss425e")
 
     def test_power_cycle(self):
         self.device.turn_on()
@@ -169,17 +162,21 @@ class TestMSS425ETest(unittest.TestCase):
         debug = self.device.get_debug()
         assert debug is not None
 
+    def tearDown(self):
+        self.manager.stop()
+
 
 class TestMSS530HTest(unittest.TestCase):
     def setUp(self):
-        httpHandler = MerossHttpClient(email=EMAIL, password=PASSWORD)
+        self.manager = MerossManager(meross_email=EMAIL, meross_password=PASSWORD)
+        self.manager.start()
 
         # Retrieves the list of supported devices
-        devices = httpHandler.list_supported_devices()
-        for counter, device in enumerate(devices):
-            if device._type == 'mss530h':
-                self.device = device
-                break
+        devices = self.manager.get_devices_by_type('mss530h')
+        if len(devices) > 0:
+            self.device = devices[0]
+        else:
+            raise Exception("Could not find device mss530h")
 
     def test_power_cycle(self):
         self.device.turn_on()
@@ -210,3 +207,6 @@ class TestMSS530HTest(unittest.TestCase):
 
         debug = self.device.get_debug()
         assert debug is not None
+
+    def tearDown(self):
+        self.manager.stop()
