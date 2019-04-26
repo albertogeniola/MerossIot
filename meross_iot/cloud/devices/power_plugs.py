@@ -2,7 +2,8 @@ from threading import RLock
 
 from meross_iot.cloud.abilities import *
 from meross_iot.cloud.timeouts import SHORT_TIMEOUT, LONG_TIMEOUT
-from meross_iot.cloud.device import AbstractMerossDevice, l
+from meross_iot.cloud.device import AbstractMerossDevice
+from meross_iot.logger import POWER_PLUGS_LOGGER as l
 
 
 class GenericPlug(AbstractMerossDevice):
@@ -14,9 +15,9 @@ class GenericPlug(AbstractMerossDevice):
     # Dictionary {channel->status}
     _state = None
 
-    def __init__(self, token, key, user_id, **kwords):
+    def __init__(self, cloud_client, device_uuid, **kwords):
         self._state_lock = RLock()
-        super(GenericPlug, self).__init__(token, key, user_id, **kwords)
+        super(GenericPlug, self).__init__(cloud_client, device_uuid, **kwords)
 
     def _get_consumptionx(self):
         return self._execute_cmd("GET", CONSUMPTIONX, {})

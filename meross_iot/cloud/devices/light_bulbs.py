@@ -2,7 +2,8 @@ from threading import RLock
 
 from meross_iot.cloud.abilities import *
 from meross_iot.cloud.timeouts import SHORT_TIMEOUT, LONG_TIMEOUT
-from meross_iot.cloud.device import AbstractMerossDevice, l
+from meross_iot.cloud.device import AbstractMerossDevice
+from meross_iot.logger import BULBS_LOGGER as l
 
 
 def to_rgb(rgb):
@@ -32,10 +33,10 @@ class GenericBulb(AbstractMerossDevice):
     # Bulb state: dictionary of channel-id/bulb-state
     _state = None
 
-    def __init__(self, token, key, user_id, **kwargs):
+    def __init__(self, cloud_client, device_uuid, **kwords):
         self._state_lock = RLock()
         self._state = {}
-        super(GenericBulb, self).__init__(token, key, user_id, **kwargs)
+        super(GenericBulb, self).__init__(cloud_client, device_uuid, **kwords)
 
     def _channel_control_impl(self, channel, status):
         if TOGGLE in self.get_abilities():

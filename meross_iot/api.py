@@ -43,7 +43,7 @@ class MerossHttpClient:
         md5hash = m.hexdigest()
 
         headers = {
-            "Authorization": "Basic" if self._cloud_creds.token is None else "Basic %s" % self._cloud_creds.token,
+            "Authorization": "Basic" if self._cloud_creds is None else "Basic %s" % self._cloud_creds.token,
             "vender": "Meross",
             "AppVersion": "1.3.0",
             "AppLanguage": "EN",

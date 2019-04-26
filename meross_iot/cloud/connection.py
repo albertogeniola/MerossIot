@@ -6,7 +6,7 @@ from meross_iot.cloud.exceptions.StatusTimeoutException import StatusTimeoutExce
 from meross_iot.cloud.timeouts import SHORT_TIMEOUT
 
 
-class ConnectionStatus(object):
+class ConnectionStatusManager(object):
     # The connection status of the device is represented by the following variable.
     # It is protected by the following variable, called _client_connection_status_lock.
     # The child classes should never change/access these variables directly, though.

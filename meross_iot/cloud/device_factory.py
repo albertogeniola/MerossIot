@@ -3,12 +3,14 @@ from meross_iot.cloud.devices.light_bulbs import GenericBulb
 
 
 def build_wrapper(
-        device_type,  # type: str
-        device_specs  # type: dict
+        cloud_client,
+        device_type,        # type: str
+        device_uuid,        # type: str
+        device_specs        # type: dict
 ):
     if device_type.startswith('msl'):
-        return GenericBulb(**device_specs)
+        return GenericBulb(cloud_client, device_uuid=device_uuid, **device_specs)
     elif device_type.startswith('mss'):
-        return GenericPlug(**device_specs)
+        return GenericPlug(cloud_client, device_uuid=device_uuid, **device_specs)
     else:
-        return GenericPlug(**device_specs)
+        return GenericPlug(cloud_client, device_uuid=device_uuid, **device_specs)
