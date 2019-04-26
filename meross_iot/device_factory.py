@@ -12,7 +12,10 @@ def build_wrapper(
         device_type,  # type: str
         device_specs  # type: dict
 ):
-    if device_type.startswith('msl'):
+    # The MSS560 is a dimmerable switch, therefore we consider it as a bulb.
+    if device_type.startswith('mss560'):
+        return GenericBulb(token, key, user_id, **device_specs)
+    elif device_type.startswith('msl'):
         return GenericBulb(token, key, user_id, **device_specs)
     elif device_type.startswith('mss'):
         return GenericPlug(token, key, user_id, **device_specs)

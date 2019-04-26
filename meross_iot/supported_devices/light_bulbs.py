@@ -32,10 +32,16 @@ class GenericBulb(AbstractMerossDevice):
     # Bulb state: dictionary of channel-id/bulb-state
     _state = None
 
+    # Max capacity of the bulb. We assume it's one, but this value is updated as soon as get_abilities() is invoked
+    _max_bulb_capacity = 1
+
     def __init__(self, token, key, user_id, **kwargs):
         self._state_lock = RLock()
         self._state = {}
         super(GenericBulb, self).__init__(token, key, user_id, **kwargs)
+
+        # Setup the max_capacity
+        self._max_bulb_capacity = self.get_abilities()[LIGHT]['capacity']
 
     def _channel_control_impl(self, channel, status):
         if TOGGLE in self.get_abilities():
@@ -165,8 +171,19 @@ class GenericBulb(AbstractMerossDevice):
         c = self._get_channel_id(ch_id)
         return self._channel_control_impl(c, 0)
 
-    def set_light_color(self, channel=0, rgb=None, luminance=100, temperature=100, capacity=5):
+    def set_light_color(self, channel=0, rgb=None, luminance=100, temperature=100, capacity=None):
         ch_id = self._get_channel_id(channel)
+
+        if capacity is None:
+            l.warn("No capacity value has been provided: setting capacity to its maximum value")
+            capacity = self._max_bulb_capacity
+        elif capacity > self._max_bulb_capacity:
+            l.warn("The given capacity is higher than the maximum supported value. "
+                   "Setting capacity to its maximum value")
+            capacity = self._max_bulb_capacity
+        elif capacity < 0:
+            l.warn("Invalid capacity value. Setting it to 0")
+            capacity = 0
 
         # Convert the RGB to integer
         color = to_rgb(rgb)

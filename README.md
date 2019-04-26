@@ -27,6 +27,8 @@ The following script demonstrates how to use this library.
 
 ```python
 from meross_iot.api import MerossHttpClient
+from meross_iot.supported_devices.power_plugs import GenericPlug
+from meross_iot.supported_devices.light_bulbs import GenericBulb
 
 if __name__=='__main__':
     httpHandler = MerossHttpClient(email="YOUR_MEROSS_CLOUD_EMAIL", password="YOUR_PASSWORD")
