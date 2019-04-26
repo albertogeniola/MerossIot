@@ -14,18 +14,18 @@ class GenericPlug(AbstractMerossDevice):
         super(GenericPlug, self).__init__(cloud_client, device_uuid, **kwords)
 
     def _get_consumptionx(self):
-        return self._cloud_client.execute_cmd(self.uuid, "GET", CONSUMPTIONX, {})
+        return self.execute_command("GET", CONSUMPTIONX, {})
 
     def _get_electricity(self):
-        return self._cloud_client.execute_cmd(self.uuid, "GET", ELECTRICITY, {})
+        return self.execute_command("GET", ELECTRICITY, {})
 
     def _toggle(self, status):
         payload = {"channel": 0, "toggle": {"onoff": status}}
-        return self._cloud_client.execute_cmd(self.uuid, "SET", TOGGLE, payload)
+        return self.execute_command("SET", TOGGLE, payload)
 
     def _togglex(self, channel, status):
         payload = {'togglex': {"onoff": status, "channel": channel}}
-        return self._cloud_client.execute_cmd(self.uuid, "SET", TOGGLEX, payload)
+        return self.execute_command("SET", TOGGLEX, payload)
 
     def _channel_control_impl(self, channel, status):
         if TOGGLE in self.get_abilities():
@@ -90,7 +90,7 @@ class GenericPlug(AbstractMerossDevice):
         # Just remember to wait some time before testing the status of the item after a toggle.
         with self._state_lock:
             c = self._get_channel_id(channel)
-            if self._state is None:
+            if self._state == {}:
                 self._state = self._get_status_impl()
             return self._state[c]
 

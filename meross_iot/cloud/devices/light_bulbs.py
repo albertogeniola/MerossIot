@@ -52,11 +52,11 @@ class GenericBulb(AbstractMerossDevice):
 
     def _toggle(self, status):
         payload = {"channel": 0, "toggle": {"onoff": status}}
-        return self._cloud_client.execute_cmd(self.uuid, "SET", TOGGLE, payload)
+        return self.execute_command("SET", TOGGLE, payload)
 
     def _togglex(self, channel, status):
         payload = {'togglex': {"onoff": status, "channel": channel}}
-        return self._cloud_client.execute_cmd(self.uuid, "SET", TOGGLEX, payload)
+        return self.execute_command("SET", TOGGLEX, payload)
 
     def _handle_push_notification(self, namespace, payload):
         if namespace == TOGGLE:
@@ -173,7 +173,7 @@ class GenericBulb(AbstractMerossDevice):
                 'temperature': temperature
             }
         }
-        self._cloud_client.execute_cmd(self.uuid, method='SET', namespace=LIGHT, payload=payload)
+        self.execute_command(command='SET', namespace=LIGHT, payload=payload)
 
     def get_light_color(self, channel=0):
         ch_id = self._get_channel_id(channel)

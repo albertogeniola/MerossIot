@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from threading import RLock
-from meross_iot.cloud.timeouts import LONG_TIMEOUT
+
+from meross_iot.cloud.exceptions.OfflineDeviceException import OfflineDeviceException
+from meross_iot.cloud.timeouts import LONG_TIMEOUT, SHORT_TIMEOUT
 from meross_iot.cloud.abilities import ONLINE, WIFI_LIST, TRACE, DEBUG
 from meross_iot.logger import DEVICE_LOGGER as l
 
@@ -22,10 +24,10 @@ class AbstractMerossDevice(ABC):
     _abilities = None
 
     # Cloud client: the object that handles mqtt communication with the Meross Cloud
-    _cloud_client = None
+    __cloud_client = None
 
     def __init__(self, cloud_client, device_uuid, **kwargs):
-        self._cloud_client = cloud_client
+        self.__cloud_client = cloud_client
         self._state_lock = RLock()
 
         self.uuid = device_uuid
@@ -44,9 +46,6 @@ class AbstractMerossDevice(ABC):
             self.hwversion = kwargs['hdwareVersion']
         if "onlineStatus" in kwargs:
             self.online = kwargs['onlineStatus'] == 1
-
-    def device_id(self):
-        return self._uuid
 
     def handle_push_notification(self, namespace, payload):
         # Handle the ONLINE push notification
@@ -80,35 +79,43 @@ class AbstractMerossDevice(ABC):
     def get_status(self):
         pass
 
+    def execute_command(self, command, namespace, payload, timeout=SHORT_TIMEOUT):
+        with self._state_lock:
+            # If the device is not online, what's the point of issuing the command?
+            if not self.online:
+                raise OfflineDeviceException("The device %s is offline. The command cannot be executed" % str(self))
+
+        return self.__cloud_client.execute_cmd(self.uuid, command, namespace, payload, timeout=timeout)
+
     def get_sys_data(self):
-        return self._cloud_client.execute_cmd(self.uuid, "GET", "Appliance.System.All", {})
+        return self.execute_command("GET", "Appliance.System.All", {})
 
     def get_abilities(self):
         # TODO: Make this cached value expire after a bit...
         if self._abilities is None:
-            self._abilities = self._cloud_client.execute_cmd(self.uuid, "GET", "Appliance.System.Ability", {})['ability']
+            self._abilities = self.execute_command("GET", "Appliance.System.Ability", {})['ability']
         return self._abilities
 
     def get_report(self):
-        return self._cloud_client.execute_cmd(self.uuid, "GET", "Appliance.System.Report", {})
+        return self.execute_command("GET", "Appliance.System.Report", {})
 
     def get_wifi_list(self):
         if WIFI_LIST in self.get_abilities():
-            return self._cloud_client.execute_cmd(self.uuid, "GET", WIFI_LIST, {}, timeout=LONG_TIMEOUT)
+            return self.execute_command("GET", WIFI_LIST, {}, timeout=LONG_TIMEOUT)
         else:
             l.error("This device does not support the WIFI_LIST ability")
             return None
 
     def get_trace(self):
         if TRACE in self.get_abilities():
-            return self._cloud_client.execute_cmd(self.uuid, "GET", TRACE, {})
+            return self.execute_command("GET", TRACE, {})
         else:
             l.error("This device does not support the TRACE ability")
             return None
 
     def get_debug(self):
         if DEBUG in self.get_abilities():
-            return self._cloud_client.execute_cmd(self.uuid, "GET", DEBUG, {})
+            return self.execute_command("GET", DEBUG, {})
         else:
             l.error("This device does not support the DEBUG ability")
             return None
