@@ -165,6 +165,10 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
+### 0.2.2.2
+- Updated README documentation: added missing imports
+- Handled MSS560 as a bulb
+- Handling max_capacity parameter by looking at the get_abilities response.
 ### 0.2.2.1
 - Added basic bulb support: turning on/off and light control
 - Implemented MSL120 support
