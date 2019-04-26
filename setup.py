@@ -39,6 +39,5 @@ setup(
         'retrying>=1.3.3',
     ],
     python_requires='>=3.5',
-    test_suite='tests',
-    funding='https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CQQCK3RN32BHL&source=url'
+    test_suite='tests'
 )
