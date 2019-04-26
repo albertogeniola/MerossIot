@@ -1,12 +1,12 @@
 import datetime
 from threading import RLock, Condition
 
-from meross_iot.supported_devices.client_status import ClientStatus
-from meross_iot.supported_devices.exceptions.StatusTimeoutException import StatusTimeoutException
-from meross_iot.supported_devices.timeouts import SHORT_TIMEOUT
+from meross_iot.cloud.client_status import ClientStatus
+from meross_iot.cloud.exceptions.StatusTimeoutException import StatusTimeoutException
+from meross_iot.cloud.timeouts import SHORT_TIMEOUT
 
 
-class ConnectionManager(object):
+class ConnectionStatus(object):
     # The connection status of the device is represented by the following variable.
     # It is protected by the following variable, called _client_connection_status_lock.
     # The child classes should never change/access these variables directly, though.

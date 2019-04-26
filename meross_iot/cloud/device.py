@@ -13,33 +13,18 @@ from retrying import retry
 import paho.mqtt.client as mqtt
 from paho.mqtt import MQTTException
 
-from meross_iot.supported_devices.timeouts import SHORT_TIMEOUT
-from meross_iot.supported_devices.client_status import ClientStatus
-from meross_iot.supported_devices.connection import ConnectionManager
-from meross_iot.supported_devices.exceptions.CommandTimeoutException import CommandTimeoutException
-from meross_iot.supported_devices.exceptions.ConnectionDroppedException import ConnectionDroppedException
+from meross_iot.cloud.timeouts import SHORT_TIMEOUT
+from meross_iot.cloud.client_status import ClientStatus
+from meross_iot.cloud.connection import ConnectionManager
+from meross_iot.cloud.exceptions.CommandTimeoutException import CommandTimeoutException
+from meross_iot.cloud.exceptions.ConnectionDroppedException import ConnectionDroppedException
 from meross_iot.utilities.synchronization import AtomicCounter
-from meross_iot.supported_devices.abilities import ONLINE
-
-l = logging.getLogger("meross_protocol")
-h = StreamHandler(stream=sys.stdout)
-h.setLevel(logging.DEBUG)
-l.addHandler(h)
-l.setLevel(logging.INFO)
-
-
-# Call this module to adjust the verbosity of the stream output. By default, only INFO is written to STDOUT log.
-def set_debug_level(level):
-    l.setLevel(level)
+from meross_iot.cloud.abilities import ONLINE
 
 
 class AbstractMerossDevice(ABC):
     # Device info and connection parameters
-    _token = None
-    _key = None
-    _user_id = None
     _uuid = None
-    _client_id = None
     _app_id = None
     _name = None
     _type = None

@@ -4,10 +4,9 @@ import json
 import random
 import string
 import time
-
 import requests
+from meross_iot.credentials import MerossCloudCreds
 
-from meross_iot.device_factory import build_wrapper
 
 # Appears to be used as a part of the signature algorithm as constant "salt" (kinda useless)
 _SECRET = "23x17ahWarFH6w29"
@@ -18,10 +17,7 @@ _DEV_LIST = "%s%s" % (_MEROSS_URL, "/v1/Device/devList")
 
 
 class MerossHttpClient:
-    _token = None
-    _key = None
-    _userid = None
-    _userEmail = None
+    _cloud_creds = None
 
     _email = None
     _password = None
@@ -47,7 +43,7 @@ class MerossHttpClient:
         md5hash = m.hexdigest()
 
         headers = {
-            "Authorization": "Basic" if self._token is None else "Basic %s" % self._token,
+            "Authorization": "Basic" if self._cloud_creds.token is None else "Basic %s" % self._cloud_creds.token,
             "vender": "Meross",
             "AppVersion": "1.3.0",
             "AppLanguage": "EN",
@@ -77,39 +73,44 @@ class MerossHttpClient:
 
         return jsondata["data"]
 
-    def _encode_params(self,
-                       parameters  # type: dict
+    @staticmethod
+    def _encode_params(parameters  # type: dict
                        ):
         jsonstring = json.dumps(parameters)
         return str(base64.b64encode(jsonstring.encode("utf8")), "utf8")
 
-    def _generate_nonce(self, length):
+    @staticmethod
+    def _generate_nonce(length):
         return ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(length))
 
     def _login(self):
         try:
             data = {"email": self._email, "password": self._password}
             response_data = self._authenticated_post(_LOGIN_URL, params_data=data)
-            self._token = response_data["token"]
-            self._key = response_data["key"]
-            self._userid = response_data["userid"]
-            self._userEmail = response_data["email"]
+            creds = MerossCloudCreds()
+            creds.token = response_data["token"]
+            creds.key = response_data["key"]
+            creds.user_id = response_data["userid"]
+            creds.user_email = response_data["email"]
+            self._cloud_creds = creds
             self._authenticated = True
-        except:
+        except Exception as e:
+            # TODO: LOG
             return False
 
         try:
             # The protocol does not really need the following call. However we want to be nice do it anyways
             self._log()
         except:
+            # TODO: LOG
             pass
 
         return True
 
-    def _log(self, ):
+    def _log(self):
         data = {'extra': {}, 'model': 'Android,Android SDK built for x86_64', 'system': 'Android',
                 'uuid': '493dd9174941ed58waitForOpenWifi', 'vendor': 'Meross', 'version': '6.0'}
-        response_data = self._authenticated_post(_LOG_URL, params_data=data)
+        self._authenticated_post(_LOG_URL, params_data=data)
 
     def list_devices(self):
         if not self._authenticated and not self._login():
@@ -117,22 +118,11 @@ class MerossHttpClient:
 
         return self._authenticated_post(_DEV_LIST, {})
 
-    def list_supported_devices(self, online_only=True):
-        supported_devices = []
-        for dev in self.list_devices():
-            deviceType = dev['deviceType']
-            online = dev['onlineStatus']
+    def get_cloud_credentials(self):
+        if not self._authenticated and not self._login():
+            raise UnauthorizedException()
 
-            if online_only and online != 1:
-                # The device is not online, so we skip it.
-                continue
-
-            device = build_wrapper(self._token, self._key, self._userid, deviceType, dev)
-            if device is not None:
-                supported_devices.append(device)
-            # else log...
-
-        return supported_devices
+        return self._cloud_creds
 
 
 class AuthenticatedPostException(Exception):

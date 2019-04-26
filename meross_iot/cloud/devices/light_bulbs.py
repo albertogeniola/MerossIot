@@ -1,8 +1,8 @@
 from threading import RLock
 
-from meross_iot.supported_devices.abilities import *
-from meross_iot.supported_devices.timeouts import SHORT_TIMEOUT, LONG_TIMEOUT
-from meross_iot.supported_devices.protocol import AbstractMerossDevice, l
+from meross_iot.cloud.abilities import *
+from meross_iot.cloud.timeouts import SHORT_TIMEOUT, LONG_TIMEOUT
+from meross_iot.cloud.device import AbstractMerossDevice, l
 
 
 def to_rgb(rgb):
