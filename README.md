@@ -164,7 +164,6 @@ Hoever, keeping such devices connected 24/7 has a cost, which I sustain happily 
 Anyways, feel free to contribute via donations! 
 </p>
 
-
 ## Changelog
 ### 0.2.2.3
 - Implemented random UUID generation when connecting to the Meross MQTT broker 
