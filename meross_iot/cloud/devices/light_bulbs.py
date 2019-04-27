@@ -58,7 +58,7 @@ class GenericBulb(AbstractMerossDevice):
         payload = {'togglex': {"onoff": status, "channel": channel}}
         return self.execute_command("SET", TOGGLEX, payload)
 
-    def _handle_push_notification(self, namespace, payload):
+    def _handle_push_notification(self, namespace, payload, from_myself=False):
         if namespace == TOGGLE:
             on_status=payload['toggle']['onoff'] == 1
             self._update_state(channel=0, on=on_status)

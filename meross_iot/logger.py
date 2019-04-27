@@ -2,6 +2,7 @@ import logging
 from logging import StreamHandler
 from sys import stdout
 
+MANAGER_LOGGER = logging.getLogger("connection_manager")
 CONNECTION_MANAGER_LOGGER = logging.getLogger("connection_manager")
 POWER_PLUGS_LOGGER = logging.getLogger("power_plugs")
 BULBS_LOGGER = logging.getLogger("light_bulbs")
@@ -9,6 +10,9 @@ DEVICE_LOGGER = logging.getLogger("generic_device")
 
 h = StreamHandler(stream=stdout)
 h.setLevel(logging.DEBUG)
+
+MANAGER_LOGGER.addHandler(h)
+MANAGER_LOGGER.setLevel(logging.INFO)
 
 CONNECTION_MANAGER_LOGGER.addHandler(h)
 CONNECTION_MANAGER_LOGGER.setLevel(logging.INFO)

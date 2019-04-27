@@ -1,8 +1,11 @@
-class MerossEventType:
+from enum import Enum
+
+
+class MerossEventType(Enum):
     # Fired when the MQTT client connects/disconnects to the MQTT broker
     CLIENT_CONNECTION = 10
     DEVICE_ONLINE_STATUS = 100
-    DEVICE_SWITCH_STATUS = 100
+    DEVICE_SWITCH_STATUS = 1000
 
 
 class MerossEvent(object):
@@ -16,7 +19,7 @@ class ClientConnectionEvent(MerossEvent):
     status = None
 
     def __init__(self, current_status):
-        super().__init__(MerossEventType.CLIENT_CONNECTION)
+        super(ClientConnectionEvent, self).__init__(MerossEventType.CLIENT_CONNECTION)
         self.status = current_status
 
 
@@ -28,9 +31,9 @@ class DeviceOnlineStatusEvent(MerossEvent):
     status = None
 
     def __init__(self, dev, current_status):
-        super().__init__(MerossEventType.DEVICE_ONLINE_STATUS)
+        super(DeviceOnlineStatusEvent, self).__init__(MerossEventType.DEVICE_ONLINE_STATUS)
         self.device = dev
-        self.status = current_status
+        self.status = "online" if current_status else "offline"
 
 
 class DeviceSwitchStatusEvent(MerossEvent):
@@ -49,8 +52,8 @@ class DeviceSwitchStatusEvent(MerossEvent):
     generated_by_myself = None
 
     def __init__(self, dev, channel_id, switch_state, generated_by_myself):
-        super().__init__(MerossEventType.DEVICE_SWITCH_STATUS)
+        super(DeviceSwitchStatusEvent, self).__init__(MerossEventType.DEVICE_SWITCH_STATUS)
         self.device = dev
         self.channel_id = channel_id
-        self.switch_state = switch_state
+        self.switch_state = "on" if switch_state else "off"
         self.generated_by_myself = generated_by_myself

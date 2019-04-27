@@ -1,4 +1,7 @@
 # Common abilities
+ALL = 'Appliance.System.All'
+ABILITY = 'Appliance.System.Ability'
+REPORT = 'Appliance.System.Report'
 ONLINE = 'Appliance.System.Online'
 WIFI_LIST = 'Appliance.Config.WifiList'
 DEBUG = 'Appliance.System.Debug'

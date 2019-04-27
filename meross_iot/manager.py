@@ -2,6 +2,8 @@ from meross_iot.api import MerossHttpClient
 from meross_iot.cloud.client import MerossCloudClient
 from meross_iot.cloud.device_factory import build_wrapper
 from threading import RLock
+from meross_iot.logger import MANAGER_LOGGER as l
+from meross_iot.meross_event import DeviceOnlineStatusEvent
 
 
 class MerossManager(object):
@@ -21,14 +23,14 @@ class MerossManager(object):
     _cloud_client = None
 
     # List of callbacks that should be called when an event occurs
-    _event_handlers = None
-    _event_handlers_lock = None
+    _event_callbacks = None
+    _event_callbacks_lock = None
 
     def __init__(self, meross_email, meross_password):
         self._devices_lock = RLock()
         self._devices = dict()
-        self._event_handlers_lock = RLock()
-        self._event_handlers = []
+        self._event_callbacks_lock = RLock()
+        self._event_callbacks = []
 
         self._http_client = MerossHttpClient(email=meross_email, password=meross_password)
         self._cloud_creds = self._http_client.get_cloud_credentials()
@@ -44,18 +46,18 @@ class MerossManager(object):
         self._cloud_client.close()
 
     def register_event_handler(self, callback):
-        with self._event_handlers_lock:
-            if callback in self._event_handlers:
+        with self._event_callbacks_lock:
+            if callback in self._event_callbacks:
                 pass
             else:
-                self._event_handlers.append(callback)
+                self._event_callbacks.append(callback)
 
     def unregister_event_handler(self, callback):
-        with self._event_handlers_lock:
-            if callback not in self._event_handlers:
+        with self._event_callbacks_lock:
+            if callback not in self._event_callbacks:
                 pass
             else:
-                self._event_handlers.remove(callback)
+                self._event_callbacks.remove(callback)
 
     def get_device_by_uuid(self, uuid):
         dev = None
@@ -90,7 +92,16 @@ class MerossManager(object):
                     res.append(v)
         return res
 
-    def _dispatch_push_notification(self, message):
+    def _dispatch_push_notification(self, message, from_myself=False):
+        """
+        When a push notification is received from the MQTT client, it needs to be delivered to the
+        corresponding device. This method serves that scope.
+        :param message:
+        :param from_myself: boolean flag. When True, it means that the message received is related to a
+        previous request issued by this client. When is false, it means the message is related to some other
+        client.
+        :return:
+        """
         header = message['header']      # type: dict
         payload = message['payload']    # type: dict
 
@@ -102,7 +113,7 @@ class MerossManager(object):
 
         if device is not None:
             namespace = header['namespace']
-            device.handle_push_notification(namespace, payload)
+            device.handle_push_notification(namespace, payload, from_myself=from_myself)
         else:
             # If we receive a push notification from a device that is not yet contained into our registry,
             # it probably means a new one has just been registered with the meross cloud.
@@ -137,6 +148,7 @@ class MerossManager(object):
             # Check if the discovered device is already in the list of handled devices.
             # If not, add it right away. Otherwise, ignore it.
             is_new = False
+            new_dev = None
             with self._devices_lock:
                 if d_uuid not in self._devices:
                     is_new = True
@@ -144,7 +156,19 @@ class MerossManager(object):
                                             device_type=d_type, device_uuid=d_uuid, device_specs=dev)
                     self._devices[d_uuid] = new_dev
 
+            # If this is new device, register the event handler for it and fire the ONLINE event.
             if is_new:
-                # TODO: Notify a new device has been discovered!
-                pass
+                with self._event_callbacks_lock:
+                    for c in self._event_callbacks:
+                        new_dev.register_event_callback(c)
+
+                evt = DeviceOnlineStatusEvent(new_dev, new_dev.online)
+                self._fire_event(evt)
+
+    def _fire_event(self, eventobj):
+        for c in self._event_callbacks:
+            try:
+                c(eventobj)
+            except:
+                l.exception("An unhandled error occurred while invoking callback")
 

@@ -68,7 +68,10 @@ class PendingMessageResponse(object):
         if self._event is not None:
             self._event.set()
         elif self._callback is not None:
-            self._callback(self._error, self._response)
+            try:
+                self._callback(self._error, self._response)
+            except:
+                l.exception("Unhandled error occurred while executing the callback")
 
 
 class MerossCloudClient(object):
@@ -243,7 +246,11 @@ class MerossCloudClient(object):
                 msg_id = header['messageId']
                 handle = self._pending_response_messages.get(msg_id)
 
+            from_myself = False
             if handle is not None:
+                # There was a handle for this message-id. It means it is a response message to some
+                # request performed by the library itself.
+                from_myself = True
                 try:
                     # Call the handler
                     handle.notify_message_received(error=None, response=message)
@@ -256,7 +263,7 @@ class MerossCloudClient(object):
 
             # Let's also catch all the "PUSH" notifications and dispatch them to the push_notification_callback.
             if self._push_message_callback is not None and header['method'] == "PUSH" and 'namespace' in header:
-                self._push_message_callback(message)
+                self._push_message_callback(message, from_myself=from_myself)
 
         except Exception:
             l.exception("Failed to process message.")

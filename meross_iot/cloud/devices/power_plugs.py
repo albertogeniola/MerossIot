@@ -1,6 +1,7 @@
 from meross_iot.cloud.abilities import *
 from meross_iot.cloud.device import AbstractMerossDevice
 from meross_iot.logger import POWER_PLUGS_LOGGER as l
+from meross_iot.meross_event import DeviceSwitchStatusEvent
 
 
 class GenericPlug(AbstractMerossDevice):
@@ -35,18 +36,40 @@ class GenericPlug(AbstractMerossDevice):
         else:
             raise Exception("The current device does not support neither TOGGLE nor TOGGLEX.")
 
-    def _handle_push_notification(self, namespace, payload):
+    def _handle_push_notification(self, namespace, payload, from_myself=False):
+        def fire_switch_state_change(dev, channel_id, o_state, n_state, f_myself):
+            if o_state != n_state:
+                evt = DeviceSwitchStatusEvent(dev=dev, channel_id=channel_id, switch_state=n_state,
+                                              generated_by_myself=f_myself)
+                self.fire_event(evt)
+
         with self._state_lock:
             if namespace == TOGGLE:
-                self._state[0] = payload['toggle']['onoff'] == 1
+                # Update the local state and fire the event only if the state actually changed
+                channel_index = 0
+                old_switch_state = self._state[channel_index]
+                switch_state = payload['toggle']['onoff'] == 1
+                self._state[channel_index] = switch_state
+                fire_switch_state_change(self, channel_index, old_switch_state, switch_state, from_myself)
+
             elif namespace == TOGGLEX:
                 if isinstance(payload['togglex'], list):
                     for c in payload['togglex']:
+                        # Update the local state and fire the event only if the state actually changed
                         channel_index = c['channel']
-                        self._state[channel_index] = c['onoff'] == 1
+                        old_switch_state = self._state[channel_index]
+                        switch_state = c['onoff'] == 1
+                        self._state[channel_index] = switch_state
+                        fire_switch_state_change(self, channel_index, old_switch_state, switch_state, from_myself)
+
                 elif isinstance(payload['togglex'], dict):
+                    # Update the local state and fire the event only if the state actually changed
                     channel_index = payload['togglex']['channel']
-                    self._state[channel_index] = payload['togglex']['onoff'] == 1
+                    old_switch_state = self._state[channel_index]
+                    switch_state = payload['togglex']['onoff'] == 1
+                    self._state[channel_index] = switch_state
+                    fire_switch_state_change(self, channel_index, old_switch_state, switch_state, from_myself)
+
             else:
                 l.error("Unknown/Unsupported namespace/command: %s" % namespace)
 
