@@ -27,16 +27,29 @@ The following script demonstrates how to use this library.
 
 ```python
 from meross_iot.manager import MerossManager
+from meross_iot.meross_event import MerossEventType
 from meross_iot.cloud.devices.light_bulbs import GenericBulb
 from meross_iot.cloud.devices.power_plugs import GenericPlug
 import time
+
+
+def event_handler(eventobj):
+    if eventobj.event_type == MerossEventType.DEVICE_ONLINE_STATUS:
+        print("Device online status changed: %s went %s" % (eventobj.device.name, eventobj.status))
+        pass
+    elif eventobj.event_type == MerossEventType.DEVICE_SWITCH_STATUS:
+        print("Switch state changed: Device %s (channel %d) went %s" % (eventobj.device.name, eventobj.channel_id,
+                                                                        eventobj.switch_state))
+    else:
+        print("Unknown event!")
+
 
 if __name__=='__main__':
     # Initiates the Meross Cloud Manager. This is in charge of handling the communication with the remote endpoint
     manager = MerossManager(meross_email="YOUR_MEROSS_CLOUD_EMAIL", meross_password="YOUR_MEROSS_CLOUD_PASSWORD")
 
     # Register event handlers for the manager...
-    # TODO
+    manager.register_event_handler(event_handler)
 
     # Starts the manager
     manager.start()
