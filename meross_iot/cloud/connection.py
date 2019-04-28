@@ -4,6 +4,8 @@ from threading import RLock, Condition
 from meross_iot.cloud.client_status import ClientStatus
 from meross_iot.cloud.exceptions.StatusTimeoutException import StatusTimeoutException
 from meross_iot.cloud.timeouts import SHORT_TIMEOUT
+from meross_iot.meross_event import ClientConnectionEvent
+from meross_iot.logger import CONNECTION_MANAGER_LOGGER as l
 
 
 class ConnectionStatusManager(object):
@@ -12,6 +14,10 @@ class ConnectionStatusManager(object):
     # The child classes should never change/access these variables directly, though.
     _status = None
     _lock = None
+
+    # List of callbacks that should be called when an event occurs
+    _connection_event_callbacks = None
+    _connection_event_callbacks_lock = None
 
     # This condition object is used to synchronize multiple threads waiting for the connection to
     # get into a specific state.
@@ -27,9 +33,17 @@ class ConnectionStatusManager(object):
             return self._status
 
     def update_status(self, status):
+        old_status = None
+        new_status = None
         with self._status_condition:
+            old_status = self._status
+            new_status = status
             self._status = status
             self._status_condition.notify_all()
+
+        # If the connection status has changed, fire the event.
+        if old_status != new_status:
+            self._fire_connection_event(new_status)
 
     def check_status(self, expected_status):
         with self._lock:
@@ -51,3 +65,28 @@ class ConnectionStatusManager(object):
                     # An error has occurred
                     raise StatusTimeoutException("Error while waiting for status %s. Last status is: %s" %
                                                  (expected_status, self._status))
+
+    # ------------------------------------------------------------------------------------------------
+    # Event Handling
+    # ------------------------------------------------------------------------------------------------
+    def register_connection_event_callback(self, callback):
+        with self._connection_event_callbacks_lock:
+            if callback not in self._connection_event_callbacks:
+                self._connection_event_callbacks.append(callback)
+            else:
+                l.debug("Callback was already registered.")
+
+    def unregister_connection_event_callback(self, callback):
+        with self._connection_event_callbacks_lock:
+            if callback in self._connection_event_callbacks:
+                self._connection_event_callbacks.remove(callback)
+            else:
+                l.debug("Callback was present: nothing to unregister.")
+
+    def _fire_connection_event(self, connection_status):
+        evt = ClientConnectionEvent(current_status=connection_status)
+        for c in self._connection_event_callbacks:
+            try:
+                c(evt)
+            except:
+                l.exception("Unhandled error occurred while executing event handler")

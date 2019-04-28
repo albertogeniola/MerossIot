@@ -79,7 +79,7 @@ class MerossCloudClient(object):
     _cloud_creds = None
 
     # Connection info
-    _connection_status = None
+    connection_status = None
     _domain = None
     _port = 2001
     _ca_cert = None
@@ -102,11 +102,11 @@ class MerossCloudClient(object):
 
     def __init__(self,
                  cloud_credentials,             # type: MerossCloudCreds
-                 push_message_callback=None,   # type: callable
+                 push_message_callback=None,    # type: callable
                  **kwords):
 
+        self.connection_status = ConnectionStatusManager()
         self._cloud_creds = cloud_credentials
-        self._connection_status = ConnectionStatusManager()
         self._pending_response_messages = dict()
         self._pending_responses_lock = RLock()
         self._push_message_callback = push_message_callback
@@ -150,7 +150,7 @@ class MerossCloudClient(object):
         l.info("Closing the MQTT connection...")
         self._mqtt_client.disconnect()
         l.debug("Waiting for the client to disconnect...")
-        self._connection_status.wait_for_status(ClientStatus.CONNECTION_DROPPED)
+        self.connection_status.wait_for_status(ClientStatus.CONNECTION_DROPPED)
 
         # Starts a new thread that handles mqtt protocol and calls us back via callbacks
         l.debug("Stopping the MQTT looper.")
@@ -158,14 +158,14 @@ class MerossCloudClient(object):
 
         l.info("Client has been fully disconnected.")
 
-    def start(self):
+    def connect(self):
         """
         Starts the connection to the MQTT broker
         :return:
         """
         l.info("Initializing the MQTT connection...")
         self._mqtt_client.connect(self._domain, self._port, keepalive=30)
-        self._connection_status.update_status(ClientStatus.CONNECTING)
+        self.connection_status.update_status(ClientStatus.CONNECTING)
 
         # Starts a new thread that handles mqtt protocol and calls us back via callbacks
         l.debug("(Re)Starting the MQTT looper.")
@@ -173,7 +173,7 @@ class MerossCloudClient(object):
         self._mqtt_client.loop_start()
 
         l.debug("Waiting for the client to connect...")
-        self._connection_status.wait_for_status(ClientStatus.SUBSCRIBED)
+        self.connection_status.wait_for_status(ClientStatus.SUBSCRIBED)
         l.info("Client connected to MQTT broker and subscribed to relevant topics.")
 
     # ------------------------------------------------------------------------------------------------
@@ -184,14 +184,14 @@ class MerossCloudClient(object):
 
         # When the mqtt connection is dropped, we need to reset the subscription counter.
         self._subscription_count = AtomicCounter(0)
-        self._connection_status.update_status(ClientStatus.CONNECTION_DROPPED)
+        self.connection_status.update_status(ClientStatus.CONNECTION_DROPPED)
 
         # TODO: should we handle disconnection in some way at this level?
 
         if rc == mqtt.MQTT_ERR_SUCCESS:
             pass
         else:
-            client.loop_stop()
+            client.loop_stop(True)
 
     def _on_unsubscribe(self):
         l.debug("Unsubscribed from topic")
@@ -200,11 +200,11 @@ class MerossCloudClient(object):
     def _on_subscribe(self, client, userdata, mid, granted_qos):
         l.debug("Succesfully subscribed to topic. Subscription count: %d" % self._subscription_count.get())
         if self._subscription_count.inc() == 2:
-            self._connection_status.update_status(ClientStatus.SUBSCRIBED)
+            self.connection_status.update_status(ClientStatus.SUBSCRIBED)
 
     def _on_connect(self, client, userdata, rc, other):
         l.debug("Connected with result code %s" % str(rc))
-        self._connection_status.update_status(ClientStatus.CONNECTED)
+        self.connection_status.update_status(ClientStatus.CONNECTED)
 
         self._client_response_topic = "/app/%s-%s/subscribe" % (self._cloud_creds.user_id, self._app_id)
         self._user_topic = "/app/%s/subscribe" % self._cloud_creds.user_id

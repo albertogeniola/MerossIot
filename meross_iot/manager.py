@@ -35,11 +35,14 @@ class MerossManager(object):
         self._http_client = MerossHttpClient(email=meross_email, password=meross_password)
         self._cloud_creds = self._http_client.get_cloud_credentials()
 
-    def start(self):
-        # Instantiate and start the mqtt cloud client
+        # Instantiate the mqtt cloud client
         self._cloud_client = MerossCloudClient(cloud_credentials=self._cloud_creds,
                                                push_message_callback=self._dispatch_push_notification)
-        self._cloud_client.start()
+        self._cloud_client.connection_status.register_connection_event_callback(callback=self._fire_event)
+
+    def start(self):
+        # Connect to the mqtt broker
+        self._cloud_client.connect()
         self._discover_devices()
 
     def stop(self):
