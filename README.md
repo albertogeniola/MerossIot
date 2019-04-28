@@ -1,4 +1,4 @@
-[![Build status](https://albertogeniola.visualstudio.com/Meross/_apis/build/status/Meross-Python%20package-CI)](https://albertogeniola.visualstudio.com/Meross/_build/latest?definitionId=1)
+![Azure DevOps builds (branch)](https://img.shields.io/azure-devops/build/albertogeniola/c4128d1b-c23c-418d-95c5-2de061954ee5/1/0.3.X.X.svg)
 ![Deployment](https://albertogeniola.vsrm.visualstudio.com/_apis/public/Release/badge/c4128d1b-c23c-418d-95c5-2de061954ee5/1/1)
 ![Test status](https://img.shields.io/azure-devops/tests/albertogeniola/meross/1/master.svg)
 [![PyPI version](https://badge.fury.io/py/meross-iot.svg)](https://badge.fury.io/py/meross-iot)
