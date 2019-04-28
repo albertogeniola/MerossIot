@@ -5,9 +5,8 @@ import json
 import uuid as UUID
 import ssl
 import random
-import time
 import copy
-
+import time
 from meross_iot.cloud.timeouts import SHORT_TIMEOUT
 from meross_iot.cloud.exceptions.CommandTimeoutException import CommandTimeoutException
 from meross_iot.logger import CONNECTION_MANAGER_LOGGER as l
@@ -16,6 +15,7 @@ from meross_iot.credentials import MerossCloudCreds
 from meross_iot.cloud.client_status import ClientStatus
 from meross_iot.cloud.connection import ConnectionStatusManager
 from meross_iot.utilities.synchronization import AtomicCounter
+from meross_iot.logger import NETWORK_DATA as networkl
 
 
 def build_client_request_topic(client_uuid):
@@ -224,7 +224,7 @@ class MerossCloudClient(object):
         :param msg: message that was received
         :return: nothing, it simply handles the message accordingly.
         """
-        l.debug(msg.topic + " --> " + str(msg.payload))
+        networkl.debug(msg.topic + " --> " + str(msg.payload))
 
         try:
             message = json.loads(str(msg.payload, "utf8"))
@@ -272,7 +272,7 @@ class MerossCloudClient(object):
     # Protocol Handlers
     # ------------------------------------------------------------------------------------------------
     def execute_cmd(self, dst_dev_uuid, method, namespace, payload, callback=None, timeout=SHORT_TIMEOUT):
-
+        start = time.time()
         # Build the mqtt message we will send to the broker
         message, message_id = self._build_mqtt_message(method, namespace, payload)
 
@@ -282,6 +282,8 @@ class MerossCloudClient(object):
             self._pending_response_messages[message_id] = handle
 
         # Send the message to the broker
+        l.debug("Executing message-id %s, %s on %s command for device %s" % (message_id, method,
+                                                                             namespace, dst_dev_uuid))
         self._mqtt_client.publish(topic=build_client_request_topic(dst_dev_uuid), payload=message)
 
         # If the caller has specified a callback, we don't need to actrively wait for the message ACK. So we can
@@ -290,10 +292,15 @@ class MerossCloudClient(object):
             return None
 
         # Otherwise, we need to wait until the message is received.
+        l.debug("Waiting for response to message-id %s" % message_id)
         success, resp = handle.wait_for_response(timeout=timeout)
         if not success:
-            raise CommandTimeoutException("A timeout occurred while waiting fot the ACK.")
+            raise CommandTimeoutException("A timeout occurred while waiting fot the ACK: %d" % timeout)
 
+        elapsed = time.time() - start
+
+        l.debug("Message-id: %s, command %s-%s command for device %s took %s" % (message_id, method,
+                                                                                 namespace, dst_dev_uuid, str(elapsed)))
         return resp['payload']
 
     # ------------------------------------------------------------------------------------------------

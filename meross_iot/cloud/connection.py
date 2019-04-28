@@ -24,6 +24,9 @@ class ConnectionStatusManager(object):
     _status_condition = None
 
     def __init__(self):
+        self._connection_event_callbacks_lock = RLock()
+        self._connection_event_callbacks = []
+
         self._lock = RLock()
         self._status_condition = Condition(self._lock)
         self._status = ClientStatus.INITIALIZED

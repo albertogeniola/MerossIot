@@ -47,7 +47,7 @@ class GenericPlug(AbstractMerossDevice):
             if namespace == TOGGLE:
                 # Update the local state and fire the event only if the state actually changed
                 channel_index = 0
-                old_switch_state = self._state[channel_index]
+                old_switch_state = self._state.get(channel_index)
                 switch_state = payload['toggle']['onoff'] == 1
                 self._state[channel_index] = switch_state
                 fire_switch_state_change(self, channel_index, old_switch_state, switch_state, from_myself)
@@ -57,7 +57,7 @@ class GenericPlug(AbstractMerossDevice):
                     for c in payload['togglex']:
                         # Update the local state and fire the event only if the state actually changed
                         channel_index = c['channel']
-                        old_switch_state = self._state[channel_index]
+                        old_switch_state = self._state.get(channel_index)
                         switch_state = c['onoff'] == 1
                         self._state[channel_index] = switch_state
                         fire_switch_state_change(self, channel_index, old_switch_state, switch_state, from_myself)
@@ -65,7 +65,7 @@ class GenericPlug(AbstractMerossDevice):
                 elif isinstance(payload['togglex'], dict):
                     # Update the local state and fire the event only if the state actually changed
                     channel_index = payload['togglex']['channel']
-                    old_switch_state = self._state[channel_index]
+                    old_switch_state = self._state.get(channel_index)
                     switch_state = payload['togglex']['onoff'] == 1
                     self._state[channel_index] = switch_state
                     fire_switch_state_change(self, channel_index, old_switch_state, switch_state, from_myself)
