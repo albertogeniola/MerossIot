@@ -20,19 +20,19 @@ class GenericPlug(AbstractMerossDevice):
     def _get_electricity(self):
         return self.execute_command("GET", ELECTRICITY, {})
 
-    def _toggle(self, status):
+    def _toggle(self, status, callback=None):
         payload = {"channel": 0, "toggle": {"onoff": status}}
-        return self.execute_command("SET", TOGGLE, payload)
+        return self.execute_command("SET", TOGGLE, payload, callback=callback)
 
-    def _togglex(self, channel, status):
+    def _togglex(self, channel, status, callback=None):
         payload = {'togglex': {"onoff": status, "channel": channel}}
-        return self.execute_command("SET", TOGGLEX, payload)
+        return self.execute_command("SET", TOGGLEX, payload, callback=callback)
 
-    def _channel_control_impl(self, channel, status):
+    def _channel_control_impl(self, channel, status, callback=None):
         if TOGGLE in self.get_abilities():
-            return self._toggle(status)
+            return self._toggle(status, callback=callback)
         elif TOGGLEX in self.get_abilities():
-            return self._togglex(channel, status)
+            return self._togglex(channel, status, callback=callback)
         else:
             raise Exception("The current device does not support neither TOGGLE nor TOGGLEX.")
 
@@ -144,21 +144,21 @@ class GenericPlug(AbstractMerossDevice):
         c = self._get_channel_id(channel)
         return self.get_status(c)
 
-    def turn_on_channel(self, channel):
+    def turn_on_channel(self, channel, callback=None):
         c = self._get_channel_id(channel)
-        return self._channel_control_impl(c, 1)
+        return self._channel_control_impl(c, 1, callback=callback)
 
-    def turn_off_channel(self, channel):
+    def turn_off_channel(self, channel, callback=None):
         c = self._get_channel_id(channel)
-        return self._channel_control_impl(c, 0)
+        return self._channel_control_impl(c, 0, callback=callback)
 
-    def turn_on(self, channel=0):
+    def turn_on(self, channel=0, callback=None):
         c = self._get_channel_id(channel)
-        return self._channel_control_impl(c, 1)
+        return self._channel_control_impl(c, 1, callback=callback)
 
-    def turn_off(self, channel=0):
+    def turn_off(self, channel=0, callback=None):
         c = self._get_channel_id(channel)
-        return self._channel_control_impl(c, 0)
+        return self._channel_control_impl(c, 0, callback=callback)
 
     def get_usb_channel_index(self):
         # Look for the usb channel
@@ -167,19 +167,19 @@ class GenericPlug(AbstractMerossDevice):
                 return i
         return None
 
-    def enable_usb(self):
+    def enable_usb(self, callback=None):
         c = self.get_usb_channel_index()
         if c is None:
             return
         else:
-            return self.turn_on_channel(c)
+            return self.turn_on_channel(c, callback=callback)
 
-    def disable_usb(self):
+    def disable_usb(self, callback=None):
         c = self.get_usb_channel_index()
         if c is None:
             return
         else:
-            return self.turn_off_channel(c)
+            return self.turn_off_channel(c, callback=callback)
 
     def get_usb_status(self):
         c = self.get_usb_channel_index()

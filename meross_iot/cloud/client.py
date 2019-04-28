@@ -252,8 +252,10 @@ class MerossCloudClient(object):
                 # request performed by the library itself.
                 from_myself = True
                 try:
+                    l.debug("Calling handle event handler for message %s" % msg_id)
                     # Call the handler
                     handle.notify_message_received(error=None, response=message)
+                    l.debug("Done handler for message %s" % msg_id)
 
                     # Remove the message from the pending queue
                     with self._pending_responses_lock:

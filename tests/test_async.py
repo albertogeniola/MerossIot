@@ -7,6 +7,7 @@ import random
 from meross_iot.logger import set_log_level
 from logging import DEBUG, INFO
 
+from meross_iot.utilities.synchronization import AtomicCounter
 
 EMAIL = os.environ.get('MEROSS_EMAIL')
 PASSWORD = os.environ.get('MEROSS_PASSWORD')
@@ -14,7 +15,8 @@ PASSWORD = os.environ.get('MEROSS_PASSWORD')
 
 class TestMSS425ETest(unittest.TestCase):
     def setUp(self):
-        set_log_level(DEBUG, DEBUG)
+        self.counter = AtomicCounter(0)
+        set_log_level(INFO, INFO)
         self.manager = MerossManager(meross_email=EMAIL, meross_password=PASSWORD)
         self.manager.start()
 
@@ -25,41 +27,33 @@ class TestMSS425ETest(unittest.TestCase):
         else:
             raise Exception("Could not find device mss425e")
 
-    def test_multithreading(self):
-        def thread_run():
-            wait_time = random.random() * 3
+    def print_result(self, error, res):
+        # TODO: assertions
+        print("Error: %s, Result: %s" % (error, res))
+        print("Counter=%d" % self.counter.inc())
+
+    def test_async(self):
+        for i in range(0, 40):
             op = bool(random.getrandbits(1))
-            time.sleep(wait_time)
-            print("Thread %s executing..." % current_thread().name)
             channel = random.randrange(0, len(self.device.get_channels()))
             if not op:
-                self.device.turn_off_channel(channel)
+                self.device.turn_off_channel(channel, callback=self.print_result)
             else:
-                self.device.turn_on_channel(channel)
-
-            print("Thread %s done." % current_thread().name)
-
-        threads = []
-        for i in range(0, 10):
-            t = Thread(target=thread_run)
-            threads.append(t)
-
-        for t in threads:
-            t.start()
-
-        for t in threads:
-            t.join(20)
-            if t.isAlive():
-                raise Exception("Test not passed.")
-
-    def test_seq_commands(self):
+                self.device.turn_on_channel(channel, callback=self.print_result)
+        while self.counter.get() < 40:
+            time.sleep(1)
+    """
+    def test_sync(self):
         for i in range(0, 30):
+            print("Executing command %d" % i)
             time.sleep(0.01)
             channel = random.randrange(0, len(self.device.get_channels()))
             self.device.turn_off_channel(channel)
             time.sleep(0.01)
             self.device.turn_on_channel(channel)
             time.sleep(0.01)
+            print("Done command %d" % i)
+    """
 
     def tearDown(self):
         self.manager.stop()
