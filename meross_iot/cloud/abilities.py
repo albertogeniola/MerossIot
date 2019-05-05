@@ -15,5 +15,8 @@ TRIGGERX = 'Appliance.Control.TriggerX'
 ELECTRICITY = 'Appliance.Control.Electricity'
 CONSUMPTIONX = 'Appliance.Control.ConsumptionX'
 
+# Garage opener abilities
+GARAGE_DOOR_STATE = 'Appliance.GarageDoor.State'
+
 # Bulbs-only abilities
 LIGHT = 'Appliance.Control.Light'

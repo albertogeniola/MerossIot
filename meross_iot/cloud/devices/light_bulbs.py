@@ -179,10 +179,8 @@ class GenericBulb(AbstractMerossDevice):
         ch_id = self._get_channel_id(channel)
         return self.get_status(channel=ch_id)
 
-    def supports_light_control(self):
-        return LIGHT in self.get_abilities()
-
     def __str__(self):
+        # TODO
         basic_info = "%s (%s, %d channels, HW %s, FW %s): " % (
             self.name,
             self.type,
@@ -193,7 +191,10 @@ class GenericBulb(AbstractMerossDevice):
 
         for i, c in enumerate(self._channels):
             channel_type = c['type'] if 'type' in c else "Master" if c == {} else "Unknown"
-            channel_state = "On" if self.get_status(i) else "Off"
+            if self.online:
+                channel_state = "On" if self.get_status(i) else "Off"
+            else:
+                channel_state = "Unknown (device is offline)"
             channel_desc = "%s=%s" % (channel_type, channel_state)
             basic_info += channel_desc + ", "
 

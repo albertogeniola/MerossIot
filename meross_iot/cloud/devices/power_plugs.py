@@ -117,12 +117,6 @@ class GenericPlug(AbstractMerossDevice):
                 self._state = self._get_status_impl()
             return self._state[c]
 
-    def supports_consumption_reading(self):
-        return CONSUMPTIONX in self.get_abilities()
-
-    def supports_electricity_reading(self):
-        return ELECTRICITY in self.get_abilities()
-
     def get_power_consumption(self):
         if CONSUMPTIONX in self.get_abilities():
             return self._get_consumptionx()['consumptionx']
@@ -189,6 +183,7 @@ class GenericPlug(AbstractMerossDevice):
             return self.get_channel_status(c)
 
     def __str__(self):
+        # TODO
         basic_info = "%s (%s, %d channels, HW %s, FW %s): " % (
             self.name,
             self.type,
