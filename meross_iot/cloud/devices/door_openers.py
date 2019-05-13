@@ -93,6 +93,14 @@ class GenericGarageDoorOpener(AbstractMerossDevice):
         # In other cases return an error
         raise Exception("Invalid channel specified.")
 
+    def get_switch_status(self, channel=0):
+        with self._state_lock:
+            c = self._get_channel_id(channel)
+            if self._switch_state == {}:
+                self._switch_state, self._door_state = self._get_status_impl()
+            return self._switch_state[c]
+
+
     def get_door_status(self, channel=0):
         with self._state_lock:
             c = self._get_channel_id(channel)
