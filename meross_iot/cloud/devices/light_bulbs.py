@@ -180,23 +180,10 @@ class GenericBulb(AbstractMerossDevice):
         return self.get_status(channel=ch_id)
 
     def __str__(self):
-        # TODO
-        basic_info = "%s (%s, %d channels, HW %s, FW %s): " % (
-            self.name,
-            self.type,
-            len(self._channels),
-            self.hwversion,
-            self.fwversion
-        )
-
-        for i, c in enumerate(self._channels):
-            channel_type = c['type'] if 'type' in c else "Master" if c == {} else "Unknown"
-            if self.online:
-                channel_state = "On" if self.get_status(i) else "Off"
-            else:
-                channel_state = "Unknown (device is offline)"
-            channel_desc = "%s=%s" % (channel_type, channel_state)
-            basic_info += channel_desc + ", "
-
-        return basic_info
-
+        base_str = super().__str__()
+        with self._state_lock:
+            if not self.online:
+                return base_str
+            channels = "Channels: "
+            channels += ",".join(["%d = %s" % (k, "ON" if v else "OFF") for k, v in enumerate(self._state)])
+            return base_str + "\n" + "\n" + channels
