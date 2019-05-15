@@ -115,7 +115,7 @@ class MerossCloudClient(object):
         if "domain" in kwords:
             self._domain = kwords['domain']
         else:
-            self._domain = "eu-iot.meross.com"
+            self._domain = "iot.meross.com"
 
         # Lookup port and certificate for MQTT server
         self._port = kwords.get('port', MerossCloudClient._port)
