@@ -8,7 +8,7 @@ def build_wrapper(
         device_uuid,        # type: str
         device_specs        # type: dict
 ):
-    if device_type.startswith('msl'):
+    if device_type.startswith('msl') or device_type.startswith('mss560m'):
         return GenericBulb(cloud_client, device_uuid=device_uuid, **device_specs)
     elif device_type.startswith('mss'):
         return GenericPlug(cloud_client, device_uuid=device_uuid, **device_specs)
