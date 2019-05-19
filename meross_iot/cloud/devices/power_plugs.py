@@ -70,6 +70,13 @@ class GenericPlug(AbstractMerossDevice):
                     self._state[channel_index] = switch_state
                     fire_switch_state_change(self, channel_index, old_switch_state, switch_state, from_myself)
 
+            elif namespace == REPORT or namespace == CONSUMPTIONX:
+                # For now, we simply ignore push notification of these kind.
+                # In the future, we might think of handling such notification by caching them
+                # and avoid the network round-trip when asking for power consumption (if the latest report is
+                # recent enough)
+                pass
+
             else:
                 l.error("Unknown/Unsupported namespace/command: %s" % namespace)
 

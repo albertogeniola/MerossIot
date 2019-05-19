@@ -197,8 +197,9 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
-### 0.3.0.0rc0
+### 0.3.0.0rc1
 - Added MSG100 support
+- Fixed errors being logged when power consumptionX command was issued on powerplugs
 ### 0.3.0.0b1
 - General refactor of the library
 - Added event-based support

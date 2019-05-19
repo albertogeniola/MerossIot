@@ -78,6 +78,13 @@ class GenericBulb(AbstractMerossDevice):
             c = payload['light']['channel']
             self._update_state(channel=c, kwargs=payload['light'])
 
+        elif namespace == REPORT:
+            # For now, we simply ignore push notification of these kind.
+            # In the future, we might think of handling such notification by caching them
+            # and avoid the network round-trip when asking for power consumption (if the latest report is
+            # recent enough)
+            pass
+
         else:
             l.error("Unknown/Unsupported namespace/command: %s" % namespace)
 

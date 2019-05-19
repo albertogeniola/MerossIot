@@ -55,12 +55,21 @@ class GenericGarageDoorOpener(AbstractMerossDevice):
                     switch_state = payload['togglex']['onoff'] == 1
                     self._switch_state[channel_index] = switch_state
                     fire_switch_state_change(self, channel_index, old_switch_state, switch_state, from_myself)
+
             elif namespace == GARAGE_DOOR_STATE:
                 for door in payload['state']:
                     channel_index = door['channel']
                     state = door['open'] == 1
                     old_state = self._door_state[channel_index]
                     fire_garage_door_state_change(self, channel_index, old_state, state, from_myself)
+
+            elif namespace == REPORT:
+                # For now, we simply ignore push notification of these kind.
+                # In the future, we might think of handling such notification by caching them
+                # and avoid the network round-trip when asking for power consumption (if the latest report is
+                # recent enough)
+                pass
+
             else:
                 l.error("Unknown/Unsupported namespace/command: %s" % namespace)
 
