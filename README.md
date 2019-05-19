@@ -197,7 +197,7 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
-### 0.3.0.0b2
+### 0.3.0.0rc0
 - Added MSG100 support
 ### 0.3.0.0b1
 - General refactor of the library
