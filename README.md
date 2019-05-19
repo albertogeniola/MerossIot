@@ -143,6 +143,7 @@ The list of tested devices is the following:
 - MSS310h
 - MSS425e
 - MSS530H
+- MSG100
 
 I'd like to thank all the people who contributed to the early stage of library development,
 who stimulated me to continue the development and making this library support more devices:
@@ -168,6 +169,7 @@ So far, I've bought the following devices:
 - MSS310
 - MSS425E
 - MSS530H
+- MSG100
 
 By issuing a donation, you will:
 1. Give me the opportunity to buy new devices and support them in this library
