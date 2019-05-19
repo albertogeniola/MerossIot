@@ -3,7 +3,7 @@ from threading import RLock
 
 from meross_iot.cloud.exceptions.OfflineDeviceException import OfflineDeviceException
 from meross_iot.cloud.timeouts import LONG_TIMEOUT, SHORT_TIMEOUT
-from meross_iot.cloud.abilities import ONLINE, WIFI_LIST, TRACE, DEBUG, ABILITY, REPORT, ALL
+from meross_iot.cloud.abilities import *
 from meross_iot.logger import DEVICE_LOGGER as l
 from meross_iot.meross_event import DeviceOnlineStatusEvent
 
@@ -157,3 +157,23 @@ class AbstractMerossDevice(ABC):
         else:
             l.error("This device does not support the DEBUG ability")
             return None
+
+    def supports_consumption_reading(self):
+        return CONSUMPTIONX in self.get_abilities()
+
+    def supports_electricity_reading(self):
+        return ELECTRICITY in self.get_abilities()
+
+    def supports_light_control(self):
+        return LIGHT in self.get_abilities()
+
+    def __str__(self):
+        basic_info = "%s: %s (%s, HW %s, FW %s): " % (
+            self.__class__.name,
+            self.name,
+            self.type,
+            self.hwversion,
+            self.fwversion
+        )
+
+        return basic_info
