@@ -180,6 +180,16 @@ class GenericBulb(AbstractMerossDevice):
                 'temperature': temperature
             }
         }
+        
+        # handle mss560m differently
+        if self.type.lower() == 'mss560m':
+            pl = {
+                'light': self.get_light_color()
+            }
+            pl['light']['channel'] = channel
+            pl['light']['luminance'] = luminance
+            payload = pl
+
         self.execute_command(command='SET', namespace=LIGHT, payload=payload)
 
     def get_light_color(self, channel=0):
