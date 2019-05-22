@@ -82,8 +82,6 @@ if __name__ == '__main__':
 
         print("Opening door %s..." % g.name)
         g.open_door()
-        print("Waiting some time...")
-        time.sleep(10)
         print("Closing door %s..." % g.name)
         g.close_door()
 

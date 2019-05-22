@@ -297,7 +297,7 @@ class MerossCloudClient(object):
         l.debug("Waiting for response to message-id %s" % message_id)
         success, resp = handle.wait_for_response(timeout=timeout)
         if not success:
-            raise CommandTimeoutException("A timeout occurred while waiting fot the ACK: %d" % timeout)
+            raise CommandTimeoutException("A timeout occurred while waiting for the ACK: %d" % timeout)
 
         elapsed = time.time() - start
 

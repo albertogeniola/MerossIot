@@ -19,7 +19,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```
-pip install meross_iot --upgrade
+pip install meross_iot==0.3.0.0rc2 --upgrade
 ```
 
 ## Usage
@@ -30,7 +30,13 @@ from meross_iot.manager import MerossManager
 from meross_iot.meross_event import MerossEventType
 from meross_iot.cloud.devices.light_bulbs import GenericBulb
 from meross_iot.cloud.devices.power_plugs import GenericPlug
+from meross_iot.cloud.devices.door_openers import GenericGarageDoorOpener
 import time
+import os
+
+
+EMAIL = os.environ.get('MEROSS_EMAIL') or "YOUR_MEROSS_CLOUD_EMAIL"
+PASSWORD = os.environ.get('MEROSS_PASSWORD') or "YOUR_MEROSS_CLOUD_PASSWORD"
 
 
 def event_handler(eventobj):
@@ -46,7 +52,7 @@ def event_handler(eventobj):
 
 if __name__=='__main__':
     # Initiates the Meross Cloud Manager. This is in charge of handling the communication with the remote endpoint
-    manager = MerossManager(meross_email="YOUR_MEROSS_CLOUD_EMAIL", meross_password="YOUR_MEROSS_CLOUD_PASSWORD")
+    manager = MerossManager(meross_email=EMAIL, meross_password=PASSWORD)
 
     # Register event handlers for the manager...
     manager.register_event_handler(event_handler)
@@ -58,6 +64,7 @@ if __name__=='__main__':
     # By kind
     bulbs = manager.get_devices_by_kind(GenericBulb)
     plugs = manager.get_devices_by_kind(GenericPlug)
+    door_openers = manager.get_devices_by_kind(GenericGarageDoorOpener)
     all_devices = manager.get_supported_devices()
 
     # Print some basic specs about the discovered devices
@@ -68,6 +75,10 @@ if __name__=='__main__':
     print("All the plugs I found:")
     for p in plugs:
         print(p)
+
+    print("All the garage openers I found:")
+    for g in door_openers:
+        print(g)
 
     print("All the supported devices I found:")
     for d in all_devices:
@@ -80,12 +91,27 @@ if __name__=='__main__':
     # Or you can retrieve all the device by the HW type
     # all_mss310 = manager.get_devices_by_type("mss310")
 
+    # ------------------------------
+    # Let's play the garage openers.
+    # ------------------------------
+    for g in door_openers:
+        if not g.online:
+            print("The garage controller %s seems to be offline. Cannot play with that..." % g.name)
+            continue
+
+        print("Opening door %s..." % g.name)
+        g.open_door()
+        print("Closing door %s..." % g.name)
+        g.close_door()
+
     # ---------------------
     # Let's play with bulbs
     # ---------------------
     for b in bulbs:  # type: GenericBulb
         if not b.online:
             print("The bulb %s seems to be offline. Cannot play with that..." % b.name)
+            continue
+
         print("Let's play with bulb %s" % b.name)
         if not b.supports_light_control():
             print("Too bad bulb %s does not support light control %s" % b.name)
@@ -94,6 +120,8 @@ if __name__=='__main__':
             b.set_light_color(rgb=(255, 0, 0))
 
         b.turn_on()
+        time.sleep(1)
+        b.turn_off()
 
     # ---------------------------
     # Let's play with smart plugs
@@ -101,6 +129,8 @@ if __name__=='__main__':
     for p in plugs:  # type: GenericPlug
         if not p.online:
             print("The plug %s seems to be offline. Cannot play with that..." % p.name)
+            continue
+
         print("Let's play with smart plug %s" % p.name)
 
         channels = len(p.get_channels())
@@ -130,7 +160,6 @@ if __name__=='__main__':
     manager.stop()
 
     print("Bye bye!")
-
 ```
 
 ## Currently supported devices
@@ -197,6 +226,9 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
+### 0.3.0.0rc2
+- Fixed Major bugs with MSG100
+- Updated README examples
 ### 0.3.0.0rc1
 - Added MSG100 support
 - Fixed errors being logged when power consumptionX command was issued on powerplugs

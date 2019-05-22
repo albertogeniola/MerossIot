@@ -56,7 +56,6 @@ class DeviceSwitchStatusEvent(MerossEvent):
         super(DeviceSwitchStatusEvent, self).__init__(MerossEventType.DEVICE_SWITCH_STATUS)
         self.device = dev
         self.channel_id = channel_id
-        self.switch_state = "on" if switch_state else "off"
         self.generated_by_myself = generated_by_myself
 
 
@@ -79,5 +78,5 @@ class DeviceDoorStatusEvent(MerossEvent):
         super(DeviceDoorStatusEvent, self).__init__(MerossEventType.GARAGE_DOOR_STATUS)
         self.device = dev
         self.channel = channel_id
-        self.switch_state = "open" if door_state else "closed"
+        self.door_state = "open" if door_state else "closed"
         self.generated_by_myself = generated_by_myself
