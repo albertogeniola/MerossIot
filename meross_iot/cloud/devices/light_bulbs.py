@@ -180,7 +180,8 @@ class GenericBulb(AbstractMerossDevice):
                 'temperature': temperature
             }
         }
-        
+
+        # TODO: fix this as soon as we get hands on a real MSS560 and see what the payload looks like...
         # handle mss560m differently
         if self.type.lower() == 'mss560m':
             pl = {

@@ -19,7 +19,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```
-pip install meross_iot==0.3.0.0rc2 --upgrade
+pip install meross_iot==0.3.0.0rc3 --upgrade
 ```
 
 ## Usage
@@ -226,6 +226,8 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
+### 0.3.0.0rc3
+- Added quick fix for MSS560 color control
 ### 0.3.0.0rc2
 - Fixed Major bugs with MSG100
 - Updated README examples
