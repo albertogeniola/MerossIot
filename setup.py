@@ -9,7 +9,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='meross_iot',
-    version='0.3.0.0rc3',
+    version='0.3.0.0rc4',
     packages=find_packages(exclude=('tests',)),
     url='https://github.com/albertogeniola/MerossIot',
     license='MIT',
@@ -26,7 +26,7 @@ setup(
                 'on Github.',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    keywords='meross smartplug smartbulb iot mqtt domotic switch mss310 mss210 mss110 mss425e msl20',
+    keywords='meross smartplug smartbulb iot mqtt domotic switch mss310 mss210 mss110 mss425e msl20 msg100',
     project_urls={
         'Documentation': 'https://github.com/albertogeniola/MerossIot',
         'Funding': 'https://donate.pypi.org',
