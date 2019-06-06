@@ -56,6 +56,7 @@ class DeviceSwitchStatusEvent(MerossEvent):
         super(DeviceSwitchStatusEvent, self).__init__(MerossEventType.DEVICE_SWITCH_STATUS)
         self.device = dev
         self.channel_id = channel_id
+        self.switch_state = switch_state
         self.generated_by_myself = generated_by_myself
 
 
