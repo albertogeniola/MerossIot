@@ -167,6 +167,14 @@ class AbstractMerossDevice(ABC):
     def supports_light_control(self):
         return LIGHT in self.get_abilities()
 
+    @abstractmethod
+    def get_power_consumption(self):
+        pass
+
+    @abstractmethod
+    def get_electricity(self):
+        pass
+
     def __str__(self):
         basic_info = "%s: %s (%s, HW %s, FW %s): " % (
             self.__class__.name,

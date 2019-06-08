@@ -227,7 +227,8 @@ Anyways, feel free to contribute via donations!
 
 ## Changelog
 ### 0.3.0.1
-- Fixed regression passing manager parameter when firing meross events.
+- Added get_power_consumption() and get_electricity() methods as abstract methods of AbstractMerossDevice
+- Fixed regression passing manager parameter when firing Meross events.
 ### 0.3.0.0rc4
 - Added added switch_state to the generated event
 ### 0.3.0.0rc3

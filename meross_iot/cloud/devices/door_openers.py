@@ -4,6 +4,7 @@ from meross_iot.logger import POWER_PLUGS_LOGGER as l
 from meross_iot.meross_event import DeviceDoorStatusEvent
 from threading import Event
 
+
 class GenericGarageDoorOpener(AbstractMerossDevice):
     # Channels
     _channels = []
@@ -127,6 +128,12 @@ class GenericGarageDoorOpener(AbstractMerossDevice):
 
     def get_channels(self):
         return self._channels
+
+    def get_power_consumption(self):
+        return None
+
+    def get_electricity(self):
+        return None
 
     def __str__(self):
         base_str = super().__str__()
