@@ -22,16 +22,17 @@ class TestMSL120Test(unittest.TestCase):
             raise Exception("Could not find device msl120")
 
     def test_power_cycle(self):
+        time.sleep(4)
         self.device.turn_on()
-        time.sleep(2)
+        time.sleep(4)
         self.assertTrue(self.device.get_status()['on'])
 
         self.device.turn_off()
-        time.sleep(2)
+        time.sleep(4)
         self.assertFalse(self.device.get_status()['on'])
 
         self.device.turn_on()
-        time.sleep(2)
+        time.sleep(4)
 
         self.assertTrue(self.device.get_status()['on'])
 
