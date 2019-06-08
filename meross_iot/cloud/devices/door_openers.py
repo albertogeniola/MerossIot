@@ -5,6 +5,34 @@ from meross_iot.meross_event import DeviceDoorStatusEvent
 from threading import Event
 
 
+def parse_state(state):
+    if isinstance(state, str):
+        strstate = state.strip().lower()
+        if strstate == 'open':
+            return True
+        elif strstate == 'closed':
+            return False
+        else:
+            raise ValueError("Invalid state provided.")
+
+    elif isinstance(state, bool):
+        return state
+
+    elif isinstance(state, int):
+        if state == 0:
+            return False
+        elif state == 1:
+            return True
+        else:
+            return ValueError("Invalid state provided.")
+
+
+def compare_same_states(state1, state2):
+    s1 = parse_state(state1)
+    s2 = parse_state(state2)
+    return s1 == s2
+
+
 class GenericGarageDoorOpener(AbstractMerossDevice):
     # Channels
     _channels = []
@@ -101,10 +129,10 @@ class GenericGarageDoorOpener(AbstractMerossDevice):
                 if callback is None:
                     door_event.set()
                 else:
-                    if data.door_state != state:
+                    if not compare_same_states(data.door_state, state):
                         callback("Operation failed", data.door_state)
                     else:
-                        callback(None, data.door_sate)
+                        callback(None, data.door_state)
 
             self.register_event_callback(waiter)
             self.execute_command(command="SET", namespace=GARAGE_DOOR_STATE, payload=payload, callback=None)

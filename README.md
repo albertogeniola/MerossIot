@@ -226,6 +226,8 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
+### 0.3.0.2
+- Fixed door closing checks when using the async + callback close() and open() methods.
 ### 0.3.0.1
 - Added get_power_consumption() and get_electricity() methods as abstract methods of AbstractMerossDevice
 - Fixed regression passing manager parameter when firing Meross events.
