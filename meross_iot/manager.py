@@ -171,7 +171,7 @@ class MerossManager(object):
     def _fire_event(self, eventobj):
         for c in self._event_callbacks:
             try:
-                c(eventobj, manager=self)
+                c(eventobj)
             except:
                 l.exception("An unhandled error occurred while invoking callback")
 

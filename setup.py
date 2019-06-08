@@ -9,7 +9,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='meross_iot',
-    version='0.3.0.0rc4',
+    version='0.3.0.1',
     packages=find_packages(exclude=('tests',)),
     url='https://github.com/albertogeniola/MerossIot',
     license='MIT',

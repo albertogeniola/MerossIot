@@ -19,7 +19,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```
-pip install meross_iot==0.3.0.0rc4 --upgrade
+pip install meross_iot==0.3.0.1 --upgrade
 ```
 
 ## Usage
@@ -226,6 +226,8 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
+### 0.3.0.1
+- Fixed regression passing manager parameter when firing meross events.
 ### 0.3.0.0rc4
 - Added added switch_state to the generated event
 ### 0.3.0.0rc3
