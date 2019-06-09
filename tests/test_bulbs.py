@@ -25,16 +25,16 @@ class TestMSL120Test(unittest.TestCase):
         time.sleep(4)
         self.device.turn_on()
         time.sleep(4)
-        self.assertTrue(self.device.get_status()['on'])
+        self.assertTrue(self.device.get_status()['onoff'])
 
         self.device.turn_off()
         time.sleep(4)
-        self.assertFalse(self.device.get_status()['on'])
+        self.assertFalse(self.device.get_status()['onoff'])
 
         self.device.turn_on()
         time.sleep(4)
 
-        self.assertTrue(self.device.get_status()['on'])
+        self.assertTrue(self.device.get_status()['onoff'])
 
     def test_get_info(self):
         state = self.device.get_status()
