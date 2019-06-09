@@ -19,7 +19,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```
-pip install meross_iot==0.3.1.2 --upgrade
+pip install meross_iot==0.3.1.3 --upgrade
 ```
 
 ## Usage
@@ -226,9 +226,10 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
-### 0.3.1.2
+### 0.3.1.3
 - Added event fire capability to GenericBulb class.
 - Fixed bulb state kwargs bug
+- Improved set_light_color function for bulbs
 ### 0.3.0.2
 - Fixed door closing checks when using the async + callback close() and open() methods.
 ### 0.3.0.1
