@@ -6,6 +6,8 @@ class MerossEventType(Enum):
     CLIENT_CONNECTION = 10
     DEVICE_ONLINE_STATUS = 100
     DEVICE_SWITCH_STATUS = 1000
+    DEVICE_BULB_SWITCH_STATE = 2000
+    DEVICE_BULB_STATE = 2001
     GARAGE_DOOR_STATUS = 2000
 
 
@@ -80,4 +82,22 @@ class DeviceDoorStatusEvent(MerossEvent):
         self.device = dev
         self.channel = channel_id
         self.door_state = "open" if door_state else "closed"
+        self.generated_by_myself = generated_by_myself
+
+
+class BulbSwitchStateChangeEvent(MerossEvent):
+    def __init__(self, dev, channel_id, is_on, generated_by_myself):
+        super(BulbSwitchStateChangeEvent, self).__init__(MerossEventType.DEVICE_BULB_SWITCH_STATE)
+        self.device = dev
+        self.channel = channel_id
+        self.is_on = is_on
+        self.generated_by_myself = generated_by_myself
+
+
+class BulbLightStateChangeEvent(MerossEvent):
+    def __init__(self, dev, channel_id, light_state, generated_by_myself):
+        super(BulbLightStateChangeEvent, self).__init__(MerossEventType.DEVICE_BULB_STATE)
+        self.device = dev
+        self.channel = channel_id
+        self.light_state = light_state
         self.generated_by_myself = generated_by_myself

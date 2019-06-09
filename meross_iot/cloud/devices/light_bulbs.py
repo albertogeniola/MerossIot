@@ -1,6 +1,7 @@
 from meross_iot.cloud.abilities import *
 from meross_iot.cloud.device import AbstractMerossDevice
 from meross_iot.logger import BULBS_LOGGER as l
+from meross_iot.meross_event import BulbSwitchStateChangeEvent, BulbLightStateChangeEvent
 
 
 def to_rgb(rgb):
@@ -59,34 +60,62 @@ class GenericBulb(AbstractMerossDevice):
         return self.execute_command("SET", TOGGLEX, payload)
 
     def _handle_push_notification(self, namespace, payload, from_myself=False):
-        if namespace == TOGGLE:
-            on_status=payload['toggle']['onoff'] == 1
-            self._update_state(channel=0, on=on_status)
+        def fire_bulb_switch_state_change(dev, channel_id, o_state, n_state, f_myself):
+            if o_state != n_state:
+                evt = BulbSwitchStateChangeEvent(dev=dev, channel_id=channel_id, is_on=n_state,
+                                                 generated_by_myself=f_myself)
+                self.fire_event(evt)
 
-        elif namespace == TOGGLEX:
-            if isinstance(payload['togglex'], list):
-                for c in payload['togglex']:
-                    channel_index = c['channel']
-                    on_status = c['onoff']==1
-                    self._update_state(channel=channel_index, on=on_status)
-            elif isinstance(payload['togglex'], dict):
-                channel_index = payload['togglex']['channel']
-                on_status = payload['togglex']['onoff']==1
-                self._update_state(channel=channel_index, on=on_status)
+        def fire_bulb_light_state_change(dev, channel_id, o_state, n_state, f_myself):
+            if o_state != n_state:
+                evt = BulbLightStateChangeEvent(dev=dev, channel_id=channel_id, light_state=n_state,
+                                                generated_by_myself=f_myself)
+                self.fire_event(evt)
 
-        elif namespace == LIGHT:
-            c = payload['light']['channel']
-            self._update_state(channel=c, kwargs=payload['light'])
+        with self._state_lock:
+            if namespace == TOGGLE:
+                on_status=payload['toggle']['onoff'] == 1
+                channel_index = 0
+                old_state = self._state.get(channel_index)
+                new_state = on_status
+                self._update_state(channel=0, onoff=on_status)
+                fire_bulb_switch_state_change(self, channel_id=0, o_state=old_state, n_state=new_state,
+                                              f_myself=from_myself)
 
-        elif namespace == REPORT:
-            # For now, we simply ignore push notification of these kind.
-            # In the future, we might think of handling such notification by caching them
-            # and avoid the network round-trip when asking for power consumption (if the latest report is
-            # recent enough)
-            pass
+            elif namespace == TOGGLEX:
+                if isinstance(payload['togglex'], list):
+                    for c in payload['togglex']:
+                        channel_index = c['channel']
+                        on_status = c['onoff'] == 1
+                        old_state = self._state.get(channel_index).get('onoff')
+                        self._update_state(channel=channel_index, onoff=on_status)
+                        fire_bulb_switch_state_change(self, channel_id=channel_index, o_state=old_state,
+                                                      n_state=on_status, f_myself=from_myself)
+                elif isinstance(payload['togglex'], dict):
+                    channel_index = payload['togglex']['channel']
+                    on_status = payload['togglex']['onoff'] == 1
+                    old_state = self._state.get(channel_index).get('onoff')
+                    self._update_state(channel=channel_index, onoff=on_status)
+                    fire_bulb_switch_state_change(self, channel_id=channel_index, o_state=old_state, n_state=on_status,
+                                                  f_myself=from_myself)
 
-        else:
-            l.error("Unknown/Unsupported namespace/command: %s" % namespace)
+            elif namespace == LIGHT:
+                channel_index = payload['light']['channel']
+                old_state = self._state.get(channel_index)
+                new_state = payload['light']
+                self._update_state(channel=channel_index, kwargs=new_state)
+                fire_bulb_light_state_change(self, channel_id=channel_index, o_state=old_state, n_state=new_state,
+                                             f_myself=from_myself)
+
+            elif namespace == REPORT:
+                # For now, we simply ignore push notification of these kind.
+                # In the future, we might think of handling such notification by caching them
+                # and avoid the network round-trip when asking for power consumption (if the latest report is
+                # recent enough)
+                pass
+
+            else:
+                l.error("Unknown/Unsupported namespace/command: %s" % namespace)
 
     def _get_status_impl(self):
         res = {}
@@ -96,9 +125,9 @@ class GenericBulb(AbstractMerossDevice):
             res[light_channel] = data['digest']['light']
 
             for c in data['digest']['togglex']:
-                res[c['channel']]['on'] = c['onoff'] == 1
+                res[c['channel']]['onoff'] = c['onoff'] == 1
         elif 'control' in data:
-            res[0]['on'] = data['control']['toggle']['onoff'] == 1
+            res[0]['onoff'] = data['control']['toggle']['onoff'] == 1
         return res
 
     def _get_channel_id(self, channel):

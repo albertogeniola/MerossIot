@@ -226,6 +226,8 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
+### 0.3.1.0
+- Added event fire capability to GenericBulb class.
 ### 0.3.0.2
 - Fixed door closing checks when using the async + callback close() and open() methods.
 ### 0.3.0.1
