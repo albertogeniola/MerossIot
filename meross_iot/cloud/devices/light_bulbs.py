@@ -43,7 +43,7 @@ class GenericBulb(AbstractMerossDevice):
 
     def _update_state(self, channel, **kwargs):
         with self._state_lock:
-            if not channel in self._state:
+            if channel not in self._state:
                 self._state[channel] = {}
             for k in kwargs:
                 if k == 'onoff':
@@ -107,7 +107,8 @@ class GenericBulb(AbstractMerossDevice):
                 channel_index = payload['light']['channel']
                 old_state = self._state.get(channel_index)
                 new_state = payload['light']
-                self._update_state(channel=channel_index, kwargs=new_state)
+                del new_state['channel']
+                self._update_state(channel=channel_index, **new_state)
                 fire_bulb_light_state_change(self, channel_id=channel_index, o_state=old_state, n_state=new_state,
                                              f_myself=from_myself)
 
