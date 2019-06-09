@@ -87,7 +87,9 @@ class GenericBulb(AbstractMerossDevice):
                     for c in payload['togglex']:
                         channel_index = c['channel']
                         on_status = c['onoff'] == 1
-                        old_state = self._state.get(channel_index).get('onoff')
+                        old_state = self._state.get(channel_index)
+                        if old_state is not None:
+                            old_state = old_state.get('onoff')
                         self._update_state(channel=channel_index, onoff=on_status)
                         fire_bulb_switch_state_change(self, channel_id=channel_index, o_state=old_state,
                                                       n_state=on_status, f_myself=from_myself)
@@ -95,6 +97,8 @@ class GenericBulb(AbstractMerossDevice):
                     channel_index = payload['togglex']['channel']
                     on_status = payload['togglex']['onoff'] == 1
                     old_state = self._state.get(channel_index).get('onoff')
+                    if old_state is not None:
+                        old_state = old_state.get('onoff')
                     self._update_state(channel=channel_index, onoff=on_status)
                     fire_bulb_switch_state_change(self, channel_id=channel_index, o_state=old_state, n_state=on_status,
                                                   f_myself=from_myself)
