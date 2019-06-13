@@ -10,7 +10,10 @@
 A pure-python based library providing API for controlling Meross IoT devices over the internet.
 
 To see what devices are currently supported, checkout the *Currently supported devices* section. 
-Hopefully, more Meross hardware will be supported in the future.
+However, some devices _might work as expected even if they are not listed_ among the supported devices. 
+In such cases, you're invited to open an issue and report tbe working/non-working status of your device.
+This will help us to keep track of new devices and current support status of the library.
+
 
 This library is still work in progress, therefore use it with caution.
 
@@ -225,7 +228,7 @@ testing it on Python 3.5/3.6/3.7, relying on some junit tests and, if all the te
 is released on Pypi. However, to ensure that the code <i>really works</i>,
 the pipeline will issue on/off commands against real devices, that are dedicated 24/7 to the tests. 
 Such devices have been bought by myself (with contributions received by donators). 
-Hoever, keeping such devices connected 24/7 has a cost, which I sustain happily due to the success of the library.
+However, keeping such devices connected 24/7 has a cost, which I sustain happily due to the success of the library.
 Anyways, feel free to contribute via donations! 
 </p>
 
