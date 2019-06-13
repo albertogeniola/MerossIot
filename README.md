@@ -185,11 +185,15 @@ Anyone can do the same by simply installing a Man-In-The-Middle proxy and routin
 
 If you want to understand how the Meross protocol works, [have a look at the Wiki](https://github.com/albertogeniola/MerossIot/wiki). Be aware: this is still work in progress, so some pages of the wiki might still be blank/under construction.
 
+## Homeassistant integration
+Yeah, it happened. As soon as I started developing this library, I've discovered the HomeAssistant world.
+Thus, I've decided to spend some time to develop a full featured Homeassistant custom component, that you find [here](https://github.com/albertogeniola/meross-homeassistant).
+Thanks to @troykelly who made a wish and supported my efforts in developing such component! 
+
 ## Donate!
 I like reverse engineering and protocol inspection, I think it keeps your mind trained and healthy. 
 However, if you liked or appreciated by work, why don't you buy me a beer? 
 It would really motivate me to continue working on this repository to improve documentation, code and extend the supported meross devices.
-
 
 Moreover, donations will make me raise money to spend on other Meross devices. 
 So far, I've bought the following devices:
