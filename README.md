@@ -233,6 +233,8 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
+### 0.3.1.4
+- Fixed wrong MerossEventType being advertised for DeviceDoorStatusEvent
 ### 0.3.1.3
 - Added event fire capability to GenericBulb class.
 - Fixed bulb state kwargs bug

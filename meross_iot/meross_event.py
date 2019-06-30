@@ -8,7 +8,7 @@ class MerossEventType(Enum):
     DEVICE_SWITCH_STATUS = 1000
     DEVICE_BULB_SWITCH_STATE = 2000
     DEVICE_BULB_STATE = 2001
-    GARAGE_DOOR_STATUS = 2000
+    GARAGE_DOOR_STATUS = 3000
 
 
 class MerossEvent(object):
