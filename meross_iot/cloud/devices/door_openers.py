@@ -65,7 +65,8 @@ class GenericGarageDoorOpener(AbstractMerossDevice):
                     old_state = None
                     if self._door_state is not None:
                         old_state = self._door_state[channel_index]
-                    self._door_state[channel_index] = state
+                        self._door_state[channel_index] = state
+
                     fire_garage_door_state_change(self, channel_index, old_state, state, from_myself)
 
             elif namespace == REPORT:
