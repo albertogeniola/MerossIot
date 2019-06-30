@@ -62,7 +62,9 @@ class GenericGarageDoorOpener(AbstractMerossDevice):
                 for door in payload['state']:
                     channel_index = door['channel']
                     state = door['open'] == 1
-                    old_state = self._door_state[channel_index]
+                    old_state = None
+                    if self._door_state is not None:
+                        old_state = self._door_state[channel_index]
                     self._door_state[channel_index] = state
                     fire_garage_door_state_change(self, channel_index, old_state, state, from_myself)
 
