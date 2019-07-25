@@ -3,6 +3,7 @@ from meross_iot.meross_event import MerossEventType
 from meross_iot.cloud.devices.light_bulbs import GenericBulb
 from meross_iot.cloud.devices.power_plugs import GenericPlug
 from meross_iot.cloud.devices.door_openers import GenericGarageDoorOpener
+from random import randint
 import time
 import os
 
@@ -99,6 +100,10 @@ if __name__ == '__main__':
         else:
             # Let's make it red!
             b.set_light_color(rgb=(255, 0, 0))
+
+            # Let's dimm its brightness
+            random_luminance=randint(10, 100)
+            b.set_light_color(rgb=(255, 0, 0), luminance=random_luminance)
 
         b.turn_on()
         time.sleep(1)

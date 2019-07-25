@@ -288,7 +288,7 @@ class MerossCloudClient(object):
                                                                              namespace, dst_dev_uuid))
         self._mqtt_client.publish(topic=build_client_request_topic(dst_dev_uuid), payload=message)
 
-        # If the caller has specified a callback, we don't need to actrively wait for the message ACK. So we can
+        # If the caller has specified a callback, we don't need to actively wait for the message ACK. So we can
         # immediately return.
         if callback is not None:
             return None

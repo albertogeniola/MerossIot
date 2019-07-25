@@ -34,6 +34,7 @@ from meross_iot.meross_event import MerossEventType
 from meross_iot.cloud.devices.light_bulbs import GenericBulb
 from meross_iot.cloud.devices.power_plugs import GenericPlug
 from meross_iot.cloud.devices.door_openers import GenericGarageDoorOpener
+from random import randint
 import time
 import os
 
@@ -46,14 +47,23 @@ def event_handler(eventobj):
     if eventobj.event_type == MerossEventType.DEVICE_ONLINE_STATUS:
         print("Device online status changed: %s went %s" % (eventobj.device.name, eventobj.status))
         pass
+
     elif eventobj.event_type == MerossEventType.DEVICE_SWITCH_STATUS:
         print("Switch state changed: Device %s (channel %d) went %s" % (eventobj.device.name, eventobj.channel_id,
                                                                         eventobj.switch_state))
+    elif eventobj.event_type == MerossEventType.CLIENT_CONNECTION:
+        print("MQTT connection state changed: client went %s" % eventobj.status)
+
+        # TODO: Give example of reconnection?
+
+    elif eventobj.event_type == MerossEventType.GARAGE_DOOR_STATUS:
+        print("Garage door is now %s" % eventobj.door_state)
+
     else:
         print("Unknown event!")
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     # Initiates the Meross Cloud Manager. This is in charge of handling the communication with the remote endpoint
     manager = MerossManager(meross_email=EMAIL, meross_password=PASSWORD)
 
@@ -121,6 +131,10 @@ if __name__=='__main__':
         else:
             # Let's make it red!
             b.set_light_color(rgb=(255, 0, 0))
+
+            # Let's dimm its brightness
+            random_luminance=randint(10, 100)
+            b.set_light_color(rgb=(255, 0, 0), luminance=random_luminance)
 
         b.turn_on()
         time.sleep(1)
