@@ -207,6 +207,9 @@ Yeah, it happened. As soon as I started developing this library, I've discovered
 Thus, I've decided to spend some time to develop a full featured Homeassistant custom component, that you find [here](https://github.com/albertogeniola/meross-homeassistant).
 Thanks to @troykelly who made a wish and supported my efforts in developing such component! 
 
+## Running on OSX?
+If so, please make sure you did install client certificates. [Follow instructions here](https://github.com/albertogeniola/MerossIot/issues/62#issuecomment-535769621).
+
 ## Donate!
 I like reverse engineering and protocol inspection, I think it keeps your mind trained and healthy. 
 However, if you liked or appreciated by work, why don't you buy me a beer? 
