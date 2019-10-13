@@ -88,22 +88,20 @@ if __name__ == '__main__':
     print("All the plugs I found:")
     for p in plugs:
         print(p)
-
+        
     print("All the garage openers I found:")
     for g in door_openers:
         print(g)
-
+        
     print("All the supported devices I found:")
     for d in all_devices:
         print(d)
-
+        
     # You can also retrieve devices by the UUID/name
     # a_device = manager.get_device_by_name("My Plug")
     # a_device = manager.get_device_by_uuid("My Plug")
-
     # Or you can retrieve all the device by the HW type
     # all_mss310 = manager.get_devices_by_type("mss310")
-
     # ------------------------------
     # Let's play the garage openers.
     # ------------------------------
@@ -111,12 +109,11 @@ if __name__ == '__main__':
         if not g.online:
             print("The garage controller %s seems to be offline. Cannot play with that..." % g.name)
             continue
-
         print("Opening door %s..." % g.name)
         g.open_door()
         print("Closing door %s..." % g.name)
         g.close_door()
-
+        
     # ---------------------
     # Let's play with bulbs
     # ---------------------
@@ -124,22 +121,29 @@ if __name__ == '__main__':
         if not b.online:
             print("The bulb %s seems to be offline. Cannot play with that..." % b.name)
             continue
-
         print("Let's play with bulb %s" % b.name)
         if not b.supports_light_control():
             print("Too bad bulb %s does not support light control %s" % b.name)
         else:
-            # Let's make it red!
-            b.set_light_color(rgb=(255, 0, 0))
-
+            # Is this an rgb bulb?
+            if b.is_rgb():
+                # Let's make it red!
+                b.set_light_color(rgb=(255, 0, 0))
+            
+            time.sleep(1)
+            
+            if b.is_light_temperature():
+                b.set_light_color(temperature=10)
+            
+            time.sleep(1)
+                                        
             # Let's dimm its brightness
             random_luminance=randint(10, 100)
-            b.set_light_color(rgb=(255, 0, 0), luminance=random_luminance)
-
+            b.set_light_color(luminance=random_luminance)
         b.turn_on()
         time.sleep(1)
         b.turn_off()
-
+        
     # ---------------------------
     # Let's play with smart plugs
     # ---------------------------
@@ -250,6 +254,8 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
+### 0.3.1.6
+- Improved light bulb driver (capacity)
 ### 0.3.1.5
 - Fixed wrong MerossEventType being advertised for DeviceDoorStatusEvent
 ### 0.3.1.3

@@ -1,7 +1,15 @@
+from enum import Enum
 from meross_iot.cloud.abilities import *
 from meross_iot.cloud.device import AbstractMerossDevice
 from meross_iot.logger import BULBS_LOGGER as l
 from meross_iot.meross_event import BulbSwitchStateChangeEvent, BulbLightStateChangeEvent
+
+
+MODE_LUMINANCE = 4
+MODE_TEMPERATURE = 2
+MODE_RGB = 1
+MODE_RGB_LUMINANCE = 5
+MODE_TEMPERATURE_LUMINANCE = 6
 
 
 def to_rgb(rgb):
@@ -198,34 +206,49 @@ class GenericBulb(AbstractMerossDevice):
         c = self._get_channel_id(ch_id)
         return self._channel_control_impl(c, 0)
 
-    def set_light_color(self, channel=0, rgb=None, luminance=100, temperature=100, capacity=5):
+    def set_light_color(self, channel=0, rgb=None, luminance=-1, temperature=-1, capacity=None):
+        """
+        :param channel: Channel to control (for bulbs it's usually 0)
+        :param rgb: (red,green,blue) tuple, where each color is an integer from 0-to-255
+        :param luminance: Light intensity (at least on MSL120). Varies from 0 to 100
+        :param temperature: Light temperature. Can be used when rgb is not specified.
+        :param capacity: Old parameter. Kept for compatibility reasons. Will be removed in the future.
+        :return:
+        """
         ch_id = self._get_channel_id(channel)
 
-        # Convert the RGB to integer
-        color = to_rgb(rgb)
+        if rgb is not None and temperature != -1:
+            l.error("You are trying to set both RGB and luminance values for this bulb. It won't work!")
 
+        # Prepare a basic payload
         payload = {
             'light': {
-                'capacity': capacity,
                 'channel': ch_id,
-                'gradual': 0,
-                'luminance': luminance,
-                'rgb': color,
-                'temperature': temperature
+                'gradual': 0
             }
         }
 
-        # TODO: fix this as soon as we get hands on a real MSS560 and see what the payload looks like...
-        # handle mss560m differently
-        if self.type.lower() == 'mss560m':
-            pl = {
-                'light': self.get_light_color()
-            }
-            pl['light']['channel'] = channel
-            pl['light']['luminance'] = luminance
-            payload = pl
+        mode = 0
+        if self.supports_mode(MODE_RGB) and rgb is not None:
+            # Convert the RGB to integer
+            color = to_rgb(rgb)
+            payload['light']['rgb'] = color
+            mode = mode | MODE_RGB
+
+        if self.supports_mode(MODE_LUMINANCE) and luminance != -1:
+            payload['light']['luminance'] = luminance
+            mode = mode | MODE_LUMINANCE
+
+        if self.supports_mode(MODE_TEMPERATURE) and temperature != -1:
+            payload['light']['temperature'] = temperature
+            mode = mode | MODE_TEMPERATURE
+
+        payload['light']['capacity'] = mode
 
         self.execute_command(command='SET', namespace=LIGHT, payload=payload)
+
+    def supports_mode(self, mode):
+        return (self.get_abilities().get(LIGHT).get('capacity') & mode) == mode
 
     def get_light_color(self, channel=0):
         ch_id = self._get_channel_id(channel)
@@ -236,6 +259,18 @@ class GenericBulb(AbstractMerossDevice):
 
     def get_electricity(self):
         return None
+
+    def is_rgb(self):
+        return (self.get_abilities().get(LIGHT).get('capacity') & MODE_RGB) == MODE_RGB
+
+    def is_rgb(self):
+        return self.supports_mode(MODE_RGB)
+
+    def is_light_temperature(self):
+        return self.supports_mode(MODE_TEMPERATURE)
+
+    def supports_luminance(self):
+        return self.supports_mode(MODE_LUMINANCE)
 
     def __str__(self):
         base_str = super().__str__()
