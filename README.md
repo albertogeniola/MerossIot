@@ -22,7 +22,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```
-pip install meross_iot==0.3.1.3 --upgrade
+pip install meross_iot==0.3.1.6 --upgrade
 ```
 
 ## Usage
@@ -136,10 +136,12 @@ if __name__ == '__main__':
                 b.set_light_color(temperature=10)
             
             time.sleep(1)
-                                        
-            # Let's dimm its brightness
-            random_luminance=randint(10, 100)
-            b.set_light_color(luminance=random_luminance)
+                                       
+            if b.supports_luminance(): 
+                # Let's dimm its brightness
+                random_luminance=randint(10, 100)
+                b.set_light_color(luminance=random_luminance)
+
         b.turn_on()
         time.sleep(1)
         b.turn_off()
