@@ -18,6 +18,7 @@ CONSUMPTIONX = 'Appliance.Control.ConsumptionX'
 # Hub
 HUB_TEMPERATURE = 'Appliance.Hub.Mts100.Temperature'
 HUB_MODE = 'Appliance.Hub.Mts100.Mode'
+HUB_TOGGLEX = 'Appliance.Hub.ToggleX'
 
 # Garage opener abilities
 GARAGE_DOOR_STATE = 'Appliance.GarageDoor.State'
