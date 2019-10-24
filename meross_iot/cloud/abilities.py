@@ -15,6 +15,10 @@ TRIGGERX = 'Appliance.Control.TriggerX'
 ELECTRICITY = 'Appliance.Control.Electricity'
 CONSUMPTIONX = 'Appliance.Control.ConsumptionX'
 
+# Hub
+HUB_TEMPERATURE = 'Appliance.Hub.Mts100.Temperature'
+HUB_MODE = 'Appliance.Hub.Mts100.Mode'
+
 # Garage opener abilities
 GARAGE_DOOR_STATE = 'Appliance.GarageDoor.State'
 
