@@ -2,6 +2,16 @@ from meross_iot.cloud.abilities import *
 from meross_iot.cloud.device import AbstractMerossDevice
 from meross_iot.logger import POWER_PLUGS_LOGGER as l
 from meross_iot.meross_event import DeviceHubStatusEvent
+from meross_iot.cloud.devices.subdevices.generic import GenericSubDevice
+from meross_iot.cloud.devices.subdevices.thermostats import ValveSubDevice
+
+
+def get_sub_device(subdevice_id, hub, **client_data):
+    if 'mts100v3' in client_data or 'mts100' in client_data:
+        return ValveSubDevice(subdevice_id=subdevice_id, hub=hub, **client_data)
+    else:
+        # TODO: log unknown subdevice
+        return GenericSubDevice(subdevice_id=subdevice_id, hub=hub, **client_data)
 
 
 class GenericHub(AbstractMerossDevice):
@@ -18,7 +28,7 @@ class GenericHub(AbstractMerossDevice):
         # Check if the sensor is already present into the list of subdevices
         subdev = self._sub_devices.get(client_id)
         if subdev is None:
-            subdev = HubSubDevice(subdevice_id=client_id, hub=self, **client_data)
+            subdev = get_sub_device(subdevice_id=client_id, hub=self, **client_data)
             self._sub_devices[client_id] = subdev
 
         subdev.update_state(client_data)
@@ -52,27 +62,27 @@ class GenericHub(AbstractMerossDevice):
 
         with self._state_lock:
             if namespace == HUB_TOGGLEX:
-                for sensor in payload['togglex']:
-                    update_and_fire_event(sensor)
+                for sensor_data in payload['togglex']:
+                    update_and_fire_event(sensor_data)
 
             elif namespace == REPORT:
                 pass
 
             elif namespace == HUB_MODE:
-                for sensor in payload['mode']:
-                    update_and_fire_event(sensor)
+                for sensor_data in payload['mode']:
+                    update_and_fire_event(sensor_data)
 
             # Target temperature set on the device
             elif namespace == HUB_TEMPERATURE:
-                for sensor in payload['temperature']:
-                    update_and_fire_event(sensor)
+                for sensor_data in payload['temperature']:
+                    update_and_fire_event(sensor_data)
 
             else:
-                l.error("Unknown/Unsupported namespace/command: %s" % namespace)
+                l.warn("Unknown/Unsupported namespace/command: %s" % namespace)
 
     def _togglex(self, subdevice_id, status, channel=0, callback=None):
-        payload = {'togglex': [{"id": subdevice_id, "onoff": status, "channel": channel}]}
-        return self.execute_command("SET", HUB_TOGGLEX, payload, callback=callback)
+        payload = {'togglex': [{'id': subdevice_id, "onoff": status, "channel": channel}]}
+        return self.execute_command('SET', HUB_TOGGLEX, payload, callback=callback)
 
     def get_subdevice_state(self, subdevice_id):
         return self._sub_devices.get(subdevice_id)
@@ -93,35 +103,3 @@ class GenericHub(AbstractMerossDevice):
                 return base_str
             # TODO: fix this method. We'd probably want to print some more meaningful info
             return base_str
-
-
-class HubSubDevice:
-    id = None
-    _hub = None
-    online = False
-    last_active_time = None
-
-    def __init__(self, subdevice_id, hub, **kwords):
-        self.id = subdevice_id
-        self._hub = hub
-        self.online = kwords.get('status')
-        self.onoff = kwords.get('onoff')
-        self.last_active_time = kwords.get('lastActiveTime')
-
-    def update_state(self, client_data):
-        # Update the sensor data
-        for k, v in client_data.items():
-            if k == 'id':
-                continue
-            elif k == 'status':
-                self.online = v
-            elif k == 'onoff':
-                self.onoff = v
-            elif k == 'lastActiveTime':
-                self.last_active_time = v
-            else:
-                setattr(self, k, v)
-
-    # TODO
-    #def __str__(self):
-    #    pass
