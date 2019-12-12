@@ -256,6 +256,8 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
+### 0.3.1.8
+- Added HUB + thermostat support
 ### 0.3.1.6
 - Improved light bulb driver (capacity)
 ### 0.3.1.5

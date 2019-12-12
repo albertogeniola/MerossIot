@@ -3,6 +3,7 @@ from meross_iot.meross_event import MerossEventType
 from meross_iot.cloud.devices.light_bulbs import GenericBulb
 from meross_iot.cloud.devices.power_plugs import GenericPlug
 from meross_iot.cloud.devices.door_openers import GenericGarageDoorOpener
+from meross_iot.cloud.devices.hubs import GenericHub
 from random import randint
 import time
 import os
@@ -27,6 +28,9 @@ def event_handler(eventobj):
     elif eventobj.event_type == MerossEventType.GARAGE_DOOR_STATUS:
         print("Garage door is now %s" % eventobj.door_state)
 
+    elif eventobj.event_type == MerossEventType.DEVICE_HUB_SUBDEVICE_STATE:
+        print("HubState is now %s" % eventobj.state)
+
     else:
         print("Unknown event!")
 
@@ -46,6 +50,7 @@ if __name__ == '__main__':
     bulbs = manager.get_devices_by_kind(GenericBulb)
     plugs = manager.get_devices_by_kind(GenericPlug)
     door_openers = manager.get_devices_by_kind(GenericGarageDoorOpener)
+    hub_devices = manager.get_devices_by_kind(GenericHub)
     all_devices = manager.get_supported_devices()
 
     # Print some basic specs about the discovered devices
@@ -61,7 +66,11 @@ if __name__ == '__main__':
     for g in door_openers:
         print(g)
 
-    print("All the supported devices I found:")
+    print("All the hubs I found:")
+    for h in hub_devices:
+        print(h)
+
+    print("All the hub devices I found:")
     for d in all_devices:
         print(d)
 

@@ -9,6 +9,7 @@ class MerossEventType(Enum):
     DEVICE_BULB_SWITCH_STATE = 2000
     DEVICE_BULB_STATE = 2001
     GARAGE_DOOR_STATUS = 3000
+    DEVICE_HUB_SUBDEVICE_STATE = 4000
 
 
 class MerossEvent(object):
@@ -100,4 +101,13 @@ class BulbLightStateChangeEvent(MerossEvent):
         self.device = dev
         self.channel = channel_id
         self.light_state = light_state
+        self.generated_by_myself = generated_by_myself
+
+
+class DeviceHubStatusEvent(MerossEvent):
+    def __init__(self, hubdevice, subdevice_id, state, generated_by_myself):
+        super(DeviceHubStatusEvent, self).__init__(MerossEventType.DEVICE_HUB_SUBDEVICE_STATE)
+        self.device = hubdevice
+        self.subdevice_id = subdevice_id
+        self.state = state
         self.generated_by_myself = generated_by_myself

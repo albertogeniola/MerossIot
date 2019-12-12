@@ -14,6 +14,7 @@ _MEROSS_URL = "https://iot.meross.com"
 _LOGIN_URL = "%s%s" % (_MEROSS_URL, "/v1/Auth/Login")
 _LOG_URL = "%s%s" % (_MEROSS_URL, "/v1/log/user")
 _DEV_LIST = "%s%s" % (_MEROSS_URL, "/v1/Device/devList")
+_HUB_DUBDEV_LIST = "%s%s" % (_MEROSS_URL, "/v1/Hub/getSubDevices")
 
 
 class MerossHttpClient:
@@ -123,6 +124,12 @@ class MerossHttpClient:
             raise UnauthorizedException()
 
         return self._cloud_creds
+
+    def list_hub_subdevices(self, hub_id):
+        if not self._authenticated and not self._login():
+            raise UnauthorizedException()
+
+        return self._authenticated_post(_HUB_DUBDEV_LIST, {"uuid": hub_id})
 
 
 class AuthenticatedPostException(Exception):
