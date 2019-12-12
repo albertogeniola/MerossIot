@@ -22,7 +22,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```
-pip install meross_iot==0.3.1.7 --upgrade
+pip install meross_iot==0.3.1.8 --upgrade
 ```
 
 ## Usage
