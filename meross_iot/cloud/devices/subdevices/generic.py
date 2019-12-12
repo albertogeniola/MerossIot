@@ -16,7 +16,7 @@ class GenericSubDevice:
             if k == 'id':
                 continue
             elif k == 'status':
-                self.online = v
+                self.online = v == 1
             elif k == 'onoff':
                 self.onoff = v
             elif k == 'lastActiveTime':

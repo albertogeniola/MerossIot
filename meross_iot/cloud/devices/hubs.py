@@ -22,7 +22,7 @@ class GenericHub(AbstractMerossDevice):
     def __init__(self, cloud_client, device_uuid, **kwords):
         super(GenericHub, self).__init__(cloud_client, device_uuid, **kwords)
 
-    def _update_subdevice_data(self, client_data):
+    def _update_subdevice_data(self, client_data, namespace):
         client_id = client_data.get('id')
 
         # Check if the sensor is already present into the list of subdevices
@@ -31,7 +31,10 @@ class GenericHub(AbstractMerossDevice):
             subdev = get_sub_device(subdevice_id=client_id, hub=self, **client_data)
             self._sub_devices[client_id] = subdev
 
-        subdev.update_state(client_data)
+            # Trigger specific status update
+            subdev.update_all()
+
+        subdev.handle_push_event(client_data, namespace)
 
     def _get_status_impl(self):
         res = {}
@@ -40,7 +43,7 @@ class GenericHub(AbstractMerossDevice):
         res['hub_id'] = hub_data.get('hubId')
         res['mode'] = hub_data.get('mode')
         for subdevice in hub_data.get('subdevice'):
-            self._update_subdevice_data(subdevice)
+            self._update_subdevice_data(subdevice, None)
         return res
 
     def get_status(self):
@@ -55,27 +58,27 @@ class GenericHub(AbstractMerossDevice):
                                        generated_by_myself=f_myself)
             self.fire_event(evt)
 
-        def update_and_fire_event(sensor):
-            subdevice_id = sensor.get('id')
-            self._update_subdevice_data(sensor)
+        def update_and_fire_event(subdevice_data, namespace):
+            subdevice_id = subdevice_data.get('id')
+            self._update_subdevice_data(subdevice_data, namespace)
             fire_hub_state_change(self, subdevice_id, self.get_subdevice_state(subdevice_id), from_myself)
 
         with self._state_lock:
             if namespace == HUB_TOGGLEX:
                 for sensor_data in payload['togglex']:
-                    update_and_fire_event(sensor_data)
+                    update_and_fire_event(sensor_data, namespace)
 
             elif namespace == REPORT:
                 pass
 
-            elif namespace == HUB_MODE:
+            elif namespace == HUB_MTS100_MODE:
                 for sensor_data in payload['mode']:
-                    update_and_fire_event(sensor_data)
+                    update_and_fire_event(sensor_data, namespace)
 
             # Target temperature set on the device
-            elif namespace == HUB_TEMPERATURE:
+            elif namespace == HUB_MTS100_TEMPERATURE:
                 for sensor_data in payload['temperature']:
-                    update_and_fire_event(sensor_data)
+                    update_and_fire_event(sensor_data, namespace)
 
             else:
                 l.warn("Unknown/Unsupported namespace/command: %s" % namespace)
