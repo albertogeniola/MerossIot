@@ -1,6 +1,6 @@
 ![Azure DevOps builds (branch)](https://img.shields.io/azure-devops/build/albertogeniola/c4128d1b-c23c-418d-95c5-2de061954ee5/1/0.3.X.X.svg)
 ![Deployment](https://albertogeniola.vsrm.visualstudio.com/_apis/public/Release/badge/c4128d1b-c23c-418d-95c5-2de061954ee5/1/1)
-![Test status](https://img.shields.io/azure-devops/tests/albertogeniola/meross/1/master.svg)
+![Test status](https://img.shields.io/azure-devops/tests/albertogeniola/Meross/1?failed_label=failed&label=Tests%20&passed_label=passed&skipped_label=skipped)
 [![PyPI version](https://badge.fury.io/py/meross-iot.svg)](https://badge.fury.io/py/meross-iot)
 [![Downloads](https://pepy.tech/badge/meross-iot)](https://pepy.tech/project/meross-iot)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/meross-iot.svg?label=Pypi%20Downloads)
@@ -22,7 +22,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```
-pip install meross_iot==0.3.1.8 --upgrade
+pip install meross_iot==0.3.1.9 --upgrade
 ```
 
 ## Usage
