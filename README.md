@@ -188,14 +188,15 @@ if __name__ == '__main__':
 ## Currently supported devices
 Starting from v0.2.0.0, this library should support the majority of Meross devices on the market.
 The list of tested devices is the following:
-- MSL120
-- MSS110
-- MSS210
-- MSS310
-- MSS310h
-- MSS425e
-- MSS530H
-- MSG100
+- MSL120 (RGB Bulb)
+- MSS110 (Smart plug)
+- MSS210 (Smart plug)
+- MSS310 (Smart plug with power consumption)
+- MSS310h (Smart plug with power consumption)
+- MSS425e (Smart strip)
+- MSS530H (Wall-mount switches)
+- MSG100 (Garage opener)
+- MSH300 (Smart hub + valve thermostat)
 
 I'd like to thank all the people who contributed to the early stage of library development,
 who stimulated me to continue the development and making this library support more devices:
@@ -229,6 +230,7 @@ So far, I've bought the following devices:
 - MSS425E
 - MSS530H
 - MSG100
+- MSH300
 
 By issuing a donation, you will:
 1. Give me the opportunity to buy new devices and support them in this library
