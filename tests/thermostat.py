@@ -25,7 +25,7 @@ if __name__ == '__main__':
 
     print("All the hubs I found:")
     for h in hub_devices:
-        print(h)
+        print("- %s" % h)
 
     print("You can now play with the thermostat and see if the state is propagated here. Once you are done,"
           " press any key to exit")

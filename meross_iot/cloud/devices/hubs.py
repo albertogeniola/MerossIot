@@ -100,9 +100,10 @@ class GenericHub(AbstractMerossDevice):
         return self._togglex(subdevice_id, 0, channel, callback=callback)
 
     def __str__(self):
+        self.get_status()
         base_str = super().__str__()
         with self._state_lock:
             if not self.online:
                 return base_str
             # TODO: fix this method. We'd probably want to print some more meaningful info
-            return base_str
+            return "%s [ %s ]" % (base_str, ",".join(self.get_subdevices()))

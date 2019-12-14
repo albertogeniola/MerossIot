@@ -256,6 +256,10 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
+### 0.3.1.9
+- Fixed missing method implementation
+- Improved logging
+- Minor improvements __str__ methods
 ### 0.3.1.8
 - Added HUB + thermostat support
 ### 0.3.1.6

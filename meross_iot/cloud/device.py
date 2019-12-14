@@ -168,8 +168,7 @@ class AbstractMerossDevice(ABC):
         return LIGHT in self.get_abilities()
 
     def __str__(self):
-        basic_info = "%s: %s (%s, HW %s, FW %s): " % (
-            self.__class__.name,
+        basic_info = "%s (%s, HW %s, FW %s): " % (
             self.name,
             self.type,
             self.hwversion,

@@ -54,6 +54,9 @@ class ValveSubDevice(GenericSubDevice):
             self._update_mode(subdevice_data)
         elif namespace == HUB_MTS100_TEMPERATURE:
             self._update_temperature(subdevice_data)
+        else:
+            # In any other case, invoke the generic subdevice handler
+            super().handle_push_event(subdevice_data, namespace)
 
     def _update_mode(self, mode):
         mode_state = mode.get('state')
@@ -102,5 +105,5 @@ class ValveSubDevice(GenericSubDevice):
 
     def __str__(self):
         return "mode={}, room={}, target={}, open window={}".format(self.mode, self.room_temperature,
-                                                                                self.target_temperature,
-                                                                                self.open_window)
+                                                                    self.target_temperature,
+                                                                    self.open_window)
