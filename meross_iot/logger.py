@@ -3,6 +3,7 @@ from logging import StreamHandler
 from sys import stdout
 
 ROOT_MEROSS_LOGGER = logging.getLogger("meross")
+API_LOGGER = ROOT_MEROSS_LOGGER.getChild("api")
 MANAGER_LOGGER = ROOT_MEROSS_LOGGER.getChild("manager")
 CONNECTION_MANAGER_LOGGER = ROOT_MEROSS_LOGGER.getChild("connection")
 NETWORK_DATA = ROOT_MEROSS_LOGGER.getChild("network_data")
