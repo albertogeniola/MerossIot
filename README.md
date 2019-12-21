@@ -203,6 +203,19 @@ who stimulated me to continue the development and making this library support mo
 
 Thanks to [DanoneKiD](https://github.com/DanoneKiD), [virtualdj](https://github.com/virtualdj), [ictes](https://github.com/ictes), [soberstadt](https://github.com/soberstadt), [ping-localhost](https://github.com/ping-localhost).
 
+## New device or unsupported features?
+If you own a device that is not currently supported or partially supported, you can help the developers in two ways.
+The first one is by donating, so the developer gets enough money to but the device and implement necessary support.
+The second way is by sharing debug data that can be collected via the _meross_info_gather_ tool.
+TO use it, just install this library and run it as
+
+```bash
+$ meross_info_gather
+```
+
+Then, open an issue on this github repository, and upload the data.zip file.
+
+
 ## Protocol details
 This library was implemented by reverse-engineering the network communications between the plug and the meross network.
 Anyone can do the same by simply installing a Man-In-The-Middle proxy and routing the ssl traffic of an Android emulator through the sniffer.
@@ -258,6 +271,8 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
+### 0.3.1.11
+- Implemented meross_info_gather script
 ### 0.3.1.10
 - Improved logging 
 ### 0.3.1.9
