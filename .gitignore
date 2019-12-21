@@ -113,3 +113,7 @@ ext-res/tests/package-lock.json
 
 # IntelliJ
 .idea
+
+# Logged utilities
+utilities/*.zip
+utilities/*.log
