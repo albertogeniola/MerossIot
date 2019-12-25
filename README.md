@@ -206,12 +206,24 @@ Thanks to [DanoneKiD](https://github.com/DanoneKiD), [virtualdj](https://github.
 ## New device or unsupported features?
 If you own a device that is not currently supported or partially supported, you can help the developers in two ways.
 The first one is by donating, so the developer gets enough money to but the device and implement necessary support.
-The second way is by sharing debug data that can be collected via the _meross_info_gather_ tool.
-TO use it, just install this library and run it as
+The second way is by sharing running the _meross_sniffer_ and _meross_info_gather_ tools. 
 
-```bash
-$ meross_info_gather
-```
+### Meross Sniffer
+The sniffer is a tool that collects the commands that your Meross App sends to a specific device.
+By looking at the commands that the App sends to the unknown/unsuppoted device, the developers can re-implement the same logic on the library.
+To use the meross sniffer, simply do the following:
+1. Install the latest version of this library
+1. Make sure the device you want to study is online and visible from the Meross App
+1. Run the following command:
+    ```bash
+    $ meross_sniffer
+    ```
+1. From the prompt, select the device you want the sniffer to analyze
+1. Start issuing commands from the meross App to that device.
+
+When issuing commands from the meross app to the target device, follow a specific logic:
+- Write down separately (on a TXT file) which commands you are issuing
+- If the command you are issuing accepts "scalar" values, make sure you test the lowest one and the greatest one 
 
 Then, open an issue on this github repository, and upload the data.zip file.
 
@@ -271,6 +283,8 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
+### 0.3.1.12
+- Implemented meross_sniffer tool for collecting unknown devices logs
 ### 0.3.1.11
 - Implemented meross_info_gather script
 ### 0.3.1.10
