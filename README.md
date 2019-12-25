@@ -22,7 +22,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```
-pip install meross_iot==0.3.1.11 --upgrade
+pip install meross_iot==0.3.1.12 --upgrade
 ```
 
 ## Usage
@@ -215,6 +215,7 @@ To use the meross sniffer, simply do the following:
 1. Install the latest version of this library
 1. Make sure the device you want to study is online and visible from the Meross App
 1. Run the following command:
+
     ```bash
     $ meross_sniffer
     ```
@@ -227,6 +228,16 @@ When issuing commands from the meross app to the target device, follow a specifi
 
 Then, open an issue on this github repository, and upload the data.zip file.
 
+### Meross Info Gather
+This utility collects debug data for supported meross devices and can help the developers to identify and fix bugs.
+
+Again, its usage is pretty straight forward:
+
+```bash
+$ meross_info_gather
+```
+
+Then simply open an issue on this repository attaching the collected logs.
 
 ## Protocol details
 This library was implemented by reverse-engineering the network communications between the plug and the meross network.
