@@ -1,3 +1,5 @@
+from threading import RLock
+
 from meross_iot.cloud.abilities import *
 from meross_iot.cloud.device import AbstractMerossDevice
 from meross_iot.logger import POWER_PLUGS_LOGGER as l
@@ -6,35 +8,28 @@ from meross_iot.cloud.devices.subdevices.generic import GenericSubDevice
 from meross_iot.cloud.devices.subdevices.thermostats import ValveSubDevice
 
 
-def get_sub_device(subdevice_id, hub, **client_data):
-    if 'mts100v3' in client_data or 'mts100' in client_data:
-        return ValveSubDevice(subdevice_id=subdevice_id, hub=hub, **client_data)
-    else:
-        # TODO: log unknown subdevice
-        return GenericSubDevice(subdevice_id=subdevice_id, hub=hub, **client_data)
-
-
 class GenericHub(AbstractMerossDevice):
     # Handles the state of this specific HUB
     _state = {}
     _sub_devices = {}
+    _subdev_lock = None
 
     def __init__(self, cloud_client, device_uuid, **kwords):
         super(GenericHub, self).__init__(cloud_client, device_uuid, **kwords)
+        self._subdev_lock = RLock()
 
-    def _update_subdevice_data(self, client_data, namespace):
-        client_id = client_data.get('id')
+    def register_sub_device(self,
+                            subdev  # type: GenericSubDevice
+                            ):
+        with self._subdev_lock:
+            if subdev.uuid != self.uuid:
+                raise Exception("You cannot register this device to this hub, since it has been assigned a different "
+                                "hub device uuid.")
+            self._sub_devices[subdev.subdevice_id] = subdev
 
-        # Check if the sensor is already present into the list of subdevices
-        subdev = self._sub_devices.get(client_id)
-        if subdev is None:
-            subdev = get_sub_device(subdevice_id=client_id, hub=self, **client_data)
-            self._sub_devices[client_id] = subdev
-
-            # Trigger specific status update
-            subdev.update_all()
-
-        subdev.handle_push_event(client_data, namespace)
+    def _update_subdevice_data(self, subdevice):
+        # TODO
+        pass
 
     def _get_status_impl(self):
         res = {}
@@ -43,7 +38,7 @@ class GenericHub(AbstractMerossDevice):
         res['hub_id'] = hub_data.get('hubId')
         res['mode'] = hub_data.get('mode')
         for subdevice in hub_data.get('subdevice'):
-            self._update_subdevice_data(subdevice, None)
+            self._update_subdevice_data(subdevice)
         return res
 
     def get_status(self):

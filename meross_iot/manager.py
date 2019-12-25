@@ -1,9 +1,10 @@
 from meross_iot.api import MerossHttpClient
 from meross_iot.cloud.client import MerossCloudClient
-from meross_iot.cloud.device_factory import build_wrapper
+from meross_iot.cloud.device_factory import build_wrapper, build_subdevice_wrapper
 from threading import RLock
 from meross_iot.logger import MANAGER_LOGGER as l
 from meross_iot.meross_event import DeviceOnlineStatusEvent
+from meross_iot.cloud.devices.hubs import GenericHub
 
 
 class MerossManager(object):
@@ -137,36 +138,56 @@ class MerossManager(object):
                 continue
 
             # If the device we have discovered is not in the list we already handle, we need to add it.
-            self._handle_device_discovered(dev)
+            discovered = self._handle_device_discovered(dev)
+
+            # If the specific device is an HUB, add all its sub devices
+            if isinstance(discovered, GenericHub):
+                for subdev in self._http_client.list_hub_subdevices(discovered.uuid):
+                    self._handle_device_discovered(dev=subdev, parent_hub=discovered)
 
         return self._devices
 
-    def _handle_device_discovered(self, dev):
-        d_type = dev['deviceType']
-        d_uuid = dev['uuid']
-        device = build_wrapper(device_type=d_type, device_uuid=d_uuid, cloud_client=self._cloud_client,
-                               device_specs=dev)
+    def _handle_device_discovered(self, dev, parent_hub=None):
+        device = None
+
+        # Check whether we are dealing with a full device or with a subdevice
+        if 'deviceType' in dev and 'uuid' in dev:
+            # FULL DEVICE case
+            d_type = dev['deviceType']
+            d_id = dev['uuid']
+            device_id = d_id
+            device = build_wrapper(device_type=d_type, device_uuid=d_id,
+                                   cloud_client=self._cloud_client, device_specs=dev)
+        elif 'subDeviceType' in dev and 'subDeviceId' in dev:
+            # SUB DEVICE case
+            d_type = dev['subDeviceType']
+            d_id = dev['subDeviceId']
+            device_id = "%s:%s" % (parent_hub.uuid, d_id)
+            device = build_subdevice_wrapper(device_type=d_type, device_id=d_id, parent_hub=parent_hub,
+                                   cloud_client=self._cloud_client, device_specs=dev)
+        else:
+            l.warn("Discovered device does not seem to be either a full device nor a subdevice.")
+            return
 
         if device is not None:
             # Check if the discovered device is already in the list of handled devices.
             # If not, add it right away. Otherwise, ignore it.
             is_new = False
-            new_dev = None
             with self._devices_lock:
-                if d_uuid not in self._devices:
+                if d_id not in self._devices:
                     is_new = True
-                    new_dev = build_wrapper(cloud_client=self._cloud_client,
-                                            device_type=d_type, device_uuid=d_uuid, device_specs=dev)
-                    self._devices[d_uuid] = new_dev
+                    self._devices[device_id] = device
 
             # If this is new device, register the event handler for it and fire the ONLINE event.
             if is_new:
                 with self._event_callbacks_lock:
                     for c in self._event_callbacks:
-                        new_dev.register_event_callback(c)
+                        device.register_event_callback(c)
 
-                evt = DeviceOnlineStatusEvent(new_dev, new_dev.online)
+                evt = DeviceOnlineStatusEvent(device, device.online)
                 self._fire_event(evt)
+
+        return device
 
     def _fire_event(self, eventobj):
         for c in self._event_callbacks:

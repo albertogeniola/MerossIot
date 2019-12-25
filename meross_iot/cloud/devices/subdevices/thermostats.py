@@ -34,8 +34,8 @@ class ValveSubDevice(GenericSubDevice):
 
     type = 'Unknown'
 
-    def __init__(self, subdevice_id, hub, **kwords):
-        super().__init__(subdevice_id, hub, **kwords)
+    def __init__(self, cloud_client, subdevice_id, parent_hub, **kwords):
+        super().__init__(cloud_client, subdevice_id, parent_hub, **kwords)
         if 'mts100v3' in kwords:
             self.type = 'mts100v3'
         elif 'mts100' in kwords:
