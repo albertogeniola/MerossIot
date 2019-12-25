@@ -186,4 +186,4 @@ class MerossManager(object):
 
     def _ensure_started(self):
         if not self._cloud_client.connection_status.check_status(ClientStatus.SUBSCRIBED):
-            l.warn(f"The manager is not connected to the mqtt broker. Did you start the Meross manager?")
+            l.warn("The manager is not connected to the mqtt broker. Did you start the Meross manager?")
