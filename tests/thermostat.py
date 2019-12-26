@@ -1,3 +1,4 @@
+from meross_iot.cloud.devices.subdevices.generic import GenericSubDevice
 from meross_iot.manager import MerossManager
 from meross_iot.meross_event import MerossEventType
 from meross_iot.cloud.devices.hubs import GenericHub
@@ -24,8 +25,11 @@ if __name__ == '__main__':
     hub_devices = manager.get_devices_by_kind(GenericHub)
 
     print("All the hubs I found:")
-    for h in hub_devices:
+    for h in hub_devices:  # type: GenericHub
         print(h)
+        for subdev_id in h.get_subdevices():
+            subdev = h.get_subdevice(subdev_id)  # type:GenericSubDevice
+            subdev.get_status()
 
     print("You can now play with the thermostat and see if the state is propagated here. Once you are done,"
           " press any key to exit")
