@@ -1,8 +1,9 @@
+import os
+
+from meross_iot.cloud.devices.hubs import GenericHub
 from meross_iot.cloud.devices.subdevices.generic import GenericSubDevice
 from meross_iot.manager import MerossManager
 from meross_iot.meross_event import MerossEventType
-from meross_iot.cloud.devices.hubs import GenericHub
-import os
 
 EMAIL = os.environ.get('MEROSS_EMAIL') or "YOUR_MEROSS_CLOUD_EMAIL"
 PASSWORD = os.environ.get('MEROSS_PASSWORD') or "YOUR_MEROSS_CLOUD_PASSWORD"

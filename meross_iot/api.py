@@ -4,9 +4,10 @@ import json
 import random
 import string
 import time
-import requests
-from meross_iot.credentials import MerossCloudCreds
 
+import requests
+
+from meross_iot.credentials import MerossCloudCreds
 
 # Appears to be used as a part of the signature algorithm as constant "salt" (kinda useless)
 _SECRET = "23x17ahWarFH6w29"

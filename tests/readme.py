@@ -1,12 +1,13 @@
-from meross_iot.manager import MerossManager
-from meross_iot.meross_event import MerossEventType
-from meross_iot.cloud.devices.light_bulbs import GenericBulb
-from meross_iot.cloud.devices.power_plugs import GenericPlug
+import os
+import time
+from random import randint
+
 from meross_iot.cloud.devices.door_openers import GenericGarageDoorOpener
 from meross_iot.cloud.devices.hubs import GenericHub
-from random import randint
-import time
-import os
+from meross_iot.cloud.devices.light_bulbs import GenericBulb
+from meross_iot.cloud.devices.power_plugs import GenericPlug
+from meross_iot.manager import MerossManager
+from meross_iot.meross_event import MerossEventType
 
 EMAIL = os.environ.get('MEROSS_EMAIL') or "YOUR_MEROSS_CLOUD_EMAIL"
 PASSWORD = os.environ.get('MEROSS_PASSWORD') or "YOUR_MEROSS_CLOUD_PASSWORD"

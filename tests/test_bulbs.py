@@ -1,9 +1,9 @@
-from meross_iot.manager import MerossManager
 import os
+import random
 import time
 import unittest
-import random
 
+from meross_iot.manager import MerossManager
 
 EMAIL = os.environ.get('MEROSS_EMAIL')
 PASSWORD = os.environ.get('MEROSS_PASSWORD')

@@ -1,21 +1,23 @@
-from hashlib import md5
-import string
-from threading import Event, RLock
-import json
-import uuid as UUID
-import ssl
-import random
 import copy
+import json
+import random
+import ssl
+import string
 import time
-from meross_iot.cloud.timeouts import SHORT_TIMEOUT
-from meross_iot.cloud.exceptions.CommandTimeoutException import CommandTimeoutException
-from meross_iot.logger import CONNECTION_MANAGER_LOGGER as l
+import uuid as UUID
+from hashlib import md5
+from threading import Event, RLock
+
 import paho.mqtt.client as mqtt
-from meross_iot.credentials import MerossCloudCreds
+
 from meross_iot.cloud.client_status import ClientStatus
 from meross_iot.cloud.connection import ConnectionStatusManager
-from meross_iot.utilities.synchronization import AtomicCounter
+from meross_iot.cloud.exceptions.CommandTimeoutException import CommandTimeoutException
+from meross_iot.cloud.timeouts import SHORT_TIMEOUT
+from meross_iot.credentials import MerossCloudCreds
+from meross_iot.logger import CONNECTION_MANAGER_LOGGER as l
 from meross_iot.logger import NETWORK_DATA as networkl
+from meross_iot.utilities.synchronization import AtomicCounter
 
 
 def build_client_request_topic(client_uuid):

@@ -1,8 +1,9 @@
+from threading import Event
+
 from meross_iot.cloud.abilities import *
 from meross_iot.cloud.device import AbstractMerossDevice
 from meross_iot.logger import POWER_PLUGS_LOGGER as l
 from meross_iot.meross_event import DeviceDoorStatusEvent
-from threading import Event
 
 
 def parse_state(state):

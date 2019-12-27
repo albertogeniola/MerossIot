@@ -1,12 +1,9 @@
 import os
-import time
 import unittest
-from meross_iot.manager import MerossManager
-from threading import Thread, current_thread
-import random
-from meross_iot.logger import set_log_level
-from logging import DEBUG, INFO
+from logging import INFO
 
+from meross_iot.logger import set_log_level
+from meross_iot.manager import MerossManager
 from meross_iot.utilities.synchronization import AtomicCounter
 
 EMAIL = os.environ.get('MEROSS_EMAIL')

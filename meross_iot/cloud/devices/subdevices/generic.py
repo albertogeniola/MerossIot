@@ -1,5 +1,4 @@
 from meross_iot.cloud.device import AbstractMerossDevice, HUB_MTS100_ALL
-from meross_iot.cloud.timeouts import SHORT_TIMEOUT
 
 
 class GenericSubDevice(AbstractMerossDevice):
@@ -10,7 +9,7 @@ class GenericSubDevice(AbstractMerossDevice):
         self.name = kwords.get('subDeviceName')
         self.type = kwords.get('subDeviceType')
         self._hub.register_sub_device(self)
-        self._state = {}
+        self._raw_state = {}
 
     def notify_hub_state_change(self, subdevice_data):
         # Update the sensor data

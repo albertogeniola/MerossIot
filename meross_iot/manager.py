@@ -1,10 +1,11 @@
+from threading import RLock
+
 from meross_iot.api import MerossHttpClient
 from meross_iot.cloud.client import MerossCloudClient
 from meross_iot.cloud.device_factory import build_wrapper, build_subdevice_wrapper
-from threading import RLock
+from meross_iot.cloud.devices.hubs import GenericHub
 from meross_iot.logger import MANAGER_LOGGER as l
 from meross_iot.meross_event import DeviceOnlineStatusEvent
-from meross_iot.cloud.devices.hubs import GenericHub
 
 
 class MerossManager(object):

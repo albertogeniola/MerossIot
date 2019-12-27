@@ -1,4 +1,3 @@
-from enum import Enum
 from meross_iot.cloud.abilities import *
 from meross_iot.cloud.device import AbstractMerossDevice
 from meross_iot.logger import BULBS_LOGGER as l

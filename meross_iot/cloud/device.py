@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 from threading import RLock
 
+from meross_iot.cloud.abilities import *
 from meross_iot.cloud.exceptions.OfflineDeviceException import OfflineDeviceException
 from meross_iot.cloud.timeouts import LONG_TIMEOUT, SHORT_TIMEOUT
-from meross_iot.cloud.abilities import *
 from meross_iot.logger import DEVICE_LOGGER as l
 from meross_iot.meross_event import DeviceOnlineStatusEvent
 

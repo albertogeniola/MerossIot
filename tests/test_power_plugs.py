@@ -1,6 +1,7 @@
 import os
 import time
 import unittest
+
 from meross_iot.manager import MerossManager
 
 EMAIL = os.environ.get('MEROSS_EMAIL')
