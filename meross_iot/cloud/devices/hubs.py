@@ -31,21 +31,7 @@ class GenericHub(AbstractMerossDevice):
         hub_data = data.get('digest').get('hub')
         res['hub_id'] = hub_data.get('hubId')
         res['mode'] = hub_data.get('mode')
-        for subdevice in hub_data.get('subdevice'):
-            self._update_subdevice_data(subdevice)
         return res
-
-    def _update_subdevice_data(self, subdevice):
-        with self._subdev_lock:
-            subdev_id = subdevice.get('id')
-            if subdev_id is None:
-                # TODO: trigger device subdev discovery?
-                return
-            subdev = self._sub_devices.get(subdev_id)  # type:GenericSubDevice
-            if subdev is None:
-                # TODO: trigger device subdev discovery?
-                return
-            subdev.notify_hub_state_change(subdevice)
 
     def get_status(self):
         with self._state_lock:

@@ -1,7 +1,7 @@
 import os
 
 from meross_iot.cloud.devices.hubs import GenericHub
-from meross_iot.cloud.devices.subdevices.generic import GenericSubDevice
+from meross_iot.cloud.devices.subdevices.thermostats import ValveSubDevice, ThermostatV3Mode
 from meross_iot.manager import MerossManager
 from meross_iot.meross_event import MerossEventType
 
@@ -23,22 +23,14 @@ if __name__ == '__main__':
 
     # Starts the manager
     manager.start()
-    hub_devices = manager.get_devices_by_kind(GenericHub)
+    thermostat = manager.get_devices_by_kind(ValveSubDevice)[0]  # type: ValveSubDevice
 
-    print("All the hubs I found:")
-    for h in hub_devices:  # type: GenericHub
-        print(h)
-        for subdev_id in h.get_subdevices():
-            subdev = h.get_subdevice(subdev_id)  # type:GenericSubDevice
-            subdev.get_status()
-            print("- %s" % h)
+    print(f"Current mode {thermostat.mode}")
+    thermostat.set_mode(ThermostatV3Mode.COOL)
+    print(f"Current mode {thermostat.mode}")
 
-    print("You can now play with the thermostat and see if the state is propagated here. Once you are done,"
-          " press any key to exit")
-    data = input()
+    print(f"Current room temperature {thermostat.room_temperature}")
+    thermostat.set_target_temperature(10)
 
-    # At this point, we are all done playing with the library, so we gracefully disconnect and clean resources.
-    print("We are done playing. Cleaning resources...")
     manager.stop()
-
     print("Bye bye!")

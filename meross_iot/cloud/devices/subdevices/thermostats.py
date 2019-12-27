@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Union
 
 from meross_iot.cloud.abilities import HUB_MTS100_ALL, HUB_MTS100_TEMPERATURE, HUB_MTS100_MODE, HUB_TOGGLEX, \
     HUB_MTS100_ONLINE
@@ -32,22 +33,15 @@ class ValveSubDevice(GenericSubDevice):
         evt = None
         if namespace == HUB_MTS100_ALL:
             self._raw_state.update(payload)
-            # onoff and online properties are handled by the parent class. So, when a thermostat-specific event
-            # is received, we need to update the parent properties as well.
-            self.onoff = self._raw_state.get('togglex').get('onoff')
-            self.online = self._raw_state.get('online').get('status')
-            self.last_active_time = self._raw_state.get('online').get('lastActiveTime')
-            # We do not fire events on HUB_MTS100_ALL push notification.
 
         elif namespace == HUB_TOGGLEX:
             togglex = self._raw_state.get('togglex')
             if togglex is None:
                 togglex = {}
                 self._raw_state['togglex'] = togglex
-
             togglex.update(payload)
-            self.onoff = self._raw_state.get('togglex').get('onoff')
             evt = DeviceSwitchStatusEvent(self, 0, self.onoff, from_myself)
+
         elif namespace == HUB_MTS100_MODE:
             mode = self._raw_state.get('mode')
             if mode is None:
@@ -73,10 +67,7 @@ class ValveSubDevice(GenericSubDevice):
             if online is None:
                 online = {}
                 self._raw_state['online'] = online
-
             online.update(payload)
-            self.online = self._raw_state.get('online').get('status')
-            self.last_active_time = self._raw_state.get('online').get('lastActiveTime')
             evt = DeviceOnlineStatusEvent(dev=self, current_status=payload)  # TODO: check the payload value and the expected event value
 
         # TODO: handle TIME SYNC event?
@@ -91,10 +82,88 @@ class ValveSubDevice(GenericSubDevice):
             self.fire_event(evt)
 
     @property
+    def onoff(self):
+        onoff = self._raw_state.get('togglex').get('onoff')
+        if onoff is None:
+            self._sync_status()
+            onoff = self._raw_state.get('togglex').get('onoff')
+        return onoff
+
+    @property
+    def room_temperature(self):
+        temp = self._raw_state.get('temperature', {}).get('room')
+        if temp is None:
+            self._sync_status()
+            temp = self._raw_state.get('temperature', {}).get('room')
+
+        return temp / 10
+
+    @property
+    def target_temperature(self):
+        """
+        Returns the current target temperature
+        :return:
+        """
+        # The API returns the temperature in decimals.
+        # For this reason, we convert it to integers.
+        temp = self._raw_state.get('temperature', {}).get('currentSet')
+        if temp is None:
+            self._sync_status()
+            temp = self._raw_state.get('temperature', {}).get('currentSet')
+        return temp / 10
+
+    def set_target_temperature(self,
+                               target_temp: float = None,
+                               callback: callable = None):
+        """
+        Sets the target temperature of the thermostat
+        :param target_temp: temperature to be set
+        :param callback:
+        :return:
+        """
+        # The API expects the target temperature in DECIMALS, so we need to multiply the user's input by 10
+        value = target_temp * 10
+        payload = {'id': self.subdevice_id, 'custom': value}
+        return self.execute_command(command='SET',
+                                    namespace=HUB_MTS100_TEMPERATURE,
+                                    payload=payload,
+                                    callback=callback)
+
+    def set_preset_temperature(self,
+                               away: float = None,
+                               comfort: float = None,
+                               economy: float = None,
+                               callback: callable = None):
+        """
+        Configures the preset temperature values. The temperature values should be expressed in
+        Celsius degrees.
+        :param away: Target temperature for away preset
+        :param comfort: Target temperature for comfort preset
+        :param economy: Target temperature for economy preset
+        :param callback:
+        :return:
+        """
+        # The API expects the celsius degrees in DECIMALS, so we need to multiply the user's input by 10
+        temperature_conf = {'id': self.subdevice_id}
+        if away is not None:
+            temperature_conf['away'] = away * 10
+        if comfort is not None:
+            temperature_conf['comfort'] = comfort * 10
+        if economy is not None:
+            temperature_conf['economy'] = economy * 10
+
+        payload = {'temperature': [temperature_conf]}
+        return self.execute_command(command='SET',
+                                    namespace=HUB_MTS100_TEMPERATURE,
+                                    payload=payload,
+                                    callback=callback)
+
+    @property
     def mode(self):
         state = self._raw_state.get('mode', {}).get('state')
         if state is None:
-            return None
+            self._sync_status()
+            state = self._raw_state.get('mode', {}).get('state')
 
         # Parse the mode according to the current device type
         if self.type == 'mts100v3':
@@ -104,3 +173,29 @@ class ValveSubDevice(GenericSubDevice):
         else:
             l.error("The current thermostat mode is not supported.")
             return None
+
+    def set_mode(self, mode: Union[ThermostatV3Mode, ThermostatMode, int]):
+        """
+        Sets the temperature mode for the thermostat
+        :param mode:
+        :return:
+        """
+        # Make sure we are passing correct values
+        if self.type == 'mts100v3' and not isinstance(mode, ThermostatV3Mode):
+            raise ValueError("This thermostat only supports ThermostatV3Mode modes")
+        elif self.type == 'mts100' and not isinstance(mode, ThermostatMode):
+            raise ValueError("This thermostat only supports ThermostatMode modes")
+        else:
+            l.warning("Setting a raw integer value as mode. This is not recommended. "
+                      "Please use ThermostatMode or ThermostatV3Mode")
+        self.execute_command('SET', HUB_MTS100_MODE, {'mode': [{'id': self.subdevice_id, 'state': mode.value}]})
+
+    def _togglex(self, onoff, channel=0, callback=None):
+        payload = {'togglex': [{'channel': channel, 'id': self.subdevice_id, 'onoff': onoff}]}
+        return self.execute_command('SET', HUB_TOGGLEX, payload, callback=callback)
+
+    def turn_on(self, callback=None):
+        return self._togglex(onoff=1, callback=callback)  # TODO: test this
+
+    def turn_off(self, callback=None):
+        return self._togglex(onoff=0, callback=callback)  # TODO: test this

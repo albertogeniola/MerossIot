@@ -3,14 +3,6 @@ from meross_iot.cloud.abilities import HUB_TOGGLEX
 from meross_iot.logger import SUBDEVICE_LOGGER as l
 
 
-class GenericSubDevice:
-    id = None
-    _hub = None
-    online = False
-    onoff = None
-    last_active_time = None
-
-
 class GenericSubDevice(AbstractMerossDevice):
     def __init__(self, cloud_client, subdevice_id, parent_hub, **kwords):
         super().__init__(cloud_client, parent_hub.uuid, **kwords)
@@ -21,20 +13,21 @@ class GenericSubDevice(AbstractMerossDevice):
         self._hub.register_sub_device(self)
         self._raw_state = {}
 
-    def notify_hub_state_change(self, subdevice_data):
-        # Update the sensor data
-        for k, v in subdevice_data.items():
-            if k == 'id':
-                continue
-            elif k == 'status':
-                self.online = v == 1
-            elif k == 'onoff':
-                self.onoff = v
-            elif k == 'lastActiveTime':
-                self.last_active_time = v
-            else:
-                # TODO: log the anomaly
-                pass
+    @property
+    def last_active_time(self):
+        last_active_time = self._raw_state.get('online')
+        if last_active_time is None:
+            self._sync_status()
+            last_active_time = self._raw_state.get('online')
+        return last_active_time.get('lastActiveTime')
+
+    @property
+    def online(self):
+        online = self._raw_state.get('online')
+        if online is None:
+            self._sync_status()
+            online = self._raw_state.get('online')
+        return online.get('status') == 1
 
     def _sync_status(self):
         payload = {'all': [{'id': self.subdevice_id}]}
@@ -43,10 +36,11 @@ class GenericSubDevice(AbstractMerossDevice):
         for device_data in data:
             if device_data.get('id') == self.subdevice_id:
                 self._raw_state.update(device_data)
+        return self._raw_state
 
     def get_status(self):
         if self._raw_state == {}:
-            self._sync_status()
+            return self._sync_status()
         else:
             return self._raw_state
 
@@ -56,20 +50,3 @@ class GenericSubDevice(AbstractMerossDevice):
 
     def __str__(self):
         return "{}".format(self._raw_state)
-    def handle_push_event(self, subdevice_data, namespace):
-        if namespace == HUB_TOGGLEX:
-            self.onoff = subdevice_data.get('onoff')
-        elif namespace is None:
-            pass
-        else:
-            l.warn("Unsupported namespace push event: %s" % namespace)
-
-    def update_all(self):
-        pass
-
-    def __str__(self):
-        return 'ID: %s' % self.id
-
-    # TODO
-    # def __str__(self):
-    #    pass
