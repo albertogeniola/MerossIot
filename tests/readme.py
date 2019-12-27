@@ -6,6 +6,7 @@ from meross_iot.cloud.devices.door_openers import GenericGarageDoorOpener
 from meross_iot.cloud.devices.hubs import GenericHub
 from meross_iot.cloud.devices.light_bulbs import GenericBulb
 from meross_iot.cloud.devices.power_plugs import GenericPlug
+from meross_iot.cloud.devices.subdevices.thermostats import ValveSubDevice, ThermostatV3Mode
 from meross_iot.manager import MerossManager
 from meross_iot.meross_event import MerossEventType
 
@@ -52,6 +53,7 @@ if __name__ == '__main__':
     plugs = manager.get_devices_by_kind(GenericPlug)
     door_openers = manager.get_devices_by_kind(GenericGarageDoorOpener)
     hub_devices = manager.get_devices_by_kind(GenericHub)
+    thermostats = manager.get_devices_by_kind(ValveSubDevice)
     all_devices = manager.get_supported_devices()
 
     # Print some basic specs about the discovered devices
@@ -155,6 +157,35 @@ if __name__ == '__main__':
         if p.supports_electricity_reading():
             print("Awesome! This device also supports power consumption reading.")
             print("Current consumption is: %s" % str(p.get_electricity()))
+
+    # ---------------------------
+    # Let's play with the Thermostat
+    # ---------------------------
+    for t in thermostats:  # type: ValveSubDevice
+        if not t.online:
+            print("The thermostat %s seems to be offline. Cannot play with that..." % t.name)
+            continue
+
+        # Get the current preset mode
+        print("Current mode: %s" % t.mode)
+        print("Let's change the preset mode")
+        t.set_mode(ThermostatV3Mode.COOL)
+
+        # Note that the thermostat will not receive the command instantly, as it needs to be sent by the HUB via its
+        # low power communication channel. So, we need to wait a bit until it gets received.
+        print("Waiting a minute...")
+        time.sleep(60)
+        print("Current mode: %s" % t.mode)
+
+        # Set the target temperature
+        target_temp = randint(10,30)
+        print("Setting the target temperature to %f" % target_temp)
+        t.set_target_temperature(target_temp=target_temp)
+
+        # Note that the thermostat will not receive the command instantly, as it needs to be sent by the HUB via its
+        # low power communication channel. So, we need to wait a bit until it gets received.
+        time.sleep(60)
+        print("Current mode: %s" % t.mode)
 
     # At this point, we are all done playing with the library, so we gracefully disconnect and clean resources.
     print("We are done playing. Cleaning resources...")
