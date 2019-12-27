@@ -3,12 +3,6 @@ from meross_iot.cloud.timeouts import SHORT_TIMEOUT
 
 
 class GenericSubDevice(AbstractMerossDevice):
-    subdevice_id = None
-    _hub = None
-    onoff = None
-    last_active_time = None
-    _state = {}
-
     def __init__(self, cloud_client, subdevice_id, parent_hub, **kwords):
         super().__init__(cloud_client, parent_hub.uuid, **kwords)
         self.subdevice_id = subdevice_id
@@ -39,19 +33,17 @@ class GenericSubDevice(AbstractMerossDevice):
         data = res.get('all')
         for device_data in data:
             if device_data.get('id') == self.subdevice_id:
-                self._state.update(device_data)
-        # TODO: do we need to trigger an event here?
+                self._raw_state.update(device_data)
 
     def get_status(self):
-        if self._state == {}:
+        if self._raw_state == {}:
             self._sync_status()
         else:
-            return self._state
+            return self._raw_state
 
     def _handle_push_notification(self, namespace, payload, from_myself=False):
         # TODO: log
         pass
 
-    # TODO
-    # def __str__(self):
-    #    pass
+    def __str__(self):
+        return "{}".format(self._raw_state)

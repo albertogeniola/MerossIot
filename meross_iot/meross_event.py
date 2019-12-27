@@ -10,6 +10,8 @@ class MerossEventType(Enum):
     DEVICE_BULB_STATE = 2001
     GARAGE_DOOR_STATUS = 3000
     DEVICE_HUB_SUBDEVICE_STATE = 4000
+    THERMOSTAT_TEMPERATURE_CHANGE = 5000
+    THERMOSTAT_MODE_CHANGE = 5001
 
 
 class MerossEvent(object):
@@ -110,4 +112,20 @@ class DeviceHubStatusEvent(MerossEvent):
         self.device = hubdevice
         self.subdevice_id = subdevice_id
         self.state = state
+        self.generated_by_myself = generated_by_myself
+
+
+class ThermostatTemperatureChange(MerossEvent):
+    def __init__(self, device, temperature_state, generated_by_myself):
+        super(ThermostatTemperatureChange, self).__init__(MerossEventType.THERMOSTAT_TEMPERATURE_CHANGE)
+        self.device = device
+        self.temperature = temperature_state
+        self.generated_by_myself = generated_by_myself
+
+
+class ThermostatModeChange(MerossEvent):
+    def __init__(self, device, mode, generated_by_myself):
+        super(ThermostatModeChange, self).__init__(MerossEventType.THERMOSTAT_MODE_CHANGE)
+        self.device = device
+        self.mode = mode
         self.generated_by_myself = generated_by_myself
