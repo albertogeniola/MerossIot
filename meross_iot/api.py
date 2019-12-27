@@ -8,6 +8,7 @@ import time
 import requests
 
 from meross_iot.credentials import MerossCloudCreds
+from meross_iot.logger import API_LOGGER as l
 
 # Appears to be used as a part of the signature algorithm as constant "salt" (kinda useless)
 _SECRET = "23x17ahWarFH6w29"
@@ -96,15 +97,15 @@ class MerossHttpClient:
             creds.user_email = response_data["email"]
             self._cloud_creds = creds
             self._authenticated = True
-        except Exception as e:
-            # TODO: LOG
+        except:
+            l.exception("Error occurred when logging in.")
             return False
 
         try:
             # The protocol does not really need the following call. However we want to be nice do it anyways
             self._log()
         except:
-            # TODO: LOG
+            l.exception("Error occurred when logging in.")
             pass
 
         return True

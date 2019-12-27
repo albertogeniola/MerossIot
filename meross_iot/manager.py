@@ -2,6 +2,8 @@ from threading import RLock
 
 from meross_iot.api import MerossHttpClient
 from meross_iot.cloud.client import MerossCloudClient
+from meross_iot.cloud.client_status import ClientStatus
+from meross_iot.cloud.device_factory import build_wrapper
 from meross_iot.cloud.device_factory import build_wrapper, build_subdevice_wrapper
 from meross_iot.cloud.devices.hubs import GenericHub
 from meross_iot.logger import MANAGER_LOGGER as l
@@ -65,6 +67,8 @@ class MerossManager(object):
                 self._event_callbacks.remove(callback)
 
     def get_device_by_uuid(self, uuid):
+        self._ensure_started()
+
         dev = None
         with self._devices_lock:
             dev = self._devices.get(uuid)
@@ -72,6 +76,8 @@ class MerossManager(object):
         return dev
 
     def get_device_by_name(self, name):
+        self._ensure_started()
+
         with self._devices_lock:
             for k, v in self._devices.items():
                 if v.name.lower() == name.lower():
@@ -79,9 +85,11 @@ class MerossManager(object):
         return None
 
     def get_supported_devices(self):
+        self._ensure_started()
         return [x for k, x in self._devices.items()]
 
     def get_devices_by_kind(self, clazz):
+        self._ensure_started()
         res = []
         with self._devices_lock:
             for k, v in self._devices.items():
@@ -90,6 +98,7 @@ class MerossManager(object):
         return res
 
     def get_devices_by_type(self, type_name):
+        self._ensure_started()
         res = []
         with self._devices_lock:
             for k, v in self._devices.items():
@@ -197,3 +206,6 @@ class MerossManager(object):
             except:
                 l.exception("An unhandled error occurred while invoking callback")
 
+    def _ensure_started(self):
+        if not self._cloud_client.connection_status.check_status(ClientStatus.SUBSCRIBED):
+            l.warn("The manager is not connected to the mqtt broker. Did you start the Meross manager?")

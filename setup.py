@@ -9,7 +9,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='meross_iot',
-    version='0.3.1.8.dev1',
+    version='0.3.1.12',
     packages=find_packages(exclude=('tests',)),
     url='https://github.com/albertogeniola/MerossIot',
     license='MIT',
@@ -39,5 +39,9 @@ setup(
         'retrying>=1.3.3',
     ],
     python_requires='>=3.5',
-    test_suite='tests'
+    test_suite='tests',
+    entry_points={
+        'console_scripts': ['meross_info_gather=utilities.meross_info_gather:main',
+                            'meross_sniffer=utilities.meross_sniffer:main']
+    }
 )

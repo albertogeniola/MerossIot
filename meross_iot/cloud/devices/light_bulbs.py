@@ -260,9 +260,6 @@ class GenericBulb(AbstractMerossDevice):
         return None
 
     def is_rgb(self):
-        return (self.get_abilities().get(LIGHT).get('capacity') & MODE_RGB) == MODE_RGB
-
-    def is_rgb(self):
         return self.supports_mode(MODE_RGB)
 
     def is_light_temperature(self):

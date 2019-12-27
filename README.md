@@ -1,6 +1,6 @@
 ![Azure DevOps builds (branch)](https://img.shields.io/azure-devops/build/albertogeniola/c4128d1b-c23c-418d-95c5-2de061954ee5/1/0.3.X.X.svg)
 ![Deployment](https://albertogeniola.vsrm.visualstudio.com/_apis/public/Release/badge/c4128d1b-c23c-418d-95c5-2de061954ee5/1/1)
-![Test status](https://img.shields.io/azure-devops/tests/albertogeniola/meross/1/master.svg)
+![Test status](https://img.shields.io/azure-devops/tests/albertogeniola/Meross/1?failed_label=failed&label=Tests%20&passed_label=passed&skipped_label=skipped)
 [![PyPI version](https://badge.fury.io/py/meross-iot.svg)](https://badge.fury.io/py/meross-iot)
 [![Downloads](https://pepy.tech/badge/meross-iot)](https://pepy.tech/project/meross-iot)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/meross-iot.svg?label=Pypi%20Downloads)
@@ -22,7 +22,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```
-pip install meross_iot==0.3.1.6 --upgrade
+pip install meross_iot==0.3.1.12 --upgrade
 ```
 
 ## Usage
@@ -188,19 +188,56 @@ if __name__ == '__main__':
 ## Currently supported devices
 Starting from v0.2.0.0, this library should support the majority of Meross devices on the market.
 The list of tested devices is the following:
-- MSL120
-- MSS110
-- MSS210
-- MSS310
-- MSS310h
-- MSS425e
-- MSS530H
-- MSG100
+- MSL120 (RGB Bulb)
+- MSS110 (Smart plug)
+- MSS210 (Smart plug)
+- MSS310 (Smart plug with power consumption)
+- MSS310h (Smart plug with power consumption)
+- MSS425e (Smart strip)
+- MSS530H (Wall-mount switches)
+- MSG100 (Garage opener)
+- MSH300 (Smart hub + valve thermostat)
 
 I'd like to thank all the people who contributed to the early stage of library development,
 who stimulated me to continue the development and making this library support more devices:
 
 Thanks to [DanoneKiD](https://github.com/DanoneKiD), [virtualdj](https://github.com/virtualdj), [ictes](https://github.com/ictes), [soberstadt](https://github.com/soberstadt), [ping-localhost](https://github.com/ping-localhost).
+
+## New device or unsupported features?
+If you own a device that is not currently supported or partially supported, you can help the developers in two ways.
+The first one is by donating, so the developer gets enough money to but the device and implement necessary support.
+The second way is by sharing running the _meross_sniffer_ and _meross_info_gather_ tools. 
+
+### Meross Sniffer
+The sniffer is a tool that collects the commands that your Meross App sends to a specific device.
+By looking at the commands that the App sends to the unknown/unsuppoted device, the developers can re-implement the same logic on the library.
+To use the meross sniffer, simply do the following:
+1. Install the latest version of this library
+1. Make sure the device you want to study is online and visible from the Meross App
+1. Run the following command:
+
+    ```bash
+    $ meross_sniffer
+    ```
+1. From the prompt, select the device you want the sniffer to analyze
+1. Start issuing commands from the meross App to that device.
+
+When issuing commands from the meross app to the target device, follow a specific logic:
+- Write down separately (on a TXT file) which commands you are issuing
+- If the command you are issuing accepts "scalar" values, make sure you test the lowest one and the greatest one 
+
+Then, open an issue on this github repository, and upload the data.zip file.
+
+### Meross Info Gather
+This utility collects debug data for supported meross devices and can help the developers to identify and fix bugs.
+
+Again, its usage is pretty straight forward:
+
+```bash
+$ meross_info_gather
+```
+
+Then simply open an issue on this repository attaching the collected logs.
 
 ## Protocol details
 This library was implemented by reverse-engineering the network communications between the plug and the meross network.
@@ -229,6 +266,7 @@ So far, I've bought the following devices:
 - MSS425E
 - MSS530H
 - MSG100
+- MSH300
 
 By issuing a donation, you will:
 1. Give me the opportunity to buy new devices and support them in this library
@@ -256,6 +294,16 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
+### 0.3.1.12
+- Implemented meross_sniffer tool for collecting unknown devices logs
+### 0.3.1.11
+- Implemented meross_info_gather script
+### 0.3.1.10
+- Improved logging 
+### 0.3.1.9
+- Fixed missing method implementation
+- Improved logging
+- Minor improvements __str__ methods
 ### 0.3.1.8
 - Added HUB + thermostat support
 ### 0.3.1.6

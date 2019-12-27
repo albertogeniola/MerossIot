@@ -31,6 +31,7 @@ if __name__ == '__main__':
         for subdev_id in h.get_subdevices():
             subdev = h.get_subdevice(subdev_id)  # type:GenericSubDevice
             subdev.get_status()
+            print("- %s" % h)
 
     print("You can now play with the thermostat and see if the state is propagated here. Once you are done,"
           " press any key to exit")
