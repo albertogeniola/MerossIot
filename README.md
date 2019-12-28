@@ -337,7 +337,7 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
-### 0.3.2.0
+### 0.3.2.1
 - Improved thermostat support
 - New handling of Hub and subdevices
 - General refactor
