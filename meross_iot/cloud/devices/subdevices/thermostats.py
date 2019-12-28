@@ -195,7 +195,7 @@ class ValveSubDevice(GenericSubDevice):
             raise ValueError("This thermostat only supports ThermostatV3Mode modes")
         elif self.type == 'mts100' and not isinstance(mode, ThermostatMode):
             raise ValueError("This thermostat only supports ThermostatMode modes")
-        else:
+        elif isinstance(mode, int):
             l.warning("Setting a raw integer value as mode. This is not recommended. "
                       "Please use ThermostatMode or ThermostatV3Mode")
         self.execute_command('SET', HUB_MTS100_MODE, {'mode': [{'id': self.subdevice_id, 'state': mode.value}]})
