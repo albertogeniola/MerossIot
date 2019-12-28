@@ -1,6 +1,4 @@
 from meross_iot.cloud.device import AbstractMerossDevice, HUB_MTS100_ALL
-from meross_iot.cloud.abilities import HUB_TOGGLEX
-from meross_iot.logger import SUBDEVICE_LOGGER as l
 
 
 class GenericSubDevice(AbstractMerossDevice):

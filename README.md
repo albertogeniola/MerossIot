@@ -29,15 +29,17 @@ pip install meross_iot==0.3.2.0 --upgrade
 The following script demonstrates how to use this library.
 
 ```python
-from meross_iot.manager import MerossManager
-from meross_iot.meross_event import MerossEventType
+import os
+import time
+from random import randint
+
+from meross_iot.cloud.devices.door_openers import GenericGarageDoorOpener
+from meross_iot.cloud.devices.hubs import GenericHub
 from meross_iot.cloud.devices.light_bulbs import GenericBulb
 from meross_iot.cloud.devices.power_plugs import GenericPlug
-from meross_iot.cloud.devices.door_openers import GenericGarageDoorOpener
-from random import randint
-import time
-import os
-
+from meross_iot.cloud.devices.subdevices.thermostats import ValveSubDevice, ThermostatV3Mode
+from meross_iot.manager import MerossManager
+from meross_iot.meross_event import MerossEventType
 
 EMAIL = os.environ.get('MEROSS_EMAIL') or "YOUR_MEROSS_CLOUD_EMAIL"
 PASSWORD = os.environ.get('MEROSS_PASSWORD') or "YOUR_MEROSS_CLOUD_PASSWORD"
@@ -59,6 +61,12 @@ def event_handler(eventobj):
     elif eventobj.event_type == MerossEventType.GARAGE_DOOR_STATUS:
         print("Garage door is now %s" % eventobj.door_state)
 
+    elif eventobj.event_type == MerossEventType.THERMOSTAT_TEMPERATURE_MODE:
+        print("Thermostat %s has changed mode to %s" % (eventobj.device.name, eventobj.mode))
+
+    elif eventobj.event_type == MerossEventType.THERMOSTAT_TEMPERATURE_CHANGE:
+        print("Thermostat %s has revealed a temperature change: %s" % (eventobj.device.name, eventobj.temperature))
+
     else:
         print("Unknown event!")
 
@@ -78,6 +86,8 @@ if __name__ == '__main__':
     bulbs = manager.get_devices_by_kind(GenericBulb)
     plugs = manager.get_devices_by_kind(GenericPlug)
     door_openers = manager.get_devices_by_kind(GenericGarageDoorOpener)
+    hub_devices = manager.get_devices_by_kind(GenericHub)
+    thermostats = manager.get_devices_by_kind(ValveSubDevice)
     all_devices = manager.get_supported_devices()
 
     # Print some basic specs about the discovered devices
@@ -88,15 +98,19 @@ if __name__ == '__main__':
     print("All the plugs I found:")
     for p in plugs:
         print(p)
-        
+
     print("All the garage openers I found:")
     for g in door_openers:
         print(g)
-        
-    print("All the supported devices I found:")
+
+    print("All the hubs I found:")
+    for h in hub_devices:
+        print(h)
+
+    print("All the hub devices I found:")
     for d in all_devices:
         print(d)
-        
+
     # You can also retrieve devices by the UUID/name
     # a_device = manager.get_device_by_name("My Plug")
     # a_device = manager.get_device_by_uuid("My Plug")
@@ -113,7 +127,7 @@ if __name__ == '__main__':
         g.open_door()
         print("Closing door %s..." % g.name)
         g.close_door()
-        
+
     # ---------------------
     # Let's play with bulbs
     # ---------------------
@@ -129,23 +143,23 @@ if __name__ == '__main__':
             if b.is_rgb():
                 # Let's make it red!
                 b.set_light_color(rgb=(255, 0, 0))
-            
+
             time.sleep(1)
-            
+
             if b.is_light_temperature():
                 b.set_light_color(temperature=10)
-            
+
             time.sleep(1)
-                                       
-            if b.supports_luminance(): 
-                # Let's dimm its brightness
-                random_luminance=randint(10, 100)
+
+            # Let's dimm its brightness
+            if b.supports_luminance():
+                random_luminance = randint(10, 100)
                 b.set_light_color(luminance=random_luminance)
 
         b.turn_on()
         time.sleep(1)
         b.turn_off()
-        
+
     # ---------------------------
     # Let's play with smart plugs
     # ---------------------------
@@ -177,6 +191,35 @@ if __name__ == '__main__':
         if p.supports_electricity_reading():
             print("Awesome! This device also supports power consumption reading.")
             print("Current consumption is: %s" % str(p.get_electricity()))
+
+    # ---------------------------
+    # Let's play with the Thermostat
+    # ---------------------------
+    for t in thermostats:  # type: ValveSubDevice
+        if not t.online:
+            print("The thermostat %s seems to be offline. Cannot play with that..." % t.name)
+            continue
+
+        # Get the current preset mode
+        print("Current mode: %s" % t.mode)
+        print("Let's change the preset mode")
+        t.set_mode(ThermostatV3Mode.COOL)
+
+        # Note that the thermostat will not receive the command instantly, as it needs to be sent by the HUB via its
+        # low power communication channel. So, we need to wait a bit until it gets received.
+        print("Waiting a minute...")
+        time.sleep(60)
+        print("Current mode: %s" % t.mode)
+
+        # Set the target temperature
+        target_temp = randint(10,30)
+        print("Setting the target temperature to %f" % target_temp)
+        t.set_target_temperature(target_temp=target_temp)
+
+        # Note that the thermostat will not receive the command instantly, as it needs to be sent by the HUB via its
+        # low power communication channel. So, we need to wait a bit until it gets received.
+        time.sleep(60)
+        print("Current mode: %s" % t.mode)
 
     # At this point, we are all done playing with the library, so we gracefully disconnect and clean resources.
     print("We are done playing. Cleaning resources...")

@@ -8,11 +8,12 @@ from threading import Event
 from zipfile import ZipFile
 
 import paho.mqtt.client as mqtt
-from meross_iot.cloud.device import AbstractMerossDevice
-from meross_iot.manager import MerossManager
+
 from meross_iot.cloud.client import build_client_request_topic
+from meross_iot.cloud.device import AbstractMerossDevice
 from meross_iot.logger import h, ROOT_MEROSS_LOGGER
 from meross_iot.manager import MerossHttpClient
+from meross_iot.manager import MerossManager
 
 SNIFF_LOG_FILE = 'sniff.log'
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
