@@ -21,11 +21,17 @@ class GenericSubDevice(AbstractMerossDevice):
 
     @property
     def online(self):
+        # Subdevices do not report the online status to the HTTP API and they only talk with hubs.
+        # If the hub is offline, for sure the device is offline.
+        # On the other hand, if the hub is online, we cannot be 100% certain it's online.
+        # In such case, we try to fetch data from the device anyways.
+        if not self._hub.online:
+            return False
         online = self._raw_state.get('online')
         if online is None:
             self._sync_status()
             online = self._raw_state.get('online')
-        return online.get('status') == 1
+        return online.get('status', 0) == 1
 
     def _sync_status(self):
         payload = {'all': [{'id': self.subdevice_id}]}

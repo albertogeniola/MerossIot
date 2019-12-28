@@ -81,22 +81,33 @@ class ValveSubDevice(GenericSubDevice):
         if evt is not None:
             self.fire_event(evt)
 
+    def _get_property(self, parent, child):
+        prop = self._raw_state.get(parent, {}).get(child)
+        if prop is None and self.online:
+            self._sync_status()
+            prop = self._raw_state.get(parent, {}).get(child)
+        return prop
+
     @property
     def onoff(self):
-        onoff = self._raw_state.get('togglex').get('onoff')
-        if onoff is None:
-            self._sync_status()
-            onoff = self._raw_state.get('togglex').get('onoff')
+        onoff = self._get_property('togglex', 'onoff')
         return onoff
 
     @property
-    def room_temperature(self):
-        temp = self._raw_state.get('temperature', {}).get('room')
-        if temp is None:
-            self._sync_status()
-            temp = self._raw_state.get('temperature', {}).get('room')
+    def heating(self):
+        heating = self._get_property('temperature', 'heating')
+        if heating is None:
+            return None
+        else:
+            return heating == 1
 
-        return temp / 10
+    @property
+    def room_temperature(self):
+        temp = self._get_property('temperature', 'room')
+        if temp is None:
+            return None
+        else:
+            return temp / 10
 
     @property
     def target_temperature(self):
@@ -106,11 +117,11 @@ class ValveSubDevice(GenericSubDevice):
         """
         # The API returns the temperature in decimals.
         # For this reason, we convert it to integers.
-        temp = self._raw_state.get('temperature', {}).get('currentSet')
+        temp = self._get_property('temperature', 'currentSet')
         if temp is None:
-            self._sync_status()
-            temp = self._raw_state.get('temperature', {}).get('currentSet')
-        return temp / 10
+            return None
+        else:
+            return temp / 10
 
     def set_target_temperature(self,
                                target_temp: float = None,
@@ -160,19 +171,18 @@ class ValveSubDevice(GenericSubDevice):
 
     @property
     def mode(self):
-        state = self._raw_state.get('mode', {}).get('state')
+        state = self._get_property('mode', 'state')
         if state is None:
-            self._sync_status()
-            state = self._raw_state.get('mode', {}).get('state')
-
-        # Parse the mode according to the current device type
-        if self.type == 'mts100v3':
-            return ThermostatV3Mode(state)
-        elif self.type == 'mts100':
-            return ThermostatMode(state)
-        else:
-            l.error("The current thermostat mode is not supported.")
             return None
+        else:
+            # Parse the mode according to the current device type
+            if self.type == 'mts100v3':
+                return ThermostatV3Mode(state)
+            elif self.type == 'mts100':
+                return ThermostatMode(state)
+            else:
+                l.error("The current thermostat mode is not supported.")
+                return None
 
     def set_mode(self, mode: Union[ThermostatV3Mode, ThermostatMode, int]):
         """
