@@ -30,7 +30,7 @@ def event_handler(eventobj):
     elif eventobj.event_type == MerossEventType.GARAGE_DOOR_STATUS:
         print("Garage door is now %s" % eventobj.door_state)
 
-    elif eventobj.event_type == MerossEventType.THERMOSTAT_TEMPERATURE_MODE:
+    elif eventobj.event_type == MerossEventType.THERMOSTAT_MODE_CHANGE:
         print("Thermostat %s has changed mode to %s" % (eventobj.device.name, eventobj.mode))
 
     elif eventobj.event_type == MerossEventType.THERMOSTAT_TEMPERATURE_CHANGE:
