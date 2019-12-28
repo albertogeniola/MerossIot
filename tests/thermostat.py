@@ -19,11 +19,11 @@ if __name__ == '__main__':
     manager.start()
     thermostat = manager.get_devices_by_kind(ValveSubDevice)[0]  # type: ValveSubDevice
 
-    print(f"Current mode {thermostat.mode}")
+    print("Current mode %s" % thermostat.mode)
     thermostat.set_mode(ThermostatV3Mode.COOL)
-    print(f"Current mode {thermostat.mode}")
+    print("Current mode %s" % thermostat.mode)
 
-    print(f"Current room temperature {thermostat.room_temperature}")
+    print("Current room temperature fs" % thermostat.room_temperature)
     thermostat.set_target_temperature(10)
 
     manager.stop()
