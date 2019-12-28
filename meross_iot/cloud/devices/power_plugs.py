@@ -98,7 +98,7 @@ class GenericPlug(AbstractMerossDevice):
         # if a channel name is given, lookup the channel id from the name
         if isinstance(channel, str):
             for i, c in enumerate(self.get_channels()):
-                if c['devName'] == channel:
+                if c.get('devName') == channel:
                     return c['channel']
 
         # If an integer is given assume that is the channel ID
