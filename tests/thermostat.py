@@ -12,11 +12,9 @@ if __name__ == '__main__':
     # Initiates the Meross Cloud Manager. This is in charge of handling the communication with the remote endpoint
     manager = MerossManager(meross_email=EMAIL, meross_password=PASSWORD)
 
-    # Register event handlers for the manager...
-    # manager.register_event_handler(event_handler)
-
     # Starts the manager
     manager.start()
+    """
     thermostat = manager.get_devices_by_kind(ValveSubDevice)[0]  # type: ValveSubDevice
 
     print("Current mode %s" % thermostat.mode)
@@ -25,6 +23,8 @@ if __name__ == '__main__':
 
     print("Current room temperature fs" % thermostat.room_temperature)
     thermostat.set_target_temperature(10)
+    """
+    input("Press any key to exit...")
 
     manager.stop()
     print("Bye bye!")

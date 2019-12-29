@@ -1,8 +1,7 @@
 from enum import Enum
 from typing import Union
 
-from meross_iot.cloud.abilities import HUB_MTS100_ALL, HUB_MTS100_TEMPERATURE, HUB_MTS100_MODE, HUB_TOGGLEX, \
-    HUB_MTS100_ONLINE
+from meross_iot.cloud.abilities import HUB_MTS100_ALL, HUB_MTS100_TEMPERATURE, HUB_MTS100_MODE, HUB_TOGGLEX, HUB_ONLINE
 from meross_iot.cloud.devices.subdevices.generic import GenericSubDevice
 from meross_iot.logger import VALVES_LOGGER as l
 from meross_iot.meross_event import DeviceSwitchStatusEvent, ThermostatTemperatureChange, ThermostatModeChange, \
@@ -30,9 +29,16 @@ class ValveSubDevice(GenericSubDevice):
         super().__init__(cloud_client, subdevice_id, parent_hub, **kwords)
 
     def _handle_push_notification(self, namespace, payload, from_myself=False):
+        # Let the Generic handler to handle the common events.
+        handled = super()._handle_push_notification(namespace=namespace, payload=payload, from_myself=from_myself)
+        if handled:
+            return True
+
+        # If the parent handler was unable to parse it, we do it here.
         evt = None
         if namespace == HUB_MTS100_ALL:
             self._raw_state.update(payload)
+            return True
 
         elif namespace == HUB_TOGGLEX:
             togglex = self._raw_state.get('togglex')
@@ -41,6 +47,8 @@ class ValveSubDevice(GenericSubDevice):
                 self._raw_state['togglex'] = togglex
             togglex.update(payload)
             evt = DeviceSwitchStatusEvent(self, 0, self.onoff, from_myself)
+            self.fire_event(evt)
+            return True
 
         elif namespace == HUB_MTS100_MODE:
             mode = self._raw_state.get('mode')
@@ -50,6 +58,8 @@ class ValveSubDevice(GenericSubDevice):
 
             mode.update(payload)
             evt = ThermostatModeChange(device=self, mode=self.mode, generated_by_myself=from_myself)
+            self.fire_event(evt)
+            return True
 
         elif namespace == HUB_MTS100_TEMPERATURE:
             temp = self._raw_state.get('temperature')
@@ -61,14 +71,8 @@ class ValveSubDevice(GenericSubDevice):
             evt = ThermostatTemperatureChange(device=self,
                                               temperature_state=self._raw_state.get('temperature'),
                                               generated_by_myself=from_myself)
-
-        elif namespace == HUB_MTS100_ONLINE:  # TODO: check if this really exists
-            online = self._raw_state.get('online')
-            if online is None:
-                online = {}
-                self._raw_state['online'] = online
-            online.update(payload)
-            evt = DeviceOnlineStatusEvent(dev=self, current_status=payload)  # TODO: check the payload value and the expected event value
+            self.fire_event(evt)
+            return True
 
         # TODO: handle TIME SYNC event?
         # elif namespace == HUB_TIME_SYNC:
@@ -76,17 +80,8 @@ class ValveSubDevice(GenericSubDevice):
 
         else:
             l.warn("Unsupported/unhandled event: %s" % namespace)
-
-        # If any event has been prepared, fire it now.
-        if evt is not None:
-            self.fire_event(evt)
-
-    def _get_property(self, parent, child):
-        prop = self._raw_state.get(parent, {}).get(child)
-        if prop is None and self.online:
-            self._sync_status()
-            prop = self._raw_state.get(parent, {}).get(child)
-        return prop
+            l.debug("Namespace: %s, Data: %s" % (namespace, payload))
+            return False
 
     @property
     def onoff(self):

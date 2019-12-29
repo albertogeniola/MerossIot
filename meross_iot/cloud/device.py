@@ -100,7 +100,7 @@ class AbstractMerossDevice(ABC):
                 l.exception("Unhandled error occurred while executing the registered event-callback")
 
     @abstractmethod
-    def _handle_push_notification(self, namespace, payload, from_myself=False):
+    def _handle_push_notification(self, namespace, payload, from_myself=False) -> bool:
         """
         Handles push messages for this device. This method should be implemented by the base class in order
         to catch status changes issued by other clients (i.e. the Meross app on the user's device).
@@ -108,7 +108,7 @@ class AbstractMerossDevice(ABC):
         :param message:
         :param from_myself: boolean flag. When true, it means that the notification is generated in response to a
         command that was issued by this client. When false, it means that another client generated the event.
-        :return:
+        :return: True if the push notification was handled, false otherwise
         """
         pass
 

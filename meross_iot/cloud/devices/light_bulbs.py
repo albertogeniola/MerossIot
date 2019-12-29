@@ -88,6 +88,7 @@ class GenericBulb(AbstractMerossDevice):
                 self._update_state(channel=0, onoff=on_status)
                 fire_bulb_switch_state_change(self, channel_id=0, o_state=old_state, n_state=new_state,
                                               f_myself=from_myself)
+                return True
 
             elif namespace == TOGGLEX:
                 if isinstance(payload['togglex'], list):
@@ -100,6 +101,8 @@ class GenericBulb(AbstractMerossDevice):
                         self._update_state(channel=channel_index, onoff=on_status)
                         fire_bulb_switch_state_change(self, channel_id=channel_index, o_state=old_state,
                                                       n_state=on_status, f_myself=from_myself)
+                    return True
+
                 elif isinstance(payload['togglex'], dict):
                     channel_index = payload['togglex']['channel']
                     on_status = payload['togglex']['onoff'] == 1
@@ -109,6 +112,11 @@ class GenericBulb(AbstractMerossDevice):
                     self._update_state(channel=channel_index, onoff=on_status)
                     fire_bulb_switch_state_change(self, channel_id=channel_index, o_state=old_state, n_state=on_status,
                                                   f_myself=from_myself)
+                    return True
+
+                else:
+                    l.error("Unexpected payload format. Namespace: %s, Payload: %s" % (namespace, payload))
+                    return False
 
             elif namespace == LIGHT:
                 channel_index = payload['light']['channel']
@@ -118,16 +126,17 @@ class GenericBulb(AbstractMerossDevice):
                 self._update_state(channel=channel_index, **new_state)
                 fire_bulb_light_state_change(self, channel_id=channel_index, o_state=old_state, n_state=new_state,
                                              f_myself=from_myself)
+                return True
 
             elif namespace == REPORT:
-                # For now, we simply ignore push notification of these kind.
-                # In the future, we might think of handling such notification by caching them
-                # and avoid the network round-trip when asking for power consumption (if the latest report is
-                # recent enough)
-                pass
+                # Ignore
+                l.info("Report event is currently unhandled.")
+                return False
 
             else:
                 l.error("Unknown/Unsupported namespace/command: %s" % namespace)
+                l.debug("Namespace: %s, Data: %s" % (namespace, payload))
+                return False
 
     def _get_status_impl(self):
         res = {}
@@ -175,7 +184,7 @@ class GenericBulb(AbstractMerossDevice):
             current_state = self._get_status_impl()
             with self._state_lock:
                 self._state = current_state
-        return self._state[c]
+        return self._state.get(c)
 
     def get_channels(self):
         return self._channels

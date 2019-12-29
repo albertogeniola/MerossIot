@@ -1,4 +1,5 @@
-from meross_iot.cloud.device import AbstractMerossDevice, HUB_MTS100_ALL
+from meross_iot.cloud.device import AbstractMerossDevice, HUB_MTS100_ALL, HUB_ONLINE
+from meross_iot.meross_event import DeviceOnlineStatusEvent
 
 
 class GenericSubDevice(AbstractMerossDevice):
@@ -11,27 +12,31 @@ class GenericSubDevice(AbstractMerossDevice):
         self._hub.register_sub_device(self)
         self._raw_state = {}
 
+    def _get_property(self, parent, child, trigger_update_if_unavailable=True):
+        prop = self._raw_state.get(parent, {}).get(child)
+        if prop is None and trigger_update_if_unavailable and self.online:
+            self._sync_status()
+            prop = self._raw_state.get(parent, {}).get(child)
+        return prop
+
     @property
     def last_active_time(self):
-        last_active_time = self._raw_state.get('online')
-        if last_active_time is None:
-            self._sync_status()
-            last_active_time = self._raw_state.get('online')
-        return last_active_time.get('lastActiveTime')
+        return self._get_property('online', 'lastActiveTime', trigger_update_if_unavailable=False)
 
     @property
     def online(self):
-        # Subdevices do not report the online status to the HTTP API and they only talk with hubs.
-        # If the hub is offline, for sure the device is offline.
-        # On the other hand, if the hub is online, we cannot be 100% certain it's online.
-        # In such case, we try to fetch data from the device anyways.
+        # In any case, if the hub is offline, for sure the device is offline.
         if not self._hub.online:
             return False
-        online = self._raw_state.get('online')
-        if online is None:
+
+        # Subdevices do not report the online status to the HTTP API and they only talk with hubs.
+        # So, the idea is to rely to the last_active_time - if available, assuming any interaction < 1 minute ago
+        # means the device is still online. If the last_active_time is older, then we try to "ping" the subdevice.
+        last_active_on = self.last_active_time
+        if last_active_on is None:
             self._sync_status()
-            online = self._raw_state.get('online')
-        return online.get('status', 0) == 1
+        online = self._raw_state.get('online', {}).get('status', 0)
+        return online == 1
 
     def _sync_status(self):
         payload = {'all': [{'id': self.subdevice_id}]}
@@ -49,8 +54,18 @@ class GenericSubDevice(AbstractMerossDevice):
             return self._raw_state
 
     def _handle_push_notification(self, namespace, payload, from_myself=False):
-        # TODO: log
-        pass
+        # The only "common" push notification for all sub-devices seems to be the HUB_ONLINE.
+        # We handle this one only for generic sub devices.
+        if namespace == HUB_ONLINE:
+            online = self._raw_state.get('online')
+            if online is None:
+                online = {}
+                self._raw_state['online'] = online
+            online.update(payload)
+            online_status = online.get('status')==1
+            evt = DeviceOnlineStatusEvent(dev=self, current_status=online_status)
+            self.fire_event(evt)
+            return True
 
     def __str__(self):
         return "{}".format(self._raw_state)

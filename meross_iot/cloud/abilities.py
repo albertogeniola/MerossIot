@@ -17,9 +17,9 @@ CONSUMPTIONX = 'Appliance.Control.ConsumptionX'
 
 # Hub
 HUB_TOGGLEX = 'Appliance.Hub.ToggleX'
+HUB_ONLINE = 'Appliance.Hub.Online'
 HUB_MTS100_TEMPERATURE = 'Appliance.Hub.Mts100.Temperature'
 HUB_MTS100_MODE = 'Appliance.Hub.Mts100.Mode'
-HUB_MTS100_ONLINE = 'Appliance.Hub.Mts100.Online'  # TODO: check if this really exists
 HUB_MTS100_ALL = 'Appliance.Hub.Mts100.All'
 HUB_EXCEPTION = 'Appliance.Hub.Exception'
 

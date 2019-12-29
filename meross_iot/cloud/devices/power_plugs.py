@@ -51,6 +51,7 @@ class GenericPlug(AbstractMerossDevice):
                 switch_state = payload['toggle']['onoff'] == 1
                 self._state[channel_index] = switch_state
                 fire_switch_state_change(self, channel_index, old_switch_state, switch_state, from_myself)
+                return True
 
             elif namespace == TOGGLEX:
                 if isinstance(payload['togglex'], list):
@@ -61,6 +62,7 @@ class GenericPlug(AbstractMerossDevice):
                         switch_state = c['onoff'] == 1
                         self._state[channel_index] = switch_state
                         fire_switch_state_change(self, channel_index, old_switch_state, switch_state, from_myself)
+                        return True
 
                 elif isinstance(payload['togglex'], dict):
                     # Update the local state and fire the event only if the state actually changed
@@ -69,16 +71,22 @@ class GenericPlug(AbstractMerossDevice):
                     switch_state = payload['togglex']['onoff'] == 1
                     self._state[channel_index] = switch_state
                     fire_switch_state_change(self, channel_index, old_switch_state, switch_state, from_myself)
+                    return True
 
-            elif namespace == REPORT or namespace == CONSUMPTIONX:
-                # For now, we simply ignore push notification of these kind.
-                # In the future, we might think of handling such notification by caching them
-                # and avoid the network round-trip when asking for power consumption (if the latest report is
-                # recent enough)
-                pass
+            elif namespace == REPORT:
+                # Ignoring REPORT
+                l.info("Report event is currently unhandled.")
+                return False
+
+            elif namespace == CONSUMPTIONX:
+                # Ignoring
+                l.info("ConsumptionX push event is currently ignored")
+                return False
 
             else:
                 l.error("Unknown/Unsupported namespace/command: %s" % namespace)
+                l.debug("Namespace: %s, Data: %s" % (namespace, payload))
+                return False
 
     def _get_status_impl(self):
         res = {}
@@ -122,7 +130,7 @@ class GenericPlug(AbstractMerossDevice):
             c = self._get_channel_id(channel)
             if self._state == {}:
                 self._state = self._get_status_impl()
-            return self._state[c]
+            return self._state.get(c)
 
     def get_power_consumption(self):
         if CONSUMPTIONX in self.get_abilities():
