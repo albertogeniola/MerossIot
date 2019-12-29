@@ -343,6 +343,7 @@ Anyways, feel free to contribute via donations!
 - General refactor
 
 <details>
+    <summary>Older</summary>
     
 ### 0.3.1.12
 - Implemented meross_sniffer tool for collecting unknown devices logs
