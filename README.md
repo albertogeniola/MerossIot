@@ -336,11 +336,14 @@ However, keeping such devices connected 24/7 has a cost, which I sustain happily
 Anyways, feel free to contribute via donations! 
 </p>
 
-## Changelog
-### 0.3.2.4
+## Changelog    
+### 0.3.2.4 (latest)
 - Improved thermostat support
 - New handling of Hub and subdevices
 - General refactor
+
+<details>
+    
 ### 0.3.1.12
 - Implemented meross_sniffer tool for collecting unknown devices logs
 ### 0.3.1.11
@@ -391,3 +394,5 @@ Anyways, feel free to contribute via donations!
 ### 0.2.1.0
 - Implemented auto-reconnect on lost connection
 - Improving locking system in order to prevent library hangs when no ack is received
+
+</details>
