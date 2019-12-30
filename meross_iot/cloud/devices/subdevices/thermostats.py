@@ -129,7 +129,7 @@ class ValveSubDevice(GenericSubDevice):
         """
         # The API expects the target temperature in DECIMALS, so we need to multiply the user's input by 10
         value = target_temp * 10
-        payload = {'id': self.subdevice_id, 'custom': value}
+        payload = {'temperature': [{'id': self.subdevice_id, 'custom': value}]}
         return self.execute_command(command='SET',
                                     namespace=HUB_MTS100_TEMPERATURE,
                                     payload=payload,

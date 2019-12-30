@@ -22,7 +22,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```
-pip install meross_iot==0.3.2.4 --upgrade
+pip install meross_iot==0.3.2.5 --upgrade
 ```
 
 ## Usage
@@ -337,14 +337,16 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog    
-### 0.3.2.4 (latest)
-- Improved thermostat support
-- New handling of Hub and subdevices
-- General refactor
+### 0.3.2.5 (latest)
+- Fixed set_target_temperature not working as intended
 
 <details>
     <summary>Older</summary>
-    
+
+### 0.3.2.4
+- Improved thermostat support
+- New handling of Hub and subdevices
+- General refactor    
 ### 0.3.1.12
 - Implemented meross_sniffer tool for collecting unknown devices logs
 ### 0.3.1.11
