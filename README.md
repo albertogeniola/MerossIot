@@ -240,6 +240,7 @@ The list of tested devices is the following:
 - MSS530H (Wall-mount switches)
 - MSG100 (Garage opener)
 - MSH300 (Smart hub + valve thermostat)
+- MSS710
 
 I'd like to thank all the people who contributed to the early stage of library development,
 who stimulated me to continue the development and making this library support more devices:
