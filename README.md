@@ -38,6 +38,7 @@ from meross_iot.cloud.devices.hubs import GenericHub
 from meross_iot.cloud.devices.light_bulbs import GenericBulb
 from meross_iot.cloud.devices.power_plugs import GenericPlug
 from meross_iot.cloud.devices.subdevices.thermostats import ValveSubDevice, ThermostatV3Mode
+from meross_iot.cloud.devices.subdevices.sensors import SensorSubDevice
 from meross_iot.manager import MerossManager
 from meross_iot.meross_event import MerossEventType
 
@@ -67,6 +68,9 @@ def event_handler(eventobj):
     elif eventobj.event_type == MerossEventType.THERMOSTAT_TEMPERATURE_CHANGE:
         print("Thermostat %s has revealed a temperature change: %s" % (eventobj.device.name, eventobj.temperature))
 
+    elif eventobj.event_type == MerossEventType.SENSOR_TEMPERATURE_CHANGE:
+        print("Sensor %s has revealed a temp/humidity change: %s %s" % (eventobj.device.name, eventobj.temperature, eventobj.humidity))
+
     else:
         print("Unknown event!")
 
@@ -88,6 +92,7 @@ if __name__ == '__main__':
     door_openers = manager.get_devices_by_kind(GenericGarageDoorOpener)
     hub_devices = manager.get_devices_by_kind(GenericHub)
     thermostats = manager.get_devices_by_kind(ValveSubDevice)
+    sensors = manager.get_devices_by_kind(SensorSubDevice)
     all_devices = manager.get_supported_devices()
 
     # Print some basic specs about the discovered devices
@@ -221,6 +226,12 @@ if __name__ == '__main__':
         time.sleep(60)
         print("Current mode: %s" % t.mode)
 
+    # ---------------------------
+    # Let's check the sensors
+    # ---------------------------
+    for s in sensors:
+        print("Sensor '%s': Temperature: %s, Humidity: %s" % (s.name, s.temperature, s.humidity))
+
     # At this point, we are all done playing with the library, so we gracefully disconnect and clean resources.
     print("We are done playing. Cleaning resources...")
     manager.stop()
@@ -240,6 +251,7 @@ The list of tested devices is the following:
 - MSS530H (Wall-mount switches)
 - MSG100 (Garage opener)
 - MSH300 (Smart hub + valve thermostat)
+- MS100 (Smart hub + temperature/humidity sensor)
 - MSS710
 
 I'd like to thank all the people who contributed to the early stage of library development,
