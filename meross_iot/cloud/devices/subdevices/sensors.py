@@ -50,7 +50,7 @@ class SensorSubDevice(GenericSubDevice):
             return False
 
     @property
-    def get_temperature(self):
+    def temperature(self):
         temp = self._get_property('temperature', 'latest')
         if temp is None:
             return None
@@ -58,7 +58,7 @@ class SensorSubDevice(GenericSubDevice):
             return temp / 10
 
     @property
-    def get_humidity(self):
+    def humidity(self):
         humidity = self._get_property('humidity', 'latest')
         if humidity is None:
             return None
