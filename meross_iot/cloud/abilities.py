@@ -21,6 +21,9 @@ HUB_ONLINE = 'Appliance.Hub.Online'
 HUB_MTS100_TEMPERATURE = 'Appliance.Hub.Mts100.Temperature'
 HUB_MTS100_MODE = 'Appliance.Hub.Mts100.Mode'
 HUB_MTS100_ALL = 'Appliance.Hub.Mts100.All'
+HUB_MS100_ALL = 'Appliance.Hub.Sensor.All'
+HUB_MS100_TEMPHUM = 'Appliance.Hub.Sensor.TempHum'
+HUB_MS100_ALERT = 'Appliance.Hub.Sensor.Alert'
 HUB_EXCEPTION = 'Appliance.Hub.Exception'
 
 # Garage opener abilities
