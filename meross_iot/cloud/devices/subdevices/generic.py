@@ -40,7 +40,7 @@ class GenericSubDevice(AbstractMerossDevice):
 
     def _sync_status(self):
         payload = {'all': [{'id': self.subdevice_id}]}
-        if (self.type.startswidth('ms100')):
+        if (self.type.startswith('ms100')):
             res = self._hub.execute_command('GET', HUB_MS100_ALL, payload)
         else:
             res = self._hub.execute_command('GET', HUB_MTS100_ALL, payload)
