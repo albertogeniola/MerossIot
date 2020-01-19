@@ -51,9 +51,18 @@ class SensorSubDevice(GenericSubDevice):
 
     @property
     def get_temperature(self):
-        temp = self._get_property('temperature', 'room')
+        temp = self._get_property('temperature', 'latest')
         if temp is None:
             return None
         else:
             return temp / 10
+
+    @property
+    def get_humidity(self):
+        humidity = self._get_property('humidity', 'latest')
+        if humidity is None:
+            return None
+        else:
+            return humidity / 10
+
 
