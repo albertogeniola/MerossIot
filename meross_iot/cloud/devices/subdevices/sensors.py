@@ -22,7 +22,7 @@ class SensorSubDevice(GenericSubDevice):
             self._raw_state.update(payload)
             return True
 
-        elif namespace == HUB_MTS100_TEMPHUM:
+        elif namespace == HUB_MS100_TEMPHUM:
             temp = self._raw_state.get('temperature')
             if temp is None:
                 temp = {}
