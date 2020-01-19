@@ -27,10 +27,15 @@ class SensorSubDevice(GenericSubDevice):
             if temp is None:
                 temp = {}
                 self._raw_state['temperature'] = temp
-
             temp.update(payload)
+            hum = self._raw_state.get('humidity')
+            if hum is None:
+                hum = {}
+                self._raw_state['humidity'] = hum
+            hum.update(payload)
             evt = SensorTemperatureChange(device=self,
                                               temperature_state=self._raw_state.get('temperature'),
+                                              humidity_state=self._raw_state.get('humidity'),
                                               generated_by_myself=from_myself)
             self.fire_event(evt)
             return True
