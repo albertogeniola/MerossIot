@@ -1,4 +1,4 @@
-from meross_iot.cloud.device import AbstractMerossDevice, HUB_MTS100_ALL, HUB_ONLINE
+from meross_iot.cloud.device import AbstractMerossDevice, HUB_MTS100_ALL, HUB_MS100_ALL, HUB_ONLINE
 from meross_iot.meross_event import DeviceOnlineStatusEvent
 
 
@@ -40,11 +40,15 @@ class GenericSubDevice(AbstractMerossDevice):
 
     def _sync_status(self):
         payload = {'all': [{'id': self.subdevice_id}]}
-        res = self._hub.execute_command('GET', HUB_MTS100_ALL, payload)
+        if (self.type.startswidth('ms100')):
+            res = self._hub.execute_command('GET', HUB_MS100_ALL, payload)
+        else:
+            res = self._hub.execute_command('GET', HUB_MTS100_ALL, payload)
         data = res.get('all')
-        for device_data in data:
-            if device_data.get('id') == self.subdevice_id:
-                self._raw_state.update(device_data)
+        if (data is not None):
+            for device_data in data:
+                if device_data.get('id') == self.subdevice_id:
+                    self._raw_state.update(device_data)
         return self._raw_state
 
     def get_status(self):

@@ -4,6 +4,7 @@ from meross_iot.cloud.devices.light_bulbs import GenericBulb
 from meross_iot.cloud.devices.power_plugs import GenericPlug
 from meross_iot.cloud.devices.subdevices.generic import GenericSubDevice
 from meross_iot.cloud.devices.subdevices.thermostats import ValveSubDevice
+from meross_iot.cloud.devices.subdevices.sensors import SensorSubDevice
 
 
 def build_wrapper(
@@ -32,5 +33,7 @@ def build_subdevice_wrapper(cloud_client,
                             ):
     if device_type.startswith('mts'):
         return ValveSubDevice(cloud_client, subdevice_id=device_id, parent_hub=parent_hub, **device_specs)
+    elif device_type.startswith('ms100'):
+        return SensorSubDevice(cloud_client, subdevice_id=device_id, parent_hub=parent_hub, **device_specs)
     else:
         return GenericSubDevice(cloud_client, subdevice_id=device_id, parent_hub=parent_hub, **device_specs)
