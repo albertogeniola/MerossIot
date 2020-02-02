@@ -22,7 +22,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```
-pip install meross_iot==0.3.2.6 --upgrade
+pip install meross_iot==0.3.2.7 --upgrade
 ```
 
 ## Usage
@@ -311,6 +311,7 @@ So far, I've bought the following devices:
 - MSS530H
 - MSG100
 - MSH300
+- MSXH0
 
 By issuing a donation, you will:
 1. Give me the opportunity to buy new devices and support them in this library
@@ -338,12 +339,14 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
-### 0.3.2.6 (latest)
-- Added support for binding/unbinding events    
+### 0.3.2.7 (latest)
+- Added support for smart humidifier
 
 <details>
     <summary>Older</summary>
 
+### 0.3.2.6 (latest)
+- Added support for binding/unbinding events    
 ### 0.3.2.5 (latest)
 - Fixed set_target_temperature not working as intended
 ### 0.3.2.4

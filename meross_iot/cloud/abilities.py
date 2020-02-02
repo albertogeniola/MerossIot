@@ -30,3 +30,6 @@ GARAGE_DOOR_STATE = 'Appliance.GarageDoor.State'
 
 # Bulbs-only abilities
 LIGHT = 'Appliance.Control.Light'
+
+# Humidifier
+SPRAY = 'Appliance.Control.Spray'

@@ -262,12 +262,6 @@ class GenericBulb(AbstractMerossDevice):
         ch_id = self._get_channel_id(channel)
         return self.get_status(channel=ch_id)
 
-    def get_power_consumption(self):
-        return None
-
-    def get_electricity(self):
-        return None
-
     def is_rgb(self):
         return self.supports_mode(MODE_RGB)
 
