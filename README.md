@@ -265,6 +265,7 @@ The list of tested devices is the following:
 - MSG100 (Garage opener)
 - MSH300 (Smart hub + valve thermostat)
 - MSS710
+- MSXH0 (Smart Humidifier)
 
 I'd like to thank all the people who contributed to the early stage of library development,
 who stimulated me to continue the development and making this library support more devices:
