@@ -81,7 +81,7 @@ class GenericBulb(AbstractMerossDevice):
 
         with self._state_lock:
             if namespace == TOGGLE:
-                on_status=payload['toggle']['onoff'] == 1
+                on_status = payload['toggle']['onoff'] == 1
                 channel_index = 0
                 old_state = self._state.get(channel_index)
                 new_state = on_status

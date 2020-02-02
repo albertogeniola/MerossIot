@@ -1,10 +1,11 @@
 from enum import Enum
 
-from build.lib.meross_iot.cloud.devices.light_bulbs import into_to_rgb
+from build.lib.meross_iot.cloud.devices.light_bulbs import int_to_rgb
 from meross_iot.cloud.abilities import *
 from meross_iot.cloud.device import AbstractMerossDevice
 from meross_iot.cloud.devices.light_bulbs import MODE_RGB, to_rgb, MODE_LUMINANCE, MODE_TEMPERATURE
 from meross_iot.logger import HUMIDIFIER_LOGGER as l
+from meross_iot.meross_event import HumidifierSpryEvent, HumidifierLightEvent
 
 
 class SprayMode(Enum):
@@ -20,11 +21,37 @@ class GenericHumidifier(AbstractMerossDevice):
         super(GenericHumidifier, self).__init__(cloud_client, device_uuid, **kwords)
 
     def _handle_push_notification(self, namespace, payload, from_myself=False) -> bool:
-        pass
+        if namespace == SPRAY:
+            spray_data = payload.get('spray')
+            self._update_state(space='spray', data=spray_data)
+
+            for el in spray_data:
+                evt = HumidifierSpryEvent(device=self,
+                                          spry_mode=SprayMode(el.get('mode')),
+                                          channel=el.get('channel'),
+                                          generated_by_myself=from_myself)
+                self.fire_event(evt)
+            return True
+        elif namespace == LIGHT:
+            data = payload.get('light')
+            self._update_state(space='light', data=data)
+            evt = HumidifierLightEvent(dev=self,
+                                       channel=data.get('channel'),
+                                       onoff=data.get('onoff'),
+                                       rgb=int_to_rgb(data.get('rgb')),
+                                       luminance=data.get('luminance'),
+                                       generated_by_myself=from_myself)
+            self.fire_event(evt)
+            return True
+        else:
+            l.warn("Unknown event: %s" % namespace)
+            return False
 
     def get_status(self):
         with self._state_lock:
-            if self._raw_state is None:
+            if self._raw_state is None or \
+                    self._raw_state.get('spray') is None or \
+                    self._raw_state.get('light') is None:
                 self._get_status_impl()
         return self._raw_state
 
@@ -54,9 +81,9 @@ class GenericHumidifier(AbstractMerossDevice):
         if light is None:
             return None
         rgb = light.get('rgb')
-        return into_to_rgb(rgb)
+        return int_to_rgb(rgb)
 
-    def configure_light(self, onoff=None, rgb=None, luminance=-1, temperature=-1, gradual=0, channel=0):
+    def configure_light(self, onoff=None, rgb=None, luminance=100, temperature=-1, gradual=0, channel=0):
         if rgb is not None and temperature != -1:
             l.error("You are trying to set both RGB and luminance values for this bulb. It won't work!")
 
@@ -98,3 +125,16 @@ class GenericHumidifier(AbstractMerossDevice):
         with self._state_lock:
             self._raw_state = digest
         return digest
+
+    def _update_state(self, space, data):
+        with self._state_lock:
+            if self._raw_state is None:
+                self._raw_state = {}
+
+            if space == 'spray':
+                self._raw_state['spray'] = data
+            elif space == 'light':
+                self._raw_state['light'] = data
+            else:
+                l.warn("Unsupported namespace %s" % space)
+
