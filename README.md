@@ -35,6 +35,7 @@ from random import randint
 
 from meross_iot.cloud.devices.door_openers import GenericGarageDoorOpener
 from meross_iot.cloud.devices.hubs import GenericHub
+from meross_iot.cloud.devices.humidifier import GenericHumidifier, SprayMode
 from meross_iot.cloud.devices.light_bulbs import GenericBulb
 from meross_iot.cloud.devices.power_plugs import GenericPlug
 from meross_iot.cloud.devices.subdevices.thermostats import ValveSubDevice, ThermostatV3Mode
@@ -66,7 +67,7 @@ def event_handler(eventobj):
 
     elif eventobj.event_type == MerossEventType.THERMOSTAT_TEMPERATURE_CHANGE:
         print("Thermostat %s has revealed a temperature change: %s" % (eventobj.device.name, eventobj.temperature))
-
+        
     else:
         print("Unknown event!")
 
@@ -88,6 +89,7 @@ if __name__ == '__main__':
     door_openers = manager.get_devices_by_kind(GenericGarageDoorOpener)
     hub_devices = manager.get_devices_by_kind(GenericHub)
     thermostats = manager.get_devices_by_kind(ValveSubDevice)
+    humidifiers = manager.get_devices_by_kind(GenericHumidifier)
     all_devices = manager.get_supported_devices()
 
     # Print some basic specs about the discovered devices
@@ -102,6 +104,10 @@ if __name__ == '__main__':
     print("All the garage openers I found:")
     for g in door_openers:
         print(g)
+
+    print("All the humidifier I found:")
+    for h in all_devices:
+        print(h)
 
     print("All the hubs I found:")
     for h in hub_devices:
@@ -191,6 +197,24 @@ if __name__ == '__main__':
         if p.supports_electricity_reading():
             print("Awesome! This device also supports power consumption reading.")
             print("Current consumption is: %s" % str(p.get_electricity()))
+
+    # ---------------------
+    # Let's play with smart humidifier
+    # ---------------------
+    for h in humidifiers:  # type: GenericHumidifier
+        if not h.online:
+            print("Smart humidifier %s seems to be offline. Cannot play with it at this time..." % h.name)
+            continue
+
+        # Let's set its color to RED
+        print("Setting the smart humidifier %s color to red" % h.name)
+        h.configure_light(onoff=1, rgb=(255, 0, 0), luminance=100)
+        print("Setting spray-mode to CONTINUOUS")
+        h.set_spray_mode(spray_mode=SprayMode.CONTINUOUS)
+        print("Waiting a bit before turning it off...")
+        time.sleep(10)
+        print("Setting spray-mode to OFF")
+        h.set_spray_mode(spray_mode=SprayMode.OFF)
 
     # ---------------------------
     # Let's play with the Thermostat
