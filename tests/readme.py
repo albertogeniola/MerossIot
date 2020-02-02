@@ -37,8 +37,6 @@ def event_handler(eventobj):
     elif eventobj.event_type == MerossEventType.THERMOSTAT_TEMPERATURE_CHANGE:
         print("Thermostat %s has revealed a temperature change: %s" % (eventobj.device.name, eventobj.temperature))
 
-    else:
-        print("Unknown event!")
 
 
 if __name__ == '__main__':

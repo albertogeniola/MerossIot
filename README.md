@@ -15,14 +15,15 @@ In such cases, you're invited to open an issue and report tbe working/non-workin
 This will help us to keep track of new devices and current support status of the library.
 
 
-This library is still work in progress, therefore use it with caution.
+This library is still work in progres
+s, therefore use it with caution.
 
 ## Installation
 Due to the popularity of the library, I've decided to list it publicly on the Pipy index.
 So, the installation is as simple as typing the following command:
 
 ```
-pip install meross_iot==0.3.2.7 --upgrade
+pip install meross_iot==0.3.2.8 --upgrade
 ```
 
 ## Usage
@@ -67,9 +68,7 @@ def event_handler(eventobj):
 
     elif eventobj.event_type == MerossEventType.THERMOSTAT_TEMPERATURE_CHANGE:
         print("Thermostat %s has revealed a temperature change: %s" % (eventobj.device.name, eventobj.temperature))
-        
-    else:
-        print("Unknown event!")
+
 
 
 if __name__ == '__main__':
