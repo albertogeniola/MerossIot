@@ -5,6 +5,8 @@ class MerossEventType(Enum):
     # Fired when the MQTT client connects/disconnects to the MQTT broker
     CLIENT_CONNECTION = 10
     DEVICE_ONLINE_STATUS = 100
+    DEVICE_BIND = 200
+    DEVICE_UNBIND = 201
     DEVICE_SWITCH_STATUS = 1000
     DEVICE_BULB_SWITCH_STATE = 2000
     DEVICE_BULB_STATE = 2001
@@ -18,6 +20,19 @@ class MerossEvent(object):
 
     def __init__(self, event_type):
         self.event_type = event_type
+
+
+class DeviceBindEvent(MerossEvent):
+    def __init__(self, device, bind_data):
+        super(DeviceBindEvent, self).__init__(MerossEventType.DEVICE_BIND)
+        self.device = device
+        self.bind_data = bind_data
+
+
+class DeviceUnbindEvent(MerossEvent):
+    def __init__(self, device):
+        super(DeviceUnbindEvent, self).__init__(MerossEventType.DEVICE_UNBIND)
+        self.device = device
 
 
 class ClientConnectionEvent(MerossEvent):

@@ -337,13 +337,15 @@ However, keeping such devices connected 24/7 has a cost, which I sustain happily
 Anyways, feel free to contribute via donations! 
 </p>
 
-## Changelog    
-### 0.3.2.5 (latest)
-- Fixed set_target_temperature not working as intended
+## Changelog
+### 0.3.2.6 (latest)
+- Added support for binding/unbinding events    
 
 <details>
     <summary>Older</summary>
 
+### 0.3.2.5 (latest)
+- Fixed set_target_temperature not working as intended
 ### 0.3.2.4
 - Improved thermostat support
 - New handling of Hub and subdevices

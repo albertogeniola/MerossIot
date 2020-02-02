@@ -6,6 +6,8 @@ ONLINE = 'Appliance.System.Online'
 WIFI_LIST = 'Appliance.Config.WifiList'
 DEBUG = 'Appliance.System.Debug'
 TRACE = 'Appliance.Config.Trace'
+BIND = 'Appliance.Control.Bind'
+UNBIND = 'Appliance.Control.Unbind'
 
 # Power plug/bulbs abilities
 TOGGLE = 'Appliance.Control.Toggle'

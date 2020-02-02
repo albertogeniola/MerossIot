@@ -1,6 +1,7 @@
 from threading import RLock
 
 from meross_iot.api import MerossHttpClient
+from meross_iot.cloud.abilities import BIND, UNBIND, REPORT
 from meross_iot.cloud.client import MerossCloudClient
 from meross_iot.cloud.client_status import ClientStatus
 from meross_iot.cloud.device_factory import build_wrapper, build_subdevice_wrapper
@@ -120,18 +121,29 @@ class MerossManager(object):
 
         # Identify the UUID of the target device by looking at the FROM field of the message header
         dev_uuid = header['from'].split('/')[2]
+
+        # Let's intercept the Bind events: they are useful to trigger new device discovery
+        namespace = header.get('namespace')
+        if namespace is not None and namespace == BIND:
+            self._discover_devices()
+
+        # Let's find the target of the event so that it can handle accordingly
         device = None
         with self._devices_lock:
             device = self._devices.get(dev_uuid)
 
         if device is not None:
-            namespace = header['namespace']
             device.handle_push_notification(namespace, payload, from_myself=from_myself)
         else:
             # If we receive a push notification from a device that is not yet contained into our registry,
             # it probably means a new one has just been registered with the meross cloud.
-            # Therefor, let's retrieve info from the HTTP api.
-            self._discover_devices()
+            # This should never happen as we handle the "bind" event just above. However, It appears that the report
+            # event is fired before the BIND event. So we need to ignore it at this point
+            if namespace == REPORT:
+                l.info("Ignoring REPORT event from device %s" % dev_uuid)
+            else:
+                l.warn("An event was received from an unknown device, which did not trigger the BIND event. "
+                       "Device UUID: %s, namespace: %s." % (dev_uuid, namespace))
 
     def _discover_devices(self, online_only=False):
         """
@@ -155,6 +167,12 @@ class MerossManager(object):
                     self._handle_device_discovered(dev=subdev, parent_hub=discovered)
 
         return self._devices
+
+    def _handle_device_unbound(self, dev_uuid):
+        with self._devices_lock:
+            if dev_uuid in self._devices:
+                l.info("Unregistering device %s" % dev_uuid)
+                del self._devices[dev_uuid]
 
     def _handle_device_discovered(self, dev, parent_hub=None):
         device = None
