@@ -24,6 +24,7 @@ HUB_MTS100_TEMPERATURE = 'Appliance.Hub.Mts100.Temperature'
 HUB_MTS100_MODE = 'Appliance.Hub.Mts100.Mode'
 HUB_MTS100_ALL = 'Appliance.Hub.Mts100.All'
 HUB_EXCEPTION = 'Appliance.Hub.Exception'
+HUB_BATTERY = 'Appliance.Hub.Battery'
 
 # Garage opener abilities
 GARAGE_DOOR_STATE = 'Appliance.GarageDoor.State'

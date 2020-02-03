@@ -1,3 +1,4 @@
+from meross_iot.cloud.abilities import HUB_BATTERY
 from meross_iot.cloud.device import AbstractMerossDevice, HUB_MTS100_ALL, HUB_ONLINE
 from meross_iot.meross_event import DeviceOnlineStatusEvent
 
@@ -18,6 +19,11 @@ class GenericSubDevice(AbstractMerossDevice):
             self._sync_status()
             prop = self._raw_state.get(parent, {}).get(child)
         return prop
+
+    def get_battery_status(self):
+        payload = {'battery': [{'id': self.subdevice_id}]}
+        data = self.execute_command('GET', HUB_BATTERY, payload).get('battery')[0]
+        return data.get('value')
 
     @property
     def last_active_time(self):
