@@ -1,5 +1,6 @@
-from meross_iot.cloud.device import AbstractMerossDevice, HUB_MTS100_ALL, HUB_MS100_ALL, HUB_ONLINE
+from meross_iot.cloud.device import AbstractMerossDevice, HUB_ONLINE
 from meross_iot.meross_event import DeviceOnlineStatusEvent
+from meross_iot.logger import SUBDEVICE_LOGGER as l
 
 
 class GenericSubDevice(AbstractMerossDevice):
@@ -40,16 +41,19 @@ class GenericSubDevice(AbstractMerossDevice):
 
     def _sync_status(self):
         payload = {'all': [{'id': self.subdevice_id}]}
-        if (self.type.startswith('ms100')):
-            res = self._hub.execute_command('GET', HUB_MS100_ALL, payload)
-        else:
-            res = self._hub.execute_command('GET', HUB_MTS100_ALL, payload)
-        data = res.get('all')
-        if (data is not None):
-            for device_data in data:
-                if device_data.get('id') == self.subdevice_id:
-                    self._raw_state.update(device_data)
+        status_token = self._status_token
+        if status_token is not None:
+            res = self._hub.execute_command('GET', status_token, payload)
+            data = res.get('all')
+            if (data is not None):
+                for device_data in data:
+                    if device_data.get('id') == self.subdevice_id:
+                        self._raw_state.update(device_data)
         return self._raw_state
+
+    @property
+    def _status_token(self):
+        l.error("GenericSubDevice._status_token should be overwritten by subclass")
 
     def get_status(self):
         if self._raw_state == {}:

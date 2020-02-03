@@ -84,6 +84,10 @@ class ValveSubDevice(GenericSubDevice):
             return False
 
     @property
+    def _status_token(self):
+        return HUB_MTS100_ALL
+
+    @property
     def onoff(self):
         onoff = self._get_property('togglex', 'onoff')
         return onoff
