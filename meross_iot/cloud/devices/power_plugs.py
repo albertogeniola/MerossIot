@@ -96,6 +96,7 @@ class GenericPlug(AbstractMerossDevice):
                 res[c['channel']] = c['onoff'] == 1
         elif 'control' in data:
             res[0] = data['control']['toggle']['onoff'] == 1
+        return res
 
     def _get_channel_id(self, channel):
         # Otherwise, if the passed channel looks like the channel spec, lookup its array indexindex
