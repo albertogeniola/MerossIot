@@ -1,7 +1,7 @@
 from threading import RLock
 
 from meross_iot.api import MerossHttpClient
-from meross_iot.cloud.abilities import BIND, UNBIND, REPORT
+from meross_iot.cloud.abilities import BIND, UNBIND, REPORT, ONLINE
 from meross_iot.cloud.client import MerossCloudClient
 from meross_iot.cloud.client_status import ClientStatus
 from meross_iot.cloud.device_factory import build_wrapper, build_subdevice_wrapper
@@ -124,7 +124,7 @@ class MerossManager(object):
 
         # Let's intercept the Bind events: they are useful to trigger new device discovery
         namespace = header.get('namespace')
-        if namespace is not None and namespace == BIND:
+        if namespace is not None and namespace in [BIND, ONLINE]:
             self._discover_devices()
 
         # Let's find the target of the event so that it can handle accordingly
