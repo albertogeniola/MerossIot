@@ -7,6 +7,7 @@ from meross_iot.cloud.devices.hubs import GenericHub
 from meross_iot.cloud.devices.light_bulbs import GenericBulb
 from meross_iot.cloud.devices.power_plugs import GenericPlug
 from meross_iot.cloud.devices.subdevices.thermostats import ValveSubDevice, ThermostatV3Mode
+from meross_iot.cloud.devices.subdevices.sensors import SensorSubDevice
 from meross_iot.manager import MerossManager
 from meross_iot.meross_event import MerossEventType
 
@@ -36,6 +37,9 @@ def event_handler(eventobj):
     elif eventobj.event_type == MerossEventType.THERMOSTAT_TEMPERATURE_CHANGE:
         print("Thermostat %s has revealed a temperature change: %s" % (eventobj.device.name, eventobj.temperature))
 
+    elif eventobj.event_type == MerossEventType.SENSOR_TEMPERATURE_CHANGE:
+        print("Sensor %s has revealed a temp/humidity change: %s / %s" % (eventobj.device.name, eventobj.temperature, eventobj.humidity))
+
     else:
         print("Unknown event!")
 
@@ -57,6 +61,7 @@ if __name__ == '__main__':
     door_openers = manager.get_devices_by_kind(GenericGarageDoorOpener)
     hub_devices = manager.get_devices_by_kind(GenericHub)
     thermostats = manager.get_devices_by_kind(ValveSubDevice)
+    sensors = manager.get_devices_by_kind(SensorSubDevice)
     all_devices = manager.get_supported_devices()
 
     # Print some basic specs about the discovered devices
@@ -189,6 +194,15 @@ if __name__ == '__main__':
         # low power communication channel. So, we need to wait a bit until it gets received.
         time.sleep(60)
         print("Current mode: %s" % t.mode)
+
+    # ---------------------------
+    # Let's check on the Sensors
+    # ---------------------------
+    for p in sensors:
+        if not p.online:
+            print("Sensor %s is offline." % p.name)
+            continue
+        print("Sensor %s: temperature %s, humidty %s" % (p.name, p.temperature, p.humidity))
 
     # At this point, we are all done playing with the library, so we gracefully disconnect and clean resources.
     print("We are done playing. Cleaning resources...")
