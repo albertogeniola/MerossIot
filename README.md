@@ -273,7 +273,7 @@ Thanks to [DanoneKiD](https://github.com/DanoneKiD), [virtualdj](https://github.
 
 ## New device or unsupported features?
 If you own a device that is not currently supported or partially supported, you can help the developers in two ways.
-The first one is by donating, so the developer gets enough money to but the device and implement necessary support.
+The first one is by donating, so the developer gets enough money to buy the device and implement necessary support.
 The second way is by sharing running the _meross_sniffer_ and _meross_info_gather_ tools. 
 
 ### Meross Sniffer
