@@ -363,8 +363,9 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
-### 0.3.2.13 (latest)
+### 0.3.2.14 (latest)
 - Added option to force status-update on devices
+- get_sys_data now ignores online status in order to allow full status update (including online status) 
 
 <details>
     <summary>Older</summary>

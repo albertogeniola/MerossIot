@@ -46,7 +46,7 @@ class GenericSubDevice(AbstractMerossDevice):
 
     def _sync_status(self):
         payload = {'all': [{'id': self.subdevice_id}]}
-        res = self._hub.execute_command('GET', HUB_MTS100_ALL, payload)
+        res = self._hub.execute_command('GET', HUB_MTS100_ALL, payload, online_check=False)
         data = res.get('all')
 
         for device_data in data:
