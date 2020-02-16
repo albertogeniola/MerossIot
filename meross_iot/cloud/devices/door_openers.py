@@ -44,9 +44,9 @@ class GenericGarageDoorOpener(AbstractMerossDevice):
     def __init__(self, cloud_client, device_uuid, **kwords):
         super(GenericGarageDoorOpener, self).__init__(cloud_client, device_uuid, **kwords)
 
-    def get_status(self):
+    def get_status(self, force_status_refresh=False):
         with self._state_lock:
-            if self._door_state is None:
+            if self._door_state is None or force_status_refresh:
                 self._get_status_impl()
 
         return self._door_state
@@ -88,6 +88,13 @@ class GenericGarageDoorOpener(AbstractMerossDevice):
         if self._door_state is None:
             self._door_state = {}
         data = self.get_sys_data()['all']
+
+        # Update online status
+        online_status = data.get('system', {}).get('online', {}).get('status')
+        if online_status is not None:
+            self.online = online_status == 1
+
+        # Update specific device state
         if 'digest' in data:
             for c in data['digest']['garageDoor']:
                 self._door_state[c['channel']] = c['open'] == 1

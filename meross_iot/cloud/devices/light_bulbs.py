@@ -141,6 +141,13 @@ class GenericBulb(AbstractMerossDevice):
     def _get_status_impl(self):
         res = {}
         data = self.get_sys_data()['all']
+
+        # Update online status
+        online_status = data.get('system', {}).get('online', {}).get('status')
+        if online_status is not None:
+            self.online = online_status == 1
+
+        # Update specific device state
         if 'digest' in data:
             light_channel = data['digest']['light']['channel']
             res[light_channel] = data['digest']['light']
@@ -169,7 +176,7 @@ class GenericBulb(AbstractMerossDevice):
         # In other cases return an error
         raise Exception("Invalid channel specified.")
 
-    def get_status(self, channel=0):
+    def get_status(self, channel=0, force_status_refresh=False):
         # In order to optimize the network traffic, we don't call the get_status() api at every request.
         # On the contrary, we call it the first time. Then, the rest of the API will silently listen
         # for state changes and will automatically update the self._state structure listening for
@@ -180,7 +187,7 @@ class GenericBulb(AbstractMerossDevice):
         # and synchronizing the two things would be inefficient and probably not very useful.
         # Just remember to wait some time before testing the status of the item after a toggle.
         c = self._get_channel_id(channel)
-        if self._state == {}:
+        if self._state == {} or force_status_refresh:
             current_state = self._get_status_impl()
             with self._state_lock:
                 self._state = current_state

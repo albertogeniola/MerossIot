@@ -130,7 +130,7 @@ class AbstractMerossDevice(ABC):
         pass
 
     @abstractmethod
-    def get_status(self):
+    def get_status(self, force_status_refresh=False):
         pass
 
     def execute_command(self, command, namespace, payload, callback=None, timeout=SHORT_TIMEOUT):

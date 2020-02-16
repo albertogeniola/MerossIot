@@ -48,13 +48,14 @@ class GenericSubDevice(AbstractMerossDevice):
         payload = {'all': [{'id': self.subdevice_id}]}
         res = self._hub.execute_command('GET', HUB_MTS100_ALL, payload)
         data = res.get('all')
+
         for device_data in data:
             if device_data.get('id') == self.subdevice_id:
                 self._raw_state.update(device_data)
         return self._raw_state
 
-    def get_status(self):
-        if self._raw_state == {}:
+    def get_status(self, force_status_refresh=False):
+        if self._raw_state == {} or force_status_refresh:
             return self._sync_status()
         else:
             return self._raw_state

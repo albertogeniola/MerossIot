@@ -47,9 +47,10 @@ class GenericHumidifier(AbstractMerossDevice):
             l.warn("Unknown event: %s" % namespace)
             return False
 
-    def get_status(self):
+    def get_status(self, force_status_refresh=False):
         with self._state_lock:
-            if self._raw_state is None or \
+            if force_status_refresh or\
+                    self._raw_state is None or \
                     self._raw_state.get('spray') is None or \
                     self._raw_state.get('light') is None:
                 self._get_status_impl()
@@ -121,6 +122,13 @@ class GenericHumidifier(AbstractMerossDevice):
 
     def _get_status_impl(self):
         data = self.get_sys_data()['all']
+
+        # Update online status
+        online_status = data.get('system', {}).get('online', {}).get('status')
+        if online_status is not None:
+            self.online = online_status == 1
+
+        # Update specific device status
         digest = data.get('digest')
         with self._state_lock:
             self._raw_state = digest
