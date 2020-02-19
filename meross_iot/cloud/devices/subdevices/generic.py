@@ -1,3 +1,4 @@
+from meross_iot.cloud.timeouts import LONG_TIMEOUT
 from meross_iot.cloud.abilities import HUB_BATTERY
 from meross_iot.cloud.device import AbstractMerossDevice, HUB_MTS100_ALL, HUB_ONLINE
 from meross_iot.meross_event import DeviceOnlineStatusEvent
@@ -44,9 +45,9 @@ class GenericSubDevice(AbstractMerossDevice):
         online = self._raw_state.get('online', {}).get('status', 0)
         return online == 1
 
-    def _sync_status(self):
+    def _sync_status(self, timeout=LONG_TIMEOUT):
         payload = {'all': [{'id': self.subdevice_id}]}
-        res = self._hub.execute_command('GET', HUB_MTS100_ALL, payload, online_check=False)
+        res = self._hub.execute_command('GET', HUB_MTS100_ALL, payload, timeout=timeout, online_check=False)
         data = res.get('all')
 
         for device_data in data:
@@ -54,9 +55,9 @@ class GenericSubDevice(AbstractMerossDevice):
                 self._raw_state.update(device_data)
         return self._raw_state
 
-    def get_status(self, force_status_refresh=False):
+    def get_status(self, force_status_refresh=False, timeout=LONG_TIMEOUT):
         if self._raw_state == {} or force_status_refresh:
-            return self._sync_status()
+            return self._sync_status(timeout=timeout)
         else:
             return self._raw_state
 
