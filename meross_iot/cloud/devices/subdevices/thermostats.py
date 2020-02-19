@@ -1,6 +1,8 @@
 from enum import Enum
 from typing import Union
 
+from meross_iot.cloud.timeouts import LONG_TIMEOUT
+
 from meross_iot.cloud.abilities import HUB_MTS100_ALL, HUB_MTS100_TEMPERATURE, HUB_MTS100_MODE, HUB_TOGGLEX, HUB_ONLINE
 from meross_iot.cloud.devices.subdevices.generic import GenericSubDevice
 from meross_iot.logger import VALVES_LOGGER as l
@@ -120,6 +122,7 @@ class ValveSubDevice(GenericSubDevice):
 
     def set_target_temperature(self,
                                target_temp: float = None,
+                               timeout : float = LONG_TIMEOUT,
                                callback: callable = None):
         """
         Sets the target temperature of the thermostat
@@ -133,12 +136,14 @@ class ValveSubDevice(GenericSubDevice):
         return self.execute_command(command='SET',
                                     namespace=HUB_MTS100_TEMPERATURE,
                                     payload=payload,
+                                    timeout=timeout,
                                     callback=callback)
 
     def set_preset_temperature(self,
                                away: float = None,
                                comfort: float = None,
                                economy: float = None,
+                               timeout: float = LONG_TIMEOUT,
                                callback: callable = None):
         """
         Configures the preset temperature values. The temperature values should be expressed in
@@ -162,6 +167,7 @@ class ValveSubDevice(GenericSubDevice):
         return self.execute_command(command='SET',
                                     namespace=HUB_MTS100_TEMPERATURE,
                                     payload=payload,
+                                    timeout=timeout,
                                     callback=callback)
 
     @property
@@ -179,7 +185,11 @@ class ValveSubDevice(GenericSubDevice):
                 l.error("The current thermostat mode is not supported.")
                 return None
 
-    def set_mode(self, mode: Union[ThermostatV3Mode, ThermostatMode, int]):
+    def set_mode(self,
+                 mode: Union[ThermostatV3Mode, ThermostatMode, int],
+                 timeout=LONG_TIMEOUT,
+                 callback=None
+                 ):
         """
         Sets the temperature mode for the thermostat
         :param mode:
@@ -193,14 +203,15 @@ class ValveSubDevice(GenericSubDevice):
         elif isinstance(mode, int):
             l.warning("Setting a raw integer value as mode. This is not recommended. "
                       "Please use ThermostatMode or ThermostatV3Mode")
-        self.execute_command('SET', HUB_MTS100_MODE, {'mode': [{'id': self.subdevice_id, 'state': mode.value}]})
+        self.execute_command('SET', HUB_MTS100_MODE, {'mode': [{'id': self.subdevice_id, 'state': mode.value}]},
+                             timeout=timeout, callback=callback)
 
-    def _togglex(self, onoff, channel=0, callback=None):
+    def _togglex(self, onoff, channel=0, timeout=LONG_TIMEOUT, callback=None):
         payload = {'togglex': [{'channel': channel, 'id': self.subdevice_id, 'onoff': onoff}]}
-        return self.execute_command('SET', HUB_TOGGLEX, payload, callback=callback)
+        return self.execute_command('SET', HUB_TOGGLEX, payload, timeout=timeout, callback=callback)
 
-    def turn_on(self, callback=None):
-        return self._togglex(onoff=1, callback=callback)  # TODO: test this
+    def turn_on(self, timeout=LONG_TIMEOUT, callback=None):
+        return self._togglex(onoff=1, timeout=timeout, callback=callback)
 
-    def turn_off(self, callback=None):
-        return self._togglex(onoff=0, callback=callback)  # TODO: test this
+    def turn_off(self, timeout=LONG_TIMEOUT, callback=None):
+        return self._togglex(onoff=0, timeout=timeout, callback=callback)

@@ -23,7 +23,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```
-pip install meross_iot==0.3.2.13 --upgrade
+pip install meross_iot==0.3.2.15 --upgrade
 ```
 
 ## Usage
@@ -363,23 +363,26 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
-### 0.3.2.14 (latest)
-- Added option to force status-update on devices
-- get_sys_data now ignores online status in order to allow full status update (including online status) 
+### 0.3.2.15 (latest)
+- Fixed deadlock occurring when handling Thermostat 
+- Implementing callback/timeouts
 
 <details>
     <summary>Older</summary>
 
+### 0.3.2.14 
+- Added option to force status-update on devices
+- get_sys_data now ignores online status in order to allow full status update (including online status) 
 ### 0.3.2.12 
 - Hotfix for introduced regression
 - Minor fix for power_plugs
-### 0.3.2.9 (latest)
+### 0.3.2.9 
 - Implemented battery statys retrival for HUB devices (valve)
-### 0.3.2.7 (latest)
+### 0.3.2.7 
 - Added support for smart humidifier
-### 0.3.2.6 (latest)
+### 0.3.2.6 
 - Added support for binding/unbinding events    
-### 0.3.2.5 (latest)power_plugs
+### 0.3.2.5 
 - Fixed set_target_temperature not working as intended
 ### 0.3.2.4
 - Improved thermostat support
