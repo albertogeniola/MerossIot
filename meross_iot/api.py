@@ -65,14 +65,14 @@ class MerossHttpClient:
 
         # Check if that is ok.
         if r.status_code != 200:
-            raise AuthenticatedPostException()
+            raise AuthenticatedPostException("Failed request to API. Response code: %d" % str(r.status_code))
 
         # Save returned value
         jsondata = r.json()
-        # print(jsondata)
 
         if jsondata["info"].lower() != "success":
-            raise AuthenticatedPostException()
+            l.warn("Failed request to API. Response was: %s" % str(jsondata))
+            raise AuthenticatedPostException("Failed request to API. Response was: %s" % str(jsondata))
 
         return jsondata["data"]
 

@@ -30,7 +30,7 @@ class MerossManager(object):
     _event_callbacks = None
     _event_callbacks_lock = None
 
-    def __init__(self, meross_email, meross_password):
+    def __init__(self, meross_email, meross_password, discovery_interval=30.0):
         self._devices_lock = RLock()
         self._devices = dict()
         self._event_callbacks_lock = RLock()
@@ -46,6 +46,7 @@ class MerossManager(object):
         self._device_discoverer = Thread(target=self._device_discover_thread)
         self._stop_discovery = Event()
         self._device_discovery_done = Event()
+        self._discovery_interval = discovery_interval
 
     def start(self, wait_for_first_discovery=True):
         # Connect to the mqtt broker
@@ -61,10 +62,12 @@ class MerossManager(object):
 
     def _device_discover_thread(self):
         while True:
-            self._discover_devices(online_only=False)
-            if self._stop_discovery.wait(10):
-                self._stop_discovery.clear()
-                break
+            try:
+                self._discover_devices(online_only=False)
+            finally:
+                if self._stop_discovery.wait(self._discovery_interval):
+                    self._stop_discovery.clear()
+                    break
 
     def register_event_handler(self, callback):
         with self._event_callbacks_lock:
