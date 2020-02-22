@@ -12,7 +12,6 @@ class TestMSS210Test(unittest.TestCase):
     def setUp(self):
         self.manager = MerossManager(meross_email=EMAIL, meross_password=PASSWORD)
         self.manager.start()
-
         # Retrieves the list of supported devices
         devices = self.manager.get_devices_by_type('mss210')
         if len(devices) > 0:

@@ -45,11 +45,15 @@ class MerossManager(object):
         self._cloud_client.connection_status.register_connection_event_callback(callback=self._fire_event)
         self._device_discoverer = Thread(target=self._device_discover_thread)
         self._stop_discovery = Event()
+        self._device_discovery_done = Event()
 
-    def start(self):
+    def start(self, wait_for_first_discovery=True):
         # Connect to the mqtt broker
         self._cloud_client.connect()
         self._device_discoverer.start()
+
+        if wait_for_first_discovery:
+            self._device_discovery_done.wait()
 
     def stop(self):
         self._cloud_client.close()
@@ -175,6 +179,8 @@ class MerossManager(object):
             if isinstance(discovered, GenericHub):
                 for subdev in self._http_client.list_hub_subdevices(discovered.uuid):
                     self._handle_device_discovered(dev=subdev, parent_hub=discovered)
+
+        self._device_discovery_done.set()
 
         return self._devices
 
