@@ -7,7 +7,7 @@ from meross_iot.cloud.client_status import ClientStatus
 from meross_iot.cloud.device_factory import build_wrapper, build_subdevice_wrapper
 from meross_iot.cloud.devices.hubs import GenericHub
 from meross_iot.logger import MANAGER_LOGGER as l
-from meross_iot.meross_event import DeviceOnlineStatusEvent
+from threading import Thread, Event
 
 
 class MerossManager(object):
@@ -43,14 +43,24 @@ class MerossManager(object):
         self._cloud_client = MerossCloudClient(cloud_credentials=self._cloud_creds,
                                                push_message_callback=self._dispatch_push_notification)
         self._cloud_client.connection_status.register_connection_event_callback(callback=self._fire_event)
+        self._device_discoverer = Thread(target=self._device_discover_thread)
+        self._stop_discovery = Event()
 
     def start(self):
         # Connect to the mqtt broker
         self._cloud_client.connect()
-        self._discover_devices()
+        self._device_discoverer.start()
 
     def stop(self):
         self._cloud_client.close()
+        self._stop_discovery.set()
+
+    def _device_discover_thread(self):
+        while True:
+            self._discover_devices(online_only=False)
+            if self._stop_discovery.wait(10):
+                self._stop_discovery.clear()
+                break
 
     def register_event_handler(self, callback):
         with self._event_callbacks_lock:
@@ -185,6 +195,8 @@ class MerossManager(object):
             device_id = d_id
             device = build_wrapper(device_type=d_type, device_uuid=d_id,
                                    cloud_client=self._cloud_client, device_specs=dev)
+            is_subdevice = False
+
         elif 'subDeviceType' in dev and 'subDeviceId' in dev:
             # SUB DEVICE case
             d_type = dev['subDeviceType']
@@ -192,6 +204,8 @@ class MerossManager(object):
             device_id = "%s:%s" % (parent_hub.uuid, d_id)
             device = build_subdevice_wrapper(device_type=d_type, device_id=d_id, parent_hub=parent_hub,
                                    cloud_client=self._cloud_client, device_specs=dev)
+            is_subdevice = True
+
         else:
             l.warn("Discovered device does not seem to be either a full device nor a subdevice.")
             return
@@ -201,7 +215,7 @@ class MerossManager(object):
             # If not, add it right away. Otherwise, ignore it.
             is_new = False
             with self._devices_lock:
-                if d_id not in self._devices:
+                if device_id not in self._devices:
                     is_new = True
                     self._devices[device_id] = device
 
@@ -211,9 +225,17 @@ class MerossManager(object):
                     for c in self._event_callbacks:
                         device.register_event_callback(c)
 
-                evt = DeviceOnlineStatusEvent(device, device.online)
-                self._fire_event(evt)
+            # Otherwise, fire an OFFLINE event if the device online status has changed
+            else:
+                old_dev = self._devices.get(device_id)
+                new_online_status = dev.get('onlineStatus', 2)
 
+                # TODO: Fix this workaround...
+                #  Emulate the push notification
+                payload = {'online': {'status': new_online_status}}
+                old_dev.handle_push_notification(ONLINE, payload)
+
+            # TODO: handle subdevices
         return device
 
     def _fire_event(self, eventobj):

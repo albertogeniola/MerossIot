@@ -23,7 +23,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```
-pip install meross_iot==0.3.2.15 --upgrade
+pip install meross_iot==0.3.2.17 --upgrade
 ```
 
 ## Usage
@@ -363,13 +363,15 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
-### 0.3.2.15 (latest)
-- Fixed deadlock occurring when handling Thermostat 
-- Implementing callback/timeouts
+### 0.3.2.17 (latest)
+- Added Offline event emulation
 
 <details>
     <summary>Older</summary>
 
+### 0.3.2.15
+- Fixed deadlock occurring when handling Thermostat 
+- Implementing callback/timeouts
 ### 0.3.2.14 
 - Added option to force status-update on devices
 - get_sys_data now ignores online status in order to allow full status update (including online status) 

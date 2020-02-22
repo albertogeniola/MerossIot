@@ -45,6 +45,10 @@ class GenericSubDevice(AbstractMerossDevice):
         online = self._raw_state.get('online', {}).get('status', 0)
         return online == 1
 
+    @online.setter
+    def online(self, online):
+        pass
+
     def _sync_status(self, timeout=LONG_TIMEOUT):
         payload = {'all': [{'id': self.subdevice_id}]}
         res = self._hub.execute_command('GET', HUB_MTS100_ALL, payload, timeout=timeout, online_check=False)
