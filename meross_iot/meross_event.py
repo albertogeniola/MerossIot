@@ -12,6 +12,7 @@ class MerossEventType(Enum):
     THERMOSTAT_TEMPERATURE_CHANGE = 5000
     THERMOSTAT_MODE_CHANGE = 5001
     SENSOR_TEMPERATURE_CHANGE = 6000
+    SENSOR_TEMPERATURE_ALERT = 6001
 
 
 class MerossEvent(object):
@@ -128,6 +129,14 @@ class SensorTemperatureChange(MerossEvent):
         self.device = device
         self.temperature = temperature_state
         self.humidity = humidity_state
+        self.generated_by_myself = generated_by_myself
+
+
+class SensorTemperatureAlert(MerossEvent):
+    def __init__(self, device, alert, generated_by_myself):
+        super(SensorTemperatureAlert, self).__init__(MerossEventType.SENSOR_TEMPERATURE_ALERT)
+        self.device = device
+        self.alert = alert
         self.generated_by_myself = generated_by_myself
 
 

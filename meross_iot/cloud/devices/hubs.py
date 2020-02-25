@@ -87,6 +87,11 @@ class GenericHub(AbstractMerossDevice):
                     self._dispatch_event_to_subdevice(namespace=namespace, data=sensor_data, from_myself=from_myself)
                 return True
 
+            elif namespace == HUB_MS100_ALERT:
+                for sensor_data in payload['alert']:
+                    self._dispatch_event_to_subdevice(namespace=namespace, data=sensor_data, from_myself=from_myself)
+                return True
+
             else:
                 l.error("Unknown/Unsupported namespace/command: %s" % namespace)
                 l.debug("Namespace: %s, Data: %s" % (namespace, payload))

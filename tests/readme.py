@@ -40,6 +40,9 @@ def event_handler(eventobj):
     elif eventobj.event_type == MerossEventType.SENSOR_TEMPERATURE_CHANGE:
         print("Sensor %s has revealed a temp/humidity change: %s / %s" % (eventobj.device.name, eventobj.temperature, eventobj.humidity))
 
+    elif eventobj.event_type == MerossEventType.SENSOR_TEMPERATURE_ALERT:
+        print("Sensor %s has revealed a temp/humidity alert: %s" % (eventobj.device.name, eventobj.alert))
+
     else:
         print("Unknown event!")
 
