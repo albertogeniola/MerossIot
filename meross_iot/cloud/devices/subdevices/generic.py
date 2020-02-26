@@ -1,4 +1,6 @@
-from meross_iot.cloud.device import AbstractMerossDevice, HUB_ONLINE
+from meross_iot.cloud.timeouts import LONG_TIMEOUT
+from meross_iot.cloud.abilities import HUB_BATTERY
+from meross_iot.cloud.device import AbstractMerossDevice, HUB_MTS100_ALL, HUB_ONLINE
 from meross_iot.meross_event import DeviceOnlineStatusEvent
 from meross_iot.logger import SUBDEVICE_LOGGER as l
 
@@ -20,6 +22,11 @@ class GenericSubDevice(AbstractMerossDevice):
             prop = self._raw_state.get(parent, {}).get(child)
         return prop
 
+    def get_battery_status(self):
+        payload = {'battery': [{'id': self.subdevice_id}]}
+        data = self.execute_command('GET', HUB_BATTERY, payload).get('battery')[0]
+        return data.get('value')
+
     @property
     def last_active_time(self):
         return self._get_property('online', 'lastActiveTime', trigger_update_if_unavailable=False)
@@ -39,7 +46,11 @@ class GenericSubDevice(AbstractMerossDevice):
         online = self._raw_state.get('online', {}).get('status', 0)
         return online == 1
 
-    def _sync_status(self):
+    @online.setter
+    def online(self, online):
+        pass
+
+    def _sync_status(self, timeout=LONG_TIMEOUT):
         payload = {'all': [{'id': self.subdevice_id}]}
         status_token = self._status_token
         if status_token is not None:
@@ -55,9 +66,9 @@ class GenericSubDevice(AbstractMerossDevice):
     def _status_token(self):
         l.error("GenericSubDevice._status_token should be overwritten by subclass")
 
-    def get_status(self):
-        if self._raw_state == {}:
-            return self._sync_status()
+    def get_status(self, force_status_refresh=False, timeout=LONG_TIMEOUT):
+        if self._raw_state == {} or force_status_refresh:
+            return self._sync_status(timeout=timeout)
         else:
             return self._raw_state
 

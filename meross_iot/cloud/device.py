@@ -5,7 +5,7 @@ from meross_iot.cloud.abilities import *
 from meross_iot.cloud.exceptions.OfflineDeviceException import OfflineDeviceException
 from meross_iot.cloud.timeouts import LONG_TIMEOUT, SHORT_TIMEOUT
 from meross_iot.logger import DEVICE_LOGGER as l
-from meross_iot.meross_event import DeviceOnlineStatusEvent
+from meross_iot.meross_event import DeviceOnlineStatusEvent, DeviceBindEvent, DeviceUnbindEvent
 
 
 class AbstractMerossDevice(ABC):
@@ -73,8 +73,25 @@ class AbstractMerossDevice(ABC):
             if old_online_status != self.online:
                 evt = DeviceOnlineStatusEvent(self, self.online)
                 self.fire_event(evt)
+        elif namespace == BIND:
+            data = payload['bind']
+            evt = DeviceBindEvent(device=self, bind_data=data)
+            self.fire_event(evt)
+        elif namespace == UNBIND:
+            # Let everybody know we are going down before doing anything
+            evt = DeviceUnbindEvent(device=self)
+            self.fire_event(evt)
+            # Let's handle stat clearing and resource release
+            self._handle_unbound()
         else:
             self._handle_push_notification(namespace, payload, from_myself=from_myself)
+
+    def _handle_unbound(self):
+        with self._state_lock:
+            self.online = False
+        # Unregister all the callbacks
+        with self.__event_handlers_lock:
+            self.__event_handlers.clear()
 
     def register_event_callback(self, callback):
         with self.__event_handlers_lock:
@@ -113,20 +130,20 @@ class AbstractMerossDevice(ABC):
         pass
 
     @abstractmethod
-    def get_status(self):
+    def get_status(self, force_status_refresh=False):
         pass
 
-    def execute_command(self, command, namespace, payload, callback=None, timeout=SHORT_TIMEOUT):
+    def execute_command(self, command, namespace, payload, callback=None, timeout=SHORT_TIMEOUT, online_check=True):
         with self._state_lock:
             # If the device is not online, what's the point of issuing the command?
-            if not self.online:
+            if online_check and not self.online:
                 raise OfflineDeviceException("The device %s (%s) is offline. The command cannot be executed" %
                                              (self.name, self.uuid))
 
         return self.__cloud_client.execute_cmd(self.uuid, command, namespace, payload, callback=callback, timeout=timeout)
 
     def get_sys_data(self):
-        return self.execute_command("GET", ALL, {})
+        return self.execute_command("GET", ALL, {}, online_check=False)
 
     def get_abilities(self):
         # TODO: Make this cached value expire after a bit...

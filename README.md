@@ -9,20 +9,21 @@
 # Meross IoT library
 A pure-python based library providing API for controlling Meross IoT devices over the internet.
 
-To see what devices are currently supported, checkout the *Currently supported devices* section. 
-However, some devices _might work as expected even if they are not listed_ among the supported devices. 
+To see what devices are currently supported, checkout the *Currently supported devices* section.
+However, some devices _might work as expected even if they are not listed_ among the supported devices.
 In such cases, you're invited to open an issue and report tbe working/non-working status of your device.
 This will help us to keep track of new devices and current support status of the library.
 
 
-This library is still work in progress, therefore use it with caution.
+This library is still work in progres
+s, therefore use it with caution.
 
 ## Installation
 Due to the popularity of the library, I've decided to list it publicly on the Pipy index.
 So, the installation is as simple as typing the following command:
 
 ```
-pip install meross_iot==0.3.2.5 --upgrade
+pip install meross_iot==0.3.2.17 --upgrade
 ```
 
 ## Usage
@@ -35,6 +36,7 @@ from random import randint
 
 from meross_iot.cloud.devices.door_openers import GenericGarageDoorOpener
 from meross_iot.cloud.devices.hubs import GenericHub
+from meross_iot.cloud.devices.humidifier import GenericHumidifier, SprayMode
 from meross_iot.cloud.devices.light_bulbs import GenericBulb
 from meross_iot.cloud.devices.power_plugs import GenericPlug
 from meross_iot.cloud.devices.subdevices.thermostats import ValveSubDevice, ThermostatV3Mode
@@ -96,6 +98,7 @@ if __name__ == '__main__':
     hub_devices = manager.get_devices_by_kind(GenericHub)
     thermostats = manager.get_devices_by_kind(ValveSubDevice)
     sensors = manager.get_devices_by_kind(SensorSubDevice)
+    humidifiers = manager.get_devices_by_kind(GenericHumidifier)
     all_devices = manager.get_supported_devices()
 
     # Print some basic specs about the discovered devices
@@ -110,6 +113,10 @@ if __name__ == '__main__':
     print("All the garage openers I found:")
     for g in door_openers:
         print(g)
+
+    print("All the humidifier I found:")
+    for h in all_devices:
+        print(h)
 
     print("All the hubs I found:")
     for h in hub_devices:
@@ -200,6 +207,24 @@ if __name__ == '__main__':
             print("Awesome! This device also supports power consumption reading.")
             print("Current consumption is: %s" % str(p.get_electricity()))
 
+    # ---------------------
+    # Let's play with smart humidifier
+    # ---------------------
+    for h in humidifiers:  # type: GenericHumidifier
+        if not h.online:
+            print("Smart humidifier %s seems to be offline. Cannot play with it at this time..." % h.name)
+            continue
+
+        # Let's set its color to RED
+        print("Setting the smart humidifier %s color to red" % h.name)
+        h.configure_light(onoff=1, rgb=(255, 0, 0), luminance=100)
+        print("Setting spray-mode to CONTINUOUS")
+        h.set_spray_mode(spray_mode=SprayMode.CONTINUOUS)
+        print("Waiting a bit before turning it off...")
+        time.sleep(10)
+        print("Setting spray-mode to OFF")
+        h.set_spray_mode(spray_mode=SprayMode.OFF)
+
     # ---------------------------
     # Let's play with the Thermostat
     # ---------------------------
@@ -256,6 +281,7 @@ The list of tested devices is the following:
 - MSH300 (Smart hub + valve thermostat)
 - MS100 (Smart hub + temperature/humidity sensor)
 - MSS710
+- MSXH0 (Smart Humidifier)
 
 I'd like to thank all the people who contributed to the early stage of library development,
 who stimulated me to continue the development and making this library support more devices:
@@ -264,8 +290,8 @@ Thanks to [DanoneKiD](https://github.com/DanoneKiD), [virtualdj](https://github.
 
 ## New device or unsupported features?
 If you own a device that is not currently supported or partially supported, you can help the developers in two ways.
-The first one is by donating, so the developer gets enough money to but the device and implement necessary support.
-The second way is by sharing running the _meross_sniffer_ and _meross_info_gather_ tools. 
+The first one is by donating, so the developer gets enough money to buy the device and implement necessary support.
+The second way is by sharing running the _meross_sniffer_ and _meross_info_gather_ tools.
 
 ### Meross Sniffer
 The sniffer is a tool that collects the commands that your Meross App sends to a specific device.
@@ -283,7 +309,7 @@ To use the meross sniffer, simply do the following:
 
 When issuing commands from the meross app to the target device, follow a specific logic:
 - Write down separately (on a TXT file) which commands you are issuing
-- If the command you are issuing accepts "scalar" values, make sure you test the lowest one and the greatest one 
+- If the command you are issuing accepts "scalar" values, make sure you test the lowest one and the greatest one
 
 Then, open an issue on this github repository, and upload the data.zip file.
 
@@ -307,17 +333,17 @@ If you want to understand how the Meross protocol works, [have a look at the Wik
 ## Homeassistant integration
 Yeah, it happened. As soon as I started developing this library, I've discovered the HomeAssistant world.
 Thus, I've decided to spend some time to develop a full featured Homeassistant custom component, that you find [here](https://github.com/albertogeniola/meross-homeassistant).
-Thanks to @troykelly who made a wish and supported my efforts in developing such component! 
+Thanks to @troykelly who made a wish and supported my efforts in developing such component!
 
 ## Running on OSX?
 If so, please make sure you did install client certificates. [Follow instructions here](https://github.com/albertogeniola/MerossIot/issues/62#issuecomment-535769621).
 
 ## Donate!
-I like reverse engineering and protocol inspection, I think it keeps your mind trained and healthy. 
-However, if you liked or appreciated by work, why don't you buy me a beer? 
+I like reverse engineering and protocol inspection, I think it keeps your mind trained and healthy.
+However, if you liked or appreciated by work, why don't you buy me a beer?
 It would really motivate me to continue working on this repository to improve documentation, code and extend the supported meross devices.
 
-Moreover, donations will make me raise money to spend on other Meross devices. 
+Moreover, donations will make me raise money to spend on other Meross devices.
 So far, I've bought the following devices:
 - MSL120
 - MSS210
@@ -326,10 +352,11 @@ So far, I've bought the following devices:
 - MSS530H
 - MSG100
 - MSH300
+- MSXH0
 
 By issuing a donation, you will:
 1. Give me the opportunity to buy new devices and support them in this library
-1. Pay part of electricity bill used to keep running the plugs 24/7 
+1. Pay part of electricity bill used to keep running the plugs 24/7
 (Note that they are used for Unit-Testing on the continuous integration engine when someone pushes a PR... I love DEVOPing!)  
 1. You'll increase the quality of my coding sessions with free-beer!
 
@@ -343,22 +370,39 @@ By issuing a donation, you will:
 Look at the test environment that ensures high quality code of the library!
 </p>
 <img src="ext-res/plugs/test-env.jpg" alt="Current test environemnt" width="400" />
-<p>When a pull-request is performed against this repository, a CI pipeline takes care of building the code, 
+<p>When a pull-request is performed against this repository, a CI pipeline takes care of building the code,
 testing it on Python 3.5/3.6/3.7, relying on some junit tests and, if all the tests pass as expected, the library
 is released on Pypi. However, to ensure that the code <i>really works</i>,
-the pipeline will issue on/off commands against real devices, that are dedicated 24/7 to the tests. 
-Such devices have been bought by myself (with contributions received by donators). 
+the pipeline will issue on/off commands against real devices, that are dedicated 24/7 to the tests.
+Such devices have been bought by myself (with contributions received by donators).
 However, keeping such devices connected 24/7 has a cost, which I sustain happily due to the success of the library.
-Anyways, feel free to contribute via donations! 
+Anyways, feel free to contribute via donations!
 </p>
 
-## Changelog    
-### 0.3.2.5 (latest)
-- Fixed set_target_temperature not working as intended
+## Changelog
+### 0.3.2.17 (latest)
+- Added Offline event emulation
 
 <details>
     <summary>Older</summary>
 
+### 0.3.2.15
+- Fixed deadlock occurring when handling Thermostat
+- Implementing callback/timeouts
+### 0.3.2.14
+- Added option to force status-update on devices
+- get_sys_data now ignores online status in order to allow full status update (including online status)
+### 0.3.2.12
+- Hotfix for introduced regression
+- Minor fix for power_plugs
+### 0.3.2.9
+- Implemented battery statys retrival for HUB devices (valve)
+### 0.3.2.7
+- Added support for smart humidifier
+### 0.3.2.6
+- Added support for binding/unbinding events    
+### 0.3.2.5
+- Fixed set_target_temperature not working as intended
 ### 0.3.2.4
 - Improved thermostat support
 - New handling of Hub and subdevices
@@ -368,7 +412,7 @@ Anyways, feel free to contribute via donations!
 ### 0.3.1.11
 - Implemented meross_info_gather script
 ### 0.3.1.10
-- Improved logging 
+- Improved logging
 ### 0.3.1.9
 - Fixed missing method implementation
 - Improved logging

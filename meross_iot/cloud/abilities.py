@@ -6,6 +6,8 @@ ONLINE = 'Appliance.System.Online'
 WIFI_LIST = 'Appliance.Config.WifiList'
 DEBUG = 'Appliance.System.Debug'
 TRACE = 'Appliance.Config.Trace'
+BIND = 'Appliance.Control.Bind'
+UNBIND = 'Appliance.Control.Unbind'
 
 # Power plug/bulbs abilities
 TOGGLE = 'Appliance.Control.Toggle'
@@ -25,9 +27,13 @@ HUB_MS100_ALL = 'Appliance.Hub.Sensor.All'
 HUB_MS100_TEMPHUM = 'Appliance.Hub.Sensor.TempHum'
 HUB_MS100_ALERT = 'Appliance.Hub.Sensor.Alert'
 HUB_EXCEPTION = 'Appliance.Hub.Exception'
+HUB_BATTERY = 'Appliance.Hub.Battery'
 
 # Garage opener abilities
 GARAGE_DOOR_STATE = 'Appliance.GarageDoor.State'
 
 # Bulbs-only abilities
 LIGHT = 'Appliance.Control.Light'
+
+# Humidifier
+SPRAY = 'Appliance.Control.Spray'

@@ -1,12 +1,13 @@
 from threading import RLock
 
 from meross_iot.api import MerossHttpClient
+from meross_iot.cloud.abilities import BIND, UNBIND, REPORT, ONLINE
 from meross_iot.cloud.client import MerossCloudClient
 from meross_iot.cloud.client_status import ClientStatus
 from meross_iot.cloud.device_factory import build_wrapper, build_subdevice_wrapper
 from meross_iot.cloud.devices.hubs import GenericHub
 from meross_iot.logger import MANAGER_LOGGER as l
-from meross_iot.meross_event import DeviceOnlineStatusEvent
+from threading import Thread, Event
 
 
 class MerossManager(object):
@@ -29,7 +30,7 @@ class MerossManager(object):
     _event_callbacks = None
     _event_callbacks_lock = None
 
-    def __init__(self, meross_email, meross_password):
+    def __init__(self, meross_email, meross_password, discovery_interval=30.0):
         self._devices_lock = RLock()
         self._devices = dict()
         self._event_callbacks_lock = RLock()
@@ -42,14 +43,31 @@ class MerossManager(object):
         self._cloud_client = MerossCloudClient(cloud_credentials=self._cloud_creds,
                                                push_message_callback=self._dispatch_push_notification)
         self._cloud_client.connection_status.register_connection_event_callback(callback=self._fire_event)
+        self._device_discoverer = Thread(target=self._device_discover_thread)
+        self._stop_discovery = Event()
+        self._device_discovery_done = Event()
+        self._discovery_interval = discovery_interval
 
-    def start(self):
+    def start(self, wait_for_first_discovery=True):
         # Connect to the mqtt broker
         self._cloud_client.connect()
-        self._discover_devices()
+        self._device_discoverer.start()
+
+        if wait_for_first_discovery:
+            self._device_discovery_done.wait()
 
     def stop(self):
         self._cloud_client.close()
+        self._stop_discovery.set()
+
+    def _device_discover_thread(self):
+        while True:
+            try:
+                self._discover_devices(online_only=False)
+            finally:
+                if self._stop_discovery.wait(self._discovery_interval):
+                    self._stop_discovery.clear()
+                    break
 
     def register_event_handler(self, callback):
         with self._event_callbacks_lock:
@@ -120,18 +138,29 @@ class MerossManager(object):
 
         # Identify the UUID of the target device by looking at the FROM field of the message header
         dev_uuid = header['from'].split('/')[2]
+
+        # Let's intercept the Bind events: they are useful to trigger new device discovery
+        namespace = header.get('namespace')
+        if namespace is not None and namespace in [BIND, ONLINE]:
+            self._discover_devices()
+
+        # Let's find the target of the event so that it can handle accordingly
         device = None
         with self._devices_lock:
             device = self._devices.get(dev_uuid)
 
         if device is not None:
-            namespace = header['namespace']
             device.handle_push_notification(namespace, payload, from_myself=from_myself)
         else:
             # If we receive a push notification from a device that is not yet contained into our registry,
             # it probably means a new one has just been registered with the meross cloud.
-            # Therefor, let's retrieve info from the HTTP api.
-            self._discover_devices()
+            # This should never happen as we handle the "bind" event just above. However, It appears that the report
+            # event is fired before the BIND event. So we need to ignore it at this point
+            if namespace == REPORT:
+                l.info("Ignoring REPORT event from device %s" % dev_uuid)
+            else:
+                l.warn("An event was received from an unknown device, which did not trigger the BIND event. "
+                       "Device UUID: %s, namespace: %s." % (dev_uuid, namespace))
 
     def _discover_devices(self, online_only=False):
         """
@@ -154,7 +183,15 @@ class MerossManager(object):
                 for subdev in self._http_client.list_hub_subdevices(discovered.uuid):
                     self._handle_device_discovered(dev=subdev, parent_hub=discovered)
 
+        self._device_discovery_done.set()
+
         return self._devices
+
+    def _handle_device_unbound(self, dev_uuid):
+        with self._devices_lock:
+            if dev_uuid in self._devices:
+                l.info("Unregistering device %s" % dev_uuid)
+                del self._devices[dev_uuid]
 
     def _handle_device_discovered(self, dev, parent_hub=None):
         device = None
@@ -167,6 +204,8 @@ class MerossManager(object):
             device_id = d_id
             device = build_wrapper(device_type=d_type, device_uuid=d_id,
                                    cloud_client=self._cloud_client, device_specs=dev)
+            is_subdevice = False
+
         elif 'subDeviceType' in dev and 'subDeviceId' in dev:
             # SUB DEVICE case
             d_type = dev['subDeviceType']
@@ -174,6 +213,8 @@ class MerossManager(object):
             device_id = "%s:%s" % (parent_hub.uuid, d_id)
             device = build_subdevice_wrapper(device_type=d_type, device_id=d_id, parent_hub=parent_hub,
                                    cloud_client=self._cloud_client, device_specs=dev)
+            is_subdevice = True
+
         else:
             l.warn("Discovered device does not seem to be either a full device nor a subdevice.")
             return
@@ -183,7 +224,7 @@ class MerossManager(object):
             # If not, add it right away. Otherwise, ignore it.
             is_new = False
             with self._devices_lock:
-                if d_id not in self._devices:
+                if device_id not in self._devices:
                     is_new = True
                     self._devices[device_id] = device
 
@@ -193,9 +234,17 @@ class MerossManager(object):
                     for c in self._event_callbacks:
                         device.register_event_callback(c)
 
-                evt = DeviceOnlineStatusEvent(device, device.online)
-                self._fire_event(evt)
+            # Otherwise, fire an OFFLINE event if the device online status has changed
+            else:
+                old_dev = self._devices.get(device_id)
+                new_online_status = dev.get('onlineStatus', 2)
 
+                # TODO: Fix this workaround...
+                #  Emulate the push notification
+                payload = {'online': {'status': new_online_status}}
+                old_dev.handle_push_notification(ONLINE, payload)
+
+            # TODO: handle subdevices
         return device
 
     def _fire_event(self, eventobj):

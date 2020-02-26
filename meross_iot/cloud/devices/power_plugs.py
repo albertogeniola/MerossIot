@@ -91,8 +91,15 @@ class GenericPlug(AbstractMerossDevice):
     def _get_status_impl(self):
         res = {}
         data = self.get_sys_data()['all']
+
+        # Update online status
+        online_status = data.get('system', {}).get('online', {}).get('status')
+        if online_status is not None:
+            self.online = online_status == 1
+
+        # Update device state
         if 'digest' in data:
-            for c in data['digest']['togglex']:
+            for c in data.get('digest', {}).get('togglex', []):
                 res[c['channel']] = c['onoff'] == 1
         elif 'control' in data:
             res[0] = data['control']['toggle']['onoff'] == 1
@@ -116,7 +123,7 @@ class GenericPlug(AbstractMerossDevice):
         # In other cases return an error
         raise Exception("Invalid channel specified.")
 
-    def get_status(self, channel=0):
+    def get_status(self, channel=0, force_status_refresh=False):
         # In order to optimize the network traffic, we don't call the get_status() api at every request.
         # On the contrary, we only call it the first time. Then, the rest of the API will silently listen
         # for state changes and will automatically update the self._state structure listening for
@@ -128,7 +135,7 @@ class GenericPlug(AbstractMerossDevice):
         # Just remember to wait some time before testing the status of the item after a toggle.
         with self._state_lock:
             c = self._get_channel_id(channel)
-            if self._state == {}:
+            if self._state == {} or force_status_refresh:
                 self._state = self._get_status_impl()
             return self._state.get(c)
 

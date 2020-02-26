@@ -5,14 +5,18 @@ class MerossEventType(Enum):
     # Fired when the MQTT client connects/disconnects to the MQTT broker
     CLIENT_CONNECTION = 10
     DEVICE_ONLINE_STATUS = 100
+    DEVICE_BIND = 200
+    DEVICE_UNBIND = 201
     DEVICE_SWITCH_STATUS = 1000
     DEVICE_BULB_SWITCH_STATE = 2000
     DEVICE_BULB_STATE = 2001
     GARAGE_DOOR_STATUS = 3000
     THERMOSTAT_TEMPERATURE_CHANGE = 5000
     THERMOSTAT_MODE_CHANGE = 5001
-    SENSOR_TEMPERATURE_CHANGE = 6000
-    SENSOR_TEMPERATURE_ALERT = 6001
+    HUMIDIFIER_SPRY_EVENT = 6000
+    HUMIDIFIER_LIGHT_EVENT = 6001
+    SENSOR_TEMPERATURE_CHANGE = 7000
+    SENSOR_TEMPERATURE_ALERT = 7001
 
 
 class MerossEvent(object):
@@ -20,6 +24,19 @@ class MerossEvent(object):
 
     def __init__(self, event_type):
         self.event_type = event_type
+
+
+class DeviceBindEvent(MerossEvent):
+    def __init__(self, device, bind_data):
+        super(DeviceBindEvent, self).__init__(MerossEventType.DEVICE_BIND)
+        self.device = device
+        self.bind_data = bind_data
+
+
+class DeviceUnbindEvent(MerossEvent):
+    def __init__(self, device):
+        super(DeviceUnbindEvent, self).__init__(MerossEventType.DEVICE_UNBIND)
+        self.device = device
 
 
 class ClientConnectionEvent(MerossEvent):
@@ -140,3 +157,21 @@ class SensorTemperatureAlert(MerossEvent):
         self.generated_by_myself = generated_by_myself
 
 
+class HumidifierSpryEvent(MerossEvent):
+    def __init__(self, device, spry_mode, channel, generated_by_myself):
+        super(HumidifierSpryEvent, self).__init__(MerossEventType.HUMIDIFIER_SPRY_EVENT)
+        self.device = device
+        self.spry_mode = spry_mode
+        self.channel = channel
+        self.generated_by_myself = generated_by_myself
+
+
+class HumidifierLightEvent(MerossEvent):
+    def __init__(self, dev, channel, onoff, rgb, luminance, generated_by_myself):
+        super(HumidifierLightEvent, self).__init__(MerossEventType.HUMIDIFIER_LIGHT_EVENT)
+        self.device = dev
+        self.channel = channel
+        self.is_on = onoff == 1
+        self.rgb = rgb
+        self.luminance = luminance
+        self.generated_by_myself = generated_by_myself

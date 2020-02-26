@@ -13,6 +13,7 @@ BULBS_LOGGER = ROOT_MEROSS_LOGGER.getChild("light_bulbs")
 SUBDEVICE_LOGGER = ROOT_MEROSS_LOGGER.getChild("generic_subdevice")
 VALVES_LOGGER = ROOT_MEROSS_LOGGER.getChild("valves")
 SENSORS_LOGGER = ROOT_MEROSS_LOGGER.getChild("sensors")
+HUMIDIFIER_LOGGER = ROOT_MEROSS_LOGGER.getChild("humidifiers")
 DEVICE_LOGGER = ROOT_MEROSS_LOGGER.getChild("generic_device")
 
 

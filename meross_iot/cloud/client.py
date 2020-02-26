@@ -13,6 +13,7 @@ import paho.mqtt.client as mqtt
 from meross_iot.cloud.client_status import ClientStatus
 from meross_iot.cloud.connection import ConnectionStatusManager
 from meross_iot.cloud.exceptions.CommandTimeoutException import CommandTimeoutException
+from meross_iot.cloud.exceptions.InvalidSignatureException import InvalidSignatureException
 from meross_iot.cloud.timeouts import SHORT_TIMEOUT
 from meross_iot.credentials import MerossCloudCreds
 from meross_iot.logger import CONNECTION_MANAGER_LOGGER as l
@@ -238,8 +239,10 @@ class MerossCloudClient(object):
             expected_signature = message_hash.hexdigest().lower()
 
             if header['sign'] != expected_signature:
-                # TODO: custom exception for invalid signature
-                raise Exception('The signature did not match!')
+                raise InvalidSignatureException('The signature did not match!',
+                                                expected_signature=expected_signature,
+                                                provided_signature=header['sign'],
+                                                data=message)
 
             # Check if there is any thread waiting for this message or if there is a callback that we need to invoke.
             # If so, do it here.
@@ -268,6 +271,10 @@ class MerossCloudClient(object):
             # Let's also catch all the "PUSH" notifications and dispatch them to the push_notification_callback.
             if self._push_message_callback is not None and header['method'] == "PUSH" and 'namespace' in header:
                 self._push_message_callback(message, from_myself=from_myself)
+
+        except InvalidSignatureException as e:
+            l.error("Invalid signature received. Expecting: %s, received %s. Message: %s" %
+                    (e.expected_signature, e.provided_signature, json.dumps(e.data)))
 
         except Exception:
             l.exception("Failed to process message.")
