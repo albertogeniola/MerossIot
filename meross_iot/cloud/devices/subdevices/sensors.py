@@ -99,8 +99,8 @@ class SensorSubDevice(GenericSubDevice):
             payload = {'alert': [{'id': self.subdevice_id}]}
             self._raw_state['alert'] = self._alert_payload_to_dict(self.execute_command("GET", HUB_MS100_ALERT, payload))
         return self._raw_state.get('alert')
-		
-    
+
+
     def set_alert(self, temperature_low:float = None, temperature_high:float = None, humidity_low:float = None, humidity_high:float = None):
         ca = self.get_alert()
         temp_min = round(10 * ca['temperature']['min'])
@@ -125,6 +125,3 @@ class SensorSubDevice(GenericSubDevice):
             hum_high = round(10 * ca['humidity']['high'])
         payload = {'alert': [{'id': self.subdevice_id, 'temperature': [[0, temp_min, temp_low], [0, temp_low, temp_high], [0, temp_high,temp_max]], 'humidity': [[0, hum_min, hum_low], [0, hum_low, hum_high], [0, hum_high, hum_max]]}]}
         self.execute_command("SET", HUB_MS100_ALERT, payload)
-
-		
-		
