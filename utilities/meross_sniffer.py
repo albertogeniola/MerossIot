@@ -122,7 +122,7 @@ def main():
     if email is None or password is None:
         email = input("Please specify your meross email: ")
         email = email.strip()
-        password = input("Please specify your meross password: ")
+        password = getpass.getpass("Please specify your meross password: ")
         password = password.strip()
 
     devices = []
