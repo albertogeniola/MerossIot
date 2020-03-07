@@ -22,7 +22,7 @@ class TestMSS425ETest(unittest.TestCase):
         if len(devices) > 0:
             self.device = devices[0]
         else:
-            raise Exception("Could not find device mss425e")
+            self.skipTest("Could not find device mss425e")
 
     def print_result(self, error, res):
         # TODO: assertions

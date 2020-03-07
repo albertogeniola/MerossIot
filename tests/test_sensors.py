@@ -1,6 +1,4 @@
 import os
-import sys
-import time
 import unittest
 
 from meross_iot.manager import MerossManager
@@ -19,7 +17,7 @@ class TestMS100Test(unittest.TestCase):
         if len(devices) > 0:
             self.device = devices[0]
         else:
-            raise Exception("Could not find device ms100")
+            self.skipTest("Could not find any MS100 device.")
 
     def test_properties(self):
         t = self.device.temperature
@@ -46,4 +44,4 @@ class TestMS100Test(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-	
+

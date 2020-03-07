@@ -17,7 +17,7 @@ class TestMSS210Test(unittest.TestCase):
         if len(devices) > 0:
             self.device = devices[0]
         else:
-            raise Exception("Could not find device ms210")
+            self.skipTest("Could not find device ms210")
 
     def test_power_cycle(self):
         self.device.turn_on()

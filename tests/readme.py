@@ -7,8 +7,8 @@ from meross_iot.cloud.devices.hubs import GenericHub
 from meross_iot.cloud.devices.humidifier import GenericHumidifier, SprayMode
 from meross_iot.cloud.devices.light_bulbs import GenericBulb
 from meross_iot.cloud.devices.power_plugs import GenericPlug
-from meross_iot.cloud.devices.subdevices.thermostats import ValveSubDevice, ThermostatV3Mode
 from meross_iot.cloud.devices.subdevices.sensors import SensorSubDevice
+from meross_iot.cloud.devices.subdevices.thermostats import ValveSubDevice, ThermostatV3Mode
 from meross_iot.manager import MerossManager
 from meross_iot.meross_event import MerossEventType
 

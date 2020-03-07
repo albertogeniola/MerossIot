@@ -1,13 +1,13 @@
 from threading import RLock
+from threading import Thread, Event
 
 from meross_iot.api import MerossHttpClient
-from meross_iot.cloud.abilities import BIND, UNBIND, REPORT, ONLINE
+from meross_iot.cloud.abilities import BIND, REPORT, ONLINE
 from meross_iot.cloud.client import MerossCloudClient
 from meross_iot.cloud.client_status import ClientStatus
 from meross_iot.cloud.device_factory import build_wrapper, build_subdevice_wrapper
 from meross_iot.cloud.devices.hubs import GenericHub
 from meross_iot.logger import MANAGER_LOGGER as l
-from threading import Thread, Event
 
 
 class MerossManager(object):

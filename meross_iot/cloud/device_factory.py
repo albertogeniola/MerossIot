@@ -1,12 +1,13 @@
+import re
+
 from meross_iot.cloud.devices.door_openers import GenericGarageDoorOpener
 from meross_iot.cloud.devices.hubs import GenericHub
+from meross_iot.cloud.devices.humidifier import GenericHumidifier
 from meross_iot.cloud.devices.light_bulbs import GenericBulb
 from meross_iot.cloud.devices.power_plugs import GenericPlug
 from meross_iot.cloud.devices.subdevices.generic import GenericSubDevice
-from meross_iot.cloud.devices.subdevices.thermostats import ValveSubDevice
-from meross_iot.cloud.devices.humidifier import GenericHumidifier
 from meross_iot.cloud.devices.subdevices.sensors import SensorSubDevice
-import re
+from meross_iot.cloud.devices.subdevices.thermostats import ValveSubDevice
 
 
 def build_wrapper(

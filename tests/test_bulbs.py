@@ -19,7 +19,7 @@ class TestMSL120Test(unittest.TestCase):
         if len(devices) > 0:
             self.device = devices[0]
         else:
-            raise Exception("Could not find device msl120")
+            self.skipTest("Could not find device msl120")
 
     def test_power_cycle(self):
         time.sleep(2)

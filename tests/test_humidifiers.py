@@ -20,7 +20,7 @@ class TestMSX0Test(unittest.TestCase):
         if len(devices) > 0:
             self.device = devices[0]
         else:
-            raise Exception("Could not find device msxh0")
+            self.skipTest("Could not find device msxh0")
 
     def test_spray_mode(self):
         time.sleep(2)

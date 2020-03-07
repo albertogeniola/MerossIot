@@ -1,13 +1,11 @@
 from enum import Enum
 from typing import Union
 
-from meross_iot.cloud.timeouts import LONG_TIMEOUT
-
-from meross_iot.cloud.abilities import HUB_MTS100_ALL, HUB_MTS100_TEMPERATURE, HUB_MTS100_MODE, HUB_TOGGLEX, HUB_ONLINE
+from meross_iot.cloud.abilities import HUB_MTS100_ALL, HUB_MTS100_TEMPERATURE, HUB_MTS100_MODE, HUB_TOGGLEX
 from meross_iot.cloud.devices.subdevices.generic import GenericSubDevice
+from meross_iot.cloud.timeouts import LONG_TIMEOUT
 from meross_iot.logger import VALVES_LOGGER as l
-from meross_iot.meross_event import DeviceSwitchStatusEvent, ThermostatTemperatureChange, ThermostatModeChange, \
-    DeviceOnlineStatusEvent
+from meross_iot.meross_event import DeviceSwitchStatusEvent, ThermostatTemperatureChange, ThermostatModeChange
 
 
 class ThermostatMode(Enum):
