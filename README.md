@@ -23,7 +23,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```
-pip install meross_iot==0.3.2.17 --upgrade
+pip install meross_iot==0.3.2.19 --upgrade
 ```
 
 ## Usage
@@ -286,7 +286,12 @@ The list of tested devices is the following:
 I'd like to thank all the people who contributed to the early stage of library development,
 who stimulated me to continue the development and making this library support more devices:
 
-Thanks to [DanoneKiD](https://github.com/DanoneKiD), [virtualdj](https://github.com/virtualdj), [ictes](https://github.com/ictes), [soberstadt](https://github.com/soberstadt), [ping-localhost](https://github.com/ping-localhost).
+Thanks to [DanoneKiD](https://github.com/DanoneKiD), 
+[virtualdj](https://github.com/virtualdj), 
+[ictes](https://github.com/ictes), 
+[soberstadt](https://github.com/soberstadt), 
+[ping-localhost](https://github.com/ping-localhost),
+[tdippon](https://github.com/tdippon).
 
 ## New device or unsupported features?
 If you own a device that is not currently supported or partially supported, you can help the developers in two ways.
@@ -380,12 +385,14 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
-### 0.3.2.17 (latest)
-- Added Offline event emulation
+#### 0.3.2.19 (latest)
+- Merged PR that adds supports for humidity sensor
 
 <details>
     <summary>Older</summary>
 
+### 0.3.2.17 (latest)
+- Added Offline event emulation
 ### 0.3.2.15
 - Fixed deadlock occurring when handling Thermostat
 - Implementing callback/timeouts
