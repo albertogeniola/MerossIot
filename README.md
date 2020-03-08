@@ -385,7 +385,7 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
-#### 0.3.2.19 (latest)
+#### 0.3.2.20 (latest)
 - Merged PR that adds supports for humidity sensor
 
 <details>

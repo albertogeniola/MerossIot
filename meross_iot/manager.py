@@ -1,13 +1,13 @@
 from threading import RLock
-from threading import Thread, Event
 
 from meross_iot.api import MerossHttpClient
-from meross_iot.cloud.abilities import BIND, REPORT, ONLINE
+from meross_iot.cloud.abilities import BIND, UNBIND, REPORT, ONLINE
 from meross_iot.cloud.client import MerossCloudClient
 from meross_iot.cloud.client_status import ClientStatus
 from meross_iot.cloud.device_factory import build_wrapper, build_subdevice_wrapper
 from meross_iot.cloud.devices.hubs import GenericHub
 from meross_iot.logger import MANAGER_LOGGER as l
+from threading import Thread, Event
 
 
 class MerossManager(object):
@@ -23,7 +23,6 @@ class MerossManager(object):
 
     # Cloud credentials to be used against the Meross MQTT cloud
     _cloud_creds = None
-
     _cloud_client = None
 
     # List of callbacks that should be called when an event occurs
@@ -43,22 +42,32 @@ class MerossManager(object):
         self._cloud_client = MerossCloudClient(cloud_credentials=self._cloud_creds,
                                                push_message_callback=self._dispatch_push_notification)
         self._cloud_client.connection_status.register_connection_event_callback(callback=self._fire_event)
-        self._device_discoverer = Thread(target=self._device_discover_thread)
+        self._device_discoverer = None
         self._stop_discovery = Event()
         self._device_discovery_done = Event()
         self._discovery_interval = discovery_interval
 
     def start(self, wait_for_first_discovery=True):
+        l.debug("Starting manager")
         # Connect to the mqtt broker
         self._cloud_client.connect()
-        self._device_discoverer.start()
+        l.debug("Connection succeeded. Starting discovery...")
+        if self._device_discoverer is None or not self._device_discoverer.is_alive():
+            self._device_discoverer = Thread(target=self._device_discover_thread)
+            self._device_discoverer.start()
 
         if wait_for_first_discovery:
+            l.debug("Caller requested wait-for-first-discovery. Waiting...")
             self._device_discovery_done.wait()
+        l.debug("Discovery done.")
 
     def stop(self):
+        l.debug("Stopping manager...")
         self._cloud_client.close()
         self._stop_discovery.set()
+        self._device_discoverer.join()
+
+        l.debug("Stop done.")
 
     def _device_discover_thread(self):
         while True:
