@@ -385,13 +385,16 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
-#### 0.3.2.20 (latest)
-- Merged PR that adds supports for humidity sensor
+#### 0.3.2.21 (latest)
+- Fixed status integer not being parsed as INT
+
 
 <details>
     <summary>Older</summary>
 
-### 0.3.2.17 (latest)
+#### 0.3.2.20 
+- Merged PR that adds supports for humidity sensor
+### 0.3.2.17
 - Added Offline event emulation
 ### 0.3.2.15
 - Fixed deadlock occurring when handling Thermostat

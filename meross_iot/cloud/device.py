@@ -59,7 +59,7 @@ class AbstractMerossDevice(ABC):
         # Leave the rest to the specific implementation
         if namespace == ONLINE:
             old_online_status = self.online
-            status = payload['online']['status']
+            status = int(payload['online']['status'])
             if status == 2:
                 with self._state_lock:
                     self.online = False
