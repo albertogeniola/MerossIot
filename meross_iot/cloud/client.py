@@ -288,37 +288,37 @@ class MerossCloudClient(object):
     # Protocol Handlers
     # ------------------------------------------------------------------------------------------------
     def execute_cmd(self, dst_dev_uuid, method, namespace, payload, callback=None, timeout=SHORT_TIMEOUT):
+        start = time.time()
+        # Build the mqtt message we will send to the broker
+        message, message_id = self._build_mqtt_message(method, namespace, payload)
+
+        # Register the waiting handler for that message
+        handle = PendingMessageResponse(message_id=message_id, callback=callback)
+        with self._pending_responses_lock:
+            self._pending_response_messages[message_id] = handle
+
+        # Send the message to the broker
+        l.debug("Executing message-id %s, %s on %s command for device %s" % (message_id, method,
+                                                                             namespace, dst_dev_uuid))
         with self._manager_lock:
-            start = time.time()
-            # Build the mqtt message we will send to the broker
-            message, message_id = self._build_mqtt_message(method, namespace, payload)
-
-            # Register the waiting handler for that message
-            handle = PendingMessageResponse(message_id=message_id, callback=callback)
-            with self._pending_responses_lock:
-                self._pending_response_messages[message_id] = handle
-
-            # Send the message to the broker
-            l.debug("Executing message-id %s, %s on %s command for device %s" % (message_id, method,
-                                                                                 namespace, dst_dev_uuid))
             self._mqtt_client.publish(topic=build_client_request_topic(dst_dev_uuid), payload=message)
 
-            # If the caller has specified a callback, we don't need to actively wait for the message ACK. So we can
-            # immediately return.
-            if callback is not None:
-                return None
+        # If the caller has specified a callback, we don't need to actively wait for the message ACK. So we can
+        # immediately return.
+        if callback is not None:
+            return None
 
-            # Otherwise, we need to wait until the message is received.
-            l.debug("Waiting for response to message-id %s" % message_id)
-            success, resp = handle.wait_for_response(timeout=timeout)
-            if not success:
-                raise CommandTimeoutException("A timeout occurred while waiting for the ACK: %d" % timeout)
+        # Otherwise, we need to wait until the message is received.
+        l.debug("Waiting for response to message-id %s" % message_id)
+        success, resp = handle.wait_for_response(timeout=timeout)
+        if not success:
+            raise CommandTimeoutException("A timeout occurred while waiting for the ACK: %d" % timeout)
 
-            elapsed = time.time() - start
+        elapsed = time.time() - start
 
-            l.debug("Message-id: %s, command %s-%s command for device %s took %s" % (message_id, method,
-                                                                                     namespace, dst_dev_uuid, str(elapsed)))
-            return resp['payload']
+        l.debug("Message-id: %s, command %s-%s command for device %s took %s" % (message_id, method,
+                                                                                 namespace, dst_dev_uuid, str(elapsed)))
+        return resp['payload']
 
     # ------------------------------------------------------------------------------------------------
     # Protocol utilities
