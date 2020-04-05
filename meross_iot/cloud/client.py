@@ -103,11 +103,14 @@ class MerossCloudClient(object):
     _pending_response_messages = None
     _pending_responses_lock = None
 
+    _manager_lock = None
+
     def __init__(self,
                  cloud_credentials,             # type: MerossCloudCreds
                  push_message_callback=None,    # type: callable
                  **kwords):
 
+        self._manager_lock = RLock()
         self.connection_status = ConnectionStatusManager()
         self._cloud_creds = cloud_credentials
         self._pending_response_messages = dict()
@@ -150,34 +153,36 @@ class MerossCloudClient(object):
                                   ciphers=None)
 
     def close(self):
-        l.info("Closing the MQTT connection...")
-        self._mqtt_client.disconnect()
-        l.debug("Waiting for the client to disconnect...")
-        self.connection_status.wait_for_status(ClientStatus.CONNECTION_DROPPED)
+        with self._manager_lock:
+            l.info("Closing the MQTT connection...")
+            self._mqtt_client.disconnect()
+            l.debug("Waiting for the client to disconnect...")
+            self.connection_status.wait_for_status(ClientStatus.CONNECTION_DROPPED)
 
-        # Starts a new thread that handles mqtt protocol and calls us back via callbacks
-        l.debug("Stopping the MQTT looper.")
-        self._mqtt_client.loop_stop(True)
+            # Starts a new thread that handles mqtt protocol and calls us back via callbacks
+            l.debug("Stopping the MQTT looper.")
+            self._mqtt_client.loop_stop(True)
 
-        l.info("Client has been fully disconnected.")
+            l.info("Client has been fully disconnected.")
 
     def connect(self):
         """
         Starts the connection to the MQTT broker
         :return:
         """
-        l.info("Initializing the MQTT connection...")
-        self._mqtt_client.connect(self._domain, self._port, keepalive=30)
-        self.connection_status.update_status(ClientStatus.CONNECTING)
+        with self._manager_lock:
+            l.info("Initializing the MQTT connection...")
+            self._mqtt_client.connect(self._domain, self._port, keepalive=30)
+            self.connection_status.update_status(ClientStatus.CONNECTING)
 
-        # Starts a new thread that handles mqtt protocol and calls us back via callbacks
-        l.debug("(Re)Starting the MQTT looper.")
-        self._mqtt_client.loop_stop(True)
-        self._mqtt_client.loop_start()
+            # Starts a new thread that handles mqtt protocol and calls us back via callbacks
+            l.debug("(Re)Starting the MQTT looper.")
+            self._mqtt_client.loop_stop(True)
+            self._mqtt_client.loop_start()
 
-        l.debug("Waiting for the client to connect...")
-        self.connection_status.wait_for_status(ClientStatus.SUBSCRIBED)
-        l.info("Client connected to MQTT broker and subscribed to relevant topics.")
+            l.debug("Waiting for the client to connect...")
+            self.connection_status.wait_for_status(ClientStatus.SUBSCRIBED)
+            l.info("Client connected to MQTT broker and subscribed to relevant topics.")
 
     # ------------------------------------------------------------------------------------------------
     # MQTT Handlers
@@ -283,36 +288,37 @@ class MerossCloudClient(object):
     # Protocol Handlers
     # ------------------------------------------------------------------------------------------------
     def execute_cmd(self, dst_dev_uuid, method, namespace, payload, callback=None, timeout=SHORT_TIMEOUT):
-        start = time.time()
-        # Build the mqtt message we will send to the broker
-        message, message_id = self._build_mqtt_message(method, namespace, payload)
+        with self._manager_lock:
+            start = time.time()
+            # Build the mqtt message we will send to the broker
+            message, message_id = self._build_mqtt_message(method, namespace, payload)
 
-        # Register the waiting handler for that message
-        handle = PendingMessageResponse(message_id=message_id, callback=callback)
-        with self._pending_responses_lock:
-            self._pending_response_messages[message_id] = handle
+            # Register the waiting handler for that message
+            handle = PendingMessageResponse(message_id=message_id, callback=callback)
+            with self._pending_responses_lock:
+                self._pending_response_messages[message_id] = handle
 
-        # Send the message to the broker
-        l.debug("Executing message-id %s, %s on %s command for device %s" % (message_id, method,
-                                                                             namespace, dst_dev_uuid))
-        self._mqtt_client.publish(topic=build_client_request_topic(dst_dev_uuid), payload=message)
+            # Send the message to the broker
+            l.debug("Executing message-id %s, %s on %s command for device %s" % (message_id, method,
+                                                                                 namespace, dst_dev_uuid))
+            self._mqtt_client.publish(topic=build_client_request_topic(dst_dev_uuid), payload=message)
 
-        # If the caller has specified a callback, we don't need to actively wait for the message ACK. So we can
-        # immediately return.
-        if callback is not None:
-            return None
+            # If the caller has specified a callback, we don't need to actively wait for the message ACK. So we can
+            # immediately return.
+            if callback is not None:
+                return None
 
-        # Otherwise, we need to wait until the message is received.
-        l.debug("Waiting for response to message-id %s" % message_id)
-        success, resp = handle.wait_for_response(timeout=timeout)
-        if not success:
-            raise CommandTimeoutException("A timeout occurred while waiting for the ACK: %d" % timeout)
+            # Otherwise, we need to wait until the message is received.
+            l.debug("Waiting for response to message-id %s" % message_id)
+            success, resp = handle.wait_for_response(timeout=timeout)
+            if not success:
+                raise CommandTimeoutException("A timeout occurred while waiting for the ACK: %d" % timeout)
 
-        elapsed = time.time() - start
+            elapsed = time.time() - start
 
-        l.debug("Message-id: %s, command %s-%s command for device %s took %s" % (message_id, method,
-                                                                                 namespace, dst_dev_uuid, str(elapsed)))
-        return resp['payload']
+            l.debug("Message-id: %s, command %s-%s command for device %s took %s" % (message_id, method,
+                                                                                     namespace, dst_dev_uuid, str(elapsed)))
+            return resp['payload']
 
     # ------------------------------------------------------------------------------------------------
     # Protocol utilities
