@@ -13,19 +13,24 @@ class TestMS100Test(unittest.TestCase):
         self.manager.start()
 
         # Retrieves the list of supported devices
+        self.device = None
         devices = self.manager.get_devices_by_type('ms100')
         if len(devices) > 0:
             self.device = devices[0]
-        else:
-            self.skipTest("Could not find any MS100 device.")
 
     def test_properties(self):
+        if self.device is None:
+            self.skipTest("No device found to test")
+
         t = self.device.temperature
         h = self.device.humidity
         self.assertTrue(t is not None)
         self.assertTrue(h is not None)
 
     def test_get_info(self):
+        if self.device is None:
+            self.skipTest("No device found to test")
+
         state = self.device.get_status()
         assert state is not None
 

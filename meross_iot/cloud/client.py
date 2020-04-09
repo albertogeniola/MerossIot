@@ -7,7 +7,6 @@ import time
 import uuid as UUID
 from hashlib import md5
 from threading import Event, RLock
-
 import paho.mqtt.client as mqtt
 
 from meross_iot.cloud.client_status import ClientStatus
@@ -77,6 +76,7 @@ class PendingMessageResponse(object):
                 l.exception("Unhandled error occurred while executing the callback")
 
 
+
 class MerossCloudClient(object):
     # Meross Cloud credentials, which are provided by the HTTP Api.
     _cloud_creds = None
@@ -103,16 +103,15 @@ class MerossCloudClient(object):
     _pending_response_messages = None
     _pending_responses_lock = None
 
-    _manager_lock = None
-
     def __init__(self,
                  cloud_credentials,             # type: MerossCloudCreds
                  push_message_callback=None,    # type: callable
+                 auto_reconnect=True,           # type: bool
                  **kwords):
 
-        self._manager_lock = RLock()
         self.connection_status = ConnectionStatusManager()
         self._cloud_creds = cloud_credentials
+        self._auto_reconnect = auto_reconnect
         self._pending_response_messages = dict()
         self._pending_responses_lock = RLock()
         self._push_message_callback = push_message_callback
@@ -153,36 +152,34 @@ class MerossCloudClient(object):
                                   ciphers=None)
 
     def close(self):
-        with self._manager_lock:
-            l.info("Closing the MQTT connection...")
-            self._mqtt_client.disconnect()
-            l.debug("Waiting for the client to disconnect...")
-            self.connection_status.wait_for_status(ClientStatus.CONNECTION_DROPPED)
+        l.info("Closing the MQTT connection...")
+        self._mqtt_client.disconnect()
+        l.debug("Waiting for the client to disconnect...")
+        self.connection_status.wait_for_status(ClientStatus.CONNECTION_DROPPED)
 
-            # Starts a new thread that handles mqtt protocol and calls us back via callbacks
-            l.debug("Stopping the MQTT looper.")
-            self._mqtt_client.loop_stop(True)
+        # Starts a new thread that handles mqtt protocol and calls us back via callbacks
+        l.debug("Stopping the MQTT looper.")
+        self._mqtt_client.loop_stop(True)
 
-            l.info("Client has been fully disconnected.")
+        l.info("Client has been fully disconnected.")
 
     def connect(self):
         """
         Starts the connection to the MQTT broker
         :return:
         """
-        with self._manager_lock:
-            l.info("Initializing the MQTT connection...")
-            self._mqtt_client.connect(self._domain, self._port, keepalive=30)
-            self.connection_status.update_status(ClientStatus.CONNECTING)
+        l.info("Initializing the MQTT connection...")
+        self._mqtt_client.connect(self._domain, self._port, keepalive=30)
+        self.connection_status.update_status(ClientStatus.CONNECTING)
 
-            # Starts a new thread that handles mqtt protocol and calls us back via callbacks
-            l.debug("(Re)Starting the MQTT looper.")
-            self._mqtt_client.loop_stop(True)
-            self._mqtt_client.loop_start()
+        # Starts a new thread that handles mqtt protocol and calls us back via callbacks
+        l.debug("(Re)Starting the MQTT looper.")
+        self._mqtt_client.loop_stop(True)
+        self._mqtt_client.loop_start()
 
-            l.debug("Waiting for the client to connect...")
-            self.connection_status.wait_for_status(ClientStatus.SUBSCRIBED)
-            l.info("Client connected to MQTT broker and subscribed to relevant topics.")
+        l.debug("Waiting for the client to connect...")
+        self.connection_status.wait_for_status(ClientStatus.SUBSCRIBED)
+        l.info("Client connected to MQTT broker and subscribed to relevant topics.")
 
     # ------------------------------------------------------------------------------------------------
     # MQTT Handlers
@@ -194,12 +191,19 @@ class MerossCloudClient(object):
         self._subscription_count = AtomicCounter(0)
         self.connection_status.update_status(ClientStatus.CONNECTION_DROPPED)
 
-        # TODO: should we handle disconnection in some way at this level?
-
+        # If the client disconnected explicitly, the mqtt library handles thred stop autonomously
         if rc == mqtt.MQTT_ERR_SUCCESS:
             pass
         else:
-            client.loop_stop(True)
+            # Otherwise, if the disconnection was not intentional, we probably had a connection drop.
+            # In this case, we only stop the loop thread if auto_reconnect is not set. In fact, the loop will
+            # handle reconnection autonomously on connection drops.
+            if not self._auto_reconnect:
+                l.info("Stopping mqtt loop on connection drop")
+                client.loop_stop(True)
+            else:
+                l.warning("Client has been disconnected, however auto_reconnect flag is set. "
+                       "Won't stop the looping thread, as it will retry to connect.")
 
     def _on_unsubscribe(self):
         l.debug("Unsubscribed from topic")
@@ -288,6 +292,8 @@ class MerossCloudClient(object):
     # Protocol Handlers
     # ------------------------------------------------------------------------------------------------
     def execute_cmd(self, dst_dev_uuid, method, namespace, payload, callback=None, timeout=SHORT_TIMEOUT):
+        # TODO: check we are online!
+        # TODO: Lock only for the minimum time needed.
         start = time.time()
         # Build the mqtt message we will send to the broker
         message, message_id = self._build_mqtt_message(method, namespace, payload)
@@ -300,8 +306,8 @@ class MerossCloudClient(object):
         # Send the message to the broker
         l.debug("Executing message-id %s, %s on %s command for device %s" % (message_id, method,
                                                                              namespace, dst_dev_uuid))
-        with self._manager_lock:
-            self._mqtt_client.publish(topic=build_client_request_topic(dst_dev_uuid), payload=message)
+
+        self._mqtt_client.publish(topic=build_client_request_topic(dst_dev_uuid), payload=message)
 
         # If the caller has specified a callback, we don't need to actively wait for the message ACK. So we can
         # immediately return.

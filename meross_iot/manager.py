@@ -29,7 +29,7 @@ class MerossManager(object):
     _event_callbacks = None
     _event_callbacks_lock = None
 
-    def __init__(self, meross_email, meross_password, discovery_interval=30.0):
+    def __init__(self, meross_email, meross_password, discovery_interval=30.0, auto_reconnect=True):
         self._devices_lock = RLock()
         self._devices = dict()
         self._event_callbacks_lock = RLock()
@@ -40,7 +40,8 @@ class MerossManager(object):
 
         # Instantiate the mqtt cloud client
         self._cloud_client = MerossCloudClient(cloud_credentials=self._cloud_creds,
-                                               push_message_callback=self._dispatch_push_notification)
+                                               push_message_callback=self._dispatch_push_notification,
+                                               auto_reconnect=auto_reconnect)
         self._cloud_client.connection_status.register_connection_event_callback(callback=self._fire_event)
         self._device_discoverer = None
         self._stop_discovery = Event()
