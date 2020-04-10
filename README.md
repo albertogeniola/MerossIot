@@ -23,7 +23,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```
-pip install meross_iot==0.3.2.22 --upgrade
+pip install meross_iot==0.3.3.0 --upgrade
 ```
 
 ## Usage
@@ -385,13 +385,15 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
-#### 0.3.2.22 (latest)
-- Fixed MerossManager not being thread-safe
-
+#### 0.3.3.0 (latest)
+- Added auto-reconnection capabilities by default
+- Improved automated testing skipping
 
 <details>
     <summary>Older</summary>
 
+#### 0.3.2.22 (latest)
+- Fixed MerossManager not being thread-safe
 #### 0.3.2.21
 - Fixed status integer not being parsed as INT
 #### 0.3.2.20 

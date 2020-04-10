@@ -1,11 +1,12 @@
 import os
 import time
 import unittest
-
+from threading import Event, Thread
 import proxy
 import socks
 
 from meross_iot.cloud.client_status import ClientStatus
+from meross_iot.cloud.devices.power_plugs import GenericPlug
 from meross_iot.cloud.exceptions.CommandTimeoutException import CommandTimeoutException
 from meross_iot.manager import MerossManager
 
@@ -17,6 +18,34 @@ PROXY_PORT = 5001
 class TestAutoreconnect(unittest.TestCase):
     def setUp(self):
         self.manager = MerossManager(meross_email=EMAIL, meross_password=PASSWORD, auto_reconnect=True)
+
+    class WorkerThread(object):
+        def __init__(self, device: GenericPlug):
+            self.device = device
+            self._t = Thread(target=self._run)
+            self.stopped = Event()
+
+        def start(self):
+            self._t.start()
+
+        def stop(self):
+            self.stopped.set()
+            self._t.join()
+
+        def _run(self):
+            while True:
+                try:
+                    status = self.device.get_channel_status(0)
+                    if status:
+                        self.device.turn_off()
+                    else:
+                        self.device.turn_on()
+                except CommandTimeoutException:
+                    print("Command timed out.")
+                    pass
+                finally:
+                    if self.stopped.wait(1):
+                        break
 
     def test_single_threaded_connection_drop(self):
         # Allocate the proxy
@@ -59,7 +88,39 @@ class TestAutoreconnect(unittest.TestCase):
 
     def test_multithreaded_connection_drop(self):
         # Allocate the proxy
-        pass
+        workers = []
+        print("Connecting through proxy...")
+        with proxy.start(['--num-workers', '1', '--hostname', '127.0.0.1', '--port', str(PROXY_PORT)]):
+            # Configure the manager client to use the proxy
+            self.manager._cloud_client._mqtt_client.proxy_set(proxy_type=socks.HTTP, proxy_addr="127.0.0.1",
+                                                              proxy_port=PROXY_PORT)
+            # Connect
+            self.manager.start()
+
+            # Start a worker for every plug
+            for p in self.manager.get_devices_by_kind(GenericPlug):
+                w = TestAutoreconnect.WorkerThread(p)
+                workers.append(w)
+                w.start()
+
+            print("Started workers. Waiting a bit....")
+            time.sleep(10)
+
+            print("Dropping connection...")
+
+        print("Proxy has been closed. Waiting 120 seconds to trigger timeouts")
+        time.sleep(120)
+
+        print("Establishing connection back again...")
+        with proxy.start(['--num-workers', '1', '--hostname', '127.0.0.1', '--port', str(PROXY_PORT)]):
+            print("Proxy online again. Waiting a bit...")
+            time.sleep(10)
+            print("Stopping workers")
+            for w in workers:
+                w.stop()
+
+            print("Closing manager.")
+            self.manager.stop()
 
     def tearDown(self):
         pass
