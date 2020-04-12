@@ -217,7 +217,6 @@ class MerossManager(object):
                     device = build_wrapper(device_type=d_type, device_uuid=d_id,
                                            cloud_client=self._cloud_client, device_specs=dev)
                     self._devices[device_id] = device
-                    l.debug("new device was added to the list: %s (%s)" % (device.name, hex(id(device))))
             is_subdevice = False
 
         elif 'subDeviceType' in dev and 'subDeviceId' in dev:
@@ -230,7 +229,6 @@ class MerossManager(object):
                     device = build_subdevice_wrapper(device_type=d_type, device_id=d_id, parent_hub=parent_hub,
                                                      cloud_client=self._cloud_client, device_specs=dev)
                     self._devices[device_id] = device
-                    l.debug("new device was added to the list: %s (%s)" % (device.name, hex(id(device))))
             is_subdevice = True
 
         else:
