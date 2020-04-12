@@ -11,7 +11,7 @@ from meross_iot.meross_event import DeviceOnlineStatusEvent, DeviceBindEvent, De
 class AbstractMerossDevice(ABC):
     # Device status + lock to protect concurrent access
     _state_lock = None
-    online = False
+    online = None
 
     # Device info and connection parameters
     uuid = None
@@ -36,6 +36,7 @@ class AbstractMerossDevice(ABC):
         self._state_lock = RLock()
         self.__event_handlers_lock = RLock()
         self.__event_handlers = []
+        self.online = False
 
         self.uuid = device_uuid
 
