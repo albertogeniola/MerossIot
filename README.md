@@ -367,7 +367,8 @@ By issuing a donation, you will:
 
 [![Buy me a beer](http://4.bp.blogspot.com/-1Md6-deTZ84/VA_lzcxMx1I/AAAAAAAACl8/wP_4rXBXwyI/s1600/PayPal-Donation-Button.png)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CQQCK3RN32BHL&source=url)
 
-[![Beerpay](https://beerpay.io/albertogeniola/MerossIot/badge.svg?style=beer-square)](https://beerpay.io/albertogeniola/MerossIot)  [![Beerpay](https://beerpay.io/albertogeniola/MerossIot/make-wish.svg?style=flat-square)](https://beerpay.io/albertogeniola/MerossIot?focus=wish)
+[![Buy me a coffe!](https://www.buymeacoffee.com/assets/img/custom_images/black_img.png)](https://www.buymeacoffee.com/albertogeniola)
+
 
 ### Look at these babies!
 
