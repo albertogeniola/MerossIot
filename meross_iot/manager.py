@@ -212,8 +212,12 @@ class MerossManager(object):
             d_type = dev['deviceType']
             d_id = dev['uuid']
             device_id = d_id
-            device = build_wrapper(device_type=d_type, device_uuid=d_id,
-                                   cloud_client=self._cloud_client, device_specs=dev)
+            with self._devices_lock:
+                if device_id not in self._devices:
+                    device = build_wrapper(device_type=d_type, device_uuid=d_id,
+                                           cloud_client=self._cloud_client, device_specs=dev)
+                    self._devices[device_id] = device
+                    l.debug("new device was added to the list: %s (%s)" % (device.name, hex(id(device))))
             is_subdevice = False
 
         elif 'subDeviceType' in dev and 'subDeviceId' in dev:
@@ -221,8 +225,12 @@ class MerossManager(object):
             d_type = dev['subDeviceType']
             d_id = dev['subDeviceId']
             device_id = "%s:%s" % (parent_hub.uuid, d_id)
-            device = build_subdevice_wrapper(device_type=d_type, device_id=d_id, parent_hub=parent_hub,
-                                   cloud_client=self._cloud_client, device_specs=dev)
+            with self._devices_lock:
+                if device_id not in self._devices:
+                    device = build_subdevice_wrapper(device_type=d_type, device_id=d_id, parent_hub=parent_hub,
+                                                     cloud_client=self._cloud_client, device_specs=dev)
+                    self._devices[device_id] = device
+                    l.debug("new device was added to the list: %s (%s)" % (device.name, hex(id(device))))
             is_subdevice = True
 
         else:
@@ -230,32 +238,24 @@ class MerossManager(object):
             return
 
         if device is not None:
-            # Check if the discovered device is already in the list of handled devices.
-            # If not, add it right away. Otherwise, ignore it.
-            is_new = False
-            with self._devices_lock:
-                if device_id not in self._devices:
-                    is_new = True
-                    self._devices[device_id] = device
+            # If this device was not in the list before, register the event handler for it and fire the ONLINE event.
+            with self._event_callbacks_lock:
+                for c in self._event_callbacks:
+                    device.register_event_callback(c)
+            return device
+        else:
+            # If the device already existed, fire an ONLINE event if the device online status has changed
+            old_dev = self._devices.get(device_id)
+            new_online_status = dev.get('onlineStatus', 2)
 
-            # If this is new device, register the event handler for it and fire the ONLINE event.
-            if is_new:
-                with self._event_callbacks_lock:
-                    for c in self._event_callbacks:
-                        device.register_event_callback(c)
-
-            # Otherwise, fire an OFFLINE event if the device online status has changed
-            else:
-                old_dev = self._devices.get(device_id)
-                new_online_status = dev.get('onlineStatus', 2)
-
-                # TODO: Fix this workaround...
-                #  Emulate the push notification
-                payload = {'online': {'status': new_online_status}}
-                old_dev.handle_push_notification(ONLINE, payload)
+            # TODO: Fix this workaround...
+            #  Emulate the push notification
+            payload = {'online': {'status': new_online_status}}
+            old_dev.handle_push_notification(ONLINE, payload)
+            # if device was unchanged, return reference to existing instance
+            return old_dev
 
             # TODO: handle subdevices
-        return device
 
     def _fire_event(self, eventobj):
         for c in self._event_callbacks:
