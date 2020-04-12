@@ -7,13 +7,11 @@ from meross_iot.logger import HUB_LOGGER as l
 
 
 class GenericHub(AbstractMerossDevice):
-    # Handles the state of this specific HUB
-    _state = {}
-    _sub_devices = {}
-    _subdev_lock = None
 
     def __init__(self, cloud_client, device_uuid, **kwords):
         super(GenericHub, self).__init__(cloud_client, device_uuid, **kwords)
+        self._state = {}
+        self._sub_devices = {}
         self._subdev_lock = RLock()
 
     def register_sub_device(self,
@@ -52,6 +50,7 @@ class GenericHub(AbstractMerossDevice):
             subdevice_id = data.get('id')
             target = self._sub_devices.get(subdevice_id)
             if target is None:
+                l.warn("dispatch_to_subdevice: no target found; data = %s, _sub_devices = %s" % (data, self._sub_devices))
                 return
 
             # Remove the id from the data payload as it will be stored as raw state from the device handler
