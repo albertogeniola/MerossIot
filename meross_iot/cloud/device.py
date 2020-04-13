@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
-from threading import RLock
 
 from meross_iot.cloud.abilities import *
 from meross_iot.cloud.exceptions.OfflineDeviceException import OfflineDeviceException
 from meross_iot.cloud.timeouts import LONG_TIMEOUT, SHORT_TIMEOUT
 from meross_iot.logger import DEVICE_LOGGER as l
 from meross_iot.meross_event import DeviceOnlineStatusEvent, DeviceBindEvent, DeviceUnbindEvent
+from utilities.lock import lock_factory
 
 
 class AbstractMerossDevice(ABC):
@@ -33,8 +33,8 @@ class AbstractMerossDevice(ABC):
 
     def __init__(self, cloud_client, device_uuid, **kwargs):
         self.__cloud_client = cloud_client
-        self._state_lock = RLock()
-        self.__event_handlers_lock = RLock()
+        self._state_lock = lock_factory.build_rlock()
+        self.__event_handlers_lock = lock_factory.build_rlock()
         self.__event_handlers = []
 
         self.uuid = device_uuid

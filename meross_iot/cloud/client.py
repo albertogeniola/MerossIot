@@ -6,7 +6,7 @@ import string
 import time
 import uuid as UUID
 from hashlib import md5
-from threading import Event, RLock
+from threading import Event
 import paho.mqtt.client as mqtt
 
 from meross_iot.cloud.client_status import ClientStatus
@@ -18,6 +18,7 @@ from meross_iot.credentials import MerossCloudCreds
 from meross_iot.logger import CONNECTION_MANAGER_LOGGER as l
 from meross_iot.logger import NETWORK_DATA as networkl
 from meross_iot.utilities.synchronization import AtomicCounter
+from utilities.lock import lock_factory
 
 
 def build_client_request_topic(client_uuid):
@@ -113,7 +114,7 @@ class MerossCloudClient(object):
         self._cloud_creds = cloud_credentials
         self._auto_reconnect = auto_reconnect
         self._pending_response_messages = dict()
-        self._pending_responses_lock = RLock()
+        self._pending_responses_lock = lock_factory.build_rlock()
         self._push_message_callback = push_message_callback
         self._subscription_count = AtomicCounter(0)
 

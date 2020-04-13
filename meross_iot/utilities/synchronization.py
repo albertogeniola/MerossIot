@@ -1,11 +1,11 @@
-from threading import RLock
+from utilities.lock import lock_factory
 
 
 class AtomicCounter(object):
     _lock = None
 
     def __init__(self, initialValue):
-        self._lock = RLock()
+        self._lock = lock_factory.build_rlock()
         self._val = initialValue
 
     def dec(self):
