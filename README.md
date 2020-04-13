@@ -386,8 +386,9 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
-#### 0.3.3.1 (latest)
+#### 0.3.3.3 (latest)
 - Added lock-assistant capability to help debug deadlock cases
+- Improved tests
 
 <details>
     <summary>Older</summary>
