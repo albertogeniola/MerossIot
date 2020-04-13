@@ -10,17 +10,16 @@ l = logging.getLogger(__name__)
 
 class LockFactory(object):
     def __init__(self, enable_debug=False):
-        # Change the following...
         self._debug = enable_debug
         self._lock_timeout = 9
 
     def configure_factory(self, enabled_debug, lock_timeout):
-        self._debug=enabled_debug
-        self._lock_timeout=lock_timeout
+        self._debug = enabled_debug
+        self._lock_timeout = lock_timeout
 
     def build_rlock(self):
         if self._debug:
-            return ManagedRLock()
+            return ManagedRLock(default_timeout=self._lock_timeout)
         else:
             return threading.RLock()
 
