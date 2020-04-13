@@ -35,10 +35,13 @@ class ManagedRLock(object):
         self._lock_id = uuid4()
         self._owner = None
 
-    def acquire(self, blocking=True):
+    def acquire(self, blocking=True, timeout=-1):
         with self._gatelock:
             l.debug("Thread %s acquiring lock %s" % (threading.current_thread().name, self._lock_id))
-            result = self._lock.acquire(blocking=blocking, timeout=self._timeout)
+            to = timeout
+            if to == -1:
+                to = self._timeout
+            result = self._lock.acquire(blocking=blocking, timeout=to)
             if not result:
                 traceback.extract_stack()
                 # This is probably a deadlock
