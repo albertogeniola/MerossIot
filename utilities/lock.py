@@ -10,10 +10,9 @@ l = logging.getLogger(__name__)
 
 class LockFactory(object):
     def __init__(self, enable_debug=False):
-        if enable_debug:
-            # Change the following...
-            self._debug = False
-            self._lock_timeout = 9
+        # Change the following...
+        self._debug = enable_debug
+        self._lock_timeout = 9
 
     def configure_factory(self, enabled_debug, lock_timeout):
         self._debug=enabled_debug
