@@ -6,9 +6,6 @@
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/meross-iot.svg?label=Pypi%20Downloads)
 [![Beerpay](https://beerpay.io/albertogeniola/MerossIot/badge.svg?style=flat)](https://beerpay.io/albertogeniola/MerossIot)
 
-## !!! Meross API server down !!!
-Startig from April 13 2020 19:30 UTC+0:00, Meross HTTP API has been failing to respond to the LOGIN HTTP API, causing the Library to fail. This is not an issue with the library itself, but with the Meross ecosystem. If you want to double check with the Meross APP, you might logout and then login with the Android/IOS Meross application. Be carefoul though as doing so you might not be able to login again until Meross fixes the problem on their servers. 
-
 # Meross IoT library
 A pure-python based library providing API for controlling Meross IoT devices over the internet.
 
