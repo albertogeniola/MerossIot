@@ -4,6 +4,7 @@ from meross_iot.cloud.abilities import *
 from meross_iot.cloud.device import AbstractMerossDevice
 from meross_iot.cloud.devices.subdevices.generic import GenericSubDevice
 from meross_iot.logger import HUB_LOGGER as l
+from utilities.lock import lock_factory
 
 
 class GenericHub(AbstractMerossDevice):
@@ -12,7 +13,7 @@ class GenericHub(AbstractMerossDevice):
         super(GenericHub, self).__init__(cloud_client, device_uuid, **kwords)
         self._state = {}
         self._sub_devices = {}
-        self._subdev_lock = RLock()
+        self._subdev_lock = lock_factory.build_rlock()
 
     def register_sub_device(self,
                             subdev  # type: GenericSubDevice
@@ -50,7 +51,6 @@ class GenericHub(AbstractMerossDevice):
             subdevice_id = data.get('id')
             target = self._sub_devices.get(subdevice_id)
             if target is None:
-                l.warn("dispatch_to_subdevice: no target found; data = %s, _sub_devices = %s" % (data, self._sub_devices))
                 return
 
             # Remove the id from the data payload as it will be stored as raw state from the device handler

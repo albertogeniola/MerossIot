@@ -1,5 +1,3 @@
-from threading import RLock
-
 from meross_iot.api import MerossHttpClient
 from meross_iot.cloud.abilities import BIND, UNBIND, REPORT, ONLINE
 from meross_iot.cloud.client import MerossCloudClient
@@ -8,6 +6,8 @@ from meross_iot.cloud.device_factory import build_wrapper, build_subdevice_wrapp
 from meross_iot.cloud.devices.hubs import GenericHub
 from meross_iot.logger import MANAGER_LOGGER as l
 from threading import Thread, Event
+
+from utilities.lock import lock_factory
 
 
 class MerossManager(object):
@@ -30,9 +30,9 @@ class MerossManager(object):
     _event_callbacks_lock = None
 
     def __init__(self, meross_email, meross_password, discovery_interval=30.0, auto_reconnect=True):
-        self._devices_lock = RLock()
+        self._devices_lock = lock_factory.build_rlock()
         self._devices = dict()
-        self._event_callbacks_lock = RLock()
+        self._event_callbacks_lock = lock_factory.build_rlock()
         self._event_callbacks = []
 
         self._http_client = MerossHttpClient(email=meross_email, password=meross_password)

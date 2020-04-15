@@ -1,11 +1,12 @@
 import datetime
-from threading import RLock, Condition
+from threading import Condition
 
 from meross_iot.cloud.client_status import ClientStatus
 from meross_iot.cloud.exceptions.StatusTimeoutException import StatusTimeoutException
 from meross_iot.cloud.timeouts import SHORT_TIMEOUT
 from meross_iot.logger import CONNECTION_MANAGER_LOGGER as l
 from meross_iot.meross_event import ClientConnectionEvent
+from utilities.lock import lock_factory
 
 
 class ConnectionStatusManager(object):
@@ -24,10 +25,10 @@ class ConnectionStatusManager(object):
     _status_condition = None
 
     def __init__(self):
-        self._connection_event_callbacks_lock = RLock()
+        self._connection_event_callbacks_lock = lock_factory.build_rlock()
         self._connection_event_callbacks = []
 
-        self._lock = RLock()
+        self._lock = lock_factory.build_rlock()
         self._status_condition = Condition(self._lock)
         self._status = ClientStatus.INITIALIZED
 

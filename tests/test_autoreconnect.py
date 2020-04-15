@@ -70,7 +70,7 @@ class TestAutoreconnect(unittest.TestCase):
             print("Closing the proxy to trigger disconnection")
 
         print("Proxy closed")
-        self.assertTrue(self.manager._cloud_client.connection_status.check_status(ClientStatus.CONNECTION_DROPPED))
+        self.manager._cloud_client.connection_status.wait_for_status(ClientStatus.CONNECTION_DROPPED, timeout=30)
 
         try:
             new_status = dev.get_status(force_status_refresh=True)
@@ -108,6 +108,7 @@ class TestAutoreconnect(unittest.TestCase):
 
             print("Dropping connection...")
 
+        self.manager._cloud_client.connection_status.wait_for_status(ClientStatus.CONNECTION_DROPPED, timeout=30)
         print("Proxy has been closed. Waiting 120 seconds to trigger timeouts")
         time.sleep(120)
 

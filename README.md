@@ -386,13 +386,16 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
-#### 0.3.3.0 (latest)
-- Added auto-reconnection capabilities by default
-- Improved automated testing skipping
+#### 0.3.3.3 (latest)
+- Added lock-assistant capability to help debug deadlock cases
+- Improved tests
 
 <details>
     <summary>Older</summary>
 
+#### 0.3.3.0 (latest)
+- Added auto-reconnection capabilities by default
+- Improved automated testing skipping
 #### 0.3.2.22 (latest)
 - Fixed MerossManager not being thread-safe
 #### 0.3.2.21
