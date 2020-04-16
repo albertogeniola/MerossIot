@@ -1,0 +1,2 @@
+class TokenExpiredException(Exception):
+    pass

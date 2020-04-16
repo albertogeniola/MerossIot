@@ -1,10 +1,11 @@
 import os
 import unittest
 from logging import INFO
-
 from meross_iot.logger import set_log_level
 from meross_iot.manager import MerossManager
 from meross_iot.utilities.synchronization import AtomicCounter
+
+
 
 EMAIL = os.environ.get('MEROSS_EMAIL')
 PASSWORD = os.environ.get('MEROSS_PASSWORD')
@@ -14,7 +15,7 @@ class TestMSS425ETest(unittest.TestCase):
     def setUp(self):
         self.counter = AtomicCounter(0)
         set_log_level(INFO, INFO)
-        self.manager = MerossManager(meross_email=EMAIL, meross_password=PASSWORD)
+        self.manager = MerossManager.from_email_and_password(meross_email=EMAIL, meross_password=PASSWORD)
         self.manager.start()
 
         # Retrieves the list of supported devices

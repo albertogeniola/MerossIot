@@ -3,13 +3,15 @@ import unittest
 
 from meross_iot.manager import MerossManager
 
+
+
 EMAIL = os.environ.get('MEROSS_EMAIL')
 PASSWORD = os.environ.get('MEROSS_PASSWORD')
 
 
 class TestMS100Test(unittest.TestCase):
     def setUp(self):
-        self.manager = MerossManager(meross_email=EMAIL, meross_password=PASSWORD)
+        self.manager = MerossManager.from_email_and_password(meross_email=EMAIL, meross_password=PASSWORD)
         self.manager.start()
 
         # Retrieves the list of supported devices

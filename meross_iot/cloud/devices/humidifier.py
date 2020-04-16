@@ -15,10 +15,9 @@ class SprayMode(Enum):
 
 
 class GenericHumidifier(AbstractMerossDevice):
-    _raw_state = None
-
     def __init__(self, cloud_client, device_uuid, **kwords):
         super(GenericHumidifier, self).__init__(cloud_client, device_uuid, **kwords)
+        self._raw_state = None
 
     def _handle_push_notification(self, namespace, payload, from_myself=False) -> bool:
         if namespace == SPRAY:

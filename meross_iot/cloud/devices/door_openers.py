@@ -35,14 +35,11 @@ def compare_same_states(state1, state2):
 
 
 class GenericGarageDoorOpener(AbstractMerossDevice):
-    # Channels
-    _channels = []
-
-    # Dictionary {channel_id (door) -> status}
-    _door_state = None
 
     def __init__(self, cloud_client, device_uuid, **kwords):
         super(GenericGarageDoorOpener, self).__init__(cloud_client, device_uuid, **kwords)
+        self._channels = []
+        self._door_state = None
 
     def get_status(self, force_status_refresh=False):
         with self._state_lock:

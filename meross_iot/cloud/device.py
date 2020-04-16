@@ -5,32 +5,10 @@ from meross_iot.cloud.exceptions.OfflineDeviceException import OfflineDeviceExce
 from meross_iot.cloud.timeouts import LONG_TIMEOUT, SHORT_TIMEOUT
 from meross_iot.logger import DEVICE_LOGGER as l
 from meross_iot.meross_event import DeviceOnlineStatusEvent, DeviceBindEvent, DeviceUnbindEvent
-from utilities.lock import lock_factory
+from meross_iot.utilities.lock import lock_factory
 
 
 class AbstractMerossDevice(ABC):
-    # Device status + lock to protect concurrent access
-    _state_lock = None
-    online = False
-
-    # Device info and connection parameters
-    uuid = None
-    app_id = None
-    name = None
-    type = None
-    hwversion = None
-    fwversion = None
-
-    # Cached list of abilities
-    _abilities = None
-
-    # Cloud client: the object that handles mqtt communication with the Meross Cloud
-    __cloud_client = None
-
-    # Data structure for firing events.
-    __event_handlers_lock = None
-    __event_handlers = None
-
     def __init__(self, cloud_client, device_uuid, **kwargs):
         self.__cloud_client = cloud_client
         self._state_lock = lock_factory.build_rlock()
@@ -43,16 +21,13 @@ class AbstractMerossDevice(ABC):
             self._channels = kwargs['channels']
 
         # Information about device
-        if "devName" in kwargs:
-            self.name = kwargs['devName']
-        if "deviceType" in kwargs:
-            self.type = kwargs['deviceType']
-        if "fmwareVersion" in kwargs:
-            self.fwversion = kwargs['fmwareVersion']
-        if "hdwareVersion" in kwargs:
-            self.hwversion = kwargs['hdwareVersion']
-        if "onlineStatus" in kwargs:
-            self.online = kwargs['onlineStatus'] == 1
+        self.name = kwargs.get('devName')
+        self.type = kwargs.get('deviceType')
+        self.fwversion = kwargs.get('fmwareVersion')
+        self.hwversion = kwargs.get('hdwareVersion')
+        self.online = kwargs.get('onlineStatus') == 1
+
+        self._abilities = None
 
     def handle_push_notification(self, namespace, payload, from_myself=False):
         # Handle the ONLINE push notification

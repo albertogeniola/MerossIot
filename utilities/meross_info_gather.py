@@ -64,7 +64,7 @@ def main():
     manager = None
 
     try:
-        manager = MerossManager(meross_email=email, meross_password=password)
+        manager = MerossManager.from_email_and_password(meross_email=email, meross_password=password)
         client = manager._http_client
         print("# Collecting devices via HTTP api...")
 

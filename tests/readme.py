@@ -50,7 +50,7 @@ def event_handler(eventobj):
 
 if __name__ == '__main__':
     # Initiates the Meross Cloud Manager. This is in charge of handling the communication with the remote endpoint
-    manager = MerossManager(meross_email=EMAIL, meross_password=PASSWORD)
+    manager = MerossManager.from_email_and_password(meross_email=EMAIL, meross_password=PASSWORD)
 
     # Register event handlers for the manager...
     manager.register_event_handler(event_handler)

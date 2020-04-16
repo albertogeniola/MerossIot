@@ -1,5 +1,5 @@
 from meross_iot.api import MerossHttpClient
-from meross_iot.cloud.abilities import BIND, UNBIND, REPORT, ONLINE
+from meross_iot.cloud.abilities import BIND, REPORT, ONLINE
 from meross_iot.cloud.client import MerossCloudClient
 from meross_iot.cloud.client_status import ClientStatus
 from meross_iot.cloud.device_factory import build_wrapper, build_subdevice_wrapper
@@ -7,36 +7,34 @@ from meross_iot.cloud.devices.hubs import GenericHub
 from meross_iot.logger import MANAGER_LOGGER as l
 from threading import Thread, Event
 
-from utilities.lock import lock_factory
+from meross_iot.utilities.lock import lock_factory
 
 
 class MerossManager(object):
-    # HTTPClient object used to discover devices
-    _http_client = None
+    @classmethod
+    def from_email_and_password(cls,
+                                meross_email,
+                                meross_password,
+                                discovery_interval=30.0,
+                                auto_reconnect=True,
+                                logout_on_stop=True
+                                ):
+        cloud_creds = MerossHttpClient.login(email=meross_email, password=meross_password)
+        return MerossManager(
+            cloud_credentials=cloud_creds,
+            discovery_interval=discovery_interval,
+            auto_reconnect=auto_reconnect,
+            logout_on_stop=logout_on_stop)
 
-    # Dictionary of devices that are currently handled by this manager
-    # as UUID -> Device
-    _devices = None
+    def __init__(self, cloud_credentials, discovery_interval, auto_reconnect, logout_on_stop):
+        self._cloud_creds = cloud_credentials
+        self._logout_on_stop = logout_on_stop
+        self._http_client = MerossHttpClient(cloud_credentials=self._cloud_creds)
 
-    # Lock item used to protect access to the device collection
-    _devices_lock = None
-
-    # Cloud credentials to be used against the Meross MQTT cloud
-    _cloud_creds = None
-    _cloud_client = None
-
-    # List of callbacks that should be called when an event occurs
-    _event_callbacks = None
-    _event_callbacks_lock = None
-
-    def __init__(self, meross_email, meross_password, discovery_interval=30.0, auto_reconnect=True):
         self._devices_lock = lock_factory.build_rlock()
         self._devices = dict()
         self._event_callbacks_lock = lock_factory.build_rlock()
         self._event_callbacks = []
-
-        self._http_client = MerossHttpClient(email=meross_email, password=meross_password)
-        self._cloud_creds = self._http_client.get_cloud_credentials()
 
         # Instantiate the mqtt cloud client
         self._cloud_client = MerossCloudClient(cloud_credentials=self._cloud_creds,
@@ -67,6 +65,9 @@ class MerossManager(object):
         self._cloud_client.close()
         self._stop_discovery.set()
         self._device_discoverer.join()
+
+        if self._logout_on_stop:
+            self._http_client.logout()
 
         l.debug("Stop done.")
 

@@ -4,13 +4,15 @@ import unittest
 
 from meross_iot.manager import MerossManager
 
+
+
 EMAIL = os.environ.get('MEROSS_EMAIL')
 PASSWORD = os.environ.get('MEROSS_PASSWORD')
 
 
 class TestMSS210Test(unittest.TestCase):
     def setUp(self):
-        self.manager = MerossManager(meross_email=EMAIL, meross_password=PASSWORD)
+        self.manager = MerossManager.from_email_and_password(meross_email=EMAIL, meross_password=PASSWORD)
         self.manager.start()
         # Retrieves the list of supported devices
         devices = self.manager.get_devices_by_type('mss210')
@@ -52,7 +54,7 @@ class TestMSS210Test(unittest.TestCase):
 
 class TestMSS310Test(unittest.TestCase):
     def setUp(self):
-        self.manager = MerossManager(meross_email=EMAIL, meross_password=PASSWORD)
+        self.manager = MerossManager.from_email_and_password(meross_email=EMAIL, meross_password=PASSWORD)
         self.manager.start()
 
         # Retrieves the list of supported devices
@@ -101,7 +103,7 @@ class TestMSS310Test(unittest.TestCase):
 
 class TestMSS425ETest(unittest.TestCase):
     def setUp(self):
-        self.manager = MerossManager(meross_email=EMAIL, meross_password=PASSWORD)
+        self.manager = MerossManager.from_email_and_password(meross_email=EMAIL, meross_password=PASSWORD)
         self.manager.start()
 
         # Retrieves the list of supported devices
@@ -168,7 +170,7 @@ class TestMSS425ETest(unittest.TestCase):
 
 class TestMSS530HTest(unittest.TestCase):
     def setUp(self):
-        self.manager = MerossManager(meross_email=EMAIL, meross_password=PASSWORD)
+        self.manager = MerossManager.from_email_and_password(meross_email=EMAIL, meross_password=PASSWORD)
         self.manager.start()
 
         # Retrieves the list of supported devices

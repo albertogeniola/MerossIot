@@ -6,24 +6,10 @@ from meross_iot.cloud.exceptions.StatusTimeoutException import StatusTimeoutExce
 from meross_iot.cloud.timeouts import SHORT_TIMEOUT
 from meross_iot.logger import CONNECTION_MANAGER_LOGGER as l
 from meross_iot.meross_event import ClientConnectionEvent
-from utilities.lock import lock_factory
+from meross_iot.utilities.lock import lock_factory
 
 
 class ConnectionStatusManager(object):
-    # The connection status of the device is represented by the following variable.
-    # It is protected by the following variable, called _client_connection_status_lock.
-    # The child classes should never change/access these variables directly, though.
-    _status = None
-    _lock = None
-
-    # List of callbacks that should be called when an event occurs
-    _connection_event_callbacks = None
-    _connection_event_callbacks_lock = None
-
-    # This condition object is used to synchronize multiple threads waiting for the connection to
-    # get into a specific state.
-    _status_condition = None
-
     def __init__(self):
         self._connection_event_callbacks_lock = lock_factory.build_rlock()
         self._connection_event_callbacks = []
