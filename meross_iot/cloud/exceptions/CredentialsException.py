@@ -1,0 +1,2 @@
+class InvalidStoredCredentialsException(Exception):
+    pass

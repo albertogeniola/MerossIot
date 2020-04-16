@@ -137,7 +137,7 @@ def main():
         exit(1)
 
     # If the login was successful, start the Meross Manager to "log" data
-    manager = MerossManager(meross_email=email, meross_password=password)
+    manager = MerossManager.from_email_and_password(meross_email=email, meross_password=password)
     manager.start()
 
     print("# Listing ONLINE devices...")

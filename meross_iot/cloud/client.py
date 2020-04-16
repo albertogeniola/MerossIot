@@ -18,7 +18,7 @@ from meross_iot.credentials import MerossCloudCreds
 from meross_iot.logger import CONNECTION_MANAGER_LOGGER as l
 from meross_iot.logger import NETWORK_DATA as networkl
 from meross_iot.utilities.synchronization import AtomicCounter
-from utilities.lock import lock_factory
+from meross_iot.utilities.lock import lock_factory
 
 
 def build_client_request_topic(client_uuid):
@@ -33,15 +33,11 @@ class PendingMessageResponse(object):
     It is meant to be used internally by the library, in order to handle ACK waiting and callback calling.
     Note that this object is not thread safe.
     """
-    _message_id = None
-    _callback = None
-    _event = None
-    _response = None
-    _error = None
 
     def __init__(self, message_id, callback=None):
+        self._response = None
+        self._error = None
         self._message_id = message_id
-
         # Only instantiate an event if no callback has been specified
         if callback is None:
             self._event = Event()
@@ -77,32 +73,8 @@ class PendingMessageResponse(object):
                 l.exception("Unhandled error occurred while executing the callback")
 
 
-
 class MerossCloudClient(object):
-    # Meross Cloud credentials, which are provided by the HTTP Api.
-    _cloud_creds = None
-
-    # Connection info
-    connection_status = None
-    _domain = None
-    _port = 2001
-    _ca_cert = None
-
-    # App and client ID
-    _app_id = None
-    _client_id = None
-
-    # Paho mqtt client object
-    _mqtt_client = None
-
-    # Callback to be invoked every time a push notification is received from the MQTT broker
-    _push_message_callback = None
-
-    # This dictionary is used to keep track of messages issued to the broker that are waiting for an ACK
-    # The key is the message_id, the value is the PendingMessageResponse object.
-    # Access to this resource is protected with exclusive locking
-    _pending_response_messages = None
-    _pending_responses_lock = None
+    _DEFAULT_PORT = 2001
 
     def __init__(self,
                  cloud_credentials,             # type: MerossCloudCreds
@@ -124,7 +96,7 @@ class MerossCloudClient(object):
             self._domain = "iot.meross.com"
 
         # Lookup port and certificate for MQTT server
-        self._port = kwords.get('port', MerossCloudClient._port)
+        self._port = kwords.get('port', MerossCloudClient._DEFAULT_PORT)
         self._ca_cert = kwords.get('ca_cert', None)
 
         self._generate_client_and_app_id()

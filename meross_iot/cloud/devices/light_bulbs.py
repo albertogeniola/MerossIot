@@ -33,12 +33,9 @@ def to_rgb(rgb):
 
 
 class GenericBulb(AbstractMerossDevice):
-    # Bulb state: dictionary of channel-id/bulb-state
-    _state = None
-
     def __init__(self, cloud_client, device_uuid, **kwords):
-        self._state = {}
         super(GenericBulb, self).__init__(cloud_client, device_uuid, **kwords)
+        self._state = {}
 
     def _channel_control_impl(self, channel, status):
         if TOGGLE in self.get_abilities():

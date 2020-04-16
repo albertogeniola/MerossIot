@@ -1,9 +1,7 @@
-from utilities.lock import lock_factory
+from meross_iot.utilities.lock import lock_factory
 
 
 class AtomicCounter(object):
-    _lock = None
-
     def __init__(self, initialValue):
         self._lock = lock_factory.build_rlock()
         self._val = initialValue

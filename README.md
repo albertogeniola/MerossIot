@@ -23,7 +23,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```
-pip install meross_iot==0.3.3.0 --upgrade
+pip install meross_iot==0.3.4.0 --upgrade
 ```
 
 ## Usage
@@ -82,7 +82,7 @@ def event_handler(eventobj):
 
 if __name__ == '__main__':
     # Initiates the Meross Cloud Manager. This is in charge of handling the communication with the remote endpoint
-    manager = MerossManager(meross_email=EMAIL, meross_password=PASSWORD)
+    manager = MerossManager.from_email_and_password(meross_email=EMAIL, meross_password=PASSWORD)
 
     # Register event handlers for the manager...
     manager.register_event_handler(event_handler)
@@ -261,6 +261,7 @@ if __name__ == '__main__':
         print("Sensor '%s': Temperature: %s, Humidity: %s" % (s.name, s.temperature, s.humidity))
 
     # At this point, we are all done playing with the library, so we gracefully disconnect and clean resources.
+    # Note! You MUST always call manager.stop() as it will invalidate the token used for this session
     print("We are done playing. Cleaning resources...")
     manager.stop()
 
@@ -386,13 +387,16 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
-#### 0.3.3.3 (latest)
-- Added lock-assistant capability to help debug deadlock cases
-- Improved tests
+#### 0.3.4.0 (latest)
+- Added HTTP API logout capability
+- Refectored MerossManager/HTTPClient classes
 
 <details>
     <summary>Older</summary>
 
+#### 0.3.3.3 (latest)
+- Added lock-assistant capability to help debug deadlock cases
+- Improved tests
 #### 0.3.3.0 (latest)
 - Added auto-reconnection capabilities by default
 - Improved automated testing skipping

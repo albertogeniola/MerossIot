@@ -3,6 +3,7 @@ from meross_iot.cloud.device import AbstractMerossDevice, HUB_ONLINE
 from meross_iot.cloud.timeouts import LONG_TIMEOUT
 from meross_iot.logger import SUBDEVICE_LOGGER as l
 from meross_iot.meross_event import DeviceOnlineStatusEvent
+import threading
 
 
 class GenericSubDevice(AbstractMerossDevice):
@@ -14,6 +15,7 @@ class GenericSubDevice(AbstractMerossDevice):
         self.type = kwords.get('subDeviceType')
         self._hub.register_sub_device(self)
         self._raw_state = {}
+        self._online = False
 
     def _get_property(self, parent, child, trigger_update_if_unavailable=True):
         prop = self._raw_state.get(parent, {}).get(child)
@@ -54,7 +56,7 @@ class GenericSubDevice(AbstractMerossDevice):
         payload = {'all': [{'id': self.subdevice_id}]}
         status_token = self._status_token
         if status_token is not None:
-            res = self._hub.execute_command('GET', status_token, payload)
+            res = self._hub.execute_command('GET', status_token, payload, timeout=timeout)
             data = res.get('all')
             if (data is not None):
                 for device_data in data:

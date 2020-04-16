@@ -10,14 +10,16 @@ from meross_iot.cloud.devices.power_plugs import GenericPlug
 from meross_iot.cloud.exceptions.CommandTimeoutException import CommandTimeoutException
 from meross_iot.manager import MerossManager
 
+
+
 EMAIL = os.environ.get('MEROSS_EMAIL')
 PASSWORD = os.environ.get('MEROSS_PASSWORD')
-PROXY_PORT = 5001
+PROXY_PORT = 6001
 
 
 class TestAutoreconnect(unittest.TestCase):
     def setUp(self):
-        self.manager = MerossManager(meross_email=EMAIL, meross_password=PASSWORD, auto_reconnect=True)
+        self.manager = MerossManager.from_email_and_password(meross_email=EMAIL, meross_password=PASSWORD, auto_reconnect=True)
 
     class WorkerThread(object):
         def __init__(self, device: GenericPlug):
@@ -70,7 +72,6 @@ class TestAutoreconnect(unittest.TestCase):
             print("Closing the proxy to trigger disconnection")
 
         print("Proxy closed")
-        self.manager._cloud_client.connection_status.wait_for_status(ClientStatus.CONNECTION_DROPPED, timeout=30)
 
         try:
             new_status = dev.get_status(force_status_refresh=True)
@@ -80,7 +81,7 @@ class TestAutoreconnect(unittest.TestCase):
 
         print("Reconnecting the proxy...")
         with proxy.start(['--num-workers', '1', '--hostname', '127.0.0.1', '--port', str(PROXY_PORT)]):
-            time.sleep(5)
+            self.manager._cloud_client.connection_status.wait_for_status(ClientStatus.SUBSCRIBED, timeout=30)
             new_status = dev.get_status(force_status_refresh=True)
             print("New device status: %s" % new_status)
 
@@ -97,11 +98,14 @@ class TestAutoreconnect(unittest.TestCase):
             # Connect
             self.manager.start()
 
-            # Start a worker for every plug
+            # Start 2 workers for every plug
             for p in self.manager.get_devices_by_kind(GenericPlug):
-                w = TestAutoreconnect.WorkerThread(p)
-                workers.append(w)
-                w.start()
+                w1 = TestAutoreconnect.WorkerThread(p)
+                w2 = TestAutoreconnect.WorkerThread(p)
+                workers.append(w1)
+                workers.append(w2)
+                w1.start()
+                w2.start()
 
             print("Started workers. Waiting a bit....")
             time.sleep(10)
