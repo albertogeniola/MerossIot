@@ -44,19 +44,15 @@ class MerossHttpClient:
 
     @classmethod
     def login(cls, email, password):
-        try:
-            data = {"email": email, "password": password}
-            response_data = cls._authenticated_post(_LOGIN_URL, params_data=data)
-            creds = MerossCloudCreds(
-                token=response_data["token"],
-                key=response_data["key"],
-                user_id=response_data["userid"],
-                user_email=response_data["email"],
-                issued_on=datetime.utcnow()
-            )
-        except:
-            l.exception("Error occurred when logging in.")
-            return None
+        data = {"email": email, "password": password}
+        response_data = cls._authenticated_post(_LOGIN_URL, params_data=data)
+        creds = MerossCloudCreds(
+            token=response_data["token"],
+            key=response_data["key"],
+            user_id=response_data["userid"],
+            user_email=response_data["email"],
+            issued_on=datetime.utcnow()
+        )
         return creds
 
     @classmethod
