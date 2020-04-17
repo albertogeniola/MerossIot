@@ -5,14 +5,10 @@ from meross_iot.meross_event import DeviceSwitchStatusEvent
 
 
 class GenericPlug(AbstractMerossDevice):
-    # Channels
-    _channels = []
-
-    # Dictionary {channel->status}
-    _state = {}
-
     def __init__(self, cloud_client, device_uuid, **kwords):
         super(GenericPlug, self).__init__(cloud_client, device_uuid, **kwords)
+        self._state = {}
+        self._channels = []
 
     def _get_consumptionx(self):
         return self.execute_command("GET", CONSUMPTIONX, {})
