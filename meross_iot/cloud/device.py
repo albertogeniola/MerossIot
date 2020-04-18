@@ -16,9 +16,7 @@ class AbstractMerossDevice(ABC):
         self.__event_handlers = []
 
         self.uuid = device_uuid
-
-        if "channels" in kwargs:
-            self._channels = kwargs['channels']
+        self._channels = kwargs.get('channels', [])
 
         # Information about device
         self.name = kwargs.get('devName')

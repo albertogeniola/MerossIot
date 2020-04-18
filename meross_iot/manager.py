@@ -152,8 +152,11 @@ class MerossManager(object):
 
         # Let's intercept the Bind events: they are useful to trigger new device discovery
         namespace = header.get('namespace')
-        if namespace is not None and namespace in [BIND, ONLINE]:
-            self._discover_devices()
+
+        # TODO: The following has been commented because it may trigger a recursive events-loop. This is not strictly
+        #  necessary here, so just avoid doing so.
+        #if namespace is not None and namespace in [BIND, ONLINE]:
+        #    self._discover_devices()
 
         # Let's find the target of the event so that it can handle accordingly
         device = None
