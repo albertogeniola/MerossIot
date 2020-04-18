@@ -2,7 +2,6 @@ import os
 import time
 import unittest
 from threading import Event, Thread
-import proxy
 import socks
 import sys
 
@@ -20,6 +19,12 @@ PROXY_PORT = 6001
 def is_python6_or_more():
     ver = sys.version_info
     return ver.major >= 3 and ver.minor>=6
+
+
+if is_python6_or_more():
+    import proxy
+else:
+    proxy=None
 
 
 class TestAutoreconnect(unittest.TestCase):
