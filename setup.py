@@ -4,12 +4,15 @@ from setuptools import setup, find_packages
 
 here = path.abspath(path.dirname(__file__))
 
+with open(path.join(here, '.version'), encoding='utf-8') as f:
+    TARGET_VERSION = f.read()
+
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
     name='meross_iot',
-    version='0.3.4.2',
+    version=TARGET_VERSION,
     packages=find_packages(exclude=('tests',)),
     url='https://github.com/albertogeniola/MerossIot',
     license='MIT',
