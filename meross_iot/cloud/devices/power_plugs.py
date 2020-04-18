@@ -8,7 +8,6 @@ class GenericPlug(AbstractMerossDevice):
     def __init__(self, cloud_client, device_uuid, **kwords):
         super(GenericPlug, self).__init__(cloud_client, device_uuid, **kwords)
         self._state = {}
-        self._channels = []
 
     def _get_consumptionx(self):
         return self.execute_command("GET", CONSUMPTIONX, {})

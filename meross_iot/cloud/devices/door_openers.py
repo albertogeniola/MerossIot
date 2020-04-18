@@ -38,7 +38,6 @@ class GenericGarageDoorOpener(AbstractMerossDevice):
 
     def __init__(self, cloud_client, device_uuid, **kwords):
         super(GenericGarageDoorOpener, self).__init__(cloud_client, device_uuid, **kwords)
-        self._channels = []
         self._door_state = None
 
     def get_status(self, force_status_refresh=False):

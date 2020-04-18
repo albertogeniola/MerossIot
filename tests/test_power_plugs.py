@@ -131,9 +131,9 @@ class TestMSS425ETest(unittest.TestCase):
         time.sleep(2)
         self.assertTrue(self.device.get_usb_status())
 
-        self.device.enable_usb()
+        self.device.disable_usb()
         time.sleep(2)
-        self.assertTrue(self.device.get_usb_status())
+        self.assertFalse(self.device.get_usb_status())
 
     def test_channels(self):
         self.device.turn_off()
