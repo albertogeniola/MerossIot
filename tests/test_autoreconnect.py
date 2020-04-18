@@ -4,6 +4,7 @@ import unittest
 from threading import Event, Thread
 import proxy
 import socks
+import sys
 
 from meross_iot.cloud.client_status import ClientStatus
 from meross_iot.cloud.devices.power_plugs import GenericPlug
@@ -11,10 +12,14 @@ from meross_iot.cloud.exceptions.CommandTimeoutException import CommandTimeoutEx
 from meross_iot.manager import MerossManager
 
 
-
 EMAIL = os.environ.get('MEROSS_EMAIL')
 PASSWORD = os.environ.get('MEROSS_PASSWORD')
 PROXY_PORT = 6001
+
+
+def is_python6_or_more():
+    ver = sys.version_info
+    return ver.major >= 3 and ver.minor>=6
 
 
 class TestAutoreconnect(unittest.TestCase):
@@ -50,6 +55,9 @@ class TestAutoreconnect(unittest.TestCase):
                         break
 
     def test_single_threaded_connection_drop(self):
+        if not is_python6_or_more():
+            self.skipTest("Cannot use proxy on python < 3.6")
+
         # Allocate the proxy
         dev = None
         print("Connecting through proxy...")
@@ -88,6 +96,9 @@ class TestAutoreconnect(unittest.TestCase):
             self.manager.stop()
 
     def test_multithreaded_connection_drop(self):
+        if not is_python6_or_more():
+            self.skipTest("Cannot use proxy on python < 3.6")
+
         # Allocate the proxy
         workers = []
         print("Connecting through proxy...")
