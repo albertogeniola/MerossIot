@@ -40,6 +40,11 @@ class DeviceSniffer(object):
     def __init__(self, user_id, hashed_password, target_device_uuid, ca_cert=None, domain="iot.meross.com", port=2001):
         self.connect_event = Event()
         self.subscribe_event = Event()
+        self.user_id = user_id
+
+        self.device_topic = None
+        self.client_response_topic = None
+        self.user_topic = None
 
         self.domain = domain
         self.port = port
@@ -49,8 +54,8 @@ class DeviceSniffer(object):
         md5_hash = md5()
         rnd_uuid = UUID.uuid4()
         md5_hash.update(("%s%s" % ("API", rnd_uuid)).encode("utf8"))
-        self._app_id = md5_hash.hexdigest()
-        self._client_id = 'app:%s' % md5_hash.hexdigest()
+        self._app_id = "sniffer"
+        self._client_id = 'app:sniffer-%s' % md5_hash.hexdigest()
 
         self._mqtt_client = mqtt.Client(client_id=self._client_id,
                                         protocol=mqtt.MQTTv311)
@@ -88,9 +93,24 @@ class DeviceSniffer(object):
         self.connect_event.wait()
 
         # Subscribe to the corresponding topics ...
-        topic = build_client_request_topic(self.target_device_uuid)
-        self._mqtt_client.subscribe(topic)
+        self.device_topic = build_client_request_topic(self.target_device_uuid)
+        self.client_response_topic = "/app/%s-%s/subscribe" % (self.user_id, self._app_id)
+        self.user_topic = "/app/%s/subscribe" % self.user_id
+
+        l.info("Subscribing to topic: %s" % self.device_topic)
+        self._mqtt_client.subscribe(self.device_topic)
         self.subscribe_event.wait()
+        self.subscribe_event.clear()
+
+        l.info("Subscribing to topic: %s" % self.client_response_topic)
+        self._mqtt_client.subscribe(self.client_response_topic)
+        self.subscribe_event.wait()
+        self.subscribe_event.clear()
+
+        l.info("Subscribing to topic: %s" % self.user_topic)
+        self._mqtt_client.subscribe(self.user_topic)
+        self.subscribe_event.wait()
+        self.subscribe_event.clear()
 
     def stop(self):
         self._mqtt_client.disconnect()
@@ -102,7 +122,16 @@ class DeviceSniffer(object):
     def _on_message(self, client, userdata, msg):
         message = json.loads(str(msg.payload, "utf8"))
         header = message['header']
-        l.info(message)
+
+        topic_str = "Unknown"
+        if msg.topic == self.user_topic:
+            topic_str = "USER-TOPIC"
+        elif msg.topic == self.client_response_topic:
+            topic_str = "CLIENT-RESPONSE-TOPIC"
+        elif msg.topic == self.device_topic:
+            topic_str = "DEVICE-TOPIC"
+
+        l.info("%s (%s) <- %s" % (topic_str, msg.topic, message))
 
     def _on_disconnect(self, client, userdata, rc):
         l.debug("Disconnected from MQTT brocker")
@@ -128,7 +157,7 @@ def main():
     devices = []
     http = None
     try:
-        http = MerossHttpClient(email, password)
+        http = MerossHttpClient.from_user_password(email=email, password=password)
         print("# Collecting devices via HTTP api...")
         devices = http.list_devices()
         l.info("DEVICE LISTING VIA HTTP: %s" % devices)
@@ -186,6 +215,7 @@ def main():
     sniffer.stop()
 
     # As very last step, try to collect data via get_all() and get_abilities
+    l.info("--------------- More data -----------------")
     print("Collecting state info...")
     try:
         d = manager.get_device_by_uuid(selected_device.get('uuid')) # type: AbstractMerossDevice
@@ -211,4 +241,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
