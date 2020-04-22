@@ -18,6 +18,9 @@ This will help us to keep track of new devices and current support status of the
 This library is still work in progres
 s, therefore use it with caution.
 
+## ☠ IMPORTANT NOTE ☠
+Meross has changed some device implementation. Devices with latest firmware might not be supported at the moment. Altough I've already asked to Meross Engineers to provide specs in order to support the latest changes on their side, I've not received any answer yet. For this reason, please consider that newest devices might not be compatible. 
+
 ## Installation
 Due to the popularity of the library, I've decided to list it publicly on the Pipy index.
 So, the installation is as simple as typing the following command:
