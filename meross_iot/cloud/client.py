@@ -38,6 +38,8 @@ class PendingMessageResponse(object):
         self._response = None
         self._error = None
         self._message_id = message_id
+        self._event = None
+
         # Only instantiate an event if no callback has been specified
         if callback is None:
             self._event = Event()

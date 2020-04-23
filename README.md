@@ -390,20 +390,22 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
-#### 0.3.4.0 (latest)
-- Added HTTP API logout capability
-- Refectored MerossManager/HTTPClient classes
+#### 0.3.4.4 (latest)
+- Fixed missing _event attribute in PendingMessageResponse class  
 
 <details>
     <summary>Older</summary>
 
-#### 0.3.3.3 (latest)
+#### 0.3.4.0 
+- Added HTTP API logout capability
+- Refectored MerossManager/HTTPClient classes
+#### 0.3.3.3 
 - Added lock-assistant capability to help debug deadlock cases
 - Improved tests
-#### 0.3.3.0 (latest)
+#### 0.3.3.0 
 - Added auto-reconnection capabilities by default
 - Improved automated testing skipping
-#### 0.3.2.22 (latest)
+#### 0.3.2.22
 - Fixed MerossManager not being thread-safe
 #### 0.3.2.21
 - Fixed status integer not being parsed as INT
