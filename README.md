@@ -389,13 +389,16 @@ However, keeping such devices connected 24/7 has a cost, which I sustain happily
 Anyways, feel free to contribute via donations!
 </p>
 
+
 ## Changelog
-#### 0.3.4.4 (latest)
-- Fixed missing _event attribute in PendingMessageResponse class  
+#### 0.3.4.5 (latest)
+Implemented token exceptions, minor minor bugfixes.
 
 <details>
     <summary>Older</summary>
 
+#### 0.3.4.4
+- Fixed missing _event attribute in PendingMessageResponse class  
 #### 0.3.4.0 
 - Added HTTP API logout capability
 - Refectored MerossManager/HTTPClient classes
