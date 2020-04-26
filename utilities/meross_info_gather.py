@@ -80,7 +80,10 @@ def main():
     print("# Gathering info about supported devices...")
     devices = manager.get_supported_devices()
     for d in devices:
-        describe_device(d, manager)
+        try:
+            describe_device(d, manager)
+        except:
+            l.exception("Error occurred while describing device %s (%s)" % (d.uuid, d.name))
 
     print("# OK. You can now play with the Meross official APP with your devices to trigger some actions. Hopefully"
           " this program will be able to collect necessary data to help the developers implement its support.")
