@@ -28,6 +28,8 @@ _LOGOUT_URL = "%s%s" % (_MEROSS_URL, "/v1/Profile/logout")
 class ErrorCodes(Enum):
     CODE_NO_ERROR = 0
     CODE_TOKEN_EXPIRED = 1019
+    CODE_BAD_TOKEN_1 = 1022
+    CODE_BAD_TOKEN_2 = 1201
     CODE_TOO_MANY_TOKENS = 1301
 
 
@@ -98,22 +100,27 @@ class MerossHttpClient:
         jsondata = r.json()
         code = jsondata.get('apiStatus')
 
-        if jsondata["info"].lower() != "success":
-            l.warn("Failed request to API. Response was: %s" % str(jsondata))
-            raise AuthenticatedPostException("Failed request to API. Response was: %s" % str(jsondata))
-
         try:
             result_code = ErrorCodes(code)
             if result_code == ErrorCodes.CODE_NO_ERROR:
                 return jsondata["data"]
-            elif result_code == ErrorCodes.CODE_TOKEN_EXPIRED:
+
+            # It seems that the meross API could raise token expired for various reasons.
+            elif result_code in [ErrorCodes.CODE_TOKEN_EXPIRED,
+                                 ErrorCodes.CODE_BAD_TOKEN_1,
+                                 ErrorCodes.CODE_BAD_TOKEN_2]:
                 raise TokenExpiredException("The provided token has expired")
             elif result_code == ErrorCodes.CODE_TOO_MANY_TOKENS:
                 raise TooManyTokensException("You have issued too many tokens without logging out.")
             else:
                 raise AuthenticatedPostException("Failed request to API. Response was: %s" % str(jsondata))
-        except:
-            raise AuthenticatedPostException("Cannot parse response code. Response was: %s" % str(jsondata))
+
+        except ValueError as e:
+            l.exception("Unknown/unsupported Value error")
+            # In case we are not able to parse the result code from the API, just rely on the success parameter
+            if jsondata["info"].lower() != "success":
+                l.warn("Failed request to API. Response was: %s" % str(jsondata))
+                raise AuthenticatedPostException("Failed request to API. Response was: %s" % str(jsondata))
 
     @classmethod
     def _encode_params(cls,
