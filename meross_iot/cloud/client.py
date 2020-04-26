@@ -265,8 +265,13 @@ class MerossCloudClient(object):
     # Protocol Handlers
     # ------------------------------------------------------------------------------------------------
     def execute_cmd(self, dst_dev_uuid, method, namespace, payload, callback=None, timeout=SHORT_TIMEOUT):
-        # TODO: check we are online!
-        # TODO: Lock only for the minimum time needed.
+        # If the underlying mqttclient is not connected, let's fast-fail.
+        # Otherwise, if it's connected but not yet subscribed to relevant topics, it's still OK to
+        # queue messages: the client will dispatch them as soon it subscribes to the relevant topics.
+        if not self._mqtt_client.is_connected():
+            l.error("The underlying mqtt client is not connected.")
+            raise ConnectionError()
+
         start = time.time()
         # Build the mqtt message we will send to the broker
         message, message_id = self._build_mqtt_message(method, namespace, payload)
