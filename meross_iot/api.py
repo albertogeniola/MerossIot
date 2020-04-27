@@ -5,11 +5,7 @@ import random
 import string
 import time
 from enum import Enum
-
 import requests
-
-from meross_iot.cloud.exceptions.TokenExpiredException import TokenExpiredException
-from meross_iot.cloud.exceptions.TooManyTokensException import TooManyTokensException
 from meross_iot.credentials import MerossCloudCreds
 from meross_iot.logger import API_LOGGER as l
 from datetime import datetime
@@ -156,4 +152,12 @@ class AuthenticatedPostException(Exception):
 
 
 class UnauthorizedException(Exception):
+    pass
+
+
+class TooManyTokensException(Exception):
+    pass
+
+
+class TokenExpiredException(Exception):
     pass
