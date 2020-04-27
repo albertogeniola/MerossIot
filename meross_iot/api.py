@@ -155,9 +155,13 @@ class UnauthorizedException(Exception):
     pass
 
 
-class TooManyTokensException(Exception):
+class TokenException(Exception):
     pass
 
 
-class TokenExpiredException(Exception):
+class TooManyTokensException(TokenException):
+    pass
+
+
+class TokenExpiredException(TokenException):
     pass
