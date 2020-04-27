@@ -389,11 +389,9 @@ However, keeping such devices connected 24/7 has a cost, which I sustain happily
 Anyways, feel free to contribute via donations!
 </p>
 
-
 ## Changelog
-#### 0.3.4.5 (latest)
-Implemented token exceptions, minor minor bugfixes.
-
+#### 0.3.4.6 (latest)
+- Added method for listing devices using the HTTP api
 <details>
     <summary>Older</summary>
 
