@@ -43,6 +43,12 @@ class MerossManager(object):
         self._device_discovery_done = Event()
         self._discovery_interval = discovery_interval
 
+    def list_http_devices(self):
+        """
+        Performs a listing of Meross Devices as reported by the HTTP API.
+        """
+        return self._http_client.list_devices()
+
     def start(self, wait_for_first_discovery=True):
         l.debug("Starting manager")
         # Connect to the mqtt broker
