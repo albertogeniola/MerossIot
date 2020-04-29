@@ -1,5 +1,6 @@
 from enum import Enum
 
+# TODO: delete this file
 
 class MerossEventType(Enum):
     # Fired when the MQTT client connects/disconnects to the MQTT broker

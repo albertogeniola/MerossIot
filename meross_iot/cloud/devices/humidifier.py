@@ -4,7 +4,7 @@ from meross_iot.cloud.abilities import *
 from meross_iot.cloud.device import AbstractMerossDevice
 from meross_iot.cloud.devices.light_bulbs import MODE_RGB, to_rgb, MODE_LUMINANCE, MODE_TEMPERATURE
 from meross_iot.logger import HUMIDIFIER_LOGGER as l
-from meross_iot.meross_event import HumidifierSpryEvent, HumidifierLightEvent
+from meross_iot.model.events import HumidifierSpryEvent, HumidifierLightEvent
 from meross_iot.utilities.conversion import int_to_rgb
 
 

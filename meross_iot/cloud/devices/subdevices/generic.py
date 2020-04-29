@@ -1,9 +1,8 @@
 from meross_iot.cloud.abilities import HUB_BATTERY
 from meross_iot.cloud.device import AbstractMerossDevice, HUB_ONLINE
-from meross_iot.cloud.timeouts import LONG_TIMEOUT
+from meross_iot.constants import LONG_TIMEOUT
 from meross_iot.logger import SUBDEVICE_LOGGER as l
-from meross_iot.meross_event import DeviceOnlineStatusEvent
-import threading
+from meross_iot.model.events import DeviceOnlineStatusEvent
 
 
 class GenericSubDevice(AbstractMerossDevice):

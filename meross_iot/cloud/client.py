@@ -13,7 +13,7 @@ from meross_iot.cloud.client_status import ClientStatus
 from meross_iot.cloud.connection import ConnectionStatusManager
 from meross_iot.cloud.exceptions.CommandTimeoutException import CommandTimeoutException
 from meross_iot.cloud.exceptions.InvalidSignatureException import InvalidSignatureException
-from meross_iot.cloud.timeouts import SHORT_TIMEOUT
+from meross_iot.constants import SHORT_TIMEOUT
 from meross_iot.credentials import MerossCloudCreds
 from meross_iot.logger import CONNECTION_MANAGER_LOGGER as l
 from meross_iot.logger import NETWORK_DATA as networkl

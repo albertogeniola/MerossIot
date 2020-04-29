@@ -3,9 +3,9 @@ from threading import Condition
 
 from meross_iot.cloud.client_status import ClientStatus
 from meross_iot.cloud.exceptions.StatusTimeoutException import StatusTimeoutException
-from meross_iot.cloud.timeouts import SHORT_TIMEOUT
+from meross_iot.constants import SHORT_TIMEOUT
 from meross_iot.logger import CONNECTION_MANAGER_LOGGER as l
-from meross_iot.meross_event import ClientConnectionEvent
+from meross_iot.model.events import ClientConnectionEvent
 from meross_iot.utilities.lock import lock_factory
 
 
