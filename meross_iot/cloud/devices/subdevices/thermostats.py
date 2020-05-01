@@ -5,7 +5,7 @@ from meross_iot.cloud.abilities import HUB_MTS100_ALL, HUB_MTS100_TEMPERATURE, H
 from meross_iot.cloud.devices.subdevices.generic import GenericSubDevice
 from meross_iot.constants import LONG_TIMEOUT
 from meross_iot.logger import VALVES_LOGGER as l
-from meross_iot.model.events import DeviceSwitchStatusEvent, ThermostatTemperatureChange, ThermostatModeChange
+from meross_iot.model.push import DeviceSwitchStatusEvent, ThermostatTemperatureChange, ThermostatModeChange
 
 
 class ThermostatMode(Enum):
@@ -29,7 +29,7 @@ class ValveSubDevice(GenericSubDevice):
         super().__init__(cloud_client, subdevice_id, parent_hub, **kwords)
 
     def _handle_push_notification(self, namespace, payload, from_myself=False):
-        # Let the Generic handler to handle the common events.
+        # Let the Generic handler to handle the common push.
         handled = super()._handle_push_notification(namespace=namespace, payload=payload, from_myself=from_myself)
         if handled:
             return True

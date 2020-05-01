@@ -1,10 +1,11 @@
-from meross_iot.model.events.common import HardwareInfo, FirmwareInfo, TimeInfo
-from meross_iot.model.events.generic import GenericPushNotification
+from meross_iot.model.enums import Namespace
+from meross_iot.model.push.common import HardwareInfo, FirmwareInfo, TimeInfo
+from meross_iot.model.push.generic import GenericPushNotification
 
 
 class BindPushNotification(GenericPushNotification):
     def __init__(self, hwinfo: HardwareInfo, fwinfo: FirmwareInfo, time: TimeInfo):
-        super().__init__(namespace="Appliance.Control.Bind")
+        super().__init__(namespace=Namespace.BIND)
         self.hwinfo = hwinfo
         self.fwinfo = fwinfo
         self.time = time

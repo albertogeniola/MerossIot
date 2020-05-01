@@ -1,7 +1,7 @@
 from meross_iot.cloud.abilities import HUB_MS100_ALL, HUB_MS100_TEMPHUM, HUB_MS100_ALERT
 from meross_iot.cloud.devices.subdevices.generic import GenericSubDevice
 from meross_iot.logger import SENSORS_LOGGER as l
-from meross_iot.model.events import SensorTemperatureChange, SensorTemperatureAlert
+from meross_iot.model.push import SensorTemperatureChange, SensorTemperatureAlert
 
 
 class SensorSubDevice(GenericSubDevice):
@@ -10,7 +10,7 @@ class SensorSubDevice(GenericSubDevice):
         super().__init__(cloud_client, subdevice_id, parent_hub, **kwords)
 
     def _handle_push_notification(self, namespace, payload, from_myself=False):
-        # Let the Generic handler to handle the common events.
+        # Let the Generic handler to handle the common push.
         handled = super()._handle_push_notification(namespace=namespace, payload=payload, from_myself=from_myself)
         if handled:
             return True

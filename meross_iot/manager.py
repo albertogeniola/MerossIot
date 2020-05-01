@@ -1,5 +1,5 @@
-from meross_iot.api import MerossHttpClient
-from meross_iot.cloud.abilities import BIND, REPORT, ONLINE
+from meross_iot.http.api import MerossHttpClient
+from meross_iot.cloud.abilities import REPORT, ONLINE
 from meross_iot.cloud.client import MerossCloudClient
 from meross_iot.cloud.client_status import ClientStatus
 from meross_iot.cloud.device_factory import build_wrapper, build_subdevice_wrapper
@@ -150,10 +150,10 @@ class MerossManager(object):
         # Identify the UUID of the target device by looking at the FROM field of the message header
         dev_uuid = header['from'].split('/')[2]
 
-        # Let's intercept the Bind events: they are useful to trigger new device discovery
+        # Let's intercept the Bind push: they are useful to trigger new device discovery
         namespace = header.get('namespace')
 
-        # TODO: The following has been commented because it may trigger a recursive events-loop. This is not strictly
+        # TODO: The following has been commented because it may trigger a recursive push-loop. This is not strictly
         #  necessary here, so just avoid doing so.
         #if namespace is not None and namespace in [BIND, ONLINE]:
         #    self._discover_devices()

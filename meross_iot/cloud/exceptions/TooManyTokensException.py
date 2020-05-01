@@ -1,2 +1,0 @@
-class TooManyTokensException(Exception):
-    pass

@@ -1,10 +1,10 @@
-from meross_iot.model.events.generic import GenericPushNotification
-from meross_iot.model.enums import OnlineStatus
+from meross_iot.model.enums import OnlineStatus, Namespace
+from meross_iot.model.push.generic import GenericPushNotification
 
 
 class OnlinePushNotification(GenericPushNotification):
     def __init__(self, online_status: OnlineStatus):
-        super().__init__(namespace="Appliance.System.Online")
+        super().__init__(namespace=Namespace.ONLINE)
         self.online_status = online_status
 
     @classmethod
