@@ -21,7 +21,7 @@ class TestHttpMethods(AioHTTPTestCase):
         # look for a msxh0 hub
         hub = None
         for d in devices:
-            if d.device_type == "msxh0":
+            if d.device_type == "msh300":
                 hub = d
                 break
 
@@ -29,8 +29,8 @@ class TestHttpMethods(AioHTTPTestCase):
             self.skipTest("No hub was found on this subscription. Cannot test hub listing.")
 
         result = await self.meross_client.async_list_hub_subdevices(hub.uuid)
-        print(result)
-        # TODO
+        self.assertGreater(len(result), 0)
+        return result
 
     @unittest_run_loop
     async def test_bad_login(self):

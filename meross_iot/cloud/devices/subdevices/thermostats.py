@@ -3,7 +3,7 @@ from typing import Union
 
 from meross_iot.cloud.abilities import HUB_MTS100_ALL, HUB_MTS100_TEMPERATURE, HUB_MTS100_MODE, HUB_TOGGLEX
 from meross_iot.cloud.devices.subdevices.generic import GenericSubDevice
-from meross_iot.constants import LONG_TIMEOUT
+from meross_iot.model.constants import LONG_TIMEOUT
 from meross_iot.logger import VALVES_LOGGER as l
 from meross_iot.model.push import DeviceSwitchStatusEvent, ThermostatTemperatureChange, ThermostatModeChange
 

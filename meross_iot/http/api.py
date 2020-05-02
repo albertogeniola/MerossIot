@@ -8,7 +8,6 @@ import time
 from enum import Enum
 from typing import Optional, List
 from aiohttp import ClientSession
-import asyncio
 from meross_iot.credentials import MerossCloudCreds
 from meross_iot.http.exceptions import TooManyTokensException, TokenExpiredException, AuthenticatedPostException
 from meross_iot.logger import API_LOGGER as l
@@ -16,6 +15,7 @@ from datetime import datetime
 
 # Appears to be used as a part of the signature algorithm as constant "salt" (kinda useless)
 from meross_iot.model.http.device import HttpDevice
+from meross_iot.model.http.subdevice import HttpSubDevice
 
 _SECRET = "23x17ahWarFH6w29"
 _MEROSS_URL = "https://iot.meross.com"
@@ -32,18 +32,10 @@ class ErrorCodes(Enum):
     CODE_TOO_MANY_TOKENS = 1301
 
 
-def _encode_params(parameters: dict):
-    jsonstring = json.dumps(parameters)
-    return str(base64.b64encode(jsonstring.encode("utf8")), "utf8")
-
-
-def _generate_nonce(length: int):
-    return ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(length))
-
-
 class MerossHttpClient(object):
     """
     Utility class for dealing with Meross HTTP API.
+    This class simplifies the usage of the Meross HTTP API providing login, logout and device listing API.
     """
 
     def __init__(self, cloud_credentials: MerossCloudCreds):
@@ -195,4 +187,14 @@ class MerossHttpClient(object):
         Returns the sub-devices associated to the given hub.
         :return:
         """
-        return await self._async_authenticated_post(_HUB_DUBDEV_LIST, {"uuid": hub_id}, cloud_creds=self._cloud_creds)
+        result = await self._async_authenticated_post(_HUB_DUBDEV_LIST, {"uuid": hub_id}, cloud_creds=self._cloud_creds)
+        return [HttpSubDevice.from_dict(x) for x in result]
+
+
+def _encode_params(parameters: dict):
+    jsonstring = json.dumps(parameters)
+    return str(base64.b64encode(jsonstring.encode("utf8")), "utf8")
+
+
+def _generate_nonce(length: int):
+    return ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(length))

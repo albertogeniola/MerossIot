@@ -1,4 +1,9 @@
+import logging
 from enum import Enum
+from typing import Union
+
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class OnlineStatus(Enum):
@@ -8,7 +13,7 @@ class OnlineStatus(Enum):
 
 class Namespace(Enum):
     # Common abilities
-    ALL = 'Appliance.System.All'
+    SYSTEM_ALL = 'Appliance.System.All'
     ABILITY = 'Appliance.System.Ability'
     REPORT = 'Appliance.System.Report'
     ONLINE = 'Appliance.System.Online'
@@ -46,3 +51,17 @@ class Namespace(Enum):
 
     # Humidifier
     SPRAY = 'Appliance.Control.Spray'
+
+
+def get_or_parse_namespace(namespace: Union[Namespace, str]):
+    if isinstance(namespace, str):
+        try:
+            parsed_namespace = Namespace(namespace)
+            return parsed_namespace
+        except ValueError:
+            _LOGGER.error(f"Namespace {namespace} is not currently handled/recognized.")
+            raise
+    elif isinstance(namespace, Namespace):
+        return namespace
+    else:
+        raise ValueError("Unknown invalid namespace type. Only str/Namespace types are allowed here.")
