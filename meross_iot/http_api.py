@@ -8,8 +8,8 @@ import time
 from enum import Enum
 from typing import Optional, List
 from aiohttp import ClientSession
-from meross_iot.credentials import MerossCloudCreds
-from meross_iot.http.exceptions import TooManyTokensException, TokenExpiredException, AuthenticatedPostException
+from meross_iot.model.credentials import MerossCloudCreds
+from meross_iot.model.http.exception import TooManyTokensException, TokenExpiredException, AuthenticatedPostException
 from meross_iot.logger import API_LOGGER as l
 from datetime import datetime
 
@@ -198,3 +198,4 @@ def _encode_params(parameters: dict):
 
 def _generate_nonce(length: int):
     return ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(length))
+

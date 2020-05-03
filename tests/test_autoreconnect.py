@@ -7,7 +7,7 @@ import sys
 
 from meross_iot.cloud.client_status import ClientStatus
 from meross_iot.cloud.devices.power_plugs import GenericPlug
-from meross_iot.cloud.exceptions.CommandTimeoutException import CommandTimeoutException
+from meross_iot.cloud.exceptions.CommandTimeoutError import CommandTimeoutError
 from meross_iot.manager import MerossManager
 
 
@@ -52,7 +52,7 @@ class TestAutoreconnect(unittest.TestCase):
                         self.device.turn_off()
                     else:
                         self.device.turn_on()
-                except CommandTimeoutException:
+                except CommandTimeoutError:
                     print("Command timed out.")
                     pass
                 finally:
@@ -89,7 +89,7 @@ class TestAutoreconnect(unittest.TestCase):
         try:
             new_status = dev.get_status(force_status_refresh=True)
             raise Exception("Device was still able to reconnect.")
-        except CommandTimeoutException:
+        except CommandTimeoutError:
             print("Device is unreachable. That's ok!")
 
         print("Reconnecting the proxy...")

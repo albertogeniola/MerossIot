@@ -1,2 +1,0 @@
-class CommandTimeoutException(Exception):
-    pass

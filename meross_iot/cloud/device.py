@@ -1,21 +1,14 @@
 from abc import ABC, abstractmethod
-
-from meross_iot.cloud.abilities import *
-from meross_iot.cloud.exceptions.OfflineDeviceException import OfflineDeviceException
-from meross_iot.model.constants import LONG_TIMEOUT, SHORT_TIMEOUT
-from meross_iot.logger import DEVICE_LOGGER as l
-from meross_iot.model.push import DeviceOnlineStatusEvent, DeviceBindEvent, DeviceUnbindEvent
-from meross_iot.utilities.lock import lock_factory
+from meross_iot.model.push.generic import AbstractPushNotification
 
 
 class AbstractMerossDevice(ABC):
-    def __init__(self, cloud_client, device_uuid, **kwargs):
-        self.__cloud_client = cloud_client
-        self._state_lock = lock_factory.build_rlock()
-        self.__event_handlers_lock = lock_factory.build_rlock()
-        self.__event_handlers = []
-
+    def __init__(self,
+                 device_uuid: str,
+                 manager,  # TODO: find a way for set typing hints here
+                 **kwargs):
         self.uuid = device_uuid
+        self._manager = manager
         self._channels = kwargs.get('channels', [])
 
         # Information about device
@@ -27,135 +20,16 @@ class AbstractMerossDevice(ABC):
 
         self._abilities = None
 
-    def handle_push_notification(self, namespace, payload, from_myself=False):
-        # Handle the ONLINE push notification
-        # Leave the rest to the specific implementation
-        if namespace == ONLINE:
-            old_online_status = self.online
-            status = int(payload['online']['status'])
-            if status == 2:
-                with self._state_lock:
-                    self.online = False
-            elif status == 1:
-                with self._state_lock:
-                    self.online = True
-            else:
-                l.error("Unknown online status has been reported from the device: %d" % status)
-
-            # If the online status changed, fire the corresponding event
-            if old_online_status != self.online:
-                evt = DeviceOnlineStatusEvent(self, self.online)
-                self.fire_event(evt)
-        elif namespace == BIND:
-            data = payload['bind']
-            evt = DeviceBindEvent(device=self, bind_data=data)
-            self.fire_event(evt)
-        elif namespace == UNBIND:
-            # Let everybody know we are going down before doing anything
-            evt = DeviceUnbindEvent(device=self)
-            self.fire_event(evt)
-            # Let's handle stat clearing and resource release
-            self._handle_unbound()
-        else:
-            self._handle_push_notification(namespace, payload, from_myself=from_myself)
-
-    def _handle_unbound(self):
-        with self._state_lock:
-            self.online = False
-        # Unregister all the callbacks
-        with self.__event_handlers_lock:
-            self.__event_handlers.clear()
-
-    def register_event_callback(self, callback):
-        with self.__event_handlers_lock:
-            if callback not in self.__event_handlers:
-                self.__event_handlers.append(callback)
-            else:
-                l.debug("The callback you tried to register is already present.")
-                pass
-
-    def unregister_event_callback(self, callback):
-        with self.__event_handlers_lock:
-            if callback in self.__event_handlers:
-                self.__event_handlers.remove(callback)
-            else:
-                l.debug("The callback you tried to unregister is not present.")
-                pass
-
-    def fire_event(self, eventobj):
-        for c in self.__event_handlers:
-            try:
-                c(eventobj)
-            except:
-                l.exception("Unhandled error occurred while executing the registered event-callback")
+    async def handle_push_notification(self, push_notification: AbstractPushNotification) -> bool:
+        root_handled = False
+        # TODO: handle generic push notification valid for all devices,
+        #  such as Bind/Unbind/Online
+        specific_handled = await self._handle_push_notification(push_notification)
+        return root_handled or specific_handled
 
     @abstractmethod
-    def _handle_push_notification(self, namespace, payload, from_myself=False) -> bool:
-        """
-        Handles push messages for this device. This method should be implemented by the base class in order
-        to catch status changes issued by other clients (i.e. the Meross app on the user's device).
-        :param namespace:
-        :param message:
-        :param from_myself: boolean flag. When true, it means that the notification is generated in response to a
-        command that was issued by this client. When false, it means that another client generated the event.
-        :return: True if the push notification was handled, false otherwise
-        """
+    async def _handle_push_notification(self, push_notification: AbstractPushNotification) -> bool:
         pass
-
-    @abstractmethod
-    def get_status(self, force_status_refresh=False):
-        pass
-
-    def execute_command(self, command, namespace, payload, callback=None, timeout=SHORT_TIMEOUT, online_check=True):
-        with self._state_lock:
-            # If the device is not online, what's the point of issuing the command?
-            if online_check and not self.online:
-                raise OfflineDeviceException("The device %s (%s) is offline. The command cannot be executed" %
-                                             (self.name, self.uuid))
-
-        return self.__cloud_client.execute_cmd(self.uuid, command, namespace, payload, callback=callback, timeout=timeout)
-
-    def get_sys_data(self):
-        return self.execute_command("GET", ALL, {}, online_check=False)
-
-    def get_abilities(self):
-        # TODO: Make this cached value expire after a bit...
-        if self._abilities is None:
-            self._abilities = self.execute_command("GET", ABILITY, {})['ability']
-        return self._abilities
-
-    def get_report(self):
-        return self.execute_command("GET", REPORT, {})
-
-    def get_wifi_list(self):
-        if WIFI_LIST in self.get_abilities():
-            return self.execute_command("GET", WIFI_LIST, {}, timeout=LONG_TIMEOUT)
-        else:
-            l.error("This device does not support the WIFI_LIST ability")
-            return None
-
-    def get_trace(self):
-        if TRACE in self.get_abilities():
-            return self.execute_command("GET", TRACE, {})
-        else:
-            l.error("This device does not support the TRACE ability")
-            return None
-
-    def get_debug(self):
-        if DEBUG in self.get_abilities():
-            return self.execute_command("GET", DEBUG, {})
-        else:
-            l.error("This device does not support the DEBUG ability")
-            return None
-
-    def supports_consumption_reading(self):
-        return CONSUMPTIONX in self.get_abilities()
-
-    def supports_electricity_reading(self):
-        return ELECTRICITY in self.get_abilities()
-
-    def supports_light_control(self):
-        return LIGHT in self.get_abilities()
 
     def __str__(self):
         basic_info = "%s (%s, HW %s, FW %s): " % (

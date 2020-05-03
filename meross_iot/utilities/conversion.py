@@ -1,5 +1,3 @@
-
-
 def to_rgb(rgb):
     if rgb is None:
         return None

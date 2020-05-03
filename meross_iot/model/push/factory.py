@@ -3,7 +3,7 @@ from typing import Optional, Union
 
 from meross_iot.model.enums import Namespace, get_or_parse_namespace
 from meross_iot.model.push.bind import BindPushNotification
-from meross_iot.model.push.generic import GenericPushNotification
+from meross_iot.model.push.generic import AbstractPushNotification
 from meross_iot.model.push.online import OnlinePushNotification
 from meross_iot.model.push.unbind import UnbindPushNotification
 
@@ -20,7 +20,7 @@ _PUSH_CLASSES = {
 def parse_push_notification(namespace: Union[str, Namespace],
                             message_payload: dict,
                             originating_device_uuid: str,
-                            ) -> Optional[GenericPushNotification]:
+                            ) -> Optional[AbstractPushNotification]:
     """
     Parses a typed version of a push notification messages given its dict representation as pushed by the
     meross cloud. If the parsing fails, it returns None. It's caller's responsibility to check the return
