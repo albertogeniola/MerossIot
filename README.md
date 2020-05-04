@@ -19,7 +19,14 @@ This library is still work in progres
 s, therefore use it with caution.
 
 ## ☠ IMPORTANT NOTE ☠
-Meross has changed some device implementation. Devices with latest firmware might not be supported at the moment. Altough I've already asked to Meross Engineers to provide specs in order to support the latest changes on their side, I've not received any answer yet. For this reason, please consider that newest devices might not be compatible. 
+Due to numerous changes on the Meross side and to the needs of the HomeAssistant component this library is built for, I've decided to build a complete new version of the library (0.4.X.X), which will address the following:
+- Lightwaight, singlethreaded, async architecture
+- Better online/offline handling
+- Good-looking code, using python hints
+- Native event types for easier integration
+- Improved comments and documentation
+
+I'm also considering to take actions in order to implement convenient HTTP lan-only APIs to command devices without MQTT integration, but it's too early to say it'll be integrated. If you like and want to support, consider donating.
 
 ## Installation
 Due to the popularity of the library, I've decided to list it publicly on the Pipy index.
