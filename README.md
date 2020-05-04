@@ -20,7 +20,7 @@ s, therefore use it with caution.
 
 ## ☠ IMPORTANT NOTE ☠
 Due to numerous changes on the Meross side and to the needs of the HomeAssistant component this library is built for, I've decided to build a complete new version of the library (0.4.X.X), which will address the following:
-- Lightwaight, singlethreaded, async architecture
+- Lightweight, singlethreaded, async architecture
 - Better online/offline handling
 - Good-looking code, using python hints
 - Native event types for easier integration
