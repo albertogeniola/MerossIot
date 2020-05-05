@@ -1,7 +1,7 @@
 from enum import Enum
 
 from meross_iot.cloud.abilities import *
-from meross_iot.cloud.device import AbstractMerossDevice
+from meross_iot.cloud.device import BaseMerossDevice
 from meross_iot.cloud.devices.light_bulbs import MODE_RGB, to_rgb, MODE_LUMINANCE, MODE_TEMPERATURE
 from meross_iot.logger import HUMIDIFIER_LOGGER as l
 from meross_iot.model.push import HumidifierSpryEvent, HumidifierLightEvent
@@ -14,7 +14,7 @@ class SprayMode(Enum):
     INTERMITTENT = 2
 
 
-class GenericHumidifier(AbstractMerossDevice):
+class GenericHumidifier(BaseMerossDevice):
     def __init__(self, cloud_client, device_uuid, **kwords):
         super(GenericHumidifier, self).__init__(cloud_client, device_uuid, **kwords)
         self._raw_state = None

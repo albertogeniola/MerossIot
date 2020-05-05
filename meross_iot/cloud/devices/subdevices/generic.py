@@ -1,11 +1,11 @@
 from meross_iot.cloud.abilities import HUB_BATTERY
-from meross_iot.cloud.device import AbstractMerossDevice, HUB_ONLINE
+from meross_iot.cloud.device import BaseMerossDevice, HUB_ONLINE
 from meross_iot.model.constants import LONG_TIMEOUT
 from meross_iot.logger import SUBDEVICE_LOGGER as l
 from meross_iot.model.push import DeviceOnlineStatusEvent
 
 
-class GenericSubDevice(AbstractMerossDevice):
+class GenericSubDevice(BaseMerossDevice):
     def __init__(self, cloud_client, subdevice_id, parent_hub, **kwords):
         super().__init__(cloud_client, parent_hub.uuid, **kwords)
         self.subdevice_id = subdevice_id

@@ -4,17 +4,19 @@ import random
 import ssl
 import string
 import time
-from asyncio import Future, exceptions
+from asyncio import Future
 from hashlib import md5
 from typing import Optional, List
 import logging
 import paho.mqtt.client as mqtt
-
-from meross_iot.cloud.device import AbstractMerossDevice
+from asyncio import TimeoutError
+from meross_iot.cloud.device import BaseMerossDevice
+from meross_iot.cloud.device_factory import build_meross_device
 from meross_iot.cloud.exceptions.CommandTimeoutError import CommandTimeoutError
-from meross_iot.model.credentials import MerossCloudCreds
+from meross_iot.http_api import MerossHttpClient
 from meross_iot.cloud.exception import UnconnectedError
 from meross_iot.model.enums import Namespace
+from meross_iot.model.http.device import HttpDeviceInfo
 from meross_iot.model.push.factory import parse_push_notification
 from meross_iot.model.push.generic import AbstractPushNotification
 from meross_iot.utilities.mqtt import generate_mqtt_password, generate_client_and_app_id, build_client_response_topic, \
@@ -30,7 +32,7 @@ class MerossManager(object):
     """
 
     def __init__(self,
-                 cloud_credentials: MerossCloudCreds,
+                 http_client: Optional[MerossHttpClient] = None,
                  auto_reconnect: Optional[bool] = True,
                  domain: Optional[str] = "iot.meross.com",
                  port: Optional[int] = 2001,
@@ -39,7 +41,8 @@ class MerossManager(object):
                  **kwords) -> None:
 
         # Store local attributes
-        self._cloud_creds = cloud_credentials
+        self._http_client = http_client
+        self._cloud_creds = self._http_client.cloud_credentials
         self._auto_reconnect = auto_reconnect
         self._domain = domain
         self._port = port
@@ -82,6 +85,7 @@ class MerossManager(object):
         Connects to the remote MQTT broker and subscribes to the relevant topics.
         :return:
         """
+
         _LOGGER.info("Initializing the MQTT connection...")
         self._mqtt_client.connect(host=self._domain, port=self._port, keepalive=30)
 
@@ -93,6 +97,77 @@ class MerossManager(object):
         await self._mqtt_connected_and_subscribed.wait()
         self._mqtt_connected_and_subscribed.clear()
         _LOGGER.debug("Connected and subscribed to relevant topics")
+
+    async def async_device_discovery(self):
+        """
+        Fetch devices and online status from HTTP API. This method also notifies/updates local device online/offline
+        status.
+        :return:
+        """
+        # List http devices
+        http_devices = await self._http_client.async_list_devices()
+
+        # Update state of local devices
+        discovered_new_http_devices = []
+        for hdevice in http_devices:
+            ldevice = self._device_registry.lookup_by_uuid(hdevice.uuid)
+            if ldevice is not None:
+                _LOGGER.info(f"Updating state of device {ldevice.name} ({ldevice.uuid}) from HTTP info...")
+                ldevice.update_from_http_state(hdevice)
+            else:
+                # If the http_device was not locally registered, keep track of it as we will add it later.
+                _LOGGER.info(f"Discovery found a new Meross device {hdevice.dev_name} ({hdevice.uuid}).")
+                discovered_new_http_devices.append(hdevice)
+
+        # Check if we got devices that were not listed from http.
+        # This should not happen as the UNBIND event should take care of it.
+        # So we just raise a warning if that happens.
+        inconsistent_local_devices = []
+        for ldevice in self._device_registry.find_all_by():
+            found_in_http = False
+            for hdevice in http_devices:
+                if hdevice.uuid == ldevice.uuid:
+                    found_in_http = True
+                    break
+            if not found_in_http:
+                inconsistent_local_devices.append(ldevice)
+                _LOGGER.warning(f"Device {ldevice.name} ({ldevice.uuid}) is locally registered but has not been "
+                                f"reported by the last HTTP API device-list call.")
+
+        # If the http-device is an hub, then list its subdevices
+        # TODO: list sub-devices
+
+        # TODO: handle inconsistent devices?
+        # For every newly discovered device, retrieve its abilities and then build a corresponding wrapper.
+        # Do this in "parallel" with multiple tasks rather than executing every task singularly
+        tasks = []
+        for d in discovered_new_http_devices:
+            tasks.append(self._loop.create_task(self._async_enroll_new_http_dev(d)))
+
+        # Wait for factory to build all devices
+        enrolled_devices = await asyncio.gather(*tasks, loop=self._loop)
+
+        # TODO add result logging
+        _LOGGER.debug("HTTP async completed.")
+
+    async def _async_enroll_new_http_dev(self, device_info: HttpDeviceInfo) -> Optional[BaseMerossDevice]:
+        try:
+            res_abilities = await self.async_execute_cmd(destination_device_uuid=device_info.uuid,
+                                                     method="GET",
+                                                     namespace=Namespace.ABILITY,
+                                                     payload={})
+            abilities = res_abilities.get('ability')
+        except CommandTimeoutError:
+            _LOGGER.error(f"Failed to retrieve abilities for device {device_info.dev_name} ({device_info.uuid}). "
+                          f"This device won't be enrolled.")
+            return None
+
+        # Build a full-featured device using the given ability set
+        device = build_meross_device(http_device_info=device_info, device_abilities=abilities, manager=self)
+
+        # Enroll the device
+        self._device_registry.enroll_device(device)
+        return device
 
     def _on_connect(self, client, userdata, rc, other):
         # NOTE! This method is called by the paho-mqtt thread, thus any invocation to the
@@ -176,7 +251,7 @@ class MerossManager(object):
         # Check case 2: COMMAND_ACKS. In this case, we don't check the source topic address, as we trust it's
         # originated by a device on this network that we contacted previously.
         if destination_topic == build_client_response_topic(self._cloud_creds.user_id, self._app_id) and \
-                message_method in ['PUSHACK', 'GETACK']:
+                message_method in ['SETACK', 'GETACK']:
             _LOGGER.debug("This message is an ACK to a command this client has send.")
 
             # If the message is a PUSHACK/GETACK, check if there is any pending command waiting for it and, if so,
@@ -204,9 +279,9 @@ class MerossManager(object):
                                                 parsed_push_notification)
         else:
             _LOGGER.warning(f"The current implementation of this library does not handle messages received on topic "
-                      f"({destination_topic}) and when the message method is {message_method}. "
-                      f"If you see this message many times, it means Meross has changed the way its protocol works."
-                      f"Contact the developer if that happens!")
+                            f"({destination_topic}) and when the message method is {message_method}. "
+                            "If you see this message many times, it means Meross has changed the way its protocol "
+                            "works. Contact the developer if that happens!")
 
     async def _dispatch_push_notification(self, push_notification: AbstractPushNotification):
         """
@@ -225,23 +300,19 @@ class MerossManager(object):
         dev = target_devs[0]
         await dev.handle_push_notification(push_notification)
 
-    async def _send_and_wait_ack(self, future: Future, target_device_uuid: str, message: dict):
-        self._mqtt_client.publish(topic=build_device_request_topic(target_device_uuid), payload=message)
-
-        # TODO: handle timeouts
-        try:
-            result = await asyncio.wait_for(future, timeout=5)
-        except exceptions.TimeoutError as e:
-            raise CommandTimeoutError()
-        return result
-
-    async def async_execute_cmd(self, destination_device_uuid: str, method: str, namespace: Namespace, payload: dict):
+    async def async_execute_cmd(self,
+                                destination_device_uuid: str,
+                                method: str,
+                                namespace: Namespace,
+                                payload: dict,
+                                timeout: float = 5.0):
         """
         Executes a command
         :param destination_device_uuid:
         :param method:
         :param namespace:
         :param payload:
+        :param timeout:
         :return:
         """
         # Only proceed if we are connected to the remote endpoint
@@ -254,10 +325,21 @@ class MerossManager(object):
         # Create a future and perform the send/waiting to a task
         fut = self._loop.create_future()
         self._pending_messages_futures[message_id] = fut
-        response = await self._send_and_wait_ack(future=fut,
+
+        response = await self._async_send_and_wait_ack(future=fut,
                                                  target_device_uuid=destination_device_uuid,
-                                                 message=message)
-        return response
+                                                 message=message,
+                                                 timeout=timeout)
+        return response.get('payload')
+
+    async def _async_send_and_wait_ack(self, future: Future, target_device_uuid: str, message: dict, timeout: float):
+        md = self._mqtt_client.publish(topic=build_device_request_topic(target_device_uuid), payload=message)
+        try:
+            return await asyncio.wait_for(future, timeout, loop=self._loop)
+        except TimeoutError as e:
+            _LOGGER.error(f"Timeout occurred while waiting a response for message {message} sent to device uuid "
+                          f"{target_device_uuid}. Timeout was: {timeout} seconds")
+            raise CommandTimeoutError()
 
     def _build_mqtt_message(self, method: str, namespace: Namespace, payload: dict):
         """
@@ -316,7 +398,7 @@ class DeviceRegistry(object):
         del self._devices_by_uuid[dev]
         _LOGGER.info(f"Device {dev.name} ({dev.uuid}) removed from registry")
 
-    def enroll_device(self, device: AbstractMerossDevice):
+    def enroll_device(self, device: BaseMerossDevice):
         if device.uuid in self._devices_by_uuid:
             _LOGGER.warning(f"Device {device.name} ({device.uuid}) has been already added to the registry.")
             return
@@ -324,22 +406,23 @@ class DeviceRegistry(object):
             _LOGGER.debug(f"Adding device {device.name} ({device.uuid}) to registry.")
             self._devices_by_uuid[device.uuid] = device
 
+    def lookup_by_uuid(self,
+                       uuid: str) -> Optional[BaseMerossDevice]:
+        return self._devices_by_uuid.get(uuid)
+
     def find_all_by(self,
-                    uuid: Optional[str] = None,
+                    uuids: Optional[List[str]] = None,
                     device_type: Optional[str] = None,
                     device_class: Optional[type] = None,
                     device_name: Optional[str] = None,
-                    online_status: Optional[bool] = None) -> List[AbstractMerossDevice]:
+                    online_status: Optional[bool] = None) -> List[BaseMerossDevice]:
 
-        # Look by UUID
-        if uuid is not None:
-            dev = self._devices_by_uuid.get(uuid)
-            if dev is not None:
-                res = [dev]
-            else:
-                return []
+        # Look by UUIDs
+        if uuids is not None:
+            res = filter(lambda d: d.uuid in uuids, self._devices_by_uuid.values())
         else:
             res = self._devices_by_uuid.values()
+
         if device_type is not None:
             res = filter(lambda d: d.type == device_type, res)
         if online_status is not None:
@@ -349,8 +432,7 @@ class DeviceRegistry(object):
         if device_name is not None:
             res = filter(lambda d: d.name == device_name, res)
 
-        return res
-
+        return list(res)
 
 
 # TODO: Remove the following
@@ -362,11 +444,17 @@ async def main():
 
     client = await MerossHttpClient.async_from_user_password(email=email, password=password)
     # devices = await client.async_list_devices()
-    manager = MerossManager(cloud_credentials=client.cloud_credentials)
+    manager = MerossManager(http_client=client)
 
     try:
         await manager.async_init()
         res = await manager.async_execute_cmd('18050329735693251a0234298f1178ce', "GET", Namespace.SYSTEM_ALL, {})
+        res = await manager.async_device_discovery()
+        device = manager._device_registry.find_all_by(device_name='MSS210')[0]
+        await device.turn_off()
+        await asyncio.sleep(2)
+        await device.turn_on()
+        await asyncio.sleep(2)
         manager.close()
     except:
         _LOGGER.exception("Error")

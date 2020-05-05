@@ -14,7 +14,7 @@ from meross_iot.logger import API_LOGGER as l
 from datetime import datetime
 
 # Appears to be used as a part of the signature algorithm as constant "salt" (kinda useless)
-from meross_iot.model.http.device import HttpDevice
+from meross_iot.model.http.device import HttpDeviceInfo
 from meross_iot.model.http.subdevice import HttpSubDevice
 
 _SECRET = "23x17ahWarFH6w29"
@@ -174,13 +174,13 @@ class MerossHttpClient(object):
                 'uuid': '493dd9174941ed58waitForOpenWifi', 'vendor': 'Meross', 'version': '6.0'}
         return await self._async_authenticated_post(_LOG_URL, params_data=data)
 
-    async def async_list_devices(self) -> List[HttpDevice]:
+    async def async_list_devices(self) -> List[HttpDeviceInfo]:
         """
         Asks to the HTTP api to list the Meross device belonging to the given user account.
         :return:
         """
         result = await self._async_authenticated_post(_DEV_LIST, {}, cloud_creds=self._cloud_creds)
-        return [HttpDevice.from_dict(x) for x in result]
+        return [HttpDeviceInfo.from_dict(x) for x in result]
 
     async def async_list_hub_subdevices(self, hub_id: str):
         """

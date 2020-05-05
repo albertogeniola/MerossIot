@@ -1,10 +1,10 @@
 from meross_iot.cloud.abilities import *
-from meross_iot.cloud.device import AbstractMerossDevice
+from meross_iot.cloud.device import BaseMerossDevice
 from meross_iot.logger import POWER_PLUGS_LOGGER as l
 from meross_iot.model.push import DeviceSwitchStatusEvent
 
 
-class GenericPlug(AbstractMerossDevice):
+class GenericPlug(BaseMerossDevice):
     def __init__(self, cloud_client, device_uuid, **kwords):
         super(GenericPlug, self).__init__(cloud_client, device_uuid, **kwords)
         self._state = {}

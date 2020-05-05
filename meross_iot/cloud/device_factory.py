@@ -1,44 +1,45 @@
-import re
+import logging
+from typing import List
 
-from meross_iot.cloud.devices.door_openers import GenericGarageDoorOpener
-from meross_iot.cloud.devices.hubs import GenericHub
-from meross_iot.cloud.devices.humidifier import GenericHumidifier
-from meross_iot.cloud.devices.light_bulbs import GenericBulb
-from meross_iot.cloud.devices.power_plugs import GenericPlug
-from meross_iot.cloud.devices.subdevices.generic import GenericSubDevice
-from meross_iot.cloud.devices.subdevices.sensors import SensorSubDevice
-from meross_iot.cloud.devices.subdevices.thermostats import ValveSubDevice
+from meross_iot.cloud.device import BaseMerossDevice
+from meross_iot.cloud.mixins.toggle import ToggleXMixin
+from meross_iot.model.enums import Namespace, get_or_parse_namespace
+from meross_iot.model.http.device import HttpDeviceInfo
 
 
-def build_wrapper(
-        cloud_client,
-        device_type,  # type: str
-        device_uuid,  # type: str
-        device_specs  # type: dict
-):
-    if device_type.startswith('msl') or device_type.startswith('mss560m') or device_type.startswith('mss570m'):
-        return GenericBulb(cloud_client, device_uuid=device_uuid, **device_specs)
-    elif device_type.startswith('mss'):
-        return GenericPlug(cloud_client, device_uuid=device_uuid, **device_specs)
-    elif device_type.startswith('msg'):
-        return GenericGarageDoorOpener(cloud_client, device_uuid=device_uuid, **device_specs)
-    elif device_type.startswith('msh'):
-        return GenericHub(cloud_client, device_uuid=device_uuid, **device_specs)
-    elif device_type.startswith('msxh'):
-        return GenericHumidifier(cloud_client, device_uuid=device_uuid, **device_specs)
-    else:
-        return GenericPlug(cloud_client, device_uuid=device_uuid, **device_specs)
+_LOGGER = logging.getLogger(__name__)
 
 
-def build_subdevice_wrapper(cloud_client,
-                            device_type,  # type: str
-                            device_id,  # type: str
-                            device_specs,  # type: dict
-                            parent_hub  # type: GenericHub
-                            ):
-    if device_type.startswith('mts'):
-        return ValveSubDevice(cloud_client, subdevice_id=device_id, parent_hub=parent_hub, **device_specs)
-    elif re.match('ms\d+', device_type, re.I):
-        return SensorSubDevice(cloud_client, subdevice_id=device_id, parent_hub=parent_hub, **device_specs)
-    else:
-        return GenericSubDevice(cloud_client, subdevice_id=device_id, parent_hub=parent_hub, **device_specs)
+_ABILITY_MATRIX = {
+    Namespace.TOGGLEX.value: ToggleXMixin
+    #Namespace.SYSTEM_ALL: pass
+    # TODO:
+}
+
+
+def add_mixins(base_component: BaseMerossDevice, classes: List[type], class_name: str) -> BaseMerossDevice:
+    if len(classes) < 1:
+        return base_component
+
+    classes = classes.copy()
+    classes.append(base_component.__class__)
+    base_component.__class__ = type(class_name, tuple(classes), {})
+    return base_component
+
+
+def build_meross_device(http_device_info: HttpDeviceInfo, device_abilities: dict, manager) -> BaseMerossDevice:
+    _LOGGER.debug(f"Building managed device for {http_device_info.dev_name} ({http_device_info.uuid}). "
+                  f"Reported abilities: {device_abilities}")
+
+    # TODO: Pick the base class between BaseWifiDevice/HubWifiDevice/etc...
+    base_component = BaseMerossDevice(device_uuid=http_device_info.uuid, manager=manager, **http_device_info.to_dict())
+    mixin_classes = []
+
+    # Add abilities
+    for key, val in device_abilities.items():
+        cls = _ABILITY_MATRIX.get(key)
+        if cls is not None:
+            mixin_classes.append(cls)
+
+    component = add_mixins(base_component=base_component, classes=mixin_classes, class_name=http_device_info.device_type.upper())
+    return component

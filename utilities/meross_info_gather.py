@@ -2,7 +2,7 @@ import logging
 from os import path
 from zipfile import ZipFile
 
-from meross_iot.cloud.device import AbstractMerossDevice
+from meross_iot.cloud.device import BaseMerossDevice
 from meross_iot.cloud.devices.hubs import GenericHub
 from meross_iot.logger import h
 from meross_iot.manager import MerossManager
@@ -28,7 +28,7 @@ h.setLevel(logging.ERROR)
 
 
 def describe_device(
-        d,  # type: AbstractMerossDevice
+        d,  # type: BaseMerossDevice
         manager
                     ):
 

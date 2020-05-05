@@ -1,5 +1,5 @@
 from meross_iot.cloud.abilities import *
-from meross_iot.cloud.device import AbstractMerossDevice
+from meross_iot.cloud.device import BaseMerossDevice
 from meross_iot.logger import BULBS_LOGGER as l
 from meross_iot.model.push import BulbSwitchStateChangeEvent, BulbLightStateChangeEvent
 
@@ -32,7 +32,7 @@ def to_rgb(rgb):
     return r+g+b
 
 
-class GenericBulb(AbstractMerossDevice):
+class GenericBulb(BaseMerossDevice):
     def __init__(self, cloud_client, device_uuid, **kwords):
         super(GenericBulb, self).__init__(cloud_client, device_uuid, **kwords)
         self._state = {}

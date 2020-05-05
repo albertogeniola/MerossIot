@@ -1,7 +1,7 @@
 from threading import Event
 
 from meross_iot.cloud.abilities import *
-from meross_iot.cloud.device import AbstractMerossDevice
+from meross_iot.cloud.device import BaseMerossDevice
 from meross_iot.logger import POWER_PLUGS_LOGGER as l
 from meross_iot.model.push import DeviceDoorStatusEvent
 
@@ -34,7 +34,7 @@ def compare_same_states(state1, state2):
     return s1 == s2
 
 
-class GenericGarageDoorOpener(AbstractMerossDevice):
+class GenericGarageDoorOpener(BaseMerossDevice):
 
     def __init__(self, cloud_client, device_uuid, **kwords):
         super(GenericGarageDoorOpener, self).__init__(cloud_client, device_uuid, **kwords)

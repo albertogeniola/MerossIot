@@ -1,12 +1,12 @@
 
 from meross_iot.cloud.abilities import *
-from meross_iot.cloud.device import AbstractMerossDevice
+from meross_iot.cloud.device import BaseMerossDevice
 from meross_iot.cloud.devices.subdevices.generic import GenericSubDevice
 from meross_iot.logger import HUB_LOGGER as l
 from meross_iot.utilities.lock import lock_factory
 
 
-class GenericHub(AbstractMerossDevice):
+class GenericHub(BaseMerossDevice):
 
     def __init__(self, cloud_client, device_uuid, **kwords):
         super(GenericHub, self).__init__(cloud_client, device_uuid, **kwords)

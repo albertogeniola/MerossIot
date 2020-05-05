@@ -8,7 +8,7 @@ import logging
 _LOGGER = logging.getLogger(__name__)
 
 
-class HttpDevice(BaseDictPayload):
+class HttpDeviceInfo(BaseDictPayload):
     def __init__(self,
                  uuid: str,
                  online_status: Union[int, OnlineStatus],
