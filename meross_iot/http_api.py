@@ -10,12 +10,17 @@ from typing import Optional, List
 from aiohttp import ClientSession
 from meross_iot.model.credentials import MerossCloudCreds
 from meross_iot.model.http.exception import TooManyTokensException, TokenExpiredException, AuthenticatedPostException
-from meross_iot.logger import API_LOGGER as l
 from datetime import datetime
 
 # Appears to be used as a part of the signature algorithm as constant "salt" (kinda useless)
 from meross_iot.model.http.device import HttpDeviceInfo
 from meross_iot.model.http.subdevice import HttpSubDevice
+
+import logging
+
+
+_LOGGER = logging.getLogger(__name__)
+
 
 _SECRET = "23x17ahWarFH6w29"
 _MEROSS_URL = "https://iot.meross.com"
@@ -54,9 +59,9 @@ class MerossHttpClient(object):
         :param password:
         :return:
         """
-        l.debug(f"Logging in with email: {email}, password: XXXXX")
+        _LOGGER.debug(f"Logging in with email: {email}, password: XXXXX")
         creds = await cls.async_login(email, password)
-        l.debug(f"Login successful!")
+        _LOGGER.debug(f"Login successful!")
         return MerossHttpClient(cloud_credentials=creds)
 
     @classmethod
@@ -116,10 +121,10 @@ class MerossHttpClient(object):
         }
 
         # Perform the request.
-        l.debug(f"Performing HTTP request against {url}, headers: {headers}, post data: {payload}")
+        _LOGGER.debug(f"Performing HTTP request against {url}, headers: {headers}, post data: {payload}")
         async with ClientSession() as session:
             async with session.post(url, data=payload, headers=headers) as response:
-                l.debug(f"Response Status Code: {response.status}")
+                _LOGGER.debug(f"Response Status Code: {response.status}")
                 # Check if that is ok.
                 if response.status != 200:
                     raise AuthenticatedPostException("Failed request to API. Response code: %d" % str(response.status))
@@ -146,10 +151,10 @@ class MerossHttpClient(object):
         Invalidates the credentials stored in this object.
         :return:
         """
-        l.debug(f"Logging out. Invalidating cached credentials {self._cloud_creds}")
+        _LOGGER.debug(f"Logging out. Invalidating cached credentials {self._cloud_creds}")
         result = await self._async_authenticated_post(_LOGOUT_URL, {}, cloud_creds=self._cloud_creds)
         self._cloud_creds = None
-        l.info("Logout succeeded.")
+        _LOGGER.info("Logout succeeded.")
         return result
 
     @classmethod
@@ -158,7 +163,7 @@ class MerossHttpClient(object):
         Class method used to invalidate credentials without logging in with a full MerossHttpClient.
         :return:
         """
-        l.debug(f"Logging out. Invalidating cached credentials {creds}")
+        _LOGGER.debug(f"Logging out. Invalidating cached credentials {creds}")
         result = await cls._async_authenticated_post(_LOGOUT_URL, {}, cloud_creds=creds)
         return result
 

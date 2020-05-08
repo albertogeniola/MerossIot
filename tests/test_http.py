@@ -2,7 +2,7 @@ import os
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 from aiohttp import web
 from meross_iot.http_api import MerossHttpClient
-from meross_iot.exceptions import AuthenticatedPostException
+from meross_iot.model.http.exception import AuthenticatedPostException
 
 EMAIL = os.environ.get('MEROSS_EMAIL')
 PASSWORD = os.environ.get('MEROSS_PASSWORD')

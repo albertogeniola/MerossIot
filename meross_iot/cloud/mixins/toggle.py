@@ -53,9 +53,13 @@ class ToggleXMixin(object):
 
     async def turn_off(self, channel=0, *args, **kwargs):
         await self._execute_command("SET", Namespace.TOGGLEX, {'togglex': {"onoff": 0, "channel": channel}})
+        # Assume the command was ok, so immediately update the internal state
+        self._channel_status[channel] = False
 
     async def turn_on(self, channel=0, *args, **kwargs):
         await self._execute_command("SET", Namespace.TOGGLEX, {'togglex': {"onoff": 1, "channel": channel}})
+        # Assume the command was ok, so immediately update the internal state
+        self._channel_status[channel] = True
 
     async def toggle(self, channel=0, *args, **kwargs):
         if self.is_on:

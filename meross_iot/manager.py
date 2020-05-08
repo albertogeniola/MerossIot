@@ -1,4 +1,5 @@
 import asyncio
+import sys
 import json
 import random
 import ssl
@@ -6,7 +7,7 @@ import string
 import time
 from asyncio import Future
 from hashlib import md5
-from typing import Optional, List
+from typing import Optional, List, TypeVar, Union
 import logging
 import paho.mqtt.client as mqtt
 from asyncio import TimeoutError
@@ -15,15 +16,19 @@ from meross_iot.cloud.device_factory import build_meross_device
 from meross_iot.cloud.exception import CommandTimeoutError
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.cloud.exception import UnconnectedError
-from meross_iot.model.enums import Namespace
+from meross_iot.model.enums import Namespace, OnlineStatus
 from meross_iot.model.http.device import HttpDeviceInfo
 from meross_iot.model.push.factory import parse_push_notification
 from meross_iot.model.push.generic import GenericPushNotification
 from meross_iot.utilities.mqtt import generate_mqtt_password, generate_client_and_app_id, build_client_response_topic, \
     build_client_user_topic, verify_message_signature, device_uuid_from_push_notification, build_device_request_topic
 
-logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO, stream=sys.stdout)
 _LOGGER = logging.getLogger(__name__)
+
+
+T = TypeVar('T', bound=BaseMerossDevice)      # Declare type variable
 
 
 class MerossManager(object):
@@ -79,6 +84,15 @@ class MerossManager(object):
         _LOGGER.debug("Stopping the MQTT looper.")
         self._mqtt_client.loop_stop(True)
         _LOGGER.info("MQTT Client has fully disconnected.")
+
+    def find_device(self, uuids: Optional[List[str]] = None,
+                    device_type: Optional[str] = None,
+                    device_class: Optional[T] = None,
+                    device_name: Optional[str] = None,
+                    online_status: Optional[OnlineStatus] = None) -> List[T]:
+        return self._device_registry.find_all_by(
+            uuids=uuids, device_type=device_type, device_class=device_class,
+            device_name=device_name, online_status=online_status)
 
     async def async_init(self) -> None:
         """
@@ -319,6 +333,7 @@ class MerossManager(object):
         """
         # Only proceed if we are connected to the remote endpoint
         if not self._mqtt_client.is_connected():
+            _LOGGER.error("The MQTT client is not connected to the remote broker. Have you called async_init()?")
             raise UnconnectedError()
 
         # Build the mqtt message we will send to the broker
@@ -417,7 +432,7 @@ class DeviceRegistry(object):
                     device_type: Optional[str] = None,
                     device_class: Optional[type] = None,
                     device_name: Optional[str] = None,
-                    online_status: Optional[bool] = None) -> List[BaseMerossDevice]:
+                    online_status: Optional[OnlineStatus] = None) -> List[BaseMerossDevice]:
 
         # Look by UUIDs
         if uuids is not None:
@@ -428,7 +443,7 @@ class DeviceRegistry(object):
         if device_type is not None:
             res = filter(lambda d: d.type == device_type, res)
         if online_status is not None:
-            res = filter(lambda d: d.online == online_status, res)
+            res = filter(lambda d: d.online_status == online_status, res)
         if device_class is not None:
             res = filter(lambda d: isinstance(d, device_class), res)
         if device_name is not None:
