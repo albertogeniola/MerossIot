@@ -3,6 +3,7 @@ from typing import List
 
 from meross_iot.cloud.device import BaseMerossDevice
 from meross_iot.cloud.mixins.consumption import ConsumptionXMixin
+from meross_iot.cloud.mixins.electricity import ElectricityMixin
 from meross_iot.cloud.mixins.toggle import ToggleXMixin, ToggleMixin
 from meross_iot.model.enums import Namespace, get_or_parse_namespace
 from meross_iot.model.http.device import HttpDeviceInfo
@@ -16,7 +17,9 @@ _ABILITY_MATRIX = {
     Namespace.TOGGLEX.value: ToggleXMixin,
     Namespace.TOGGLE.value: ToggleMixin,
 
-    Namespace.CONSUMPTIONX.value: ConsumptionXMixin
+    Namespace.CONSUMPTIONX.value: ConsumptionXMixin,
+
+    Namespace.ELECTRICITY.value: ElectricityMixin
 
     #Namespace.SYSTEM_ALL: pass
     # TODO:
@@ -27,10 +30,10 @@ def build_meross_device(http_device_info: HttpDeviceInfo, device_abilities: dict
     _LOGGER.debug(f"Building managed device for {http_device_info.dev_name} ({http_device_info.uuid}). "
                   f"Reported abilities: {device_abilities}")
 
-    # Build a specific type at runtime by mixing mixins on-demand
+    # Build a specific type at runtime by mixing plugins on-demand
     mixin_classes = []
 
-    # Add mixins by abilities
+    # Add plugins by abilities
     for key, val in device_abilities.items():
         cls = _ABILITY_MATRIX.get(key)
         if cls is not None:

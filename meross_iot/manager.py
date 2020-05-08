@@ -344,9 +344,9 @@ class MerossManager(object):
         self._pending_messages_futures[message_id] = fut
 
         response = await self._async_send_and_wait_ack(future=fut,
-                                                 target_device_uuid=destination_device_uuid,
-                                                 message=message,
-                                                 timeout=timeout)
+                                                       target_device_uuid=destination_device_uuid,
+                                                       message=message,
+                                                       timeout=timeout)
         return response.get('payload')
 
     async def _async_send_and_wait_ack(self, future: Future, target_device_uuid: str, message: dict, timeout: float):
