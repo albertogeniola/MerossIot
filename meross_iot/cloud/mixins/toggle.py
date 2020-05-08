@@ -17,7 +17,7 @@ class ToggleXMixin(object):
         super().__init__(device_uuid=device_uuid, manager=manager, **kwargs)
 
         # _channel_status is a dictionary keeping the status for every channel
-        self._channel_status = {}
+        self._channel_togglex_status = {}
 
     def handle_push_notification(self, push_notification: GenericPushNotification) -> bool:
         locally_handled = False
@@ -35,12 +35,12 @@ class ToggleXMixin(object):
                 for c in payload:
                     channel = c['channel']
                     switch_state = c['onoff'] == 1
-                    self._channel_status[channel] = switch_state
+                    self._channel_togglex_status[channel] = switch_state
 
             elif isinstance(payload, dict):
                 channel = payload['channel']
                 switch_state = payload['onoff'] == 1
-                self._channel_status[channel] = switch_state
+                self._channel_togglex_status[channel] = switch_state
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
@@ -49,17 +49,17 @@ class ToggleXMixin(object):
 
     @property
     def is_on(self, channel=0, *args, **kwargs) -> Optional[bool]:
-        return self._channel_status.get(channel, None)
+        return self._channel_togglex_status.get(channel, None)
 
     async def turn_off(self, channel=0, *args, **kwargs):
         await self._execute_command("SET", Namespace.TOGGLEX, {'togglex': {"onoff": 0, "channel": channel}})
         # Assume the command was ok, so immediately update the internal state
-        self._channel_status[channel] = False
+        self._channel_togglex_status[channel] = False
 
     async def turn_on(self, channel=0, *args, **kwargs):
         await self._execute_command("SET", Namespace.TOGGLEX, {'togglex': {"onoff": 1, "channel": channel}})
         # Assume the command was ok, so immediately update the internal state
-        self._channel_status[channel] = True
+        self._channel_togglex_status[channel] = True
 
     async def toggle(self, channel=0, *args, **kwargs):
         if self.is_on:
@@ -77,7 +77,7 @@ class ToggleMixin(object):
         super().__init__(device_uuid=device_uuid, manager=manager, **kwargs)
 
         # _channel_status is a dictionary keeping the status for every channel
-        self._channel_status = {}
+        self._channel_toggle_status = {}
 
     def handle_push_notification(self, push_notification: GenericPushNotification) -> bool:
         locally_handled = False
@@ -92,7 +92,7 @@ class ToggleMixin(object):
             else:
                 channel_index = payload.get('channel', 0)
                 switch_state = payload['onoff'] == 1
-                self._channel_status[channel_index] = switch_state
+                self._channel_toggle_status[channel_index] = switch_state
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
@@ -101,7 +101,7 @@ class ToggleMixin(object):
 
     @property
     def is_on(self, channel=0, *args, **kwargs) -> Optional[bool]:
-        return self._channel_status.get(channel, None)
+        return self._channel_toggle_status.get(channel, None)
 
     async def turn_off(self, channel=0, *args, **kwargs):
         await self._execute_command("SET", Namespace.TOGGLE, {'toggle': {"onoff": 0, "channel": channel}})

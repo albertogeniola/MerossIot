@@ -66,8 +66,8 @@ class BaseMerossDevice(object):
         #return root_handled or specific_handled
         return False
 
-    async def _execute_command(self, method: str, namespace: Namespace, payload: dict):
-        await self._manager.async_execute_cmd(destination_device_uuid=self.uuid,
+    async def _execute_command(self, method: str, namespace: Namespace, payload: dict) -> dict:
+        return await self._manager.async_execute_cmd(destination_device_uuid=self.uuid,
                                               method=method,
                                               namespace=namespace,
                                               payload=payload)

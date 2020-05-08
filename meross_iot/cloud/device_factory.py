@@ -2,6 +2,7 @@ import logging
 from typing import List
 
 from meross_iot.cloud.device import BaseMerossDevice
+from meross_iot.cloud.mixins.consumption import ConsumptionXMixin
 from meross_iot.cloud.mixins.toggle import ToggleXMixin, ToggleMixin
 from meross_iot.model.enums import Namespace, get_or_parse_namespace
 from meross_iot.model.http.device import HttpDeviceInfo
@@ -13,7 +14,10 @@ _LOGGER = logging.getLogger(__name__)
 # TODO: implement logic to "selectively discard overlapping capabilities"
 _ABILITY_MATRIX = {
     Namespace.TOGGLEX.value: ToggleXMixin,
-    Namespace.TOGGLE.value: ToggleMixin
+    Namespace.TOGGLE.value: ToggleMixin,
+
+    Namespace.CONSUMPTIONX.value: ConsumptionXMixin
+
     #Namespace.SYSTEM_ALL: pass
     # TODO:
 }

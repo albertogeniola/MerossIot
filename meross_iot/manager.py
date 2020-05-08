@@ -7,7 +7,7 @@ import string
 import time
 from asyncio import Future
 from hashlib import md5
-from typing import Optional, List, TypeVar, Union
+from typing import Optional, List, TypeVar, Union, Type
 import logging
 import paho.mqtt.client as mqtt
 from asyncio import TimeoutError
@@ -87,7 +87,7 @@ class MerossManager(object):
 
     def find_device(self, uuids: Optional[List[str]] = None,
                     device_type: Optional[str] = None,
-                    device_class: Optional[T] = None,
+                    device_class: Optional[type] = None,
                     device_name: Optional[str] = None,
                     online_status: Optional[OnlineStatus] = None) -> List[T]:
         return self._device_registry.find_all_by(
@@ -430,7 +430,7 @@ class DeviceRegistry(object):
     def find_all_by(self,
                     uuids: Optional[List[str]] = None,
                     device_type: Optional[str] = None,
-                    device_class: Optional[type] = None,
+                    device_class: Optional[T] = None,
                     device_name: Optional[str] = None,
                     online_status: Optional[OnlineStatus] = None) -> List[BaseMerossDevice]:
 
