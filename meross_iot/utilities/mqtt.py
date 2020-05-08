@@ -36,7 +36,7 @@ def device_uuid_from_push_notification(from_topic: str):
     :param from_topic:
     :return:
     """
-    return from_topic.split('/')[1]
+    return from_topic.split('/')[2]
 
 
 def generate_client_and_app_id():

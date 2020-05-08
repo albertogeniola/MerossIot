@@ -1,2 +1,0 @@
-class ConnectionDroppedException(Exception):
-    pass

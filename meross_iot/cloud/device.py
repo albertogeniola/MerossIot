@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 from meross_iot.model.enums import OnlineStatus, Namespace
 from meross_iot.model.http.device import HttpDeviceInfo
-from meross_iot.model.push.generic import AbstractPushNotification
+from meross_iot.model.push.generic import GenericPushNotification
 from meross_iot.model.push.online import OnlinePushNotification
 import logging
 
@@ -53,7 +53,7 @@ class BaseMerossDevice(object):
         # TODO: update local name/hwversion/fwversion/online-status from online http information
         raise Exception("Not implemented yet!")
 
-    async def handle_push_notification(self, push_notification: AbstractPushNotification) -> bool:
+    def handle_push_notification(self, push_notification: GenericPushNotification) -> bool:
         _LOGGER.debug(f"Device {self.name} handling notification {push_notification.namespace}")
         root_handled = False
 

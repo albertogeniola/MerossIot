@@ -1,2 +1,0 @@
-class StatusTimeoutException(Exception):
-    pass

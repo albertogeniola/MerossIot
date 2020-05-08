@@ -1,11 +1,11 @@
 from meross_iot.model.enums import Namespace
-from meross_iot.model.push.generic import AbstractPushNotification
+from meross_iot.model.push.generic import GenericPushNotification
 
 
-class UnbindPushNotification(AbstractPushNotification):
-    def __init__(self, originating_device_uuid: str):
-        super().__init__(namespace=Namespace.UNBIND, originating_device_uuid=originating_device_uuid)
+class UnbindPushNotification(GenericPushNotification):
+    def __init__(self, originating_device_uuid: str, raw_data: dict):
+        super().__init__(namespace=Namespace.UNBIND, originating_device_uuid=originating_device_uuid, raw_data=raw_data)
 
     @classmethod
     def from_dict(cls, data: dict, originating_device_uuid: str):
-        return UnbindPushNotification(originating_device_uuid=originating_device_uuid)
+        return UnbindPushNotification(originating_device_uuid=originating_device_uuid, raw_data=data)

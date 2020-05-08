@@ -12,13 +12,13 @@ import paho.mqtt.client as mqtt
 from asyncio import TimeoutError
 from meross_iot.cloud.device import BaseMerossDevice
 from meross_iot.cloud.device_factory import build_meross_device
-from meross_iot.cloud.exceptions.CommandTimeoutError import CommandTimeoutError
+from meross_iot.cloud.exception import CommandTimeoutError
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.cloud.exception import UnconnectedError
 from meross_iot.model.enums import Namespace
 from meross_iot.model.http.device import HttpDeviceInfo
 from meross_iot.model.push.factory import parse_push_notification
-from meross_iot.model.push.generic import AbstractPushNotification
+from meross_iot.model.push.generic import GenericPushNotification
 from meross_iot.utilities.mqtt import generate_mqtt_password, generate_client_and_app_id, build_client_response_topic, \
     build_client_user_topic, verify_message_signature, device_uuid_from_push_notification, build_device_request_topic
 
@@ -153,9 +153,9 @@ class MerossManager(object):
     async def _async_enroll_new_http_dev(self, device_info: HttpDeviceInfo) -> Optional[BaseMerossDevice]:
         try:
             res_abilities = await self.async_execute_cmd(destination_device_uuid=device_info.uuid,
-                                                     method="GET",
-                                                     namespace=Namespace.ABILITY,
-                                                     payload={})
+                                                         method="GET",
+                                                         namespace=Namespace.ABILITY,
+                                                         payload={})
             abilities = res_abilities.get('ability')
         except CommandTimeoutError:
             _LOGGER.error(f"Failed to retrieve abilities for device {device_info.dev_name} ({device_info.uuid}). "
@@ -275,15 +275,14 @@ class MerossManager(object):
             if parsed_push_notification is None:
                 _LOGGER.error("Push notification parsing failed. That message won't be dispatched.")
             else:
-                self._loop.call_soon_threadsafe(self._dispatch_push_notification,
-                                                parsed_push_notification)
+                asyncio.run_coroutine_threadsafe(self._dispatch_push_notification(parsed_push_notification), self._loop)
         else:
             _LOGGER.warning(f"The current implementation of this library does not handle messages received on topic "
                             f"({destination_topic}) and when the message method is {message_method}. "
                             "If you see this message many times, it means Meross has changed the way its protocol "
                             "works. Contact the developer if that happens!")
 
-    async def _dispatch_push_notification(self, push_notification: AbstractPushNotification):
+    async def _dispatch_push_notification(self, push_notification: GenericPushNotification) -> bool:
         """
         This method runs within the event loop and is responsible to deliver push notifications to the corresponding
         meross device within the register.
@@ -297,8 +296,11 @@ class MerossManager(object):
                             "You may need to trigger a discovery to catch those updates. Device-UUID: "
                             f"{push_notification.originating_device_uuid}")
             # TODO: does it make sense to schedule a device discover at this stage without needing to warn the user?
+            return False
+
+        # Pass the control to the specific device implementation
         dev = target_devs[0]
-        await dev.handle_push_notification(push_notification)
+        return dev.handle_push_notification(push_notification)
 
     async def async_execute_cmd(self,
                                 destination_device_uuid: str,
@@ -452,9 +454,8 @@ async def main():
         res = await manager.async_device_discovery()
         device = manager._device_registry.find_all_by(device_name='MSS210')[0]
         await device.turn_off()
-        await asyncio.sleep(2)
+        await asyncio.sleep(3)
         await device.turn_on()
-        await asyncio.sleep(2)
         manager.close()
     except:
         _LOGGER.exception("Error")
