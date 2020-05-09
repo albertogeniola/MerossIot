@@ -24,8 +24,7 @@ _ABILITY_MATRIX = {
     # Light abilities
     Namespace.LIGHT.value: LightMixin
 
-    #Namespace.SYSTEM_ALL: pass
-    # TODO:
+    # TODO: Namespace.SYSTEM_ALL, BIND, UNBIND, ONLINE, WIFI, ETC!
 }
 
 
@@ -84,7 +83,10 @@ def _build_cached_type(type_string: str, device_abilities: dict) -> type:
         elif cls is not None:
             mixin_classes.add(cls)
 
-    mixin_classes.add(BaseMerossDevice)
+    # We must be careful when ordering the mixin and leaving the BaseMerossDevice as last class.
+    # Messing up with that will cause MRO to not resolve inheritance correctly.
+    mixin_classes = list(mixin_classes)
+    mixin_classes.append(BaseMerossDevice)
     m = type(type_string, tuple(mixin_classes), {"_abilities_spec": device_abilities})
     return m
 

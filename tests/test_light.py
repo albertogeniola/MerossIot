@@ -1,4 +1,6 @@
 import os
+from random import randint
+
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 from aiohttp import web
 
@@ -37,12 +39,15 @@ class TestToggleX(AioHTTPTestCase):
 
         light = rgb_capable[0]
 
-        # Set RED color
-        await light.async_set_light_color(rgb=(255, 0, 0))
+        # Set a random color
+        r = randint(0, 256)
+        g = randint(0, 256)
+        b = randint(0, 256)
+        await light.async_set_light_color(rgb=(r, g, b))
 
         # Check the color property returns red
         color = light.rgb_color
-        self.assertEqual(color, (255, 0, 0))
+        self.assertEqual(color, (r, g, b))
 
     """
     async def test_toggle_push_notification(self):

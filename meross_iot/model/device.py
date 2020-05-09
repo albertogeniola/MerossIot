@@ -56,6 +56,8 @@ class BaseMerossDevice(object):
         _LOGGER.debug(f"Device {self.name} handling notification {push_notification.namespace}")
         root_handled = False
 
+        # TODO: refactor this. We don't want to use specific push notification handling in here
+        #  as we moved to a Mixin dynamic approach to handle such events.
         if isinstance(push_notification, OnlinePushNotification):
             self._online = push_notification.online_status
 
