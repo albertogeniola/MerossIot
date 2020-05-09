@@ -61,6 +61,23 @@ class BaseMerossDevice(object):
         _LOGGER.debug(f"MerossBaseDevice {self.name} handling notification {push_notification.namespace}")
         return False
 
+    def handle_update(self, data: dict) -> None:
+        # By design, the base class doe snot implement any update logic
+        # TODO: we might update name/uuid/other stuff in here...
+        pass
+
+    async def async_update(self) -> None:
+        # This method should be overridden implemented by mixins and never called directly. Its main
+        # objective is to call the corresponding GET ALL command, which varies in accordance with the
+        # device type. For instance, wifi devices use GET System.Appliance.ALL while HUBs use a different one.
+        # Implementing mixin should never call the super() implementation (as it happens
+        # with _handle_update) as we want to use only an UPDATE_ALL method.
+        # However, we want to keep it within the MerossBaseDevice so that we expose a consistent
+        # interface.
+        raise NotImplementedError("This method should never be called on the BaseMerossDevice. If this happens,"
+                                  "it means there is a device which is not being attached any update mixin."
+                                  f"Contact the developer. Current object bases: {self.__class__.__bases__}")
+
     async def _execute_command(self, method: str, namespace: Namespace, payload: dict) -> dict:
         return await self._manager.async_execute_cmd(destination_device_uuid=self.uuid,
                                                      method=method,

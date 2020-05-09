@@ -24,13 +24,14 @@ class Namespace(Enum):
     SYSTEM_ALL = 'Appliance.System.All'
     ABILITY = 'Appliance.System.Ability'
     ONLINE = 'Appliance.System.Online'
+    REPORT = 'Appliance.System.Report'
+    DEBUG = 'Appliance.System.Debug'
+
     BIND = 'Appliance.Control.Bind'
     UNBIND = 'Appliance.Control.Unbind'
-    REPORT = 'Appliance.System.Report'
     TRIGGER = 'Appliance.Control.Trigger'
     TRIGGERX = 'Appliance.Control.TriggerX'
     WIFI_LIST = 'Appliance.Config.WifiList'
-    DEBUG = 'Appliance.System.Debug'
     TRACE = 'Appliance.Config.Trace'
 
     # Power plug/bulbs abilities

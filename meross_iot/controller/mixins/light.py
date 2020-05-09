@@ -13,6 +13,7 @@ _LOGGER = logging.getLogger(__name__)
 class LightMixin(object):
     _execute_command: callable
     _abilities_spec: dict
+    handle_update: callable
 
     def __init__(self, device_uuid: str,
                  manager,
@@ -43,6 +44,15 @@ class LightMixin(object):
         # ancestors to catch all events.
         parent_handled = super().handle_push_notification(push_notification=push_notification)
         return locally_handled or parent_handled
+
+    def handle_update(self, data: dict) -> None:
+        _LOGGER.debug(f"Handling {self.__class__.__name__} mixin data update.")
+        light_data = data.get('all', {}).get('digest', {}).get('light', [])
+        self._update_channel_status(channel=light_data.get('channel'),
+                                    rgb=light_data.get('rgb'),
+                                    luminance=light_data.get('luminance'),
+                                    temperature=light_data.get('temperature'))
+        super().handle_update(data=data)
 
     def _supports_mode(self, mode: LightMode) -> bool:
         return (self._abilities_spec.get(Namespace.LIGHT.value).get('capacity') & mode.value) == mode.value

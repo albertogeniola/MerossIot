@@ -9,6 +9,7 @@ _LOGGER = logging.getLogger(__name__)
 
 class ToggleXMixin(object):
     _execute_command: callable
+    handle_update: callable
 
     def __init__(self, device_uuid: str,
                  manager,
@@ -47,6 +48,15 @@ class ToggleXMixin(object):
         parent_handled = super().handle_push_notification(push_notification=push_notification)
         return locally_handled or parent_handled
 
+    def handle_update(self, data: dict) -> None:
+        _LOGGER.debug(f"Handling {self.__class__.__name__} mixin data update.")
+        payload = data.get('all', {}).get('digest', {}).get('togglex', [])
+        for c in payload:
+            channel = c['channel']
+            switch_state = c['onoff'] == 1
+            self._channel_togglex_status[channel] = switch_state
+        super().handle_update(data=data)
+
     def is_on(self, channel=0, *args, **kwargs) -> Optional[bool]:
         return self._channel_togglex_status.get(channel, None)
 
@@ -69,6 +79,7 @@ class ToggleXMixin(object):
 
 class ToggleMixin(object):
     _execute_command: callable
+    handle_update: callable
 
     def __init__(self, device_uuid: str,
                  manager,
@@ -96,6 +107,14 @@ class ToggleMixin(object):
         # ancestors to catch all events.
         parent_handled = super().handle_push_notification(push_notification=push_notification)
         return locally_handled or parent_handled
+
+    def handle_update(self, data: dict) -> None:
+        _LOGGER.debug(f"Handling {self.__class__.__name__} mixin data update.")
+        payload = data.get('all', {}).get('control', {}).get('toggle', {})
+        channel_index = payload.get('channel', 0)
+        switch_state = payload['onoff'] == 1
+        self._channel_toggle_status[channel_index] = switch_state
+        super().handle_update(data=data)
 
     def is_on(self, channel=0, *args, **kwargs) -> Optional[bool]:
         return self._channel_toggle_status.get(channel, None)

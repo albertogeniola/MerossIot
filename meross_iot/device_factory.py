@@ -4,6 +4,7 @@ from typing import Optional
 from meross_iot.controller.mixins.consumption import ConsumptionXMixin
 from meross_iot.controller.mixins.electricity import ElectricityMixin
 from meross_iot.controller.mixins.light import LightMixin
+from meross_iot.controller.mixins.system import SystemAllMixin, SystemOnlineMixin
 from meross_iot.controller.mixins.toggle import ToggleXMixin, ToggleMixin
 from meross_iot.model.device import BaseMerossDevice
 from meross_iot.model.enums import Namespace
@@ -21,7 +22,11 @@ _ABILITY_MATRIX = {
     Namespace.ELECTRICITY.value: ElectricityMixin,
 
     # Light abilities
-    Namespace.LIGHT.value: LightMixin
+    Namespace.LIGHT.value: LightMixin,
+
+    # System
+    Namespace.SYSTEM_ALL.value: SystemAllMixin,
+    Namespace.ONLINE.value: SystemOnlineMixin
 
     # TODO: Namespace.SYSTEM_ALL, BIND, UNBIND, ONLINE, WIFI, ETC!
 }

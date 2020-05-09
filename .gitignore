@@ -118,3 +118,4 @@ ext-res/tests/package-lock.json
 # Logged utilities
 utilities/*.zip
 utilities/*.log
+sniffed_data
