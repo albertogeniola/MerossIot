@@ -18,13 +18,16 @@ This will help us to keep track of new devices and current support status of the
 This library is still work in progres
 s, therefore use it with caution.
 
-## ☠ IMPORTANT NOTE ☠
+## &#8505; ROAD TO V4 &#8505;
+
 Due to numerous changes on the Meross side and to the needs of the HomeAssistant component this library is built for, I've decided to build a complete new version of the library (0.4.X.X), which will address the following:
 - Lightweight, singlethreaded, async architecture
 - Better online/offline handling
 - Good-looking code, using python hints
 - Native event types for easier integration
 - Improved comments and documentation
+
+Development is ongoing, you can see updates [here](https://github.com/albertogeniola/MerossIot/projects/1).
 
 I'm also considering to take actions in order to implement convenient HTTP lan-only APIs to command devices without MQTT integration, but it's too early to say it'll be integrated. If you like and want to support, consider donating.
 
