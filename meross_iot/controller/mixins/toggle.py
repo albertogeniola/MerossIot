@@ -1,9 +1,8 @@
+import logging
 from typing import Optional
 
 from meross_iot.model.enums import Namespace
 from meross_iot.model.push.generic import GenericPushNotification
-import logging
-
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -26,7 +25,7 @@ class ToggleXMixin(object):
             _LOGGER.debug(f"ToggleXMxin handling push notification for namespace {push_notification.namespace}")
             payload = push_notification.raw_data.get('togglex')
             if payload is None:
-                _LOGGER.error(f"ToggleXMxin could not fine 'togglex' attribute in push notification data: {push_notification.raw_data}")
+                _LOGGER.error(f"ToggleXMxin could not find 'togglex' attribute in push notification data: {push_notification.raw_data}")
 
             # The content of the togglex payload may vary. It can either be a dict (plugs with single switch)
             # or a list (power strips).
@@ -87,7 +86,7 @@ class ToggleMixin(object):
             _LOGGER.debug(f"ToggleMixin handling push notification for namespace {push_notification.namespace}")
             payload = push_notification.raw_data.get('togglex')
             if payload is None:
-                _LOGGER.error(f"ToggleMixin could not fine 'toggle' attribute in push notification data: {push_notification.raw_data}")
+                _LOGGER.error(f"ToggleMixin could not find 'toggle' attribute in push notification data: {push_notification.raw_data}")
             else:
                 channel_index = payload.get('channel', 0)
                 switch_state = payload['onoff'] == 1

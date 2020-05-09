@@ -1,6 +1,6 @@
-from meross_iot.model.shared import BaseDictPayload
 import logging
 
+from meross_iot.model.shared import BaseDictPayload
 
 _LOGGER = logging.getLogger(__name__)
 

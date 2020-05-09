@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, Dict, Union, Tuple
+from typing import Optional, Union
 
 from meross_iot.model.enums import Namespace, LightMode
 from meross_iot.model.plugin.light import LightInfo
@@ -29,7 +29,7 @@ class LightMixin(object):
             _LOGGER.debug(f"LightMixin handling push notification for namespace {push_notification.namespace}")
             payload = push_notification.raw_data.get('light')
             if payload is None:
-                _LOGGER.error(f"LightMixin could not fine 'light' attribute in push notification data: "
+                _LOGGER.error(f"LightMixin could not find 'light' attribute in push notification data: "
                               f"{push_notification.raw_data}")
                 locally_handled = False
             else:

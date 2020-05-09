@@ -1,10 +1,8 @@
-from typing import Optional, List
-
-from meross_iot.model.enums import Namespace
-from meross_iot.model.push.generic import GenericPushNotification
 import logging
 from datetime import datetime
+from typing import List
 
+from meross_iot.model.enums import Namespace
 
 _LOGGER = logging.getLogger(__name__)
 

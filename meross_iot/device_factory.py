@@ -1,14 +1,13 @@
 import logging
 from typing import Optional
 
-from meross_iot.controller.mixins.light import LightMixin
-from meross_iot.model.device import BaseMerossDevice
 from meross_iot.controller.mixins.consumption import ConsumptionXMixin
 from meross_iot.controller.mixins.electricity import ElectricityMixin
+from meross_iot.controller.mixins.light import LightMixin
 from meross_iot.controller.mixins.toggle import ToggleXMixin, ToggleMixin
+from meross_iot.model.device import BaseMerossDevice
 from meross_iot.model.enums import Namespace
 from meross_iot.model.http.device import HttpDeviceInfo
-
 
 _LOGGER = logging.getLogger(__name__)
 

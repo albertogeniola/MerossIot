@@ -1,15 +1,13 @@
 import os
 from random import randint
 
-from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 from aiohttp import web
+from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
 from meross_iot.controller.mixins.light import LightMixin
-from meross_iot.controller.mixins.toggle import ToggleXMixin
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
 from meross_iot.model.enums import OnlineStatus
-import asyncio
 
 EMAIL = os.environ.get('MEROSS_EMAIL')
 PASSWORD = os.environ.get('MEROSS_PASSWORD')

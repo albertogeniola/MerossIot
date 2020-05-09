@@ -2,10 +2,11 @@ import logging
 from os import path
 from zipfile import ZipFile
 
-from meross_iot.model.device import BaseMerossDevice
 from meross_iot.cloud.devices.hubs import GenericHub
+
 from meross_iot.logger import h
 from meross_iot.manager import MerossManager
+from meross_iot.model.device import BaseMerossDevice
 
 ROOT_LOG_FILE = 'root.log'
 INFO_LOG_FILE = 'info.log'

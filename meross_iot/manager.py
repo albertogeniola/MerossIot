@@ -1,30 +1,30 @@
 import asyncio
-import sys
 import json
+import logging
 import random
 import ssl
 import string
+import sys
 import time
 from asyncio import Future
+from asyncio import TimeoutError
 from hashlib import md5
 from typing import Optional, List, TypeVar
-import logging
+
 import paho.mqtt.client as mqtt
-from asyncio import TimeoutError
 
 from meross_iot.controller.mixins.light import LightMixin
-from meross_iot.model.device import BaseMerossDevice
 from meross_iot.device_factory import build_meross_device
-from meross_iot.model.exception import CommandTimeoutError
 from meross_iot.http_api import MerossHttpClient
-from meross_iot.model.exception import UnconnectedError
+from meross_iot.model.device import BaseMerossDevice
 from meross_iot.model.enums import Namespace, OnlineStatus
+from meross_iot.model.exception import CommandTimeoutError
+from meross_iot.model.exception import UnconnectedError
 from meross_iot.model.http.device import HttpDeviceInfo
 from meross_iot.model.push.factory import parse_push_notification
 from meross_iot.model.push.generic import GenericPushNotification
 from meross_iot.utilities.mqtt import generate_mqtt_password, generate_client_and_app_id, build_client_response_topic, \
     build_client_user_topic, verify_message_signature, device_uuid_from_push_notification, build_device_request_topic
-
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO, stream=sys.stdout)
 _LOGGER = logging.getLogger(__name__)

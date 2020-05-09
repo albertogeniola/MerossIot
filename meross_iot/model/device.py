@@ -1,11 +1,8 @@
-from abc import ABC, abstractmethod
+import logging
 
 from meross_iot.model.enums import OnlineStatus, Namespace
 from meross_iot.model.http.device import HttpDeviceInfo
 from meross_iot.model.push.generic import GenericPushNotification
-from meross_iot.model.push.online import OnlinePushNotification
-import logging
-
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -50,28 +47,19 @@ class BaseMerossDevice(object):
 
     def update_from_http_state(self, hdevice: HttpDeviceInfo) -> None:
         # TODO: update local name/hwversion/fwversion/online-status from online http information
+        # Careful with online  status: not all the devices might expose an online mixin.
         raise Exception("Not implemented yet!")
 
     def handle_push_notification(self, push_notification: GenericPushNotification) -> bool:
-        _LOGGER.debug(f"Device {self.name} handling notification {push_notification.namespace}")
-        root_handled = False
-
-        # TODO: refactor this. We don't want to use specific push notification handling in here
-        #  as we moved to a Mixin dynamic approach to handle such events.
-        if isinstance(push_notification, OnlinePushNotification):
-            self._online = push_notification.online_status
-
-        # TODO: handle generic push notification valid for all devices,
-        #  such as Bind/Unbind/Online
-        #specific_handled = await self._handle_push_notification(push_notification)
-        #return root_handled or specific_handled
+        # By design, the base class does not implement any push notification.
+        _LOGGER.debug(f"MerossBaseDevice {self.name} handling notification {push_notification.namespace}")
         return False
 
     async def _execute_command(self, method: str, namespace: Namespace, payload: dict) -> dict:
         return await self._manager.async_execute_cmd(destination_device_uuid=self.uuid,
-                                              method=method,
-                                              namespace=namespace,
-                                              payload=payload)
+                                                     method=method,
+                                                     namespace=namespace,
+                                                     payload=payload)
 
     def __str__(self) -> str:
         basic_info = "%s (%s, HW %s, FW %s): " % (

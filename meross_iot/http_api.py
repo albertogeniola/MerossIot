@@ -1,23 +1,23 @@
 from __future__ import annotations  # Needed for returning the same class type where using factory static builders
+
 import base64
 import hashlib
 import json
+import logging
 import random
 import string
 import time
+from datetime import datetime
 from enum import Enum
 from typing import Optional, List
-from aiohttp import ClientSession
-from meross_iot.model.credentials import MerossCloudCreds
-from meross_iot.model.http.exception import TooManyTokensException, TokenExpiredException, AuthenticatedPostException
-from datetime import datetime
 
+from aiohttp import ClientSession
+
+from meross_iot.model.credentials import MerossCloudCreds
 # Appears to be used as a part of the signature algorithm as constant "salt" (kinda useless)
 from meross_iot.model.http.device import HttpDeviceInfo
+from meross_iot.model.http.exception import TooManyTokensException, TokenExpiredException, AuthenticatedPostException
 from meross_iot.model.http.subdevice import HttpSubDevice
-
-import logging
-
 
 _LOGGER = logging.getLogger(__name__)
 

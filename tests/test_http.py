@@ -1,6 +1,8 @@
 import os
-from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
+
 from aiohttp import web
+from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
+
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.model.http.exception import AuthenticatedPostException
 
