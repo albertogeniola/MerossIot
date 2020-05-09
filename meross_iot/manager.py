@@ -305,6 +305,8 @@ class MerossManager(object):
         :param push_notification:
         :return:
         """
+        # TODO: handle generic push notification as Bind/Unbind
+
         # Lookup the originating device and deliver the push notification to that one.
         target_devs = self._device_registry.find_all_by(push_notification.originating_device_uuid)
         if len(target_devs) < 1:

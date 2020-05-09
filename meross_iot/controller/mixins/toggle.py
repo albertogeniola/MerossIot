@@ -47,7 +47,6 @@ class ToggleXMixin(object):
         parent_handled = super().handle_push_notification(push_notification=push_notification)
         return locally_handled or parent_handled
 
-    @property
     def is_on(self, channel=0, *args, **kwargs) -> Optional[bool]:
         return self._channel_togglex_status.get(channel, None)
 
@@ -62,7 +61,7 @@ class ToggleXMixin(object):
         self._channel_togglex_status[channel] = True
 
     async def toggle(self, channel=0, *args, **kwargs):
-        if self.is_on:
+        if self.is_on(channel=channel):
             await self.turn_off(channel=channel)
         else:
             await self.turn_on(channel=channel)
@@ -98,7 +97,6 @@ class ToggleMixin(object):
         parent_handled = super().handle_push_notification(push_notification=push_notification)
         return locally_handled or parent_handled
 
-    @property
     def is_on(self, channel=0, *args, **kwargs) -> Optional[bool]:
         return self._channel_toggle_status.get(channel, None)
 
@@ -109,7 +107,7 @@ class ToggleMixin(object):
         await self._execute_command("SET", Namespace.TOGGLE, {'toggle': {"onoff": 1, "channel": channel}})
 
     async def toggle(self, channel=0, *args, **kwargs):
-        if self.is_on:
+        if self.is_on(channel=channel):
             await self.turn_off(channel=channel)
         else:
             await self.turn_on(channel=channel)

@@ -1,3 +1,4 @@
+import asyncio
 import os
 from random import randint
 
@@ -47,11 +48,16 @@ class TestToggleX(AioHTTPTestCase):
         color = light.rgb_color
         self.assertEqual(color, (r, g, b))
 
-    """
-    async def test_toggle_push_notification(self):
-        if self.test_device is None:
-            self.skipTest("No ToggleX device has been found to run this test on.")
+    @unittest_run_loop
+    async def test_rgb_push_notification(self):
+        # Make sure we have an RGB-capable available device
+        rgb_capable = list(filter(lambda d: d.supports_rgb, self.light_devices))
+        if len(rgb_capable) < 1:
+            self.skipTest("Could not find any RGB-capable LightMixin within the given set of devices. "
+                          "The test will be skipped")
             return
+
+        light = rgb_capable[0]
 
         # Create a new manager
         new_meross_client = await MerossHttpClient.async_from_user_password(email=EMAIL, password=PASSWORD)
@@ -60,33 +66,23 @@ class TestToggleX(AioHTTPTestCase):
             # Retrieve the same device with another manager
             m = MerossManager(http_client=new_meross_client)
             await m.async_device_discovery()
-            devs = m.find_device(uuids=(self.test_device.uuid))
+            devs = m.find_device(uuids=(light.uuid))
             dev = devs[0]
 
-            # Turn off device to start from a clean state
-            r = await self.test_device.turn_off()
+            # Set RGB color to known state
+            r = await light.async_set_light_color(rgb=(255, 0, 0))
             await asyncio.sleep(2)
 
             # Turn on the device
-            r = await self.test_device.turn_on()
+            r = await light.async_set_light_color(rgb=(0, 255, 0))
             # Wait a bit and make sure the other manager received the push notification
             await asyncio.sleep(2)
-            self.assertTrue(self.test_device.is_on)
-            self.assertTrue(dev.is_on)
-
-            # Turn off the device
-            await asyncio.sleep(1)
-            r = await self.test_device.turn_off()
-            # Wait a bit and make sure the other manager received the push notification
-            await asyncio.sleep(2)
-            self.assertFalse(self.test_device.is_on)
-            self.assertFalse(dev.is_on)
-
+            self.assertEqual(light.rgb_color, (0, 255, 0))
+            self.assertEqual(dev.rgb_color, (0, 255, 0))
         finally:
             if m is not None:
                 m.close()
             await new_meross_client.async_logout()
-    """
 
     async def tearDownAsync(self):
         await self.meross_client.async_logout()

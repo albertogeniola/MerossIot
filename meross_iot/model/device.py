@@ -1,4 +1,6 @@
+from __future__ import annotations
 import logging
+from typing import List, Union
 
 from meross_iot.model.enums import OnlineStatus, Namespace
 from meross_iot.model.http.device import HttpDeviceInfo
@@ -13,7 +15,7 @@ class BaseMerossDevice(object):
                  **kwargs):
         self.uuid = device_uuid
         self._manager = manager
-        self._channels = kwargs.get('channels', [])
+        self._channels = self._parse_channels(kwargs.get('channels', []))
 
         # Information about device
         self._name = kwargs.get('devName')
@@ -45,6 +47,10 @@ class BaseMerossDevice(object):
     def online_status(self) -> OnlineStatus:
         return self._online
 
+    @property
+    def channels(self) -> List[ChannelInfo]:
+        return self._channels
+
     def update_from_http_state(self, hdevice: HttpDeviceInfo) -> None:
         # TODO: update local name/hwversion/fwversion/online-status from online http information
         # Careful with online  status: not all the devices might expose an online mixin.
@@ -70,3 +76,48 @@ class BaseMerossDevice(object):
         )
 
         return basic_info
+
+    @staticmethod
+    def _parse_channels(channel_data: List) -> List[ChannelInfo]:
+        res = []
+        if channel_data is None:
+            return res
+
+        for i, val in enumerate(channel_data):
+            name = val.get('name')
+            type = val.get('type')
+            master = i == 0
+            res.append(ChannelInfo(index=i, name=name, channel_type=type, is_master_channel=master))
+
+        return res
+
+    def lookup_channel(self, channel_id_or_name: Union[int, str]):
+        res = []
+        if isinstance(channel_id_or_name, str):
+            res = list(filter(lambda c: c.name == channel_id_or_name, self._channels))
+        elif isinstance(channel_id_or_name, int):
+            res = list(filter(lambda c: c.index == channel_id_or_name, self._channels))
+        if len(res) == 1:
+            return res[0]
+        raise ValueError(f"Could not find channel by id or name = {channel_id_or_name}")
+
+
+class ChannelInfo(object):
+    def __init__(self, index: int, name: str = None, channel_type: str = None, is_master_channel:bool = False):
+        self._index = index
+        self._name = name
+        self._type = channel_type
+        self._master = is_master_channel
+
+    @property
+    def index(self) -> int:
+        return self._index
+
+    @property
+    def is_usb(self) -> bool:
+        return self._type == 'USB'
+
+    @property
+    def is_master_channel(self) -> bool:
+        return self._master
+
