@@ -14,7 +14,6 @@ class BaseMerossDevice(object):
     def __init__(self, device_uuid: str,
                  manager,  # TODO: type hinting "manager"
                  **kwargs):
-        super().__init__()
         self.uuid = device_uuid
         self._manager = manager
         self._channels = kwargs.get('channels', [])

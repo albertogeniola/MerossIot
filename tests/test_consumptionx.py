@@ -1,10 +1,9 @@
-import asyncio
 import os
 
 from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
-from meross_iot.cloud.mixins.consumption import ConsumptionXMixin
+from meross_iot.controller.mixins.consumption import ConsumptionXMixin
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
 from meross_iot.model.enums import OnlineStatus

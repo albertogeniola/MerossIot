@@ -1,5 +1,3 @@
-from typing import Optional, List
-from meross_iot.cloud.device import BaseMerossDevice
 import logging
 
 

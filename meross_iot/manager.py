@@ -7,15 +7,17 @@ import string
 import time
 from asyncio import Future
 from hashlib import md5
-from typing import Optional, List, TypeVar, Union, Type
+from typing import Optional, List, TypeVar
 import logging
 import paho.mqtt.client as mqtt
 from asyncio import TimeoutError
-from meross_iot.cloud.device import BaseMerossDevice
-from meross_iot.cloud.device_factory import build_meross_device
-from meross_iot.cloud.exception import CommandTimeoutError
+
+from meross_iot.controller.mixins.light import LightMixin
+from meross_iot.model.device import BaseMerossDevice
+from meross_iot.device_factory import build_meross_device
+from meross_iot.model.exception import CommandTimeoutError
 from meross_iot.http_api import MerossHttpClient
-from meross_iot.cloud.exception import UnconnectedError
+from meross_iot.model.exception import UnconnectedError
 from meross_iot.model.enums import Namespace, OnlineStatus
 from meross_iot.model.http.device import HttpDeviceInfo
 from meross_iot.model.push.factory import parse_push_notification
@@ -467,10 +469,9 @@ async def main():
         await manager.async_init()
         res = await manager.async_execute_cmd('18050329735693251a0234298f1178ce', "GET", Namespace.SYSTEM_ALL, {})
         res = await manager.async_device_discovery()
-        device = manager._device_registry.find_all_by(device_name='MSS210')[0]
-        await device.turn_off()
-        await asyncio.sleep(3)
-        await device.turn_on()
+        device = manager.find_device(device_name='MSL120', device_class=LightMixin)[0]
+
+        print(device.rgb_color)
         manager.close()
     except:
         _LOGGER.exception("Error")

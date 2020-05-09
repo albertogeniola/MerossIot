@@ -11,25 +11,42 @@ class OnlineStatus(Enum):
     OFFLINE = 2
 
 
+class LightMode(Enum):
+    MODE_LUMINANCE = 4
+    MODE_TEMPERATURE = 2
+    MODE_RGB = 1
+    MODE_RGB_LUMINANCE = 5
+    MODE_TEMPERATURE_LUMINANCE = 6
+
+
 class Namespace(Enum):
     # Common abilities
     SYSTEM_ALL = 'Appliance.System.All'
     ABILITY = 'Appliance.System.Ability'
-    REPORT = 'Appliance.System.Report'
     ONLINE = 'Appliance.System.Online'
+    BIND = 'Appliance.Control.Bind'
+    UNBIND = 'Appliance.Control.Unbind'
+    REPORT = 'Appliance.System.Report'
+    TRIGGER = 'Appliance.Control.Trigger'
+    TRIGGERX = 'Appliance.Control.TriggerX'
     WIFI_LIST = 'Appliance.Config.WifiList'
     DEBUG = 'Appliance.System.Debug'
     TRACE = 'Appliance.Config.Trace'
-    BIND = 'Appliance.Control.Bind'
-    UNBIND = 'Appliance.Control.Unbind'
 
     # Power plug/bulbs abilities
     TOGGLE = 'Appliance.Control.Toggle'
     TOGGLEX = 'Appliance.Control.ToggleX'
-    TRIGGER = 'Appliance.Control.Trigger'
-    TRIGGERX = 'Appliance.Control.TriggerX'
     ELECTRICITY = 'Appliance.Control.Electricity'
     CONSUMPTIONX = 'Appliance.Control.ConsumptionX'
+
+    # Bulbs-only abilities
+    LIGHT = 'Appliance.Control.Light'
+
+    # Garage opener abilities
+    GARAGE_DOOR_STATE = 'Appliance.GarageDoor.State'
+
+    # Humidifier
+    SPRAY = 'Appliance.Control.Spray'
 
     # Hub
     HUB_TOGGLEX = 'Appliance.Hub.ToggleX'
@@ -42,15 +59,6 @@ class Namespace(Enum):
     HUB_MS100_ALERT = 'Appliance.Hub.Sensor.Alert'
     HUB_EXCEPTION = 'Appliance.Hub.Exception'
     HUB_BATTERY = 'Appliance.Hub.Battery'
-
-    # Garage opener abilities
-    GARAGE_DOOR_STATE = 'Appliance.GarageDoor.State'
-
-    # Bulbs-only abilities
-    LIGHT = 'Appliance.Control.Light'
-
-    # Humidifier
-    SPRAY = 'Appliance.Control.Spray'
 
 
 def get_or_parse_namespace(namespace: Union[Namespace, str]):

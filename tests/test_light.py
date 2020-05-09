@@ -2,6 +2,7 @@ import os
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 from aiohttp import web
 
+from meross_iot.controller.mixins.light import LightMixin
 from meross_iot.controller.mixins.toggle import ToggleXMixin
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
@@ -23,31 +24,27 @@ class TestToggleX(AioHTTPTestCase):
         manager = MerossManager(http_client=self.meross_client)
         await manager.async_init()
         devices = await manager.async_device_discovery()
-        toggle_devices = manager.find_device(device_class=ToggleXMixin, online_status=OnlineStatus.ONLINE)
-
-        if len(toggle_devices) < 1:
-            self.test_device = None
-        else:
-            self.test_device = toggle_devices[0]
+        self.light_devices = manager.find_device(device_class=LightMixin, online_status=OnlineStatus.ONLINE)
 
     @unittest_run_loop
-    async def test_toggle_local_state(self):
-        if self.test_device is None:
-            self.skipTest("No ToggleX device has been found to run this test on.")
+    async def test_rgb(self):
+        # Make sure we have an RGB-capable available device
+        rgb_capable = list(filter(lambda d: d.supports_rgb,self.light_devices))
+        if len(rgb_capable) < 1:
+            self.skipTest("Could not find any RGB-capable LightMixin within the given set of devices. "
+                          "The test will be skipped")
             return
 
-        # Turn off device to start from a clean state
-        r = await self.test_device.turn_off()
+        light = rgb_capable[0]
 
-        # Turn on the device
-        r = await self.test_device.turn_on()
-        self.assertTrue(self.test_device.is_on)
+        # Set RED color
+        await light.async_set_light_color(rgb=(255, 0, 0))
 
-        # Turn off the device
-        await asyncio.sleep(1)
-        r = await self.test_device.turn_off()
-        self.assertFalse(self.test_device.is_on)
+        # Check the color property returns red
+        color = light.rgb_color
+        self.assertEqual(color, (255, 0, 0))
 
+    """
     async def test_toggle_push_notification(self):
         if self.test_device is None:
             self.skipTest("No ToggleX device has been found to run this test on.")
@@ -86,6 +83,7 @@ class TestToggleX(AioHTTPTestCase):
             if m is not None:
                 m.close()
             await new_meross_client.async_logout()
+    """
 
     async def tearDownAsync(self):
         await self.meross_client.async_logout()

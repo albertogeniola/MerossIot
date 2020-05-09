@@ -27,7 +27,6 @@ class ToggleXMixin(object):
             payload = push_notification.raw_data.get('togglex')
             if payload is None:
                 _LOGGER.error(f"ToggleXMxin could not fine 'togglex' attribute in push notification data: {push_notification.raw_data}")
-                locally_handled = False
 
             # The content of the togglex payload may vary. It can either be a dict (plugs with single switch)
             # or a list (power strips).
@@ -36,11 +35,13 @@ class ToggleXMixin(object):
                     channel = c['channel']
                     switch_state = c['onoff'] == 1
                     self._channel_togglex_status[channel] = switch_state
+                    locally_handled = True
 
             elif isinstance(payload, dict):
                 channel = payload['channel']
                 switch_state = payload['onoff'] == 1
                 self._channel_togglex_status[channel] = switch_state
+                locally_handled = True
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
@@ -87,12 +88,11 @@ class ToggleMixin(object):
             payload = push_notification.raw_data.get('togglex')
             if payload is None:
                 _LOGGER.error(f"ToggleMixin could not fine 'toggle' attribute in push notification data: {push_notification.raw_data}")
-                locally_handled = False
-
             else:
                 channel_index = payload.get('channel', 0)
                 switch_state = payload['onoff'] == 1
                 self._channel_toggle_status[channel_index] = switch_state
+                locally_handled = True
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
