@@ -316,7 +316,11 @@ class MerossManager(object):
 
         # Pass the control to the specific device implementation
         dev = target_devs[0]
-        return dev.handle_push_notification(push_notification)
+        handled = dev.handle_push_notification(push_notification)
+        if not handled:
+            _LOGGER.warning(f"Uncaught push notification {push_notification.namespace}")
+
+        return handled
 
     async def async_execute_cmd(self,
                                 destination_device_uuid: str,
