@@ -1,11 +1,8 @@
-import asyncio
 import os
-from random import randint
 
 from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
-from meross_iot.controller.mixins.light import LightMixin
 from meross_iot.controller.mixins.spray import SprayMixin
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
