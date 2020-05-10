@@ -44,7 +44,7 @@ class SystemOnlineMixin(object):
     def handle_push_notification(self, push_notification: GenericPushNotification) -> bool:
         locally_handled = False
 
-        if push_notification.namespace == Namespace.ONLINE:
+        if push_notification.namespace == Namespace.SYSTEM_ONLINE:
             _LOGGER.debug(f"OnlineMixin handling push notification for namespace {push_notification.namespace}")
             payload = push_notification.raw_data.get('online')
             if payload is None:

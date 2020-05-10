@@ -5,7 +5,7 @@ from meross_iot.model.push.generic import GenericPushNotification
 
 class BindPushNotification(GenericPushNotification):
     def __init__(self, hwinfo: HardwareInfo, fwinfo: FirmwareInfo, time: TimeInfo, originating_device_uuid: str, raw_data: dict):
-        super().__init__(namespace=Namespace.BIND, originating_device_uuid=originating_device_uuid, raw_data=raw_data)
+        super().__init__(namespace=Namespace.CONTROL_BIND, originating_device_uuid=originating_device_uuid, raw_data=raw_data)
         self.hwinfo = hwinfo
         self.fwinfo = fwinfo
         self.time = time

@@ -22,11 +22,11 @@ class ToggleXMixin(object):
     def handle_push_notification(self, push_notification: GenericPushNotification) -> bool:
         locally_handled = False
 
-        if push_notification.namespace == Namespace.TOGGLEX:
-            _LOGGER.debug(f"ToggleXMxin handling push notification for namespace {push_notification.namespace}")
+        if push_notification.namespace == Namespace.CONTROL_TOGGLEX:
+            _LOGGER.debug(f"{self.__class__.__name__} handling push notification for namespace {push_notification.namespace}")
             payload = push_notification.raw_data.get('togglex')
             if payload is None:
-                _LOGGER.error(f"ToggleXMxin could not find 'togglex' attribute in push notification data: {push_notification.raw_data}")
+                _LOGGER.error(f"{self.__class__.__name__} could not find 'togglex' attribute in push notification data: {push_notification.raw_data}")
 
             # The content of the togglex payload may vary. It can either be a dict (plugs with single switch)
             # or a list (power strips).
@@ -61,12 +61,12 @@ class ToggleXMixin(object):
         return self._channel_togglex_status.get(channel, None)
 
     async def turn_off(self, channel=0, *args, **kwargs):
-        await self._execute_command("SET", Namespace.TOGGLEX, {'togglex': {"onoff": 0, "channel": channel}})
+        await self._execute_command("SET", Namespace.CONTROL_TOGGLEX, {'togglex': {"onoff": 0, "channel": channel}})
         # Assume the command was ok, so immediately update the internal state
         self._channel_togglex_status[channel] = False
 
     async def turn_on(self, channel=0, *args, **kwargs):
-        await self._execute_command("SET", Namespace.TOGGLEX, {'togglex': {"onoff": 1, "channel": channel}})
+        await self._execute_command("SET", Namespace.CONTROL_TOGGLEX, {'togglex': {"onoff": 1, "channel": channel}})
         # Assume the command was ok, so immediately update the internal state
         self._channel_togglex_status[channel] = True
 
@@ -92,7 +92,7 @@ class ToggleMixin(object):
     def handle_push_notification(self, push_notification: GenericPushNotification) -> bool:
         locally_handled = False
 
-        if push_notification.namespace == Namespace.TOGGLEX:
+        if push_notification.namespace == Namespace.CONTROL_TOGGLEX:
             _LOGGER.debug(f"ToggleMixin handling push notification for namespace {push_notification.namespace}")
             payload = push_notification.raw_data.get('togglex')
             if payload is None:
@@ -120,10 +120,10 @@ class ToggleMixin(object):
         return self._channel_toggle_status.get(channel, None)
 
     async def turn_off(self, channel=0, *args, **kwargs):
-        await self._execute_command("SET", Namespace.TOGGLE, {'toggle': {"onoff": 0, "channel": channel}})
+        await self._execute_command("SET", Namespace.CONTROL_TOGGLE, {'toggle': {"onoff": 0, "channel": channel}})
 
     async def turn_on(self, channel=0, *args, **kwargs):
-        await self._execute_command("SET", Namespace.TOGGLE, {'toggle': {"onoff": 1, "channel": channel}})
+        await self._execute_command("SET", Namespace.CONTROL_TOGGLE, {'toggle': {"onoff": 1, "channel": channel}})
 
     async def toggle(self, channel=0, *args, **kwargs):
         if self.is_on(channel=channel):

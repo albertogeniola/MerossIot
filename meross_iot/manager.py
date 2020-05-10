@@ -170,7 +170,7 @@ class MerossManager(object):
         try:
             res_abilities = await self.async_execute_cmd(destination_device_uuid=device_info.uuid,
                                                          method="GET",
-                                                         namespace=Namespace.ABILITY,
+                                                         namespace=Namespace.SYSTEM_ABILITY,
                                                          payload={})
             abilities = res_abilities.get('ability')
         except CommandTimeoutError:

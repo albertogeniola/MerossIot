@@ -5,6 +5,7 @@ from meross_iot.controller.mixins.consumption import ConsumptionXMixin
 from meross_iot.controller.mixins.electricity import ElectricityMixin
 from meross_iot.controller.mixins.garage import GarageOpenerMixin
 from meross_iot.controller.mixins.light import LightMixin
+from meross_iot.controller.mixins.spray import SprayMixin
 from meross_iot.controller.mixins.system import SystemAllMixin, SystemOnlineMixin
 from meross_iot.controller.mixins.toggle import ToggleXMixin, ToggleMixin
 from meross_iot.model.device import BaseMerossDevice
@@ -17,20 +18,23 @@ _LOGGER = logging.getLogger(__name__)
 # TODO: implement logic to "selectively discard overlapping capabilities"
 _ABILITY_MATRIX = {
     # Power plugs abilities
-    Namespace.TOGGLEX.value: ToggleXMixin,
-    Namespace.TOGGLE.value: ToggleMixin,
-    Namespace.CONSUMPTIONX.value: ConsumptionXMixin,
-    Namespace.ELECTRICITY.value: ElectricityMixin,
+    Namespace.CONTROL_TOGGLEX.value: ToggleXMixin,
+    Namespace.CONTROL_TOGGLE.value: ToggleMixin,
+    Namespace.CONTROL_CONSUMPTIONX.value: ConsumptionXMixin,
+    Namespace.CONTROL_ELECTRICITY.value: ElectricityMixin,
 
     # Light abilities
-    Namespace.LIGHT.value: LightMixin,
+    Namespace.CONTROL_LIGHT.value: LightMixin,
 
     # Garage opener
     Namespace.GARAGE_DOOR_STATE.value: GarageOpenerMixin,
 
+    # Spray opener
+    Namespace.CONTROL_SPRAY.value: SprayMixin,
+
     # System
     Namespace.SYSTEM_ALL.value: SystemAllMixin,
-    Namespace.ONLINE.value: SystemOnlineMixin
+    Namespace.SYSTEM_ONLINE.value: SystemOnlineMixin
 
     # TODO: BIND, UNBIND, ONLINE, WIFI, ETC!
 }

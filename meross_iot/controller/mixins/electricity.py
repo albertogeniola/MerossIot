@@ -26,7 +26,7 @@ class ElectricityMixin(object):
         :param kwargs:
         :return:
         """
-        result = await self._execute_command("GET", Namespace.ELECTRICITY, {'channel': channel})
+        result = await self._execute_command("GET", Namespace.CONTROL_ELECTRICITY, {'channel': channel})
         data = result.get('electricity')
 
         # For some reason, most of the Meross device report accurate instant power, but inaccurate voltage/current.

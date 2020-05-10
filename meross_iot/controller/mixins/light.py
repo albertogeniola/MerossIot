@@ -26,11 +26,11 @@ class LightMixin(object):
     def handle_push_notification(self, push_notification: GenericPushNotification) -> bool:
         locally_handled = False
 
-        if push_notification.namespace == Namespace.LIGHT:
-            _LOGGER.debug(f"LightMixin handling push notification for namespace {push_notification.namespace}")
+        if push_notification.namespace == Namespace.CONTROL_LIGHT:
+            _LOGGER.debug(f"{self.__class__.__name__} handling push notification for namespace {push_notification.namespace}")
             payload = push_notification.raw_data.get('light')
             if payload is None:
-                _LOGGER.error(f"LightMixin could not find 'light' attribute in push notification data: "
+                _LOGGER.error(f"{self.__class__.__name__} could not find 'light' attribute in push notification data: "
                               f"{push_notification.raw_data}")
                 locally_handled = False
             else:
@@ -58,7 +58,7 @@ class LightMixin(object):
         super().handle_update(data=data)
 
     def _supports_mode(self, mode: LightMode) -> bool:
-        return (self._abilities_spec.get(Namespace.LIGHT.value).get('capacity') & mode.value) == mode.value
+        return (self._abilities_spec.get(Namespace.CONTROL_LIGHT.value).get('capacity') & mode.value) == mode.value
 
     def _update_channel_status(self,
                                channel: int = 0,
@@ -114,7 +114,7 @@ class LightMixin(object):
 
         payload['light']['capacity'] = mode
 
-        await self._execute_command(method='SET', namespace=Namespace.LIGHT, payload=payload)
+        await self._execute_command(method='SET', namespace=Namespace.CONTROL_LIGHT, payload=payload)
 
         # If the command was ok, immediately update the local state.
         self._update_channel_status(channel, rgb=rgb, luminance=luminance, temperature=temperature)

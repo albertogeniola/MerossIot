@@ -20,7 +20,7 @@ class ConsumptionXMixin(object):
 
     async def async_get_daily_power_consumption(self, channel=0, *args, **kwargs) -> List[dict]:
         # TODO: returning a nice PowerConsumtpionReport object rather than a list of dict?
-        result = await self._execute_command("GET", Namespace.CONSUMPTIONX, {'channel': channel})
+        result = await self._execute_command("GET", Namespace.CONTROL_CONSUMPTIONX, {'channel': channel})
         data = result.get('consumptionx')
 
         # Parse the json data into nice-python native objects

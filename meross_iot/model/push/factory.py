@@ -28,10 +28,10 @@ def parse_push_notification(namespace: Union[str, Namespace],
     try:
         parsed_namespace = get_or_parse_namespace(namespace)
 
-        if parsed_namespace == Namespace.BIND:
+        if parsed_namespace == Namespace.CONTROL_BIND:
             return BindPushNotification.from_dict(data=message_payload,
                                                   originating_device_uuid=originating_device_uuid)
-        elif parsed_namespace == Namespace.UNBIND:
+        elif parsed_namespace == Namespace.CONTROL_UNBIND:
             return UnbindPushNotification.from_dict(data=message_payload,
                                                     originating_device_uuid=originating_device_uuid)
         return GenericPushNotification(namespace=parsed_namespace, originating_device_uuid=originating_device_uuid,
