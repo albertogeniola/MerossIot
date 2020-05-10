@@ -65,6 +65,7 @@ class TestToggleX(AioHTTPTestCase):
         try:
             # Retrieve the same device with another manager
             m = MerossManager(http_client=new_meross_client)
+            await m.async_init()
             await m.async_device_discovery()
             devs = m.find_device(uuids=(light.uuid))
             dev = devs[0]
@@ -75,8 +76,9 @@ class TestToggleX(AioHTTPTestCase):
 
             # Turn on the device
             r = await light.async_set_light_color(rgb=(0, 255, 0))
+
             # Wait a bit and make sure the other manager received the push notification
-            await asyncio.sleep(2)
+            await asyncio.sleep(10)
             self.assertEqual(light.rgb_color, (0, 255, 0))
             self.assertEqual(dev.rgb_color, (0, 255, 0))
         finally:

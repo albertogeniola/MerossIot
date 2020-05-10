@@ -37,7 +37,10 @@ class LightMixin(object):
                 # Update the status of every channel that has been reported in this push
                 # notification.
                 c = payload['channel']
-                self._update_channel_status(channel=c, **payload)
+                self._update_channel_status(channel=c,
+                                            rgb=payload.get('rgb'),
+                                            luminance=payload.get('luminance'),
+                                            temperature=payload.get('temperature'))
                 locally_handled = True
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all

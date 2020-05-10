@@ -1,13 +1,11 @@
 import asyncio
 import os
 import unittest
-from random import randint
 
 from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
 from meross_iot.controller.mixins.garage import GarageOpenerMixin
-from meross_iot.controller.mixins.light import LightMixin
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
 from meross_iot.model.enums import OnlineStatus

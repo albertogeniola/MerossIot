@@ -1,11 +1,8 @@
 import logging
-from typing import Optional, Union
+from typing import Optional
 
-from meross_iot.model.enums import Namespace, LightMode
-from meross_iot.model.plugin.light import LightInfo
+from meross_iot.model.enums import Namespace
 from meross_iot.model.push.generic import GenericPushNotification
-from meross_iot.model.typing import RgbTuple
-from meross_iot.utilities.conversion import rgb_to_int
 
 _LOGGER = logging.getLogger(__name__)
 
