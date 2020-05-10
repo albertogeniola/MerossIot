@@ -57,8 +57,9 @@ class LightMixin(object):
                                     temperature=light_data.get('temperature'))
         super().handle_update(data=data)
 
-    def _supports_mode(self, mode: LightMode) -> bool:
-        return (self._abilities_spec.get(Namespace.CONTROL_LIGHT.value).get('capacity') & mode.value) == mode.value
+    def _supports_mode(self, mode: LightMode, channel: int = 0) -> bool:
+        capacity = self._abilities_spec.get(Namespace.CONTROL_LIGHT.value).get('capacity')
+        return (capacity & mode.value) == mode.value
 
     def _update_channel_status(self,
                                channel: int = 0,
@@ -119,20 +120,16 @@ class LightMixin(object):
         # If the command was ok, immediately update the local state.
         self._update_channel_status(channel, rgb=rgb, luminance=luminance, temperature=temperature)
 
-    @property
-    def supports_rgb(self) -> bool:
-        return self._supports_mode(LightMode.MODE_RGB)
+    def get_supports_rgb(self, channel: int = 0) -> bool:
+        return self._supports_mode(LightMode.MODE_RGB, channel=channel)
 
-    @property
-    def supports_luminance(self) -> bool:
-        return self._supports_mode(LightMode.MODE_LUMINANCE)
+    def get_supports_luminance(self, channel: int = 0) -> bool:
+        return self._supports_mode(LightMode.MODE_LUMINANCE, channel=channel)
 
-    @property
-    def supports_temperature(self) -> bool:
-        return self._supports_mode(LightMode.MODE_TEMPERATURE)
+    def get_supports_temperature(self, channel: int = 0) -> bool:
+        return self._supports_mode(LightMode.MODE_TEMPERATURE, channel=channel)
 
-    @property
-    def rgb_color(self, channel=0, *args, **kwargs) -> Optional[RgbTuple]:
+    def get_rgb_color(self, channel=0, *args, **kwargs) -> Optional[RgbTuple]:
         info = self._channel_light_status.get(channel)
         if info is None:
             return None

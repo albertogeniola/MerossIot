@@ -458,33 +458,3 @@ class DeviceRegistry(object):
             res = filter(lambda d: d.name == device_name, res)
 
         return list(res)
-
-
-# TODO: Remove the following
-async def main():
-    from meross_iot.http_api import MerossHttpClient
-    import os
-    email = os.environ.get('MEROSS_EMAIL')
-    password = os.environ.get('MEROSS_PASSWORD')
-
-    client = await MerossHttpClient.async_from_user_password(email=email, password=password)
-    # devices = await client.async_list_devices()
-    manager = MerossManager(http_client=client)
-
-    try:
-        await manager.async_init()
-        res = await manager.async_execute_cmd('18050329735693251a0234298f1178ce', "GET", Namespace.SYSTEM_ALL, {})
-        res = await manager.async_device_discovery()
-        device = manager.find_device(device_name='MSL120', device_class=LightMixin)[0]
-
-        print(device.rgb_color)
-        manager.close()
-    except:
-        _LOGGER.exception("Error")
-    finally:
-        await client.async_logout()
-
-
-if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(main())

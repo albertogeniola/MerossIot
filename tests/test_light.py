@@ -30,7 +30,7 @@ class TestToggleX(AioHTTPTestCase):
     @unittest_run_loop
     async def test_rgb(self):
         # Make sure we have an RGB-capable available device
-        rgb_capable = list(filter(lambda d: d.supports_rgb,self.light_devices))
+        rgb_capable = list(filter(lambda d: d.get_supports_rgb(), self.light_devices))
         if len(rgb_capable) < 1:
             self.skipTest("Could not find any RGB-capable LightMixin within the given set of devices. "
                           "The test will be skipped")
@@ -45,13 +45,13 @@ class TestToggleX(AioHTTPTestCase):
         await light.async_set_light_color(rgb=(r, g, b))
 
         # Check the color property returns red
-        color = light.rgb_color
+        color = light.get_rgb_color()
         self.assertEqual(color, (r, g, b))
 
     @unittest_run_loop
     async def test_rgb_push_notification(self):
         # Make sure we have an RGB-capable available device
-        rgb_capable = list(filter(lambda d: d.supports_rgb, self.light_devices))
+        rgb_capable = list(filter(lambda d: d.get_supports_rgb(), self.light_devices))
         if len(rgb_capable) < 1:
             self.skipTest("Could not find any RGB-capable LightMixin within the given set of devices. "
                           "The test will be skipped")
@@ -79,8 +79,8 @@ class TestToggleX(AioHTTPTestCase):
 
             # Wait a bit and make sure the other manager received the push notification
             await asyncio.sleep(10)
-            self.assertEqual(light.rgb_color, (0, 255, 0))
-            self.assertEqual(dev.rgb_color, (0, 255, 0))
+            self.assertEqual(light.get_rgb_color(), (0, 255, 0))
+            self.assertEqual(dev.get_rgb_color(), (0, 255, 0))
         finally:
             if m is not None:
                 m.close()

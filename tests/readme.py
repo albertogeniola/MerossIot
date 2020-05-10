@@ -136,7 +136,7 @@ if __name__ == '__main__':
             time.sleep(1)
 
             # Let's dimm its brightness
-            if b.supports_luminance():
+            if b.get_supports_luminance():
                 random_luminance = randint(10, 100)
                 b.set_light_color(luminance=random_luminance)
 
