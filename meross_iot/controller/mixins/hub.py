@@ -1,5 +1,5 @@
 import logging
-from typing import Optional
+from typing import Optional, Awaitable
 
 from meross_iot.model.enums import Namespace
 from meross_iot.model.push.generic import GenericPushNotification
@@ -7,7 +7,7 @@ from meross_iot.model.push.generic import GenericPushNotification
 _LOGGER = logging.getLogger(__name__)
 
 
-class GarageOpenerMixin:
+class Mts100AllMixin:
     _execute_command: callable
     _abilities_spec: dict
     uuid: str
@@ -16,11 +16,12 @@ class GarageOpenerMixin:
                  manager,
                  **kwargs):
         super().__init__(device_uuid=device_uuid, manager=manager, **kwargs)
-        self._door_open_state_by_channel = {}
+        # TODO
 
     def handle_push_notification(self, push_notification: GenericPushNotification) -> bool:
         locally_handled = False
-
+        # TODO
+        """
         if push_notification.namespace == Namespace.GARAGE_DOOR_STATE:
             _LOGGER.debug(f"{self.__class__.__name__} handling push notification for namespace "
                           f"{push_notification.namespace}")
@@ -37,51 +38,39 @@ class GarageOpenerMixin:
                     state = door['open'] == 1
                     self._door_open_state_by_channel[channel_index] = state
                     locally_handled = True
-
+        """
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
         parent_handled = super().handle_push_notification(push_notification=push_notification)
         return locally_handled or parent_handled
 
     def handle_update(self, data: dict) -> None:
+        # This method will handle the hub-specific events.
         _LOGGER.debug(f"Handling {self.__class__.__name__} mixin data update.")
-        doors_data = data.get('all', {}).get('digest', {}).get('garageDoor', [])
-        for door in doors_data:
-            channel_index = door['channel']
-            state = door['open'] == 1
-            self._door_open_state_by_channel[channel_index] = state
+        hub_data = data.get('all', {}).get('digest', {}).get('hub', [])
+
+        # It seems we don't need to handle anything here, as updates are handled with specific
+        # mixins with ALL namespaces.
+        # TODO: handle hubid/hubmode?
+        # TODO: handle subdevice all events?
+        """
+        subdevices = hub_data.get('subdevice')
+        for subdev in subdevices:
+            self.handle_subdevice_update(data=subdev)
+        """
+
         super().handle_update(data=data)
 
-    async def open(self, channel: int = 0, *args, **kwargs) -> None:
-        """
-        Operates the door: sends the open command.
-        :param channel:
-        :param args:
-        :param kwargs:
-        :return:
-        """
-        await self._operate(state=True, channel=channel, *args, **kwargs)
+    async def async_update(self) -> None:
+        # When dealing with hubs, we need to "intercept" the UPDATE()
+        await super().async_update()
 
-    async def close(self, channel: int = 0, *args, **kwargs) -> None:
-        """
-        Operates the door: sends the close command.
-        :param channel:
-        :param args:
-        :param kwargs:
-        :return:
-        """
-        await self._operate(state=False, channel=channel, *args, **kwargs)
-
-    async def _operate(self, state: bool, channel: int = 0, *args, **kwargs) -> None:
-        payload = {"state": {"channel": channel, "open": 1 if state else 0, "uuid": self.uuid}}
-        await self._execute_command(method="SET", namespace=Namespace.GARAGE_DOOR_STATE, payload=payload)
-
-    def is_open(self, channel: int = 0, *args, **kwargs) -> Optional[bool]:
-        """
-        The current door-open status. Returns True if the given door is open, False otherwise.
-        :param channel:
-        :param args:
-        :param kwargs:
-        :return:
-        """
-        return self._door_open_state_by_channel.get(channel)
+        # When issuing an update-all command to the hub,
+        # we need to query all sub-devices.
+        result = await self._execute_command(method="GET",
+                                             namespace=Namespace.HUB_MTS100_ALL,
+                                             payload={'all': []})
+        subdevices_states = result.get('all')
+        for subdev_state in subdevices_states:
+            subdev_id = subdev_state.get('id')
+            self.handle_subdevice_update(subdevice_id=subdev_id, data=subdev_state)

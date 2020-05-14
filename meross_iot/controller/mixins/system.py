@@ -17,6 +17,9 @@ class SystemAllMixin(object):
         super().__init__(device_uuid=device_uuid, manager=manager, **kwargs)
 
     async def async_update(self) -> None:
+        # Call the super implementation
+        await super().async_update()
+
         # The update mixin does
         result = await self._execute_command(method="GET", namespace=Namespace.SYSTEM_ALL, payload={})
 

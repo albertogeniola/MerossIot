@@ -9,6 +9,7 @@ _LOGGER = logging.getLogger(__name__)
 class OnlineStatus(Enum):
     ONLINE = 1
     OFFLINE = 2
+    UNKNOWN = -1
 
 
 class LightMode(Enum):
@@ -56,17 +57,23 @@ class Namespace(Enum):
     # Humidifier
     CONTROL_SPRAY = 'Appliance.Control.Spray'
 
-    # Hub
-    HUB_TOGGLEX = 'Appliance.Hub.ToggleX'
-    HUB_ONLINE = 'Appliance.Hub.Online'
-    HUB_MTS100_TEMPERATURE = 'Appliance.Hub.Mts100.Temperature'
-    HUB_MTS100_MODE = 'Appliance.Hub.Mts100.Mode'
-    HUB_MTS100_ALL = 'Appliance.Hub.Mts100.All'
-    HUB_MS100_ALL = 'Appliance.Hub.Sensor.All'
-    HUB_MS100_TEMPHUM = 'Appliance.Hub.Sensor.TempHum'
-    HUB_MS100_ALERT = 'Appliance.Hub.Sensor.Alert'
+    SYSTEM_DIGEST_HUB = 'Appliance.Digest.Hub'
+
+    # HUB
     HUB_EXCEPTION = 'Appliance.Hub.Exception'
     HUB_BATTERY = 'Appliance.Hub.Battery'
+    HUB_TOGGLEX = 'Appliance.Hub.ToggleX'
+    HUB_ONLINE = 'Appliance.Hub.Online'
+
+    # SENSORS
+    HUB_SENSOR_ALL = 'Appliance.Hub.Sensor.All'
+    HUB_SENSOR_TEMPHUM = 'Appliance.Hub.Sensor.TempHum'
+    HUB_SENSOR_ALERT = 'Appliance.Hub.Sensor.Alert'
+
+    # MTS100
+    HUB_MTS100_ALL = 'Appliance.Hub.Mts100.All'
+    HUB_MTS100_TEMPERATURE = 'Appliance.Hub.Mts100.Temperature'
+    HUB_MTS100_MODE = 'Appliance.Hub.Mts100.Mode'
 
 
 def get_or_parse_namespace(namespace: Union[Namespace, str]):

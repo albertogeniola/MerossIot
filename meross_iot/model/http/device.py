@@ -59,3 +59,4 @@ class HttpDeviceInfo(BaseDictPayload):
         self.skill_number = skill_number
         self.domain = domain
         self.reserved_domain = reserved_domain
+

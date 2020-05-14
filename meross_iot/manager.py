@@ -13,14 +13,14 @@ from typing import Optional, List, TypeVar
 
 import paho.mqtt.client as mqtt
 
-from meross_iot.controller.mixins.light import LightMixin
-from meross_iot.device_factory import build_meross_device
+from meross_iot.device_factory import build_meross_device, build_meross_subdevice
 from meross_iot.http_api import MerossHttpClient
-from meross_iot.model.device import BaseMerossDevice
+from meross_iot.controller.device import BaseDevice, HubDevice, SubDevice
 from meross_iot.model.enums import Namespace, OnlineStatus
 from meross_iot.model.exception import CommandTimeoutError
 from meross_iot.model.exception import UnconnectedError
 from meross_iot.model.http.device import HttpDeviceInfo
+from meross_iot.model.http.subdevice import HttpSubdeviceInfo
 from meross_iot.model.push.factory import parse_push_notification
 from meross_iot.model.push.generic import GenericPushNotification
 from meross_iot.utilities.mqtt import generate_mqtt_password, generate_client_and_app_id, build_client_response_topic, \
@@ -29,8 +29,7 @@ from meross_iot.utilities.mqtt import generate_mqtt_password, generate_client_an
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO, stream=sys.stdout)
 _LOGGER = logging.getLogger(__name__)
 
-
-T = TypeVar('T', bound=BaseMerossDevice)      # Declare type variable
+T = TypeVar('T', bound=BaseDevice)  # Declare type variable
 
 
 class MerossManager(object):
@@ -140,6 +139,10 @@ class MerossManager(object):
         # So we just raise a warning if that happens.
         inconsistent_local_devices = []
         for ldevice in self._device_registry.find_all_by():
+            # Skip handling SubDevices as they are taken care of later on.
+            if isinstance(ldevice, SubDevice):
+                continue
+
             found_in_http = False
             for hdevice in http_devices:
                 if hdevice.uuid == ldevice.uuid:
@@ -149,9 +152,6 @@ class MerossManager(object):
                 inconsistent_local_devices.append(ldevice)
                 _LOGGER.warning(f"Device {ldevice.name} ({ldevice.uuid}) is locally registered but has not been "
                                 f"reported by the last HTTP API device-list call.")
-
-        # If the http-device is an hub, then list its subdevices
-        # TODO: list sub-devices
 
         # TODO: handle inconsistent devices?
         # For every newly discovered device, retrieve its abilities and then build a corresponding wrapper.
@@ -163,10 +163,37 @@ class MerossManager(object):
         # Wait for factory to build all devices
         enrolled_devices = await asyncio.gather(*tasks, loop=self._loop)
 
+        # Let's now handle HubDevices. For every HubDevice we have, we need to fetch new possible subdevices
+        # from the HTTP API
+        subdevtasks = []
+        for d in enrolled_devices:
+            if isinstance(d, HubDevice):
+                subdevs = await self._http_client.async_list_hub_subdevices(hub_id=d.uuid)
+                for sd in subdevs:
+                    subdevtasks.append(self._loop.create_task(
+                        self._async_enroll_new_http_subdev(subdevice_info=sd,
+                                                           hub_uuid=d.uuid,
+                                                           hub_reported_abilities=d._abilities)))
+
+        # Wait for factory to build all devices
+        enrolled_subdevices = await asyncio.gather(*tasks, loop=self._loop)
+
         # TODO add result logging
         _LOGGER.debug("HTTP async completed.")
 
-    async def _async_enroll_new_http_dev(self, device_info: HttpDeviceInfo) -> Optional[BaseMerossDevice]:
+    async def _async_enroll_new_http_subdev(self,
+                                            subdevice_info: HttpSubdeviceInfo,
+                                            hub_uuid: str,
+                                            hub_reported_abilities: dict) -> Optional[SubDevice]:
+        subdevice = build_meross_subdevice(http_subdevice_info=subdevice_info,
+                                           hub_uuid=hub_uuid,
+                                           hub_reported_abilities=hub_reported_abilities,
+                                           manager=self)
+        # Enroll the device
+        self._device_registry.enroll_device(subdevice)
+        return subdevice
+
+    async def _async_enroll_new_http_dev(self, device_info: HttpDeviceInfo) -> Optional[BaseDevice]:
         try:
             res_abilities = await self.async_execute_cmd(destination_device_uuid=device_info.uuid,
                                                          method="GET",
@@ -212,7 +239,7 @@ class MerossManager(object):
                 client.loop_stop(True)
             else:
                 _LOGGER.warning("Client has been disconnected, however auto_reconnect flag is set. "
-                          "Won't stop the looping thread, as it will retry to connect.")
+                                "Won't stop the looping thread, as it will retry to connect.")
 
     def _on_unsubscribe(self):
         # NOTE! This method is called by the paho-mqtt thread, thus any invocation to the
@@ -423,7 +450,7 @@ class DeviceRegistry(object):
         del self._devices_by_uuid[dev]
         _LOGGER.info(f"Device {dev.name} ({dev.uuid}) removed from registry")
 
-    def enroll_device(self, device: BaseMerossDevice):
+    def enroll_device(self, device: BaseDevice):
         if device.uuid in self._devices_by_uuid:
             _LOGGER.warning(f"Device {device.name} ({device.uuid}) has been already added to the registry.")
             return
@@ -432,7 +459,7 @@ class DeviceRegistry(object):
             self._devices_by_uuid[device.uuid] = device
 
     def lookup_by_uuid(self,
-                       uuid: str) -> Optional[BaseMerossDevice]:
+                       uuid: str) -> Optional[BaseDevice]:
         return self._devices_by_uuid.get(uuid)
 
     def find_all_by(self,
@@ -440,7 +467,7 @@ class DeviceRegistry(object):
                     device_type: Optional[str] = None,
                     device_class: Optional[T] = None,
                     device_name: Optional[str] = None,
-                    online_status: Optional[OnlineStatus] = None) -> List[BaseMerossDevice]:
+                    online_status: Optional[OnlineStatus] = None) -> List[BaseDevice]:
 
         # Look by UUIDs
         if uuids is not None:

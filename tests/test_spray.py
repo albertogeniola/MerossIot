@@ -34,13 +34,13 @@ class TestSpray(AioHTTPTestCase):
 
         dev = self.test_devices[0]
         await dev.async_set_mode(mode=SprayMode.CONTINUOUS)
-        self.assertEqual(dev.get_mode(), SprayMode.CONTINUOUS)
+        self.assertEqual(dev.get_current_mode(), SprayMode.CONTINUOUS)
 
         await dev.async_set_mode(mode=SprayMode.INTERMITTENT)
-        self.assertEqual(dev.get_mode(), SprayMode.INTERMITTENT)
+        self.assertEqual(dev.get_current_mode(), SprayMode.INTERMITTENT)
 
         await dev.async_set_mode(mode=SprayMode.OFF)
-        self.assertEqual(dev.get_mode(), SprayMode.OFF)
+        self.assertEqual(dev.get_current_mode(), SprayMode.OFF)
 
         await dev.async_update()
 

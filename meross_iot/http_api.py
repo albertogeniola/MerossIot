@@ -16,8 +16,9 @@ from aiohttp import ClientSession
 from meross_iot.model.credentials import MerossCloudCreds
 # Appears to be used as a part of the signature algorithm as constant "salt" (kinda useless)
 from meross_iot.model.http.device import HttpDeviceInfo
+from meross_iot.model.http.subdevice import HttpSubdeviceInfo
 from meross_iot.model.http.exception import TooManyTokensException, TokenExpiredException, AuthenticatedPostException
-from meross_iot.model.http.subdevice import HttpSubDevice
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -187,13 +188,13 @@ class MerossHttpClient(object):
         result = await self._async_authenticated_post(_DEV_LIST, {}, cloud_creds=self._cloud_creds)
         return [HttpDeviceInfo.from_dict(x) for x in result]
 
-    async def async_list_hub_subdevices(self, hub_id: str):
+    async def async_list_hub_subdevices(self, hub_id: str) -> List[HttpSubdeviceInfo]:
         """
         Returns the sub-devices associated to the given hub.
         :return:
         """
         result = await self._async_authenticated_post(_HUB_DUBDEV_LIST, {"uuid": hub_id}, cloud_creds=self._cloud_creds)
-        return [HttpSubDevice.from_dict(x) for x in result]
+        return [HttpSubdeviceInfo.from_dict(x) for x in result]
 
 
 def _encode_params(parameters: dict):

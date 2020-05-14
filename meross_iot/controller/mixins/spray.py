@@ -46,7 +46,7 @@ class SprayMixin(object):
         parent_handled = super().handle_push_notification(push_notification=push_notification)
         return locally_handled or parent_handled
 
-    def get_mode(self, channel: int = 0, *args, **kwargs) -> Optional[SprayMode]:
+    def get_current_mode(self, channel: int = 0, *args, **kwargs) -> Optional[SprayMode]:
         return self._channel_spray_status.get(channel)
 
     def handle_update(self, data: dict) -> None:

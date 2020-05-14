@@ -4,13 +4,15 @@ from typing import Optional
 from meross_iot.controller.mixins.consumption import ConsumptionXMixin
 from meross_iot.controller.mixins.electricity import ElectricityMixin
 from meross_iot.controller.mixins.garage import GarageOpenerMixin
+from meross_iot.controller.mixins.hub import Mts100AllMixin
 from meross_iot.controller.mixins.light import LightMixin
 from meross_iot.controller.mixins.spray import SprayMixin
 from meross_iot.controller.mixins.system import SystemAllMixin, SystemOnlineMixin
 from meross_iot.controller.mixins.toggle import ToggleXMixin, ToggleMixin
-from meross_iot.model.device import BaseMerossDevice
+from meross_iot.controller.device import BaseDevice, HubDevice, SubDevice
 from meross_iot.model.enums import Namespace
 from meross_iot.model.http.device import HttpDeviceInfo
+from meross_iot.model.http.subdevice import HttpSubdeviceInfo
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -34,7 +36,10 @@ _ABILITY_MATRIX = {
 
     # System
     Namespace.SYSTEM_ALL.value: SystemAllMixin,
-    Namespace.SYSTEM_ONLINE.value: SystemOnlineMixin
+    Namespace.SYSTEM_ONLINE.value: SystemOnlineMixin,
+
+    # Hub
+    Namespace.HUB_MTS100_ALL.value: Mts100AllMixin
 
     # TODO: BIND, UNBIND, ONLINE, WIFI, ETC!
 }
@@ -66,7 +71,7 @@ def _lookup_cached_type(device_type: str, hardware_version: str, firmware_versio
     return _dynamic_types.get(lookup_string)
 
 
-def _build_cached_type(type_string: str, device_abilities: dict) -> type:
+def _build_cached_type(type_string: str, device_abilities: dict, base_class: type) -> type:
     """
     Builds a python type (class) dynamically by looking at the device abilities. In this way, we are able to
     "plugin" feature/mixins even for unknown new devices, given that they report abilities we already implemented.
@@ -98,12 +103,12 @@ def _build_cached_type(type_string: str, device_abilities: dict) -> type:
     # We must be careful when ordering the mixin and leaving the BaseMerossDevice as last class.
     # Messing up with that will cause MRO to not resolve inheritance correctly.
     mixin_classes = list(mixin_classes)
-    mixin_classes.append(BaseMerossDevice)
+    mixin_classes.append(base_class)
     m = type(type_string, tuple(mixin_classes), {"_abilities_spec": device_abilities})
     return m
 
 
-def build_meross_device(http_device_info: HttpDeviceInfo, device_abilities: dict, manager) -> BaseMerossDevice:
+def build_meross_device(http_device_info: HttpDeviceInfo, device_abilities: dict, manager) -> BaseDevice:
     """
     Builds a managed meross device object given the specs reported by HTTP api and the abilities reported by the device
     itself.
@@ -112,6 +117,8 @@ def build_meross_device(http_device_info: HttpDeviceInfo, device_abilities: dict
     :param manager:
     :return:
     """
+    # The current implementation of this library is based on the usage of pluggable Mixin classes on top of
+    # a couple of base implementations.
     _LOGGER.debug(f"Building managed device for {http_device_info.dev_name} ({http_device_info.uuid}). "
                   f"Reported abilities: {device_abilities}")
 
@@ -126,8 +133,68 @@ def build_meross_device(http_device_info: HttpDeviceInfo, device_abilities: dict
         device_type_name = _caclulate_device_type_name(http_device_info.device_type,
                                                        http_device_info.hdware_version,
                                                        http_device_info.fmware_version)
-        cached_type = _build_cached_type(device_type_name, device_abilities)
+
+        # Let's now pick the base class where to attach all the mixin.
+        # We basically offer two possible base implementations:
+        # - BaseMerossDevice: suitable for all non-hub devices
+        # - HubMerossDevice: to be used when dealing with Hubs.
+        # Unfortunately, it's not clear how we should discriminate an hub from a non-hub.
+        # The current implementation decides which base class to use by looking at the presence
+        # of 'Appliance.Digest.Hub' namespace within the exposed abilities.
+        discriminating_ability = Namespace.SYSTEM_DIGEST_HUB.value
+        base_class = BaseDevice
+        if discriminating_ability in device_abilities:
+            _LOGGER.warning(f"Device {http_device_info.dev_name} ({http_device_info.device_type}, "
+                            f"uuid {http_device_info.uuid}) reported ability {discriminating_ability}. "
+                            f"Assuming this is a full-featured HUB.")
+            base_class = HubDevice
+
+        cached_type = _build_cached_type(type_string=device_type_name,
+                                         device_abilities=device_abilities,
+                                         base_class=base_class)
         _dynamic_types[device_type_name] = cached_type
 
     component = cached_type(device_uuid=http_device_info.uuid, manager=manager, **http_device_info.to_dict())
     return component
+
+
+def build_meross_subdevice(http_subdevice_info: HttpSubdeviceInfo, hub_uuid: str, hub_reported_abilities: dict, manager) -> SubDevice:
+    _LOGGER.debug(f"Building managed device for {http_subdevice_info.sub_device_name} "
+                  f"({http_subdevice_info.sub_device_id}).")
+
+    # Unfortunately, it seems that Meross API does not provide any way to retrieve sub-devices capabilities.
+    # For these devices, the pluggable mixin architecture is not really convenient. However, we use it
+    # instead of classic oop inheritance in order to keep the code and logic specular.
+
+    # TODO: a possible enhancement would be to derive sub-device abilities by looking at its GET_ALL ability.
+    #  However, this would require the discovery to wait for a GET_ALL event for subdevices, which might take
+    #  long. For now, we just use a static binding for sub-devices.
+
+    # TODO: provide a static mapping for Mixins/device type
+    cached_type = _lookup_cached_type(device_type=http_subdevice_info.sub_device_type,
+                                      hardware_version='',
+                                      firmware_version='')
+
+    if cached_type is not None:
+        return cached_type(hubdevice_uuid=hub_uuid, subdevice_id=http_subdevice_info.sub_device_id, manager=manager,
+                           **http_subdevice_info.to_dict())
+    else:
+        _LOGGER.warning(f"Could not find any pre-supported cached type for subdevice "
+                        f"{http_subdevice_info.sub_device_type}")
+        return SubDevice(hubdevice_uuid=hub_uuid, subdevice_id=http_subdevice_info.sub_device_id, manager=manager,
+                         **http_subdevice_info.to_dict())
+
+
+# As soon as the device factory loads, pre-populate the cached types for subdevices
+_SUBDEVICE_MIXIN_CONF = {
+    'mts100v3': [],
+    'ms100': []
+}  # TODO: configure this catalog
+
+for subdevice_type in _SUBDEVICE_MIXIN_CONF:
+    mixin_classes = _SUBDEVICE_MIXIN_CONF[subdevice_type]
+    mixin_classes.append(SubDevice)
+    m = type(subdevice_type, tuple(mixin_classes), {})
+    _dynamic_types[subdevice_type] = m
+
+

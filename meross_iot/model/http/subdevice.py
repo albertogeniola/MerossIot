@@ -5,7 +5,7 @@ from meross_iot.model.shared import BaseDictPayload
 _LOGGER = logging.getLogger(__name__)
 
 
-class HttpSubDevice(BaseDictPayload):
+class HttpSubdeviceInfo(BaseDictPayload):
     def __init__(self,
                  sub_device_id: str,
                  true_id: str,

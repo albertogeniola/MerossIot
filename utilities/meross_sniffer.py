@@ -13,7 +13,7 @@ from meross_iot.logger import h, ROOT_MEROSS_LOGGER
 from meross_iot.manager import MerossHttpClient
 from meross_iot.manager import MerossManager
 from meross_iot.manager import build_client_request_topic
-from meross_iot.model.device import BaseMerossDevice
+from meross_iot.controller.device import BaseDevice
 
 SNIFF_LOG_FILE = 'sniff.log'
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -188,7 +188,7 @@ def main():
     # As very last step, try to collect data via get_all() and get_abilities
     print("Collecting state info...")
     try:
-        d = manager.get_device_by_uuid(selected_device.get('uuid')) # type: BaseMerossDevice
+        d = manager.get_device_by_uuid(selected_device.get('uuid')) # type: BaseDevice
         sysdata = d.get_sys_data()
         abilities = d.get_abilities()
         l.info(f"Sysdata for {d.uuid}: {sysdata}")

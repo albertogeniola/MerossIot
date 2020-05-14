@@ -121,15 +121,37 @@ class LightMixin(object):
         self._update_channel_status(channel, rgb=rgb, luminance=luminance, temperature=temperature)
 
     def get_supports_rgb(self, channel: int = 0) -> bool:
+        """
+        Returns true if the current device supports RGB, False otherwise.
+        :param channel:
+        :return:
+        """
         return self._supports_mode(LightMode.MODE_RGB, channel=channel)
 
     def get_supports_luminance(self, channel: int = 0) -> bool:
+        """
+        Returns true if the current device supports luminance mode, False otherwise.
+        :param channel:
+        :return:
+        """
         return self._supports_mode(LightMode.MODE_LUMINANCE, channel=channel)
 
     def get_supports_temperature(self, channel: int = 0) -> bool:
+        """
+        Returns true if the current device supports temperature mode, False otherwise.
+        :param channel:
+        :return:
+        """
         return self._supports_mode(LightMode.MODE_TEMPERATURE, channel=channel)
 
     def get_rgb_color(self, channel=0, *args, **kwargs) -> Optional[RgbTuple]:
+        """
+        Returns the current RGB configuration of the device.
+        :param channel:
+        :param args:
+        :param kwargs:
+        :return:
+        """
         info = self._channel_light_status.get(channel)
         if info is None:
             return None

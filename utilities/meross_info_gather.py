@@ -6,7 +6,7 @@ from meross_iot.cloud.devices.hubs import GenericHub
 
 from meross_iot.logger import h
 from meross_iot.manager import MerossManager
-from meross_iot.model.device import BaseMerossDevice
+from meross_iot.controller.device import BaseDevice
 
 ROOT_LOG_FILE = 'root.log'
 INFO_LOG_FILE = 'info.log'
@@ -29,7 +29,7 @@ h.setLevel(logging.ERROR)
 
 
 def describe_device(
-        d,  # type: BaseMerossDevice
+        d,  # type: BaseDevice
         manager
                     ):
 
