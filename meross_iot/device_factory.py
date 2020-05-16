@@ -4,7 +4,7 @@ from typing import Optional
 from meross_iot.controller.mixins.consumption import ConsumptionXMixin
 from meross_iot.controller.mixins.electricity import ElectricityMixin
 from meross_iot.controller.mixins.garage import GarageOpenerMixin
-from meross_iot.controller.mixins.hub import Mts100AllMixin
+from meross_iot.controller.mixins.hub import Mts100AllMixin, HubOnlineMixin
 from meross_iot.controller.mixins.light import LightMixin
 from meross_iot.controller.mixins.spray import SprayMixin
 from meross_iot.controller.mixins.system import SystemAllMixin, SystemOnlineMixin
@@ -39,7 +39,8 @@ _ABILITY_MATRIX = {
     Namespace.SYSTEM_ONLINE.value: SystemOnlineMixin,
 
     # Hub
-    Namespace.HUB_MTS100_ALL.value: Mts100AllMixin
+    Namespace.HUB_MTS100_ALL.value: Mts100AllMixin,
+    Namespace.HUB_ONLINE.value: HubOnlineMixin
 
     # TODO: BIND, UNBIND, ONLINE, WIFI, ETC!
 }
@@ -67,7 +68,7 @@ def _lookup_cached_type(device_type: str, hardware_version: str, firmware_versio
     :param firmware_version:
     :return:
     """
-    lookup_string = _caclulate_device_type_name(device_type, hardware_version, firmware_version)
+    lookup_string = _caclulate_device_type_name(device_type, hardware_version, firmware_version).strip(":")
     return _dynamic_types.get(lookup_string)
 
 
@@ -162,39 +163,8 @@ def build_meross_subdevice(http_subdevice_info: HttpSubdeviceInfo, hub_uuid: str
     _LOGGER.debug(f"Building managed device for {http_subdevice_info.sub_device_name} "
                   f"({http_subdevice_info.sub_device_id}).")
 
-    # Unfortunately, it seems that Meross API does not provide any way to retrieve sub-devices capabilities.
-    # For these devices, the pluggable mixin architecture is not really convenient. However, we use it
-    # instead of classic oop inheritance in order to keep the code and logic specular.
-
-    # TODO: a possible enhancement would be to derive sub-device abilities by looking at its GET_ALL ability.
-    #  However, this would require the discovery to wait for a GET_ALL event for subdevices, which might take
-    #  long. For now, we just use a static binding for sub-devices.
-
-    # TODO: provide a static mapping for Mixins/device type
-    cached_type = _lookup_cached_type(device_type=http_subdevice_info.sub_device_type,
-                                      hardware_version='',
-                                      firmware_version='')
-
-    if cached_type is not None:
-        return cached_type(hubdevice_uuid=hub_uuid, subdevice_id=http_subdevice_info.sub_device_id, manager=manager,
-                           **http_subdevice_info.to_dict())
-    else:
-        _LOGGER.warning(f"Could not find any pre-supported cached type for subdevice "
-                        f"{http_subdevice_info.sub_device_type}")
-        return SubDevice(hubdevice_uuid=hub_uuid, subdevice_id=http_subdevice_info.sub_device_id, manager=manager,
-                         **http_subdevice_info.to_dict())
-
-
-# As soon as the device factory loads, pre-populate the cached types for subdevices
-_SUBDEVICE_MIXIN_CONF = {
-    'mts100v3': [],
-    'ms100': []
-}  # TODO: configure this catalog
-
-for subdevice_type in _SUBDEVICE_MIXIN_CONF:
-    mixin_classes = _SUBDEVICE_MIXIN_CONF[subdevice_type]
-    mixin_classes.append(SubDevice)
-    m = type(subdevice_type, tuple(mixin_classes), {})
-    _dynamic_types[subdevice_type] = m
-
+    return SubDevice(hubdevice_uuid=hub_uuid,
+                     subdevice_id=http_subdevice_info.sub_device_id,
+                     manager=manager,
+                     **http_subdevice_info.to_dict())
 

@@ -9,7 +9,7 @@ import time
 from asyncio import Future
 from asyncio import TimeoutError
 from hashlib import md5
-from typing import Optional, List, TypeVar
+from typing import Optional, List, TypeVar, Iterable
 
 import paho.mqtt.client as mqtt
 
@@ -125,7 +125,7 @@ class MerossManager(object):
         # Update state of local devices
         discovered_new_http_devices = []
         for hdevice in http_devices:
-            ldevice = self._device_registry.lookup_by_uuid(hdevice.uuid)
+            ldevice = self._device_registry.lookup_base_by_uuid(hdevice.uuid)
             if ldevice is not None:
                 _LOGGER.info(f"Updating state of device {ldevice.name} ({ldevice.uuid}) from HTTP info...")
                 ldevice.update_from_http_state(hdevice)
@@ -172,7 +172,7 @@ class MerossManager(object):
                 for sd in subdevs:
                     subdevtasks.append(self._loop.create_task(
                         self._async_enroll_new_http_subdev(subdevice_info=sd,
-                                                           hub_uuid=d.uuid,
+                                                           hub=d,
                                                            hub_reported_abilities=d._abilities)))
 
         # Wait for factory to build all devices
@@ -183,12 +183,15 @@ class MerossManager(object):
 
     async def _async_enroll_new_http_subdev(self,
                                             subdevice_info: HttpSubdeviceInfo,
-                                            hub_uuid: str,
+                                            hub: HubDevice,
                                             hub_reported_abilities: dict) -> Optional[SubDevice]:
         subdevice = build_meross_subdevice(http_subdevice_info=subdevice_info,
-                                           hub_uuid=hub_uuid,
+                                           hub_uuid=hub.uuid,
                                            hub_reported_abilities=hub_reported_abilities,
                                            manager=self)
+        # Register the device to the hub
+        hub.register_subdevice(subdevice=subdevice)
+
         # Enroll the device
         self._device_registry.enroll_device(subdevice)
         return subdevice
@@ -436,34 +439,43 @@ class MerossManager(object):
 
 class DeviceRegistry(object):
     def __init__(self):
-        self._devices_by_uuid = {}
+        self._devices_by_internal_id = {}
 
-    def relinquish_device(self, device_uuid: str):
-        dev = self._devices_by_uuid.get(device_uuid)
+    def relinquish_device(self, device_id: str):
+        dev = self._devices_by_internal_id.get(device_id)
         if dev is None:
-            raise ValueError(f"Cannot relinquish device {device_uuid} as it does not belong to this registry.")
+            raise ValueError(f"Cannot relinquish device {device_id} as it does not belong to this registry.")
 
         # Dismiss the device
         # TODO: implement the dismiss() method to release device-held resources
         _LOGGER.debug(f"Disposing resources for {dev.name} ({dev.uuid})")
         dev.dismiss()
-        del self._devices_by_uuid[dev]
+        del self._devices_by_internal_id[device_id]
         _LOGGER.info(f"Device {dev.name} ({dev.uuid}) removed from registry")
 
     def enroll_device(self, device: BaseDevice):
-        if device.uuid in self._devices_by_uuid:
-            _LOGGER.warning(f"Device {device.name} ({device.uuid}) has been already added to the registry.")
+        if device.internal_id in self._devices_by_internal_id:
+            _LOGGER.warning(f"Device {device.name} ({device.internal_id}) has been already added to the registry.")
             return
         else:
-            _LOGGER.debug(f"Adding device {device.name} ({device.uuid}) to registry.")
-            self._devices_by_uuid[device.uuid] = device
+            _LOGGER.debug(f"Adding device {device.name} ({device.internal_id}) to registry.")
+            self._devices_by_internal_id[device.internal_id] = device
 
-    def lookup_by_uuid(self,
-                       uuid: str) -> Optional[BaseDevice]:
-        return self._devices_by_uuid.get(uuid)
+    def lookup_by_id(self, device_id: str) -> Optional[BaseDevice]:
+        return self._devices_by_internal_id.get(device_id)
+
+    def lookup_base_by_uuid(self, device_uuid: str) -> Optional[BaseDevice]:
+        res = list(filter(lambda d: d.uuid == device_uuid and not isinstance(d, SubDevice),
+                          self._devices_by_internal_id.values()))
+        if len(res) > 1:
+            raise ValueError(f"Multiple devices found for device_uuid {device_uuid}")
+        elif len(res) == 1:
+            return res[0]
+        else:
+            return None
 
     def find_all_by(self,
-                    uuids: Optional[List[str]] = None,
+                    uuids: Optional[Iterable[str]] = None,
                     device_type: Optional[str] = None,
                     device_class: Optional[T] = None,
                     device_name: Optional[str] = None,
@@ -471,9 +483,9 @@ class DeviceRegistry(object):
 
         # Look by UUIDs
         if uuids is not None:
-            res = filter(lambda d: d.uuid in uuids, self._devices_by_uuid.values())
+            res = filter(lambda d: d.uuid in uuids, self._devices_by_internal_id.values())
         else:
-            res = self._devices_by_uuid.values()
+            res = self._devices_by_internal_id.values()
 
         if device_type is not None:
             res = filter(lambda d: d.type == device_type, res)

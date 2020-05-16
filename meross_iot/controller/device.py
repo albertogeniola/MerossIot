@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import List, Union
+from typing import List, Union, Optional
 
 from meross_iot.model.enums import OnlineStatus, Namespace
 from meross_iot.model.http.device import HttpDeviceInfo
@@ -27,6 +27,10 @@ class BaseDevice(object):
 
         # TODO: decide how to handle this
         self._abilities = None
+
+    @property
+    def internal_id(self) -> str:
+        return f"#BASE:{self._uuid}"
 
     @property
     def uuid(self) -> str:
@@ -139,23 +143,19 @@ class HubDevice(BaseDevice):
         super().__init__(device_uuid, manager, **kwargs)
         self._sub_devices = {}
 
-    def get_sub_devices(self) -> List[SubDevice]:
+    def get_subdevices(self) -> List[SubDevice]:
         raise NotImplementedError("TODO!")
 
-    def handle_subdevice_update(self, subdevice_id: str, data: dict, *args, **kwargs) -> None:
-        # Check the specific subdevice has been registered with this hub...
-        subdev = self._sub_devices.get(subdevice_id)
-        if subdev is not None:
-            subdev.handle_update(data=data)
-        else:
-            _LOGGER.warning(f"Received an update for a subdevice (id {subdevice_id}) that has not yet been "
-                            f"registered with this hub. The update will be skipped.")
+    def get_subdevice(self, subdevice_id: str) -> Optional[SubDevice]:
+        return self._sub_devices.get(subdevice_id)
 
     def register_subdevice(self, subdevice: SubDevice) -> None:
         # If the device is already registed, skip it
         if subdevice.subdevice_id in self._sub_devices:
             _LOGGER.error(f"Subdevice {subdevice.subdevice_id} has been already registered to this HUB ({self.name})")
-        raise NotImplementedError("TODO!")
+            return
+
+        self._sub_devices[subdevice.subdevice_id] = subdevice
 
 
 class SubDevice(BaseDevice):
@@ -164,10 +164,34 @@ class SubDevice(BaseDevice):
         self._subdevice_id = subdevice_id
         self._type = kwargs.get('subDeviceType')
         self._name = kwargs.get('subDeviceName')
+        self._onoff = None
+        self._mode = None
+        self._temperature = {}
+
+    @property
+    def internal_id(self) -> str:
+        return f"#BASE:{self._uuid}#SUB:{self._subdevice_id}"
 
     @property
     def subdevice_id(self):
         return self._subdevice_id
+
+    def update_state(self,
+                     online: dict = None,
+                     togglex: dict = None,
+                     timeSync: dict = None,
+                     mode: dict = None,
+                     temperature: dict = None,
+                     *args, **kwargs):
+        _LOGGER.debug(f"Updating state for subdevice {self._subdevice_id}.")
+        self._online = OnlineStatus(online.get('status', -1))
+        self._onoff = togglex.get('onoff') == 1
+        self._mode = mode
+        self._temperature = temperature
+
+    @property
+    def is_on(self) -> Optional[bool]:
+        return self._onoff
 
 
 class ChannelInfo(object):
