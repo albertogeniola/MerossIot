@@ -46,15 +46,15 @@ class Mts100AllMixin:
                  **kwargs):
         super().__init__(device_uuid=device_uuid, manager=manager, **kwargs)
 
-    async def async_update(self) -> None:
+    async def async_update(self, subdevice_ids=(), *args, **kwargs) -> None:
         # When dealing with hubs, we need to "intercept" the UPDATE()
-        await super().async_update()
+        await super().async_update(*args, **kwargs)
 
         # When issuing an update-all command to the hub,
         # we need to query all sub-devices.
         result = await self._execute_command(method="GET",
                                              namespace=Namespace.HUB_MTS100_ALL,
-                                             payload={'all': []})
+                                             payload={'all': [{'id': x} for x in subdevice_ids]})
         subdevices_states = result.get('all')
         for subdev_state in subdevices_states:
             subdev_id = subdev_state.get('id')

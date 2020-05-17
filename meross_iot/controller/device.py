@@ -75,7 +75,7 @@ class BaseDevice(object):
         # TODO: we might update name/uuid/other stuff in here...
         pass
 
-    async def async_update(self) -> None:
+    async def async_update(self, *args, **kwargs) -> None:
         # TODO: check if this is still holding...
         """
         # This method should be overridden implemented by mixins and never called directly. Its main
@@ -166,7 +166,18 @@ class SubDevice(BaseDevice):
         self._name = kwargs.get('subDeviceName')
         self._onoff = None
         self._mode = None
-        self._temperature = {}
+        self._temperature = None
+        hub = manager.find_device(uuids=(hubdevice_uuid,))
+        if len(hub) < 1:
+            raise ValueError("Specified hub device is not present")
+        self._hub = hub[0]
+
+    def _execute_command(self, method: str, namespace: Namespace, payload: dict, timeout: float = 5) -> dict:
+        # Every command should be invoked via HUB?
+        raise NotImplementedError("TODO!")
+
+    async def async_update(self, *args, **kwargs) -> None:
+        await self._hub.async_update(*args, subdevice_ids=(self._subdevice_id,), **kwargs)
 
     @property
     def internal_id(self) -> str:
@@ -184,14 +195,43 @@ class SubDevice(BaseDevice):
                      temperature: dict = None,
                      *args, **kwargs):
         _LOGGER.debug(f"Updating state for subdevice {self._subdevice_id}.")
+
+        # Setup online internal state
         self._online = OnlineStatus(online.get('status', -1))
-        self._onoff = togglex.get('onoff') == 1
+
+        # Setup togglex internal state
+        onoff = togglex.get('onoff')
+        self._onoff = None if onoff is None else onoff == 1
+
+        # Setup mode internal state
         self._mode = mode
+
+        # Setup temperature internal state
         self._temperature = temperature
 
     @property
+    def online_status(self) -> OnlineStatus:
+        # If the HUB device is offline, return offline
+        if self._hub.online_status != OnlineStatus.ONLINE:
+            return self._hub.online_status
+
+        return self._online
+
+    @property
     def is_on(self) -> Optional[bool]:
+        """
+        Returns the current toggle status if the toggle feature is supported. Otherwise, returns None.
+        :return:
+        """
         return self._onoff
+
+    @property
+    def current_temperature(self) -> Optional[float]:
+        """
+        Returns the current sensed temperature, if the subdevice supports temperature reading, otherwise returns None.
+        :return:
+        """
+        return None
 
 
 class ChannelInfo(object):
