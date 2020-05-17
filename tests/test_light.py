@@ -14,7 +14,7 @@ EMAIL = os.environ.get('MEROSS_EMAIL')
 PASSWORD = os.environ.get('MEROSS_PASSWORD')
 
 
-class TestToggleX(AioHTTPTestCase):
+class TestLight(AioHTTPTestCase):
     async def get_application(self):
         return web.Application()
 

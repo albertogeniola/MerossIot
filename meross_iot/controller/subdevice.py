@@ -36,16 +36,17 @@ class Mts100v3Valve(GenericSubDevice):
 
         return parent_handled or locally_handled
 
-    def handle_push_notification(self, push_notification: GenericPushNotification) -> bool:
-        parent_handled = super().handle_push_notification(push_notification=push_notification)
+    def handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
-        if push_notification.namespace == Namespace.HUB_ONLINE:
+        if namespace == Namespace.HUB_ONLINE:
             # TODO
             raise NotImplementedError("TODO")
             locally_handled = True
 
-        return parent_handled or locally_handled
-
+        # Always call the parent handler when done with local specific logic. This gives the opportunity to all
+        # ancestors to catch all events.
+        parent_handled = super().handle_push_notification(namespace=namespace, data=data)
+        return locally_handled or parent_handled
 
     @property
     def is_on(self) -> Optional[bool]:

@@ -19,14 +19,14 @@ class ToggleXMixin(object):
         # _channel_status is a dictionary keeping the status for every channel
         self._channel_togglex_status = {}
 
-    def handle_push_notification(self, push_notification: GenericPushNotification) -> bool:
+    def handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
 
-        if push_notification.namespace == Namespace.CONTROL_TOGGLEX:
-            _LOGGER.debug(f"{self.__class__.__name__} handling push notification for namespace {push_notification.namespace}")
-            payload = push_notification.raw_data.get('togglex')
+        if namespace == Namespace.CONTROL_TOGGLEX:
+            _LOGGER.debug(f"{self.__class__.__name__} handling push notification for namespace {namespace}")
+            payload = data.get('togglex')
             if payload is None:
-                _LOGGER.error(f"{self.__class__.__name__} could not find 'togglex' attribute in push notification data: {push_notification.raw_data}")
+                _LOGGER.error(f"{self.__class__.__name__} could not find 'togglex' attribute in push notification data: {data}")
 
             # The content of the togglex payload may vary. It can either be a dict (plugs with single switch)
             # or a list (power strips).
@@ -45,7 +45,7 @@ class ToggleXMixin(object):
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
-        parent_handled = super().handle_push_notification(push_notification=push_notification)
+        parent_handled = super().handle_push_notification(namespace=namespace, data=data)
         return locally_handled or parent_handled
 
     def handle_update(self, data: dict) -> None:
@@ -89,14 +89,14 @@ class ToggleMixin(object):
         # _channel_status is a dictionary keeping the status for every channel
         self._channel_toggle_status = {}
 
-    def handle_push_notification(self, push_notification: GenericPushNotification) -> bool:
+    def handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
 
-        if push_notification.namespace == Namespace.CONTROL_TOGGLEX:
-            _LOGGER.debug(f"ToggleMixin handling push notification for namespace {push_notification.namespace}")
-            payload = push_notification.raw_data.get('togglex')
+        if namespace == Namespace.CONTROL_TOGGLEX:
+            _LOGGER.debug(f"ToggleMixin handling push notification for namespace {namespace}")
+            payload = data.get('togglex')
             if payload is None:
-                _LOGGER.error(f"ToggleMixin could not find 'toggle' attribute in push notification data: {push_notification.raw_data}")
+                _LOGGER.error(f"ToggleMixin could not find 'toggle' attribute in push notification data: {data}")
             else:
                 channel_index = payload.get('channel', 0)
                 switch_state = payload['onoff'] == 1
@@ -105,7 +105,7 @@ class ToggleMixin(object):
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
-        parent_handled = super().handle_push_notification(push_notification=push_notification)
+        parent_handled = super().handle_push_notification(namespace=namespace, data=data)
         return locally_handled or parent_handled
 
     def handle_update(self, data: dict) -> None:

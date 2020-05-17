@@ -15,19 +15,19 @@ class HubOnlineMixin(object):
                  **kwargs):
         super().__init__(device_uuid=device_uuid, manager=manager, **kwargs)
 
-    def handle_push_notification(self, push_notification: GenericPushNotification) -> bool:
+    def handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
 
-        if push_notification.namespace == Namespace.HUB_ONLINE:
-            _LOGGER.debug(f"{self.__class__.__name__} handling push notification for namespace {push_notification.namespace}")
-            payload = push_notification.raw_data.get('online')
+        if namespace == Namespace.HUB_ONLINE:
+            _LOGGER.debug(f"{self.__class__.__name__} handling push notification for namespace {namespace}")
+            payload = data.get('online')
             if payload is None:
                 _LOGGER.error(f"{self.__class__.__name__} could not find 'online' attribute in push notification data: "
-                              f"{push_notification.raw_data}")
+                              f"{data}")
                 locally_handled = False
             else:
                 # TODO: set subdevice status to online
-                online_data = push_notification.raw_data.get('online', [])
+                online_data = data.get('online', [])
                 for subdev_state in online_data:
                     subdev_id = subdev_state.get('id')
 
@@ -39,11 +39,11 @@ class HubOnlineMixin(object):
                             f"registered with this hub. The update will be skipped.")
                         return
                     else:
-                        subdev.handle_push_notification(push_notification)
+                        subdev.handle_push_notification(namespace=namespace, data=data)
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
-        parent_handled = super().handle_push_notification(push_notification=push_notification)
+        parent_handled = super().handle_push_notification(namespace=namespace, data=data)
         return locally_handled or parent_handled
 
 

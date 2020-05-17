@@ -18,16 +18,16 @@ class GarageOpenerMixin:
         super().__init__(device_uuid=device_uuid, manager=manager, **kwargs)
         self._door_open_state_by_channel = {}
 
-    def handle_push_notification(self, push_notification: GenericPushNotification) -> bool:
+    def handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
 
-        if push_notification.namespace == Namespace.GARAGE_DOOR_STATE:
+        if namespace == Namespace.GARAGE_DOOR_STATE:
             _LOGGER.debug(f"{self.__class__.__name__} handling push notification for namespace "
-                          f"{push_notification.namespace}")
-            payload = push_notification.raw_data.get('state')
+                          f"{namespace}")
+            payload = data.get('state')
             if payload is None:
                 _LOGGER.error(f"{self.__class__.__name__} could not find 'state' attribute in push notification data: "
-                              f"{push_notification.raw_data}")
+                              f"{data}")
                 locally_handled = False
             else:
                 # The door opener state push notification contains an object for every channel handled by the
@@ -40,7 +40,7 @@ class GarageOpenerMixin:
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
-        parent_handled = super().handle_push_notification(push_notification=push_notification)
+        parent_handled = super().handle_push_notification(namespace=namespace, data=data)
         return locally_handled or parent_handled
 
     def handle_update(self, data: dict) -> None:

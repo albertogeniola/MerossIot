@@ -348,7 +348,7 @@ class MerossManager(object):
 
         # Pass the control to the specific device implementation
         dev = target_devs[0]
-        handled = dev.handle_push_notification(push_notification)
+        handled = dev.handle_push_notification(namespace=push_notification.namespace, data=push_notification.raw_data)
         if not handled:
             _LOGGER.warning(f"Uncaught push notification {push_notification.namespace}")
 

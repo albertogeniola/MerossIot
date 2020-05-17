@@ -65,9 +65,9 @@ class BaseDevice(object):
         # Careful with online  status: not all the devices might expose an online mixin.
         raise Exception("Not implemented yet!")
 
-    def handle_push_notification(self, push_notification: GenericPushNotification) -> bool:
+    def handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         # By design, the base class does not implement any push notification.
-        _LOGGER.debug(f"MerossBaseDevice {self.name} handling notification {push_notification.namespace}")
+        _LOGGER.debug(f"MerossBaseDevice {self.name} handling notification {namespace}")
         return False
 
     def handle_update(self, data: dict) -> None:

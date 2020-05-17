@@ -23,15 +23,15 @@ class LightMixin(object):
         # Dictionary keeping the status for every channel
         self._channel_light_status = {}
 
-    def handle_push_notification(self, push_notification: GenericPushNotification) -> bool:
+    def handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
 
-        if push_notification.namespace == Namespace.CONTROL_LIGHT:
-            _LOGGER.debug(f"{self.__class__.__name__} handling push notification for namespace {push_notification.namespace}")
-            payload = push_notification.raw_data.get('light')
+        if namespace == Namespace.CONTROL_LIGHT:
+            _LOGGER.debug(f"{self.__class__.__name__} handling push notification for namespace {namespace}")
+            payload = data.get('light')
             if payload is None:
                 _LOGGER.error(f"{self.__class__.__name__} could not find 'light' attribute in push notification data: "
-                              f"{push_notification.raw_data}")
+                              f"{data}")
                 locally_handled = False
             else:
                 # Update the status of every channel that has been reported in this push
@@ -45,7 +45,7 @@ class LightMixin(object):
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
-        parent_handled = super().handle_push_notification(push_notification=push_notification)
+        parent_handled = super().handle_push_notification(namespace=namespace, data=data)
         return locally_handled or parent_handled
 
     def handle_update(self, data: dict) -> None:

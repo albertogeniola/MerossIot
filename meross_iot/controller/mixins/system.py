@@ -44,15 +44,15 @@ class SystemOnlineMixin(object):
         self._online = status
         super().handle_update(data=data)
 
-    def handle_push_notification(self, push_notification: GenericPushNotification) -> bool:
+    def handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
 
-        if push_notification.namespace == Namespace.SYSTEM_ONLINE:
-            _LOGGER.debug(f"OnlineMixin handling push notification for namespace {push_notification.namespace}")
-            payload = push_notification.raw_data.get('online')
+        if namespace == Namespace.SYSTEM_ONLINE:
+            _LOGGER.debug(f"OnlineMixin handling push notification for namespace {namespace}")
+            payload = data.get('online')
             if payload is None:
                 _LOGGER.error(f"OnlineMixin could not find 'online' attribute in push notification data: "
-                              f"{push_notification.raw_data}")
+                              f"{data}")
                 locally_handled = False
             else:
                 online_data = payload.get("online")
@@ -62,5 +62,5 @@ class SystemOnlineMixin(object):
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
-        parent_handled = super().handle_push_notification(push_notification=push_notification)
+        parent_handled = super().handle_push_notification(namespace=namespace, data=data)
         return locally_handled or parent_handled
