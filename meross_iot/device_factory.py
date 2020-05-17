@@ -9,13 +9,13 @@ from meross_iot.controller.mixins.light import LightMixin
 from meross_iot.controller.mixins.spray import SprayMixin
 from meross_iot.controller.mixins.system import SystemAllMixin, SystemOnlineMixin
 from meross_iot.controller.mixins.toggle import ToggleXMixin, ToggleMixin
-from meross_iot.controller.device import BaseDevice, HubDevice, SubDevice
+from meross_iot.controller.device import BaseDevice, HubDevice, GenericSubDevice
+from meross_iot.controller.subdevice import Mts100v3Valve
 from meross_iot.model.enums import Namespace
 from meross_iot.model.http.device import HttpDeviceInfo
 from meross_iot.model.http.subdevice import HttpSubdeviceInfo
 
 _LOGGER = logging.getLogger(__name__)
-
 
 # TODO: implement logic to "selectively discard overlapping capabilities"
 _ABILITY_MATRIX = {
@@ -45,6 +45,9 @@ _ABILITY_MATRIX = {
     # TODO: BIND, UNBIND, ONLINE, WIFI, ETC!
 }
 
+_SUBDEVICE_MAPPING = {
+    "mts100v3": Mts100v3Valve
+}
 
 _dynamic_types = {}
 
@@ -159,12 +162,18 @@ def build_meross_device(http_device_info: HttpDeviceInfo, device_abilities: dict
     return component
 
 
-def build_meross_subdevice(http_subdevice_info: HttpSubdeviceInfo, hub_uuid: str, hub_reported_abilities: dict, manager) -> SubDevice:
+def build_meross_subdevice(http_subdevice_info: HttpSubdeviceInfo, hub_uuid: str, hub_reported_abilities: dict,
+                           manager) -> GenericSubDevice:
     _LOGGER.debug(f"Building managed device for {http_subdevice_info.sub_device_name} "
                   f"({http_subdevice_info.sub_device_id}).")
 
-    return SubDevice(hubdevice_uuid=hub_uuid,
-                     subdevice_id=http_subdevice_info.sub_device_id,
-                     manager=manager,
-                     **http_subdevice_info.to_dict())
-
+    # Build the device in accordance with the device type
+    subdevtype = _SUBDEVICE_MAPPING.get(http_subdevice_info.sub_device_type)
+    if subdevtype is None:
+        _LOGGER.warning(f"Could not find any specific subdevice class for type {http_subdevice_info.sub_device_type}."
+                        f" Applying generic SubDevice class.")
+        subdevtype = GenericSubDevice
+    return subdevtype(hubdevice_uuid=hub_uuid,
+                      subdevice_id=http_subdevice_info.sub_device_id,
+                      manager=manager,
+                      **http_subdevice_info.to_dict())

@@ -3,10 +3,11 @@ import os
 from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
-from meross_iot.controller.device import HubDevice, SubDevice
+from meross_iot.controller.device import HubDevice, GenericSubDevice
 from meross_iot.controller.mixins.light import LightMixin
 from meross_iot.controller.mixins.system import SystemAllMixin
 from meross_iot.controller.mixins.toggle import ToggleXMixin
+from meross_iot.controller.subdevice import Mts100v3Valve
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
 from meross_iot.model.enums import OnlineStatus
@@ -26,7 +27,7 @@ class TestValve(AioHTTPTestCase):
         self.meross_manager = MerossManager(http_client=self.meross_client)
         await self.meross_manager.async_init()
         await self.meross_manager.async_device_discovery()
-        self.test_devices = self.meross_manager.find_device(device_class=SubDevice)
+        self.test_devices = self.meross_manager.find_device(device_class=Mts100v3Valve)
 
     @unittest_run_loop
     async def test_temperature(self):
@@ -36,8 +37,8 @@ class TestValve(AioHTTPTestCase):
 
         for dev in self.test_devices:
             res = await dev.async_update()
-            temperature = dev.current_temperature
-            print(temperature)
+            temperature = dev.ambient_temperature
+            self.assertIsInstance(temperature, float)
 
     async def tearDownAsync(self):
         await self.meross_client.async_logout()

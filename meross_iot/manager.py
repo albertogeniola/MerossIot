@@ -15,7 +15,7 @@ import paho.mqtt.client as mqtt
 
 from meross_iot.device_factory import build_meross_device, build_meross_subdevice
 from meross_iot.http_api import MerossHttpClient
-from meross_iot.controller.device import BaseDevice, HubDevice, SubDevice
+from meross_iot.controller.device import BaseDevice, HubDevice, GenericSubDevice
 from meross_iot.model.enums import Namespace, OnlineStatus
 from meross_iot.model.exception import CommandTimeoutError
 from meross_iot.model.exception import UnconnectedError
@@ -140,7 +140,7 @@ class MerossManager(object):
         inconsistent_local_devices = []
         for ldevice in self._device_registry.find_all_by():
             # Skip handling SubDevices as they are taken care of later on.
-            if isinstance(ldevice, SubDevice):
+            if isinstance(ldevice, GenericSubDevice):
                 continue
 
             found_in_http = False
@@ -184,7 +184,7 @@ class MerossManager(object):
     async def _async_enroll_new_http_subdev(self,
                                             subdevice_info: HttpSubdeviceInfo,
                                             hub: HubDevice,
-                                            hub_reported_abilities: dict) -> Optional[SubDevice]:
+                                            hub_reported_abilities: dict) -> Optional[GenericSubDevice]:
         subdevice = build_meross_subdevice(http_subdevice_info=subdevice_info,
                                            hub_uuid=hub.uuid,
                                            hub_reported_abilities=hub_reported_abilities,
@@ -465,7 +465,7 @@ class DeviceRegistry(object):
         return self._devices_by_internal_id.get(device_id)
 
     def lookup_base_by_uuid(self, device_uuid: str) -> Optional[BaseDevice]:
-        res = list(filter(lambda d: d.uuid == device_uuid and not isinstance(d, SubDevice),
+        res = list(filter(lambda d: d.uuid == device_uuid and not isinstance(d, GenericSubDevice),
                           self._devices_by_internal_id.values()))
         if len(res) > 1:
             raise ValueError(f"Multiple devices found for device_uuid {device_uuid}")

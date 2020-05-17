@@ -143,13 +143,13 @@ class HubDevice(BaseDevice):
         super().__init__(device_uuid, manager, **kwargs)
         self._sub_devices = {}
 
-    def get_subdevices(self) -> List[SubDevice]:
+    def get_subdevices(self) -> List[GenericSubDevice]:
         raise NotImplementedError("TODO!")
 
-    def get_subdevice(self, subdevice_id: str) -> Optional[SubDevice]:
+    def get_subdevice(self, subdevice_id: str) -> Optional[GenericSubDevice]:
         return self._sub_devices.get(subdevice_id)
 
-    def register_subdevice(self, subdevice: SubDevice) -> None:
+    def register_subdevice(self, subdevice: GenericSubDevice) -> None:
         # If the device is already registed, skip it
         if subdevice.subdevice_id in self._sub_devices:
             _LOGGER.error(f"Subdevice {subdevice.subdevice_id} has been already registered to this HUB ({self.name})")
@@ -158,7 +158,7 @@ class HubDevice(BaseDevice):
         self._sub_devices[subdevice.subdevice_id] = subdevice
 
 
-class SubDevice(BaseDevice):
+class GenericSubDevice(BaseDevice):
     def __init__(self, hubdevice_uuid: str, subdevice_id: str, manager, **kwargs):
         super().__init__(hubdevice_uuid, manager, **kwargs)
         self._subdevice_id = subdevice_id
@@ -172,12 +172,31 @@ class SubDevice(BaseDevice):
             raise ValueError("Specified hub device is not present")
         self._hub = hub[0]
 
-    def _execute_command(self, method: str, namespace: Namespace, payload: dict, timeout: float = 5) -> dict:
+    async def _execute_command(self, method: str, namespace: Namespace, payload: dict, timeout: float = 5) -> dict:
         # Every command should be invoked via HUB?
         raise NotImplementedError("TODO!")
 
     async def async_update(self, *args, **kwargs) -> None:
-        await self._hub.async_update(*args, subdevice_ids=(self._subdevice_id,), **kwargs)
+        # For subdevices, the
+        await self._hub.async_update(subdevice_ids=(self._subdevice_id,))
+
+    def handle_all_update(self, namespace: Namespace, data: dict, *args, **kwargs) -> bool:
+        """
+        Implemented by sybclasses, this method is called by the Mixins when a ALL-UPDATE has been received for
+        the specific subdevice. Each subdevice should then update its internal state with the data passed as
+        argument, filtering the interesting ones using the namespace parameter.
+        Every subclass should call the super().handle_all_update() passing the same parameters before handling
+        any logic. When done, it should return True if the super invocation returned true or if the event
+        was handled locally. In all other cases, it should return false. In this way, the caller would know
+        if any of the method did "react" to the handling.
+        :param namespace:
+        :param data:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        # The base implementation does nothing, so returns False.
+        return False
 
     @property
     def internal_id(self) -> str:
@@ -187,28 +206,6 @@ class SubDevice(BaseDevice):
     def subdevice_id(self):
         return self._subdevice_id
 
-    def update_state(self,
-                     online: dict = None,
-                     togglex: dict = None,
-                     timeSync: dict = None,
-                     mode: dict = None,
-                     temperature: dict = None,
-                     *args, **kwargs):
-        _LOGGER.debug(f"Updating state for subdevice {self._subdevice_id}.")
-
-        # Setup online internal state
-        self._online = OnlineStatus(online.get('status', -1))
-
-        # Setup togglex internal state
-        onoff = togglex.get('onoff')
-        self._onoff = None if onoff is None else onoff == 1
-
-        # Setup mode internal state
-        self._mode = mode
-
-        # Setup temperature internal state
-        self._temperature = temperature
-
     @property
     def online_status(self) -> OnlineStatus:
         # If the HUB device is offline, return offline
@@ -216,22 +213,6 @@ class SubDevice(BaseDevice):
             return self._hub.online_status
 
         return self._online
-
-    @property
-    def is_on(self) -> Optional[bool]:
-        """
-        Returns the current toggle status if the toggle feature is supported. Otherwise, returns None.
-        :return:
-        """
-        return self._onoff
-
-    @property
-    def current_temperature(self) -> Optional[float]:
-        """
-        Returns the current sensed temperature, if the subdevice supports temperature reading, otherwise returns None.
-        :return:
-        """
-        return None
 
 
 class ChannelInfo(object):

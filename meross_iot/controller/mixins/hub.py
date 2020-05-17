@@ -1,5 +1,6 @@
 import logging
 
+from meross_iot.controller.subdevice import Mts100v3Valve
 from meross_iot.model.enums import Namespace
 from meross_iot.model.push.generic import GenericPushNotification
 
@@ -13,7 +14,6 @@ class HubOnlineMixin(object):
                  manager,
                  **kwargs):
         super().__init__(device_uuid=device_uuid, manager=manager, **kwargs)
-        self._online_last_active_time = None
 
     def handle_push_notification(self, push_notification: GenericPushNotification) -> bool:
         locally_handled = False
@@ -27,8 +27,19 @@ class HubOnlineMixin(object):
                 locally_handled = False
             else:
                 # TODO: set subdevice status to online
-                raise NotImplementedError("TODO")
-                locally_handled = True
+                online_data = push_notification.raw_data.get('online', [])
+                for subdev_state in online_data:
+                    subdev_id = subdev_state.get('id')
+
+                    # Check the specific subdevice has been registered with this hub...
+                    subdev = self.get_subdevice(subdevice_id=subdev_id)
+                    if subdev is None:
+                        _LOGGER.warning(
+                            f"Received an update for a subdevice (id {subdev_id}) that has not yet been "
+                            f"registered with this hub. The update will be skipped.")
+                        return
+                    else:
+                        subdev.handle_push_notification(push_notification)
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
@@ -39,6 +50,7 @@ class HubOnlineMixin(object):
 class Mts100AllMixin:
     _execute_command: callable
     _abilities_spec: dict
+    get_subdevice: callable
     uuid: str
 
     def __init__(self, device_uuid: str,
@@ -58,14 +70,13 @@ class Mts100AllMixin:
         subdevices_states = result.get('all')
         for subdev_state in subdevices_states:
             subdev_id = subdev_state.get('id')
-            self.handle_subdevice_update(subdevice_id=subdev_id, data=subdev_state)
 
-    def handle_subdevice_update(self, subdevice_id: str, data: dict, *args, **kwargs) -> None:
-        # Check the specific subdevice has been registered with this hub...
-        subdev = self.get_subdevice(subdevice_id=subdevice_id)
-        if subdev is None:
-            _LOGGER.warning(f"Received an update for a subdevice (id {subdevice_id}) that has not yet been "
-                            f"registered with this hub. The update will be skipped.")
-            return
+            # Check the specific subdevice has been registered with this hub...
+            subdev = self.get_subdevice(subdevice_id=subdev_id)
+            if subdev is None:
+                _LOGGER.warning(f"Received an update for a subdevice (id {subdev_id}) that has not yet been "
+                                f"registered with this hub. The update will be skipped.")
+                return
+            else:
+                subdev.handle_all_update(namespace=Namespace.HUB_MTS100_ALL, data=subdev_state)
 
-        subdev.update_state(**data)
