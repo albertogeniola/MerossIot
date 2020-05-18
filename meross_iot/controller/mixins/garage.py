@@ -43,14 +43,19 @@ class GarageOpenerMixin:
         parent_handled = super().handle_push_notification(namespace=namespace, data=data)
         return locally_handled or parent_handled
 
-    def handle_update(self, data: dict) -> None:
+    def handle_update(self, namespace: Namespace, data: dict) -> bool:
         _LOGGER.debug(f"Handling {self.__class__.__name__} mixin data update.")
-        doors_data = data.get('all', {}).get('digest', {}).get('garageDoor', [])
-        for door in doors_data:
-            channel_index = door['channel']
-            state = door['open'] == 1
-            self._door_open_state_by_channel[channel_index] = state
-        super().handle_update(data=data)
+        locally_handled = False
+        if namespace == Namespace.SYSTEM_ALL:
+            doors_data = data.get('all', {}).get('digest', {}).get('garageDoor', [])
+            for door in doors_data:
+                channel_index = door['channel']
+                state = door['open'] == 1
+                self._door_open_state_by_channel[channel_index] = state
+            locally_handled = True
+
+        super_handled = super().handle_update(namespace=namespace, data=data)
+        return super_handled or locally_handled
 
     async def open(self, channel: int = 0, *args, **kwargs) -> None:
         """

@@ -70,10 +70,10 @@ class BaseDevice(object):
         _LOGGER.debug(f"MerossBaseDevice {self.name} handling notification {namespace}")
         return False
 
-    def handle_update(self, data: dict) -> None:
+    def handle_update(self, namespace: Namespace, data: dict) -> bool:
         # By design, the base class doe snot implement any update logic
         # TODO: we might update name/uuid/other stuff in here...
-        pass
+        return False
 
     async def async_update(self, *args, **kwargs) -> None:
         # TODO: check if this is still holding...
@@ -179,24 +179,6 @@ class GenericSubDevice(BaseDevice):
     async def async_update(self, *args, **kwargs) -> None:
         # For subdevices, the
         await self._hub.async_update(subdevice_ids=(self._subdevice_id,))
-
-    def handle_all_update(self, namespace: Namespace, data: dict, *args, **kwargs) -> bool:
-        """
-        Implemented by sybclasses, this method is called by the Mixins when a ALL-UPDATE has been received for
-        the specific subdevice. Each subdevice should then update its internal state with the data passed as
-        argument, filtering the interesting ones using the namespace parameter.
-        Every subclass should call the super().handle_all_update() passing the same parameters before handling
-        any logic. When done, it should return True if the super invocation returned true or if the event
-        was handled locally. In all other cases, it should return false. In this way, the caller would know
-        if any of the method did "react" to the handling.
-        :param namespace:
-        :param data:
-        :param args:
-        :param kwargs:
-        :return:
-        """
-        # The base implementation does nothing, so returns False.
-        return False
 
     @property
     def internal_id(self) -> str:

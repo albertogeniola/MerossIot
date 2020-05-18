@@ -24,7 +24,7 @@ class SystemAllMixin(object):
         result = await self._execute_command(method="GET", namespace=Namespace.SYSTEM_ALL, payload={})
 
         # Once we have the response, update all the mixin which are interested
-        self.handle_update(data=result)
+        self.handle_update(namespace=Namespace.SYSTEM_ALL, data=result)
 
 
 class SystemOnlineMixin(object):
@@ -37,12 +37,17 @@ class SystemOnlineMixin(object):
                  **kwargs):
         super().__init__(device_uuid=device_uuid, manager=manager, **kwargs)
 
-    def handle_update(self, data: dict) -> None:
+    def handle_update(self, namespace: Namespace, data: dict) -> bool:
         _LOGGER.debug(f"Handling {self.__class__.__name__} mixin data update.")
-        online_data = data.get('all').get('system').get('online')
-        status = OnlineStatus(online_data.get("status"))
-        self._online = status
-        super().handle_update(data=data)
+        locally_handled = False
+        if namespace == Namespace.SYSTEM_ALL:
+            online_data = data.get('all').get('system').get('online')
+            status = OnlineStatus(online_data.get("status"))
+            self._online = status
+            locally_handled = True
+
+        super_handled = super().handle_update(namespace=namespace, data=data)
+        return super_handled or locally_handled
 
     def handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False

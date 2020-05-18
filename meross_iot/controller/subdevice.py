@@ -22,25 +22,20 @@ class Mts100v3Valve(GenericSubDevice):
     async def _execute_command(self, method: str, namespace: Namespace, payload: dict, timeout: float = 5) -> dict:
         raise NotImplementedError("This method should never be called directly for subdevices.")
 
-    def handle_all_update(self, namespace: Namespace, data: dict, *args, **kwargs) -> bool:
-        parent_handled = super().handle_all_update(namespace=namespace, data=data, *args, **kwargs)
-        locally_handled = False
-        if namespace == Namespace.HUB_MTS100_ALL:
-            self._last_active_time = data.get('lastActiveTime')
-            self._schedule_b_mode = data.get('scheduleBMode')
-            self._online = OnlineStatus(data.get('online', {}).get('status', -1))
-            self.__togglex.update(data.get('togglex'))
-            self.__timeSync = data.get('timeSync')
-            self.__mode.update(data.get('mode'))
-            self.__temperature.update(data.get('temperature'))
-
-        return parent_handled or locally_handled
-
     def handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
         if namespace == Namespace.HUB_ONLINE:
             # TODO
             raise NotImplementedError("TODO")
+            locally_handled = True
+        elif namespace == Namespace.HUB_MTS100_ALL:
+            self._schedule_b_mode = data.get('scheduleBMode')
+            self._online = OnlineStatus(data.get('online', {}).get('status', -1))
+            self._last_active_time = data.get('online', {}).get('lastActiveTime')
+            self.__togglex.update(data.get('togglex'))
+            self.__timeSync = data.get('timeSync')
+            self.__mode.update(data.get('mode'))
+            self.__temperature.update(data.get('temperature'))
             locally_handled = True
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all

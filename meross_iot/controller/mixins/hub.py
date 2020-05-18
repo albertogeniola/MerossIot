@@ -78,5 +78,7 @@ class Mts100AllMixin:
                                 f"registered with this hub. The update will be skipped.")
                 return
             else:
-                subdev.handle_all_update(namespace=Namespace.HUB_MTS100_ALL, data=subdev_state)
-
+                handled = subdev.handle_push_notification(namespace=Namespace.HUB_MTS100_ALL, data=subdev_state)
+                if not handled:
+                    _LOGGER.warning(f"Namespace {Namespace.HUB_MTS100_ALL} event was unhandled by subdevice "
+                                    f"{subdev.name}")

@@ -48,14 +48,19 @@ class ToggleXMixin(object):
         parent_handled = super().handle_push_notification(namespace=namespace, data=data)
         return locally_handled or parent_handled
 
-    def handle_update(self, data: dict) -> None:
+    def handle_update(self, namespace: Namespace, data: dict) -> bool:
         _LOGGER.debug(f"Handling {self.__class__.__name__} mixin data update.")
-        payload = data.get('all', {}).get('digest', {}).get('togglex', [])
-        for c in payload:
-            channel = c['channel']
-            switch_state = c['onoff'] == 1
-            self._channel_togglex_status[channel] = switch_state
-        super().handle_update(data=data)
+        locally_handled = False
+        if namespace == Namespace.SYSTEM_ALL:
+            payload = data.get('all', {}).get('digest', {}).get('togglex', [])
+            for c in payload:
+                channel = c['channel']
+                switch_state = c['onoff'] == 1
+                self._channel_togglex_status[channel] = switch_state
+            locally_handled = True
+
+        super_handled = super().handle_update(namespace=namespace, data=data)
+        return super_handled or locally_handled
 
     def is_on(self, channel=0, *args, **kwargs) -> Optional[bool]:
         return self._channel_togglex_status.get(channel, None)
@@ -108,13 +113,17 @@ class ToggleMixin(object):
         parent_handled = super().handle_push_notification(namespace=namespace, data=data)
         return locally_handled or parent_handled
 
-    def handle_update(self, data: dict) -> None:
+    def handle_update(self, namespace: Namespace, data: dict) -> bool:
         _LOGGER.debug(f"Handling {self.__class__.__name__} mixin data update.")
-        payload = data.get('all', {}).get('control', {}).get('toggle', {})
-        channel_index = payload.get('channel', 0)
-        switch_state = payload['onoff'] == 1
-        self._channel_toggle_status[channel_index] = switch_state
-        super().handle_update(data=data)
+        locally_handled = False
+        if namespace == Namespace.SYSTEM_ALL:
+            payload = data.get('all', {}).get('control', {}).get('toggle', {})
+            channel_index = payload.get('channel', 0)
+            switch_state = payload['onoff'] == 1
+            self._channel_toggle_status[channel_index] = switch_state
+            locally_handled = True
+        super_handled = super().handle_update(namespace=namespace, data=data)
+        return super_handled or locally_handled
 
     def is_on(self, channel=0, *args, **kwargs) -> Optional[bool]:
         return self._channel_toggle_status.get(channel, None)

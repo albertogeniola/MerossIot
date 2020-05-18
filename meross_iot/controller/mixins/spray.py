@@ -49,15 +49,20 @@ class SprayMixin(object):
     def get_current_mode(self, channel: int = 0, *args, **kwargs) -> Optional[SprayMode]:
         return self._channel_spray_status.get(channel)
 
-    def handle_update(self, data: dict) -> None:
+    def handle_update(self, namespace: Namespace, data: dict) -> bool:
         _LOGGER.debug(f"Handling {self.__class__.__name__} mixin data update.")
-        spray_data = data.get('all', {}).get('digest', {}).get('spray', [])
-        for c in spray_data:
-            channel = c['channel']
-            strmode = c['mode']
-            mode = SprayMode(strmode)
-            self._channel_spray_status[channel] = mode
-        super().handle_update(data=data)
+        locally_handled = False
+        if namespace == Namespace.SYSTEM_ALL:
+            spray_data = data.get('all', {}).get('digest', {}).get('spray', [])
+            for c in spray_data:
+                channel = c['channel']
+                strmode = c['mode']
+                mode = SprayMode(strmode)
+                self._channel_spray_status[channel] = mode
+            locally_handled = True
+
+        super_handled = super().handle_update(namespace=namespace, data=data)
+        return super_handled or locally_handled
 
     async def async_set_mode(self, mode: SprayMode, channel: int = 0, *args, **kwargs) -> None:
         payload = {'spray': {'channel': channel, 'mode': mode.value}}

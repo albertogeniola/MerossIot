@@ -48,14 +48,18 @@ class LightMixin(object):
         parent_handled = super().handle_push_notification(namespace=namespace, data=data)
         return locally_handled or parent_handled
 
-    def handle_update(self, data: dict) -> None:
+    def handle_update(self, namespace: Namespace, data: dict) -> bool:
         _LOGGER.debug(f"Handling {self.__class__.__name__} mixin data update.")
-        light_data = data.get('all', {}).get('digest', {}).get('light', [])
-        self._update_channel_status(channel=light_data.get('channel'),
-                                    rgb=light_data.get('rgb'),
-                                    luminance=light_data.get('luminance'),
-                                    temperature=light_data.get('temperature'))
-        super().handle_update(data=data)
+        locally_handled = False
+        if namespace == Namespace.SYSTEM_ALL:
+            light_data = data.get('all', {}).get('digest', {}).get('light', [])
+            self._update_channel_status(channel=light_data.get('channel'),
+                                        rgb=light_data.get('rgb'),
+                                        luminance=light_data.get('luminance'),
+                                        temperature=light_data.get('temperature'))
+            locally_handled = True
+        super_handled = super().handle_update(namespace=namespace, data=data)
+        return super_handled or locally_handled
 
     def _supports_mode(self, mode: LightMode, channel: int = 0) -> bool:
         capacity = self._abilities_spec.get(Namespace.CONTROL_LIGHT.value).get('capacity')
