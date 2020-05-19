@@ -91,9 +91,9 @@ class Mts100v3Valve(GenericSubDevice):
     def is_window_open(self) -> Optional[bool]:
         return self.__temperature.get('openWindow') == 1
 
-    def get_preset_temp(self, preset: str) -> Optional[float]:
+    def get_preset_temperature(self, preset: str) -> Optional[float]:
         """
-        Returns the
+        Returns the current set temperature for the given preset.
         :param preset:
         :return:
         """
@@ -111,3 +111,23 @@ class Mts100v3Valve(GenericSubDevice):
         :return:
         """
         return 'custom', 'comfort', 'economy', 'away'
+
+    async def set_preset_temperature(self, preset: str, temperature: float) -> None:
+        """
+        Sets the preset temperature configuration.
+        :param preset:
+        :param temperature:
+        :return:
+        """
+        if preset not in self.get_supported_presets():
+            raise ValueError(f"Preset {preset} is not supported by this device. "
+                             f"Valid presets are: {self.get_supported_presets()}")
+        target_temp = temperature * 10
+        await self._hub._execute_command(method="SET", namespace=Namespace.HUB_MTS100_TEMPERATURE, payload={
+            'temperature': [{
+            'id': self.subdevice_id,
+            preset: target_temp
+        }]})
+
+        # Update local state
+        self.__temperature[preset] = target_temp

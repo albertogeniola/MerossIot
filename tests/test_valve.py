@@ -1,4 +1,5 @@
 import os
+from random import randint
 
 from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
@@ -30,7 +31,7 @@ class TestValve(AioHTTPTestCase):
         self.test_devices = self.meross_manager.find_device(device_class=Mts100v3Valve)
 
     @unittest_run_loop
-    async def test_temperature(self):
+    async def test_ambient_temperature(self):
         if len(self.test_devices) < 1:
             self.skipTest("No HUB device has been found to run this test.")
             return
@@ -39,6 +40,27 @@ class TestValve(AioHTTPTestCase):
             res = await dev.async_update()
             temperature = dev.ambient_temperature
             self.assertIsInstance(temperature, float)
+
+    @unittest_run_loop
+    async def test_presets(self):
+        if len(self.test_devices) < 1:
+            self.skipTest("No HUB device has been found to run this test.")
+            return
+
+        for dev in self.test_devices:
+            res = await dev.async_update()
+
+            max_supported_temp = dev.max_supported_temperature
+            min_supported_temp = dev.min_supported_temperature
+
+            self.assertGreater(len(dev.get_supported_presets()), 0)
+            for preset in dev.get_supported_presets():
+                old_preset_temp = dev.get_preset_temperature(preset)
+                self.assertIsNotNone(old_preset_temp)
+                new_preset = randint(min_supported_temp, max_supported_temp)
+                await dev.set_preset_temperature(preset=preset, temperature=new_preset)
+                new_current_preset = dev.get_preset_temperature(preset)
+                self.assertEqual(new_current_preset, new_preset)
 
     async def tearDownAsync(self):
         await self.meross_client.async_logout()
