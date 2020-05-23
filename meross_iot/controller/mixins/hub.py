@@ -51,7 +51,9 @@ class HubMixn(object):
 
 class HubMs100Mixin(object):
     __PUSH_MAP = {
-        # TODO
+        # TODO: check this
+        Namespace.HUB_SENSOR_ALERT: 'alert',
+        Namespace.HUB_SENSOR_TEMPHUM: 'temphum'
     }
     _execute_command: callable
     _abilities_spec: dict
@@ -62,6 +64,20 @@ class HubMs100Mixin(object):
                  manager,
                  **kwargs):
         super().__init__(device_uuid=device_uuid, manager=manager, **kwargs)
+
+    async def async_update(self, *args, **kwargs) -> None:
+        # Call the super implementation
+        await super().async_update(*args, **kwargs)
+
+        result = await self._execute_command(method="GET", namespace=Namespace.HUB_SENSOR_ALL, payload={'all': []})
+        subdevs_data = result.get('all', [])
+        for d in subdevs_data:
+            dev_id = d.get('id')
+            target_device = self.get_subdevice(subdevice_id=dev_id)
+            if target_device is None:
+                _LOGGER.warning(f"Received data for subdevice {target_device}, which has not been registered with this"
+                                f"hub yet. This update will be ignored.")
+            target_device.handle_push_notification(namespace=Namespace.HUB_SENSOR_ALL, data=d)
 
     def handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
@@ -104,13 +120,27 @@ class HubMts100Mixin(object):
     }
     _execute_command: callable
     _abilities_spec: dict
-    get_subdevice: callable
+    get_subdevices: callable
     uuid: str
 
     def __init__(self, device_uuid: str,
                  manager,
                  **kwargs):
         super().__init__(device_uuid=device_uuid, manager=manager, **kwargs)
+
+    async def async_update(self, *args, **kwargs) -> None:
+        # Call the super implementation
+        await super().async_update(*args, **kwargs)
+
+        result = await self._execute_command(method="GET", namespace=Namespace.HUB_MTS100_ALL, payload={'all': []})
+        subdevs_data = result.get('all', [])
+        for d in subdevs_data:
+            dev_id = d.get('id')
+            target_device = self.get_subdevice(subdevice_id=dev_id)
+            if target_device is None:
+                _LOGGER.warning(f"Received data for subdevice {target_device}, which has not been registered with this"
+                                f"hub yet. This update will be ignored.")
+            target_device.handle_push_notification(namespace=Namespace.HUB_MTS100_ALL, data=d)
 
     def handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False

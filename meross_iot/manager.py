@@ -88,13 +88,13 @@ class MerossManager(object):
         self._mqtt_client.loop_stop(True)
         _LOGGER.info("MQTT Client has fully disconnected.")
 
-    def find_device(self,
-                    device_uuids: Optional[Iterable[str]] = None,
-                    internal_ids: Optional[Iterable[str]] = None,
-                    device_type: Optional[str] = None,
-                    device_class: Optional[type] = None,
-                    device_name: Optional[str] = None,
-                    online_status: Optional[OnlineStatus] = None) -> List[T]:
+    def find_devices(self,
+                     device_uuids: Optional[Iterable[str]] = None,
+                     internal_ids: Optional[Iterable[str]] = None,
+                     device_type: Optional[str] = None,
+                     device_class: Optional[type] = None,
+                     device_name: Optional[str] = None,
+                     online_status: Optional[OnlineStatus] = None) -> List[T]:
         return self._device_registry.find_all_by(
             device_uuids=device_uuids,
             internal_ids=internal_ids, device_type=device_type, device_class=device_class,
@@ -118,10 +118,12 @@ class MerossManager(object):
         self._mqtt_connected_and_subscribed.clear()
         _LOGGER.debug("Connected and subscribed to relevant topics")
 
-    async def async_device_discovery(self):
+    async def async_device_discovery(self, update_subdevice_status: bool = True) -> None:
         """
         Fetch devices and online status from HTTP API. This method also notifies/updates local device online/offline
         status.
+        :param update_subdevice_status When True, tells the manager to retrieve the HUB status in order to update
+               hub-subdevice online status, which would be UNKNOWN if not explicitly retrieved.
         :return:
         """
         # List http devices
@@ -171,8 +173,10 @@ class MerossManager(object):
         # Let's now handle HubDevices. For every HubDevice we have, we need to fetch new possible subdevices
         # from the HTTP API
         subdevtasks = []
+        hubs = []
         for d in enrolled_devices:
             if isinstance(d, HubDevice):
+                hubs.append(d)
                 subdevs = await self._http_client.async_list_hub_subdevices(hub_id=d.uuid)
                 for sd in subdevs:
                     subdevtasks.append(self._loop.create_task(
@@ -183,6 +187,10 @@ class MerossManager(object):
         # Wait for factory to build all devices
         enrolled_subdevices = await asyncio.gather(*tasks, loop=self._loop)
 
+        # We need to update the state of hubs in order to refresh subdevices online status
+        if update_subdevice_status:
+            for h in hubs:
+                await h.async_update()
         # TODO add result logging
         _LOGGER.debug("HTTP async completed.")
 

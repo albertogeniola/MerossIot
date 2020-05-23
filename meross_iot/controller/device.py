@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import List, Union, Optional
+from typing import List, Union, Optional, Iterable
 
 from meross_iot.model.enums import OnlineStatus, Namespace
 from meross_iot.model.http.device import HttpDeviceInfo
@@ -75,7 +75,6 @@ class BaseDevice(object):
         return False
 
     async def async_update(self, *args, **kwargs) -> None:
-        # TODO: check if this is still holding...
         """
         # This method should be overridden implemented by mixins and never called directly. Its main
         # objective is to call the corresponding GET ALL command, which varies in accordance with the
@@ -142,8 +141,8 @@ class HubDevice(BaseDevice):
         super().__init__(device_uuid, manager, **kwargs)
         self._sub_devices = {}
 
-    def get_subdevices(self) -> List[GenericSubDevice]:
-        raise NotImplementedError("TODO!")
+    def get_subdevices(self) -> Iterable[GenericSubDevice]:
+        return self._sub_devices.values()
 
     def get_subdevice(self, subdevice_id: str) -> Optional[GenericSubDevice]:
         return self._sub_devices.get(subdevice_id)
@@ -168,7 +167,7 @@ class GenericSubDevice(BaseDevice):
         self._onoff = None
         self._mode = None
         self._temperature = None
-        hub = manager.find_device(device_uuids=(hubdevice_uuid,))
+        hub = manager.find_devices(device_uuids=(hubdevice_uuid,))
         if len(hub) < 1:
             raise ValueError("Specified hub device is not present")
         self._hub = hub[0]

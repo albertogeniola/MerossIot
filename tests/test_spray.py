@@ -23,7 +23,7 @@ class TestSpray(AioHTTPTestCase):
         manager = MerossManager(http_client=self.meross_client)
         await manager.async_init()
         devices = await manager.async_device_discovery()
-        self.test_devices = manager.find_device(device_class=SprayMixin, online_status=OnlineStatus.ONLINE)
+        self.test_devices = manager.find_devices(device_class=SprayMixin, online_status=OnlineStatus.ONLINE)
 
     @unittest_run_loop
     async def test_spry(self):

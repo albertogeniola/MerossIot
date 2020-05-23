@@ -25,7 +25,7 @@ class TestValve(AioHTTPTestCase):
         self.meross_manager = MerossManager(http_client=self.meross_client)
         await self.meross_manager.async_init()
         await self.meross_manager.async_device_discovery()
-        self.test_devices = self.meross_manager.find_device(device_class=Mts100v3Valve)
+        self.test_devices = self.meross_manager.find_devices(device_class=Mts100v3Valve)
 
     @unittest_run_loop
     async def test_ambient_temperature(self):
@@ -111,7 +111,7 @@ class TestValve(AioHTTPTestCase):
             m = MerossManager(http_client=new_meross_client)
             await m.async_init()
             await m.async_device_discovery()
-            devs = m.find_device(internal_ids=(dev1.internal_id,))
+            devs = m.find_devices(internal_ids=(dev1.internal_id,))
             dev = devs[0]
 
             await dev.async_update()

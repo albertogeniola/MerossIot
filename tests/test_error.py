@@ -39,7 +39,7 @@ class TestError(AioHTTPTestCase):
 
     @unittest_run_loop
     async def test_invalid_namespace(self):
-        devs = self.meross_manager.find_device(device_class=ToggleXMixin, online_status=OnlineStatus.ONLINE)
+        devs = self.meross_manager.find_devices(device_class=ToggleXMixin, online_status=OnlineStatus.ONLINE)
         if len(devs) < 1:
             self.skipTest("No available/online devices found to test. Skipping...")
         dev = devs[0]
@@ -54,7 +54,7 @@ class TestError(AioHTTPTestCase):
 
     @unittest_run_loop
     async def test_invalid_payload(self):
-        devs = self.meross_manager.find_device(device_class=ToggleXMixin, online_status=OnlineStatus.ONLINE)
+        devs = self.meross_manager.find_devices(device_class=ToggleXMixin, online_status=OnlineStatus.ONLINE)
         if len(devs) < 1:
             self.skipTest("No available/online devices found to test. Skipping...")
         dev = devs[0]

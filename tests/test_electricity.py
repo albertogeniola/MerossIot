@@ -24,7 +24,7 @@ class TestElectricity(AioHTTPTestCase):
         manager = MerossManager(http_client=self.meross_client)
         await manager.async_init()
         devices = await manager.async_device_discovery()
-        toggle_devices = manager.find_device(device_class=ConsumptionXMixin, online_status=OnlineStatus.ONLINE)
+        toggle_devices = manager.find_devices(device_class=ConsumptionXMixin, online_status=OnlineStatus.ONLINE)
 
         if len(toggle_devices) < 1:
             self.test_device = None

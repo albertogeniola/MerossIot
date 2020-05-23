@@ -24,7 +24,7 @@ class TestToggleX(AioHTTPTestCase):
         self.meross_manager = MerossManager(http_client=self.meross_client)
         await self.meross_manager.async_init()
         devices = await self.meross_manager.async_device_discovery()
-        toggle_devices = self.meross_manager.find_device(device_class=ToggleXMixin, online_status=OnlineStatus.ONLINE)
+        toggle_devices = self.meross_manager.find_devices(device_class=ToggleXMixin, online_status=OnlineStatus.ONLINE)
 
         if len(toggle_devices) < 1:
             self.test_device = None
@@ -52,7 +52,7 @@ class TestToggleX(AioHTTPTestCase):
     @unittest_run_loop
     async def test_toggle_multi_channel(self):
         # Search for a device with multiple channels
-        devices = self.meross_manager.find_device(online_status=OnlineStatus.ONLINE)
+        devices = self.meross_manager.find_devices(online_status=OnlineStatus.ONLINE)
         multi_channel_devices = list(filter(lambda d: len(d.channels) > 1, devices))
         if len(multi_channel_devices) < 2:
             self.skipTest("Could not find any online device supporting more than 1 channel")
@@ -72,7 +72,7 @@ class TestToggleX(AioHTTPTestCase):
     @unittest_run_loop
     async def test_toggle_master_switch(self):
         # Search for a device with multiple channels
-        devices = self.meross_manager.find_device(online_status=OnlineStatus.ONLINE)
+        devices = self.meross_manager.find_devices(online_status=OnlineStatus.ONLINE)
         multi_channel_devices = list(filter(lambda d: len(d.channels) > 1, devices))
         if len(multi_channel_devices) < 2:
             self.skipTest("Could not find any online device supporting more than 1 channel")
@@ -103,7 +103,7 @@ class TestToggleX(AioHTTPTestCase):
     @unittest_run_loop
     async def test_usb_switches(self):
         # Search for a device with usb channel
-        devices = self.meross_manager.find_device(online_status=OnlineStatus.ONLINE)
+        devices = self.meross_manager.find_devices(online_status=OnlineStatus.ONLINE)
         usb_dev = None
         usb_channel = None
         for d in devices:
@@ -140,7 +140,7 @@ class TestToggleX(AioHTTPTestCase):
             m = MerossManager(http_client=new_meross_client)
             await m.async_init()
             await m.async_device_discovery()
-            devs = m.find_device(device_uuids=(self.test_device.uuid,))
+            devs = m.find_devices(device_uuids=(self.test_device.uuid,))
             dev = devs[0]
 
             # Turn off device to start from a clean state

@@ -19,7 +19,6 @@ class SystemAllMixin(object):
         # Call the super implementation
         await super().async_update(*args, **kwargs)
 
-        # The update mixin does
         result = await self._execute_command(method="GET", namespace=Namespace.SYSTEM_ALL, payload={})
 
         # Once we have the response, update all the mixin which are interested
