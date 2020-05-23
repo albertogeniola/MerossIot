@@ -17,7 +17,7 @@ from meross_iot.controller.device import BaseDevice, HubDevice, GenericSubDevice
 from meross_iot.device_factory import build_meross_device, build_meross_subdevice
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.model.enums import Namespace, OnlineStatus
-from meross_iot.model.exception import CommandTimeoutError
+from meross_iot.model.exception import CommandTimeoutError, CommandError
 from meross_iot.model.exception import UnconnectedError
 from meross_iot.model.http.device import HttpDeviceInfo
 from meross_iot.model.http.subdevice import HttpSubdeviceInfo
@@ -276,7 +276,7 @@ class MerossManager(object):
         #    Such commands have "from" header populated with "/app/<userid>-<appuuid>/subscribe" as that tells the
         #    device where to send its command ACK. Valid methods are GET/SET
         # 2. COMMAND-ACKS, which are sent back from the device to the app requesting the command execution on the
-        #    "/app/<userid>-<appuuid>/subscribe" topic. Valid methods are GETACK/SETACK
+        #    "/app/<userid>-<appuuid>/subscribe" topic. Valid methods are GETACK/SETACK/ERROR
         # 3. PUSH notifications, which are sent to the "/app/46884/subscribe" topic from the device (which populates
         #    the from header with its topic /appliance/<uuid>/subscribe). In this case, only the PUSH
         #    method is allowed.
@@ -302,17 +302,23 @@ class MerossManager(object):
         # Check case 2: COMMAND_ACKS. In this case, we don't check the source topic address, as we trust it's
         # originated by a device on this network that we contacted previously.
         if destination_topic == build_client_response_topic(self._cloud_creds.user_id, self._app_id) and \
-                message_method in ['SETACK', 'GETACK']:
+                message_method in ['SETACK', 'GETACK', 'ERROR']:
             _LOGGER.debug("This message is an ACK to a command this client has send.")
 
-            # If the message is a PUSHACK/GETACK, check if there is any pending command waiting for it and, if so,
+            # If the message is a PUSHACK/GETACK/ERROR, check if there is any pending command waiting for it and, if so,
             # resolve its future
             message_id = header.get('messageId')
             future = self._pending_messages_futures.get(message_id)
             if future is not None:
                 _LOGGER.debug("Found a pending command waiting for response message")
-                self._loop.call_soon_threadsafe(future.set_result, message)
-
+                if message_method == 'ERROR':
+                    err = CommandError(error_payload=message.payload)
+                    self._loop.call_soon_threadsafe(future.set_exception, err)
+                elif message_method in ('SETACK', 'GETACK'):
+                    self._loop.call_soon_threadsafe(future.set_result, message)
+                else:
+                    _LOGGER.error(f"Unhandled message method {message_method}. Please report it to the developer."
+                                  f"raw_msg: {msg}")
         # Check case 3: PUSH notification.
         # Again, here we don't check the source topic, we trust that's legitimate.
         elif destination_topic == build_client_user_topic(self._cloud_creds.user_id) and message_method == 'PUSH':

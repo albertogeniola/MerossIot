@@ -49,7 +49,23 @@ class HubMixn(object):
         return locally_handled or parent_handled
 
 
-class HubMts100Mixin:
+class HubMs100Mixin(object):
+    _execute_command: callable
+    _abilities_spec: dict
+    get_subdevice: callable
+    uuid: str
+
+    def __init__(self, device_uuid: str,
+                 manager,
+                 **kwargs):
+        super().__init__(device_uuid=device_uuid, manager=manager, **kwargs)
+
+    def handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
+        raise NotImplementedError("TODO")
+        pass
+
+
+class HubMts100Mixin(object):
     __PUSH_MAP = {
         Namespace.HUB_MTS100_MODE: 'mode',
         Namespace.HUB_MTS100_TEMPERATURE: 'temperature'
@@ -63,31 +79,6 @@ class HubMts100Mixin:
                  manager,
                  **kwargs):
         super().__init__(device_uuid=device_uuid, manager=manager, **kwargs)
-
-    async def async_update(self, subdevice_ids=(), *args, **kwargs) -> None:
-        # When dealing with hubs, we need to "intercept" the UPDATE()
-        await super().async_update(*args, **kwargs)
-
-        # When issuing an update-all command to the hub,
-        # we need to query all sub-devices.
-        result = await self._execute_command(method="GET",
-                                             namespace=Namespace.HUB_MTS100_ALL,
-                                             payload={'all': [{'id': x} for x in subdevice_ids]})
-        subdevices_states = result.get('all')
-        for subdev_state in subdevices_states:
-            subdev_id = subdev_state.get('id')
-
-            # Check the specific subdevice has been registered with this hub...
-            subdev = self.get_subdevice(subdevice_id=subdev_id)
-            if subdev is None:
-                _LOGGER.warning(f"Received an update for a subdevice (id {subdev_id}) that has not yet been "
-                                f"registered with this hub. The update will be skipped.")
-                return
-            else:
-                handled = subdev.handle_push_notification(namespace=Namespace.HUB_MTS100_ALL, data=subdev_state)
-                if not handled:
-                    _LOGGER.warning(f"Namespace {Namespace.HUB_MTS100_ALL} event was unhandled by subdevice "
-                                    f"{subdev.name}")
 
     def handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False

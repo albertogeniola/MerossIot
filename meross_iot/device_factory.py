@@ -5,12 +5,12 @@ from meross_iot.controller.device import BaseDevice, HubDevice, GenericSubDevice
 from meross_iot.controller.mixins.consumption import ConsumptionXMixin
 from meross_iot.controller.mixins.electricity import ElectricityMixin
 from meross_iot.controller.mixins.garage import GarageOpenerMixin
-from meross_iot.controller.mixins.hub import HubMts100Mixin, HubMixn
+from meross_iot.controller.mixins.hub import HubMts100Mixin, HubMixn, HubMs100Mixin
 from meross_iot.controller.mixins.light import LightMixin
 from meross_iot.controller.mixins.spray import SprayMixin
 from meross_iot.controller.mixins.system import SystemAllMixin, SystemOnlineMixin
 from meross_iot.controller.mixins.toggle import ToggleXMixin, ToggleMixin
-from meross_iot.controller.subdevice import Mts100v3Valve
+from meross_iot.controller.subdevice import Mts100v3Valve, Ms100Sensor
 from meross_iot.model.enums import Namespace
 from meross_iot.model.http.device import HttpDeviceInfo
 from meross_iot.model.http.subdevice import HttpSubdeviceInfo
@@ -41,6 +41,11 @@ _ABILITY_MATRIX = {
     # Hub
     Namespace.HUB_ONLINE.value: HubMixn,
     Namespace.HUB_TOGGLEX.value: HubMixn,
+
+    Namespace.HUB_SENSOR_ALL.value: HubMs100Mixin,
+    Namespace.HUB_SENSOR_ALERT.value: HubMs100Mixin,
+    Namespace.HUB_SENSOR_TEMPHUM.value: HubMs100Mixin,
+
     Namespace.HUB_MTS100_ALL.value: HubMts100Mixin,
     Namespace.HUB_MTS100_MODE.value: HubMts100Mixin,
     Namespace.HUB_MTS100_TEMPERATURE.value: HubMts100Mixin
@@ -49,7 +54,8 @@ _ABILITY_MATRIX = {
 }
 
 _SUBDEVICE_MAPPING = {
-    "mts100v3": Mts100v3Valve
+    "mts100v3": Mts100v3Valve,
+    "ms100": Ms100Sensor
 }
 
 _dynamic_types = {}

@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from typing import Optional, Iterable
 
 from meross_iot.controller.device import GenericSubDevice
@@ -7,7 +8,75 @@ from meross_iot.model.enums import Namespace, OnlineStatus, ThermostatV3Mode
 _LOGGER = logging.getLogger(__name__)
 
 
+class Ms100Sensor(GenericSubDevice):
+    _UPDATE_ALL_NAMESPACE = Namespace.HUB_SENSOR_ALL
+
+    def __init__(self, hubdevice_uuid: str, subdevice_id: str, manager, **kwargs):
+        super().__init__(hubdevice_uuid, subdevice_id, manager, **kwargs)
+        self.__temperature = {}
+        self.__humidity = {}
+
+    async def _execute_command(self, method: str, namespace: Namespace, payload: dict, timeout: float = 5) -> dict:
+        raise NotImplementedError("This method should never be called directly for subdevices.")
+
+    def __prepare_push_notification_data(self, key, data):
+        multiple = data.get(key, [])
+        if len(multiple) != 1:
+            raise ValueError("Temperature event does not provide exactly one update element")
+        update_element = multiple[0].copy()
+        del update_element['id']
+        return update_element
+
+    def handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
+        locally_handled = False
+        if namespace == Namespace.HUB_ONLINE:
+            update_element = self.__prepare_push_notification_data(key='online', data=data)
+            self._online = OnlineStatus(update_element.get('status', -1))
+            locally_handled = True
+        elif namespace == Namespace.HUB_SENSOR_ALL:
+            self._online = OnlineStatus(data.get('online', {}).get('status', -1))
+            self.__temperature.update(data.get('temperature', {}))
+            self.__humidity.update(data.get('humidity', {}))
+            locally_handled = True
+        elif namespace == Namespace.HUB_SENSOR_TEMPHUM:
+            raise NotImplementedError("TODO")
+            locally_handled = True
+        elif namespace == Namespace.HUB_SENSOR_ALERT:
+            raise NotImplementedError("TODO")
+            locally_handled = True
+
+        # Always call the parent handler when done with local specific logic. This gives the opportunity to all
+        # ancestors to catch all events.
+        parent_handled = super().handle_push_notification(namespace=namespace, data=data)
+        return locally_handled or parent_handled
+
+    @property
+    def last_sampled_temperature(self) -> Optional[float]:
+        temp = self.__temperature.get('latest')
+        if temp is None:
+            return None
+        return float(temp) / 10.0
+
+    @property
+    def last_sampled_temperature_time(self) -> Optional[datetime]:
+        timestamp = self.__temperature.get('latestSampleTime')
+        if timestamp is None:
+            return None
+
+        return datetime.utcfromtimestamp(timestamp)
+
+    @property
+    def min_supported_temperature(self) -> Optional[float]:
+        return self.__temperature.get('min')
+
+    @property
+    def max_supported_temperature(self) -> Optional[float]:
+        return self.__temperature.get('max')
+
+
 class Mts100v3Valve(GenericSubDevice):
+    _UPDATE_ALL_NAMESPACE = Namespace.HUB_MTS100_ALL
+
     def __init__(self, hubdevice_uuid: str, subdevice_id: str, manager, **kwargs):
         super().__init__(hubdevice_uuid, subdevice_id, manager, **kwargs)
         self.__togglex = {}

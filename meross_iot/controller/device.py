@@ -158,6 +158,8 @@ class HubDevice(BaseDevice):
 
 
 class GenericSubDevice(BaseDevice):
+    _UPDATE_ALL_NAMESPACE = None
+
     def __init__(self, hubdevice_uuid: str, subdevice_id: str, manager, **kwargs):
         super().__init__(hubdevice_uuid, manager, **kwargs)
         self._subdevice_id = subdevice_id
@@ -173,11 +175,29 @@ class GenericSubDevice(BaseDevice):
 
     async def _execute_command(self, method: str, namespace: Namespace, payload: dict, timeout: float = 5) -> dict:
         # Every command should be invoked via HUB?
-        raise NotImplementedError("TODO!")
+        raise NotImplementedError("Subdevices should rely on Hub in order to send commands.")
 
     async def async_update(self, *args, **kwargs) -> None:
-        # For subdevices, the
-        await self._hub.async_update(subdevice_ids=(self._subdevice_id,))
+        if self._UPDATE_ALL_NAMESPACE is None:
+            _LOGGER.error("GenericSubDevice does not implement any GET_ALL namespace. Update won't be performed.")
+            pass
+
+        # When dealing with hubs, we need to "intercept" the UPDATE()
+        await super().async_update(*args, **kwargs)
+
+        # When issuing an update-all command to the hub,
+        # we need to query all sub-devices.
+        result = await self._hub._execute_command(method="GET",
+                                                  namespace=self._UPDATE_ALL_NAMESPACE,
+                                                  payload={'all': [{'id': self.subdevice_id}]})
+        subdevices_states = result.get('all')
+        for subdev_state in subdevices_states:
+            subdev_id = subdev_state.get('id')
+
+            if subdev_id != self.subdevice_id:
+                continue
+            self.handle_push_notification(namespace=self._UPDATE_ALL_NAMESPACE, data=subdev_state)
+            break
 
     @property
     def internal_id(self) -> str:
