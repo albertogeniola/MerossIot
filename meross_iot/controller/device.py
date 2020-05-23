@@ -5,7 +5,6 @@ from typing import List, Union, Optional
 
 from meross_iot.model.enums import OnlineStatus, Namespace
 from meross_iot.model.http.device import HttpDeviceInfo
-from meross_iot.model.push.generic import GenericPushNotification
 
 _LOGGER = logging.getLogger(__name__)
 

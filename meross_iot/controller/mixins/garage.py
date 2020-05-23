@@ -2,7 +2,6 @@ import logging
 from typing import Optional
 
 from meross_iot.model.enums import Namespace
-from meross_iot.model.push.generic import GenericPushNotification
 
 _LOGGER = logging.getLogger(__name__)
 

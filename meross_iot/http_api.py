@@ -16,9 +16,8 @@ from aiohttp import ClientSession
 from meross_iot.model.credentials import MerossCloudCreds
 # Appears to be used as a part of the signature algorithm as constant "salt" (kinda useless)
 from meross_iot.model.http.device import HttpDeviceInfo
-from meross_iot.model.http.subdevice import HttpSubdeviceInfo
 from meross_iot.model.http.exception import TooManyTokensException, TokenExpiredException, AuthenticatedPostException
-
+from meross_iot.model.http.subdevice import HttpSubdeviceInfo
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -1,7 +1,6 @@
 import logging
 
 from meross_iot.model.enums import Namespace, OnlineStatus
-from meross_iot.model.push.generic import GenericPushNotification
 
 _LOGGER = logging.getLogger(__name__)
 

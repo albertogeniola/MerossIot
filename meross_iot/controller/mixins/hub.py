@@ -1,10 +1,6 @@
 import logging
 
-from meross_iot.controller.subdevice import Mts100v3Valve
 from meross_iot.model.enums import Namespace
-from meross_iot.model.push.generic import GenericPushNotification
-from abc import ABC
-
 
 _LOGGER = logging.getLogger(__name__)
 

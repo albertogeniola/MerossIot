@@ -13,9 +13,9 @@ from typing import Optional, List, TypeVar, Iterable
 
 import paho.mqtt.client as mqtt
 
+from meross_iot.controller.device import BaseDevice, HubDevice, GenericSubDevice
 from meross_iot.device_factory import build_meross_device, build_meross_subdevice
 from meross_iot.http_api import MerossHttpClient
-from meross_iot.controller.device import BaseDevice, HubDevice, GenericSubDevice
 from meross_iot.model.enums import Namespace, OnlineStatus
 from meross_iot.model.exception import CommandTimeoutError
 from meross_iot.model.exception import UnconnectedError
@@ -34,7 +34,9 @@ T = TypeVar('T', bound=BaseDevice)  # Declare type variable
 
 class MerossManager(object):
     """
-    This class handles MQTT exchange with Meross MQTT broker.
+    This class implements a full-features Meross Client, which provides device discovery and registry.
+    *Note*: The manager must be initialized before invoking any of its discovery/registry methods. As soon as
+    you create a manager, you shoul call :meth:`async_init`!
     """
 
     def __init__(self,
@@ -269,7 +271,7 @@ class MerossManager(object):
         # - message destination topic
         # - message methods
         # - source device (from value in header)
-        # Based on the network capture of Meross Devices, we know that there are 3 kinds of messages:
+        # Based on the network capture of Meross Devices, we know that there are 4 kinds of messages:
         # 1. COMMANDS sent from the app to the device (/appliance/<uuid>/subscribe) topic.
         #    Such commands have "from" header populated with "/app/<userid>-<appuuid>/subscribe" as that tells the
         #    device where to send its command ACK. Valid methods are GET/SET
@@ -364,11 +366,11 @@ class MerossManager(object):
                                 payload: dict,
                                 timeout: float = 5.0):
         """
-        Executes a command
+        This method sends a command to the MQTT Meross broker.
         :param destination_device_uuid:
-        :param method:
-        :param namespace:
-        :param payload:
+        :param method: Can be GET/SET
+        :param namespace: Command namspace
+        :param payload: A dict containing the payload to be sent
         :param timeout:
         :return:
         """

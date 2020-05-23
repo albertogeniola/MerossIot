@@ -1,9 +1,8 @@
-from typing import Optional, Tuple, Iterable
+import logging
+from typing import Optional, Iterable
+
 from meross_iot.controller.device import GenericSubDevice
 from meross_iot.model.enums import Namespace, OnlineStatus, ThermostatV3Mode
-import logging
-
-from meross_iot.model.push.generic import GenericPushNotification
 
 _LOGGER = logging.getLogger(__name__)
 
