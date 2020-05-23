@@ -1,6 +1,6 @@
 from typing import Optional, Tuple, Iterable
 from meross_iot.controller.device import GenericSubDevice
-from meross_iot.model.enums import Namespace, OnlineStatus
+from meross_iot.model.enums import Namespace, OnlineStatus, ThermostatV3Mode
 import logging
 
 from meross_iot.model.push.generic import GenericPushNotification
@@ -94,6 +94,17 @@ class Mts100v3Valve(GenericSubDevice):
             return float(temp) / 10.0
         else:
             return None
+
+    @property
+    def mode(self) -> Optional[ThermostatV3Mode]:
+        m = self.__mode.get('state')
+        if m is not None:
+            return ThermostatV3Mode(m)
+
+    async def async_set_mode(self, mode: ThermostatV3Mode) -> None:
+        payload = {'mode': [{'id': self.subdevice_id, 'state': mode.value}]}
+        await self._hub._execute_command(method='SET', namespace=Namespace.HUB_MTS100_MODE, payload=payload)
+        self.__mode['state'] = mode.value
 
     @property
     def target_temperature(self) -> Optional[float]:

@@ -26,6 +26,14 @@ class SprayMode(Enum):
     INTERMITTENT = 2
 
 
+class ThermostatV3Mode(Enum):
+    AUTO = 3
+    COOL = 2
+    CUSTOM = 0
+    ECONOMY = 4
+    HEAT = 1
+
+
 class Namespace(Enum):
     # Common abilities
     SYSTEM_ALL = 'Appliance.System.All'

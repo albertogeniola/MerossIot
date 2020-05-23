@@ -12,7 +12,7 @@ from meross_iot.controller.mixins.toggle import ToggleXMixin
 from meross_iot.controller.subdevice import Mts100v3Valve
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
-from meross_iot.model.enums import OnlineStatus
+from meross_iot.model.enums import OnlineStatus, ThermostatV3Mode
 
 EMAIL = os.environ.get('MEROSS_EMAIL')
 PASSWORD = os.environ.get('MEROSS_PASSWORD')
@@ -62,6 +62,23 @@ class TestValve(AioHTTPTestCase):
                 await dev.async_set_preset_temperature(preset=preset, temperature=new_preset)
                 new_current_preset = dev.get_preset_temperature(preset)
                 self.assertEqual(new_current_preset, new_preset)
+
+    @unittest_run_loop
+    async def test_mode(self):
+        if len(self.test_devices) < 1:
+            self.skipTest("No valve device has been found to run this test.")
+
+        dev = self.test_devices[0]
+        await dev.async_update()
+        self.assertIsNotNone(dev.mode)
+        modes = set(ThermostatV3Mode)
+        modes.remove(dev.mode)
+        modes = list(modes)
+        index = randint(0, len(modes)-1)
+        target_mode = modes[index]
+
+        await dev.async_set_mode(mode=target_mode)
+        self.assertEqual(target_mode, dev.mode)
 
     @unittest_run_loop
     async def test_onoff(self):
