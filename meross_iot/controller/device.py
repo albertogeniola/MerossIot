@@ -167,7 +167,7 @@ class GenericSubDevice(BaseDevice):
         self._onoff = None
         self._mode = None
         self._temperature = None
-        hub = manager.find_device(uuids=(hubdevice_uuid,))
+        hub = manager.find_device(device_uuids=(hubdevice_uuid,))
         if len(hub) < 1:
             raise ValueError("Specified hub device is not present")
         self._hub = hub[0]

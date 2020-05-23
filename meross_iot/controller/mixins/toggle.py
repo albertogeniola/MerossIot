@@ -65,21 +65,21 @@ class ToggleXMixin(object):
     def is_on(self, channel=0, *args, **kwargs) -> Optional[bool]:
         return self._channel_togglex_status.get(channel, None)
 
-    async def turn_off(self, channel=0, *args, **kwargs):
+    async def async_turn_off(self, channel=0, *args, **kwargs):
         await self._execute_command("SET", Namespace.CONTROL_TOGGLEX, {'togglex': {"onoff": 0, "channel": channel}})
         # Assume the command was ok, so immediately update the internal state
         self._channel_togglex_status[channel] = False
 
-    async def turn_on(self, channel=0, *args, **kwargs):
+    async def async_turn_on(self, channel=0, *args, **kwargs):
         await self._execute_command("SET", Namespace.CONTROL_TOGGLEX, {'togglex': {"onoff": 1, "channel": channel}})
         # Assume the command was ok, so immediately update the internal state
         self._channel_togglex_status[channel] = True
 
-    async def toggle(self, channel=0, *args, **kwargs):
+    async def async_toggle(self, channel=0, *args, **kwargs):
         if self.is_on(channel=channel):
-            await self.turn_off(channel=channel)
+            await self.async_turn_off(channel=channel)
         else:
-            await self.turn_on(channel=channel)
+            await self.async_turn_on(channel=channel)
 
 
 class ToggleMixin(object):
@@ -128,14 +128,14 @@ class ToggleMixin(object):
     def is_on(self, channel=0, *args, **kwargs) -> Optional[bool]:
         return self._channel_toggle_status.get(channel, None)
 
-    async def turn_off(self, channel=0, *args, **kwargs):
+    async def async_turn_off(self, channel=0, *args, **kwargs):
         await self._execute_command("SET", Namespace.CONTROL_TOGGLE, {'toggle': {"onoff": 0, "channel": channel}})
 
-    async def turn_on(self, channel=0, *args, **kwargs):
+    async def async_turn_on(self, channel=0, *args, **kwargs):
         await self._execute_command("SET", Namespace.CONTROL_TOGGLE, {'toggle': {"onoff": 1, "channel": channel}})
 
-    async def toggle(self, channel=0, *args, **kwargs):
+    async def async_toggle(self, channel=0, *args, **kwargs):
         if self.is_on(channel=channel):
-            await self.turn_off(channel=channel)
+            await self.async_turn_off(channel=channel)
         else:
-            await self.turn_on(channel=channel)
+            await self.async_turn_on(channel=channel)

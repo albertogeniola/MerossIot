@@ -140,9 +140,9 @@ if __name__ == '__main__':
                 random_luminance = randint(10, 100)
                 b.set_light_color(luminance=random_luminance)
 
-        b.turn_on()
+        b.async_turn_on()
         time.sleep(1)
-        b.turn_off()
+        b.async_turn_off()
 
     # ---------------------------
     # Let's play with smart plugs

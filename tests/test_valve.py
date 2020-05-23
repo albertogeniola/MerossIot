@@ -1,3 +1,4 @@
+import asyncio
 import os
 from random import randint
 
@@ -33,7 +34,7 @@ class TestValve(AioHTTPTestCase):
     @unittest_run_loop
     async def test_ambient_temperature(self):
         if len(self.test_devices) < 1:
-            self.skipTest("No HUB device has been found to run this test.")
+            self.skipTest("No valve device has been found to run this test.")
             return
 
         for dev in self.test_devices:
@@ -44,7 +45,7 @@ class TestValve(AioHTTPTestCase):
     @unittest_run_loop
     async def test_presets(self):
         if len(self.test_devices) < 1:
-            self.skipTest("No HUB device has been found to run this test.")
+            self.skipTest("No valve device has been found to run this test.")
             return
 
         for dev in self.test_devices:
@@ -58,9 +59,73 @@ class TestValve(AioHTTPTestCase):
                 old_preset_temp = dev.get_preset_temperature(preset)
                 self.assertIsNotNone(old_preset_temp)
                 new_preset = randint(min_supported_temp, max_supported_temp)
-                await dev.set_preset_temperature(preset=preset, temperature=new_preset)
+                await dev.async_set_preset_temperature(preset=preset, temperature=new_preset)
                 new_current_preset = dev.get_preset_temperature(preset)
                 self.assertEqual(new_current_preset, new_preset)
+
+    @unittest_run_loop
+    async def test_onoff(self):
+        if len(self.test_devices) < 1:
+            self.skipTest("No valve device has been found to run this test.")
+            return
+
+        for dev in self.test_devices:
+            res = await dev.async_update()
+
+            if dev.is_on():
+                await dev.async_turn_off()
+                self.assertFalse(dev.is_on())
+                await asyncio.sleep(1)
+                await dev.async_turn_on()
+                self.assertTrue(dev.is_on())
+
+    @unittest_run_loop
+    async def test_push_notification(self):
+        if len(self.test_devices) < 1:
+            self.skipTest("No valve device has been found to run this test.")
+            return
+
+        dev1 = self.test_devices[0]
+
+        # Turn it on
+        await dev1.async_turn_on()
+
+        # Create a new manager
+        new_meross_client = await MerossHttpClient.async_from_user_password(email=EMAIL, password=PASSWORD)
+        m = None
+        try:
+            # Retrieve the same device with another manager
+            m = MerossManager(http_client=new_meross_client)
+            await m.async_init()
+            await m.async_device_discovery()
+            devs = m.find_device(internal_ids=(dev1.internal_id,))
+            dev = devs[0]
+
+            await dev.async_update()
+            await dev1.async_update()
+
+            # Set target temperature to a random state
+            target = randint(dev.min_supported_temperature, dev.max_supported_temperature)
+            print(f"TARGET = {target}...")
+            await dev1.async_set_target_temperature(temperature=target)
+
+            # The manager that issues the command would immediately update the local state, so we can check
+            # its update as soon as the command is issued.
+            dev1_target_temp = dev1.target_temperature
+            print(f"DEV1 = {dev1_target_temp}...")
+            self.assertEqual(dev1_target_temp, target)
+
+            # Wait a bit: give time for the push notification to get received on the other manager...
+            await asyncio.sleep(5)
+            # Make sure the other manager has received the push notification event
+            dev_target_temp = dev.target_temperature
+            print(f"DEV = {dev_target_temp}...")
+            self.assertEqual(dev_target_temp, target)
+
+        finally:
+            if m is not None:
+                m.close()
+            await new_meross_client.async_logout()
 
     async def tearDownAsync(self):
         await self.meross_client.async_logout()

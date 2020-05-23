@@ -38,15 +38,15 @@ class TestToggleX(AioHTTPTestCase):
             return
 
         # Turn off device to start from a clean state
-        r = await self.test_device.turn_off()
+        r = await self.test_device.async_turn_off()
 
         # Turn on the device
-        r = await self.test_device.turn_on()
+        r = await self.test_device.async_turn_on()
         self.assertTrue(self.test_device.is_on())
 
         # Turn off the device
         await asyncio.sleep(1)
-        r = await self.test_device.turn_off()
+        r = await self.test_device.async_turn_off()
         self.assertFalse(self.test_device.is_on())
 
     @unittest_run_loop
@@ -63,10 +63,10 @@ class TestToggleX(AioHTTPTestCase):
         for c in d.channels:
             if c.is_master_channel:
                 continue
-            await d.turn_on(channel=c.index)
+            await d.async_turn_on(channel=c.index)
             self.assertEqual(d.is_on(channel=c.index), True)
             await asyncio.sleep(1)
-            await d.turn_off(channel=c.index)
+            await d.async_turn_off(channel=c.index)
             self.assertEqual(d.is_on(channel=c.index), False)
 
     @unittest_run_loop
@@ -85,14 +85,14 @@ class TestToggleX(AioHTTPTestCase):
             if c.is_master_channel:
                 master = c
                 continue
-            await d.turn_on(channel=c.index)
+            await d.async_turn_on(channel=c.index)
             self.assertEqual(d.is_on(channel=c.index), True)
 
         await asyncio.sleep(1)
 
         # Turn-off master switch
         self.assertIsNotNone(master)
-        await d.turn_off(channel=master.index)
+        await d.async_turn_off(channel=master.index)
 
         # Give some time to the library to get the PUSH notification
         # Then make sure that the master switch has turned off all the available switches.
@@ -120,10 +120,10 @@ class TestToggleX(AioHTTPTestCase):
             return
 
         # Turn the channel off
-        await usb_dev.turn_off(channel=usb_channel.index)
+        await usb_dev.async_turn_off(channel=usb_channel.index)
         self.assertFalse(usb_dev.is_on(channel=usb_channel.index))
         await asyncio.sleep(1)
-        await usb_dev.turn_on(channel=usb_channel.index)
+        await usb_dev.async_turn_on(channel=usb_channel.index)
         self.assertTrue(usb_dev.is_on(channel=usb_channel.index))
 
     @unittest_run_loop
@@ -140,15 +140,15 @@ class TestToggleX(AioHTTPTestCase):
             m = MerossManager(http_client=new_meross_client)
             await m.async_init()
             await m.async_device_discovery()
-            devs = m.find_device(uuids=(self.test_device.uuid))
+            devs = m.find_device(device_uuids=(self.test_device.uuid,))
             dev = devs[0]
 
             # Turn off device to start from a clean state
-            r = await self.test_device.turn_off()
+            r = await self.test_device.async_turn_off()
             await asyncio.sleep(2)
 
             # Turn on the device
-            r = await self.test_device.turn_on()
+            r = await self.test_device.async_turn_on()
             # Wait a bit and make sure the other manager received the push notification
             await asyncio.sleep(2)
             self.assertTrue(self.test_device.is_on())
@@ -156,7 +156,7 @@ class TestToggleX(AioHTTPTestCase):
 
             # Turn off the device
             await asyncio.sleep(1)
-            r = await self.test_device.turn_off()
+            r = await self.test_device.async_turn_off()
             # Wait a bit and make sure the other manager received the push notification
             await asyncio.sleep(2)
             self.assertFalse(self.test_device.is_on())

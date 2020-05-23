@@ -4,7 +4,7 @@ from typing import Optional
 from meross_iot.controller.mixins.consumption import ConsumptionXMixin
 from meross_iot.controller.mixins.electricity import ElectricityMixin
 from meross_iot.controller.mixins.garage import GarageOpenerMixin
-from meross_iot.controller.mixins.hub import Mts100AllMixin, HubOnlineMixin
+from meross_iot.controller.mixins.hub import HubMts100Mixin, HubMixn
 from meross_iot.controller.mixins.light import LightMixin
 from meross_iot.controller.mixins.spray import SprayMixin
 from meross_iot.controller.mixins.system import SystemAllMixin, SystemOnlineMixin
@@ -39,8 +39,11 @@ _ABILITY_MATRIX = {
     Namespace.SYSTEM_ONLINE.value: SystemOnlineMixin,
 
     # Hub
-    Namespace.HUB_MTS100_ALL.value: Mts100AllMixin,
-    Namespace.HUB_ONLINE.value: HubOnlineMixin
+    Namespace.HUB_ONLINE.value: HubMixn,
+    Namespace.HUB_TOGGLEX.value: HubMixn,
+    Namespace.HUB_MTS100_ALL.value: HubMts100Mixin,
+    Namespace.HUB_MTS100_MODE.value: HubMts100Mixin,
+    Namespace.HUB_MTS100_TEMPERATURE.value: HubMts100Mixin
 
     # TODO: BIND, UNBIND, ONLINE, WIFI, ETC!
 }

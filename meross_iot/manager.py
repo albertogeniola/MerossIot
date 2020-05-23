@@ -86,13 +86,16 @@ class MerossManager(object):
         self._mqtt_client.loop_stop(True)
         _LOGGER.info("MQTT Client has fully disconnected.")
 
-    def find_device(self, uuids: Optional[List[str]] = None,
+    def find_device(self,
+                    device_uuids: Optional[Iterable[str]] = None,
+                    internal_ids: Optional[Iterable[str]] = None,
                     device_type: Optional[str] = None,
                     device_class: Optional[type] = None,
                     device_name: Optional[str] = None,
                     online_status: Optional[OnlineStatus] = None) -> List[T]:
         return self._device_registry.find_all_by(
-            uuids=uuids, device_type=device_type, device_class=device_class,
+            device_uuids=device_uuids,
+            internal_ids=internal_ids, device_type=device_type, device_class=device_class,
             device_name=device_name, online_status=online_status)
 
     async def async_init(self) -> None:
@@ -338,7 +341,7 @@ class MerossManager(object):
         # TODO: handle generic push notification as Bind/Unbind
 
         # Lookup the originating device and deliver the push notification to that one.
-        target_devs = self._device_registry.find_all_by(push_notification.originating_device_uuid)
+        target_devs = self._device_registry.find_all_by(device_uuids=(push_notification.originating_device_uuid,))
         if len(target_devs) < 1:
             _LOGGER.warning("Received a push notification for a device that is not available in the local registry. "
                             "You may need to trigger a discovery to catch those updates. Device-UUID: "
@@ -475,18 +478,21 @@ class DeviceRegistry(object):
             return None
 
     def find_all_by(self,
-                    uuids: Optional[Iterable[str]] = None,
+                    device_uuids: Optional[Iterable[str]] = None,
+                    internal_ids: Optional[Iterable[str]] = None,
                     device_type: Optional[str] = None,
                     device_class: Optional[T] = None,
                     device_name: Optional[str] = None,
                     online_status: Optional[OnlineStatus] = None) -> List[BaseDevice]:
 
-        # Look by UUIDs
-        if uuids is not None:
-            res = filter(lambda d: d.uuid in uuids, self._devices_by_internal_id.values())
+        # Look by Internal UUIDs
+        if internal_ids is not None:
+            res = filter(lambda d: d.internal_id in internal_ids, self._devices_by_internal_id.values())
         else:
             res = self._devices_by_internal_id.values()
 
+        if device_uuids is not None:
+            res = filter(lambda d: d.uuid in device_uuids, res)
         if device_type is not None:
             res = filter(lambda d: d.type == device_type, res)
         if online_status is not None:

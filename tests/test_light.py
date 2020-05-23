@@ -67,7 +67,7 @@ class TestLight(AioHTTPTestCase):
             m = MerossManager(http_client=new_meross_client)
             await m.async_init()
             await m.async_device_discovery()
-            devs = m.find_device(uuids=(light.uuid))
+            devs = m.find_device(device_uuids=(light.uuid,))
             dev = devs[0]
 
             # Set RGB color to known state
