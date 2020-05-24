@@ -14,18 +14,17 @@ how asyncio works and how `Python leverages async programming`_
 
 .. _Python leverages async programming: https://realpython.com/async-io-python
 
-Disclaimer
-==========
-This library was built by looking at the traffic network between Meross App and the Meross
-backends, such as HTTP api and MQTT broker. Meross did not provide any official documentation and
-you should consider this library as unofficial and unsupported by Meross.
+.. warning::
+    This library was built by looking at the traffic network between Meross App and the Meross
+    backends, such as HTTP api and MQTT broker. Meross did not provide any official documentation and
+    you should consider this library as unofficial and unsupported by Meross.
 
-For this reason, you should consider this library not for production use as there is no warranty
-that Meross does not change the way it works or explicitly blocks it. So far Meross guys seem happy about that
-but you should know that it might happen.
+    For this reason, you should consider this library not for production use as there is no warranty
+    that Meross does not change the way it works or explicitly blocks it. So far Meross guys seem happy about that
+    but you should know that it might happen.
 
-If you plan to rely on this library for developing 3rd party plugins (eg. building plugins
-for domotic frameworks), please let the developer know about that.
+    If you plan to rely on this library for developing 3rd party plugins (eg. building plugins
+    for domotic frameworks), please let the developer know about that.
 
 Table Of Contents
 =================
@@ -37,6 +36,8 @@ Table Of Contents
    quick-start
    supported-features
    meross-arch
+   common-gotchas
+
 
 Indices and tables
 ==================

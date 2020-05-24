@@ -14,6 +14,8 @@ issue the following commands:
 
 .. code-block:: bash
 
+   git clone https://github.com/albertogeniola/MerossIot.git
+   cd MerossIot
    pip install -r requirements.txt
    pip install .
 

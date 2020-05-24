@@ -95,6 +95,17 @@ class MerossManager(object):
                      device_class: Optional[type] = None,
                      device_name: Optional[str] = None,
                      online_status: Optional[OnlineStatus] = None) -> List[T]:
+        """
+        Lists devices that have been discovered via this manager. When invoked with no arguments,
+        it returns the whole list of registered devices.
+        :param device_uuids:
+        :param internal_ids:
+        :param device_type:
+        :param device_class:
+        :param device_name:
+        :param online_status:
+        :return:
+        """
         return self._device_registry.find_all_by(
             device_uuids=device_uuids,
             internal_ids=internal_ids, device_type=device_type, device_class=device_class,
