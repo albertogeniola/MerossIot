@@ -34,9 +34,9 @@ Table Of Contents
 
    installation
    quick-start
-   supported-features
-   meross-arch
    common-gotchas
+   meross-arch
+   advanced-topics
 
 
 Indices and tables

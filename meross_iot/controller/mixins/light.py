@@ -10,6 +10,9 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class LightMixin(object):
+    """
+    Mixin class that enables light control.
+    """
     _execute_command: callable
     _abilities_spec: dict
     handle_update: callable
@@ -84,7 +87,8 @@ class LightMixin(object):
                                     *args,
                                     **kwargs) -> None:
         """
-        :param channel: Channel to control (for bulbs it's usually 0)
+        Controls the light color of the given bulb.
+        :param channel: channel to control (for bulbs it's usually 0)
         :param rgb: (red,green,blue) tuple, where each color is an integer from 0-to-255
         :param luminance: Light intensity (at least on MSL120). Varies from 0 to 100
         :param temperature: Light temperature. Can be used when rgb is not specified.
@@ -125,8 +129,8 @@ class LightMixin(object):
 
     def get_supports_rgb(self, channel: int = 0) -> bool:
         """
-        Returns true if the current device supports RGB, False otherwise.
-        :param channel:
+        Returns true if the current device supports RGB color, False otherwise.
+        :param channel: channel to get info from, defaults to 0
         :return:
         """
         return self._supports_mode(LightMode.MODE_RGB, channel=channel)
@@ -134,7 +138,7 @@ class LightMixin(object):
     def get_supports_luminance(self, channel: int = 0) -> bool:
         """
         Returns true if the current device supports luminance mode, False otherwise.
-        :param channel:
+        :param channel: channel to get info from, defaults to 0
         :return:
         """
         return self._supports_mode(LightMode.MODE_LUMINANCE, channel=channel)
@@ -142,7 +146,7 @@ class LightMixin(object):
     def get_supports_temperature(self, channel: int = 0) -> bool:
         """
         Returns true if the current device supports temperature mode, False otherwise.
-        :param channel:
+        :param channel: channel to get info from, defaults to 0
         :return:
         """
         return self._supports_mode(LightMode.MODE_TEMPERATURE, channel=channel)
@@ -150,9 +154,7 @@ class LightMixin(object):
     def get_rgb_color(self, channel=0, *args, **kwargs) -> Optional[RgbTuple]:
         """
         Returns the current RGB configuration of the device.
-        :param channel:
-        :param args:
-        :param kwargs:
+        :param channel: channel to control, defaults to 0 (bulbs generally have only one channel)
         :return:
         """
         info = self._channel_light_status.get(channel)

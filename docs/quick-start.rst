@@ -54,14 +54,66 @@ Controlling bulbs
    :name: bulbs
    :language: python
 
-Smart bulbs implement the `meross_iot.controller.mixins.light.LightMixin` interface, which handle
+Smart bulbs implement the :code:`meross_iot.controller.mixins.light.LightMixin` interface, which handle
 RGB color settings, as well as luminance and color temperature.
 
 .. autoclass:: meross_iot.controller.mixins.light.LightMixin
    :members:
 
+Controlling garage door openers
+-------------------------------
+Meross garage door openers are somehow basic: in most cases they only simulate the
+button-press of the garage door. The door state is instead monitored with a specific sensor
+that must be mounted on the garage door. When you operate the Meross Garage Opener, it sends the
+signal to the garage motor, which starts opening/closing. Then, once the door closes, the sensor
+reports "closing state", and the door is marked as closed. However, when opening the door, things
+are quite different: as soon as the motor is operated, the sensor quickly reports "door opened" state
+as the magnet proximity sensor immediately changes state, even if the door is not completely opened.
+
+.. warning::
+   Operating garage door is dangerous and might not be safe. You use this capability at your own risk,
+   absolving the author of this library of all responsibility.
+
+.. literalinclude:: ../examples/cover.py
+   :linenos:
+   :caption: Operating door opener
+   :name: garage-door
+   :language: python
+
+Garage door functionality is implemented by the :code:`meross_iot.controller.mixins.garage.GarageOpenerMixin`.
+Have a look at the following class reference for more details.
+
+.. autoclass:: meross_iot.controller.mixins.garage.GarageOpenerMixin
+   :members:
+
 Reading sensors
 -----------------
 
+Meross devices might be equipped with sensors. Some devices (like temperature and humidity sensor) are in fact
+exclusively readable, configuring themselves as proper sensor devices. Others, as the MSS310, the Thermostat
+valve or the garage openers are instead actuators that offer some data reading capabilities.
+For this reason, there is no "general" sensor mixin class; on the contrary, you should rely on the capabilities
+offered by other mixins.
+
+The following example will show you how to read power consumption data from a
+MSS310 plug, which implements both the :code:`meross_iot.controller.mixins.electricity.ElectricityMixin` and the
+:code:`meross_iot.controller.mixins.consumption.ConsumptionXMixin`.
+
+.. literalinclude:: ../examples/electricity.py
+   :linenos:
+   :caption: Reading power consumption
+   :name: power-consumption
+   :language: python
+
+For reading data from the MS100 temperature and humidity sensor, you can rely on the following snippet.
+
+.. literalinclude:: ../examples/electricity.py
+   :linenos:
+   :caption: Reading temperature and humidity
+   :name: temperature-humidity
+   :language: python
+
 Controlling Thermostat
 ----------------------
+
+TDB
