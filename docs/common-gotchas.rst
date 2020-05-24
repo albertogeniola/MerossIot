@@ -15,5 +15,10 @@ RuntimeError: Event loop is closed
 
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
+Calling awaitable the wrong way
+    This library implements the asyncio pattern. As a result, you should be aware of how to
+    call asynchronous methods. Calling an asynchronous method without the preceding `await`
+    keyword does not actually invoke the method.
+
 Too many tokens
     TODO

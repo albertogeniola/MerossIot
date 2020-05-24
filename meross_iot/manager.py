@@ -49,6 +49,7 @@ class MerossManager(object):
                  **kwords) -> None:
 
         # Store local attributes
+        self.__initialized = False
         self._http_client = http_client
         self._cloud_creds = self._http_client.cloud_credentials
         self._auto_reconnect = auto_reconnect
@@ -97,14 +98,27 @@ class MerossManager(object):
                      online_status: Optional[OnlineStatus] = None) -> List[T]:
         """
         Lists devices that have been discovered via this manager. When invoked with no arguments,
-        it returns the whole list of registered devices.
-        :param device_uuids:
-        :param internal_ids:
-        :param device_type:
-        :param device_class:
-        :param device_name:
-        :param online_status:
+        it returns the whole list of registered devices. When one or more filter arguments are specified,
+        it returns the list of devices that satisfy all the filters (consider multiple filters as in logical AND).
+
+        :param device_uuids: List of Meross native device UUIDs. When specified, only devices that have a native UUID
+            contained in this list are returned.
+        :param internal_ids: Iterable List of MerossIot device ids. When specified, only devices that have a
+            derived-ids contained in this list are returned.
+        :param device_type: Device type string as reported by meross app (e.g. "mss310" or "msl120"). Note that this
+            field is case sensitive.
+        :param device_class: Filter based on the resulting device class. You can filter also for capability Mixins,
+            such as :code:`meross_iot.controller.mixins.toggle.ToggleXMixin` (returns all the devices supporting
+            ToggleX capability) or :code:`meross_iot.controller.mixins.light.LightMixin`
+            (returns all the device that supports light control).
+            You can also identify all the HUB devices by specifying :code:`meross_iot.controller.device.HubDevice`,
+            Sensors as :code:`meross_iot.controller.subdevice.Ms100Sensor` and Valves as
+            Sensors as :code:`meross_iot.controller.subdevice.Mts100v3Valve`.
+        :param device_name: Filter the devices based on their assigned name (case sensitive)
+        :param online_status: Filter the devices based on their :code:`meross_iot.model.enums.OnlineStatus`
+            as reported by the HTTP api or byt the relative hub (when dealing with subdevices).
         :return:
+            The list of devices that match the provided filters, if any.
         """
         return self._device_registry.find_all_by(
             device_uuids=device_uuids,
@@ -113,9 +127,12 @@ class MerossManager(object):
 
     async def async_init(self) -> None:
         """
-        Connects to the remote MQTT broker and subscribes to the relevant topics.
+        Connects to the remote MQTT broker and subscribes to the relevant topics. This method should be
+        invoked only once before using any other method of this class.
         :return:
         """
+        if self.__initialized:
+            raise RuntimeError("Manager was already initialized.")
 
         _LOGGER.info("Initializing the MQTT connection...")
         self._mqtt_client.connect(host=self._domain, port=self._port, keepalive=30)
@@ -128,6 +145,8 @@ class MerossManager(object):
         await self._mqtt_connected_and_subscribed.wait()
         self._mqtt_connected_and_subscribed.clear()
         _LOGGER.debug("Connected and subscribed to relevant topics")
+
+        self.__initialized = True
 
     async def async_device_discovery(self, update_subdevice_status: bool = True) -> None:
         """

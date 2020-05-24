@@ -13,6 +13,12 @@ start working straight forward.
 
 Listing devices
 ---------------
+.. literalinclude:: ../examples/readme.py
+   :linenos:
+   :caption: Listing Meross device
+   :name: listing
+   :language: python
+
 In order to discover meross devices, you need to setup a :code:`MerossManager`. Once the manager has been created,
 then you can invoke the :code:`async_device_discovery()` method. At that point, you can invoke the
 :code:`find_device()` which allows you to list all the devices that have been discovered by the manager.
@@ -21,13 +27,6 @@ In case you want to search for specific devices, you can pass some filtering arg
 Have a look at the following method signature for more details.
 
 .. automethod:: meross_iot.manager.MerossManager.find_devices
-
-
-.. literalinclude:: ../examples/readme.py
-   :linenos:
-   :caption: Listing Meross device
-   :name: listing
-   :language: python
 
 Toggling switches
 -----------------
@@ -38,6 +37,13 @@ Toggling switches
    :name: toggling
    :language: python
 
+Meross devices that supports toggling and on/off commands implement the
+:code:`meross_iot.controller.mixins.toggle.ToggleXMixin`. This class exposes a number of methods
+to control these devices, such :code:`async_turn_off()` and :code:`async_turn_on()`.
+Refer to the following details for a panoramic around the ToggleMixin class.
+
+.. autoclass:: meross_iot.controller.mixins.toggle.ToggleXMixin
+   :members:
 
 Controlling bulbs
 -----------------

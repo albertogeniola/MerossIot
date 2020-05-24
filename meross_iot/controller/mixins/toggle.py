@@ -7,6 +7,10 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class ToggleXMixin(object):
+    """
+    This mixin is implemented by devices that support ToggleX operation, such as smart switches
+    and smart bulbs.
+    """
     _execute_command: callable
     handle_update: callable
 
@@ -62,19 +66,40 @@ class ToggleXMixin(object):
         return super_handled or locally_handled
 
     def is_on(self, channel=0, *args, **kwargs) -> Optional[bool]:
+        """
+        Returns the ON/OFF state of the switch channel.
+        :param channel: channel index of interested. Defaults to 0
+        :return:
+        """
         return self._channel_togglex_status.get(channel, None)
 
     async def async_turn_off(self, channel=0, *args, **kwargs):
+        """
+        Turns off the specified channel of the device
+        :param channel: channel index to turn off. Defaults to 0.
+        :return:
+        """
         await self._execute_command("SET", Namespace.CONTROL_TOGGLEX, {'togglex': {"onoff": 0, "channel": channel}})
         # Assume the command was ok, so immediately update the internal state
         self._channel_togglex_status[channel] = False
 
     async def async_turn_on(self, channel=0, *args, **kwargs):
+        """
+        Turns on the specified channel of the device
+        :param channel: channel index to turn on. Defaults to 0.
+        :param channel:
+        :return:
+        """
         await self._execute_command("SET", Namespace.CONTROL_TOGGLEX, {'togglex': {"onoff": 1, "channel": channel}})
         # Assume the command was ok, so immediately update the internal state
         self._channel_togglex_status[channel] = True
 
     async def async_toggle(self, channel=0, *args, **kwargs):
+        """
+        Toggles the switch status of the specified channel
+        :param channel: channel index to toggle. Defaults to 0.
+        :return:
+        """
         if self.is_on(channel=channel):
             await self.async_turn_off(channel=channel)
         else:
