@@ -157,7 +157,7 @@ def main():
     devices = []
     http = None
     try:
-        http = MerossHttpClient.from_user_password(email=email, password=password)
+        http = MerossHttpClient.from_user_password(email, password)
         print("# Collecting devices via HTTP api...")
         devices = http.list_devices()
         l.info("DEVICE LISTING VIA HTTP: %s" % devices)

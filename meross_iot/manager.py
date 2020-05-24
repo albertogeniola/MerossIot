@@ -16,19 +16,16 @@ class MerossManager(object):
                                 meross_email,
                                 meross_password,
                                 discovery_interval=30.0,
-                                auto_reconnect=True,
-                                logout_on_stop=True
+                                auto_reconnect=True
                                 ):
         cloud_creds = MerossHttpClient.login(email=meross_email, password=meross_password)
         return MerossManager(
             cloud_credentials=cloud_creds,
             discovery_interval=discovery_interval,
-            auto_reconnect=auto_reconnect,
-            logout_on_stop=logout_on_stop)
+            auto_reconnect=auto_reconnect)
 
-    def __init__(self, cloud_credentials, discovery_interval, auto_reconnect, logout_on_stop):
+    def __init__(self, cloud_credentials, discovery_interval, auto_reconnect):
         self._cloud_creds = cloud_credentials
-        self._logout_on_stop = logout_on_stop
         self._http_client = MerossHttpClient(cloud_credentials=self._cloud_creds)
 
         self._devices_lock = lock_factory.build_rlock()
@@ -46,6 +43,12 @@ class MerossManager(object):
         self._device_discovery_done = Event()
         self._discovery_interval = discovery_interval
 
+    def list_http_devices(self):
+        """
+        Performs a listing of Meross Devices as reported by the HTTP API.
+        """
+        return self._http_client.list_devices()
+
     def start(self, wait_for_first_discovery=True):
         l.debug("Starting manager")
         # Connect to the mqtt broker
@@ -60,13 +63,13 @@ class MerossManager(object):
             self._device_discovery_done.wait()
         l.debug("Discovery done.")
 
-    def stop(self):
+    def stop(self, logout=False):
         l.debug("Stopping manager...")
         self._cloud_client.close()
         self._stop_discovery.set()
         self._device_discoverer.join()
 
-        if self._logout_on_stop:
+        if logout:
             self._http_client.logout()
 
         l.debug("Stop done.")

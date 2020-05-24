@@ -387,13 +387,14 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
-#### 0.3.4.0 (latest)
-- Added HTTP API logout capability
-- Refectored MerossManager/HTTPClient classes
-
+#### 0.3.4.6 (latest)
+- Added method for listing devices using the HTTP api
 <details>
     <summary>Older</summary>
 
+#### 0.3.4.0 
+- Added HTTP API logout capability
+- Refactored MerossManager/HTTPClient classes
 #### 0.3.3.3 (latest)
 - Added lock-assistant capability to help debug deadlock cases
 - Improved tests
