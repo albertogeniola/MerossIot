@@ -19,6 +19,13 @@ class ConsumptionXMixin(object):
         super().__init__(device_uuid=device_uuid, manager=manager, **kwargs)
 
     async def async_get_daily_power_consumption(self, channel=0, *args, **kwargs) -> List[dict]:
+        """
+        Returns the power consumption registered by this device.
+
+        :param channel: channel to read data from
+
+        :return: the historical consumption data
+        """
         # TODO: returning a nice PowerConsumtpionReport object rather than a list of dict?
         result = await self._execute_command("GET", Namespace.CONTROL_CONSUMPTIONX, {'channel': channel})
         data = result.get('consumptionx')

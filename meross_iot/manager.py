@@ -152,8 +152,10 @@ class MerossManager(object):
         """
         Fetch devices and online status from HTTP API. This method also notifies/updates local device online/offline
         status.
+
         :param update_subdevice_status When True, tells the manager to retrieve the HUB status in order to update
                hub-subdevice online status, which would be UNKNOWN if not explicitly retrieved.
+
         :return:
         """
         # List http devices
@@ -411,11 +413,13 @@ class MerossManager(object):
                                 timeout: float = 5.0):
         """
         This method sends a command to the MQTT Meross broker.
+
         :param destination_device_uuid:
         :param method: Can be GET/SET
         :param namespace: Command namspace
         :param payload: A dict containing the payload to be sent
         :param timeout:
+
         :return:
         """
         # Only proceed if we are connected to the remote endpoint
@@ -448,9 +452,11 @@ class MerossManager(object):
     def _build_mqtt_message(self, method: str, namespace: Namespace, payload: dict):
         """
         Sends a message to the Meross MQTT broker, respecting the protocol payload.
+
         :param method:
         :param namespace:
         :param payload:
+
         :return:
         """
 

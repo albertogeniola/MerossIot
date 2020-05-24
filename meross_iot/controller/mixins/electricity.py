@@ -21,10 +21,10 @@ class ElectricityMixin(object):
         """
         Returns the instant power consumption for this device. Please note that current/voltage combination may not
         be accurate as power is. So, refer to power attribute rather than calculate it as Voltage * Current.
-        :param channel:
-        :param args:
-        :param kwargs:
-        :return:
+
+        :param channel: channel where to read metrics from. Defaults to 0
+
+        :return: a `PowerInfo` object describing the current measure data
         """
         result = await self._execute_command("GET", Namespace.CONTROL_ELECTRICITY, {'channel': channel})
         data = result.get('electricity')

@@ -29,7 +29,7 @@ Have a look at the following method signature for more details.
 .. automethod:: meross_iot.manager.MerossManager.find_devices
 
 Controlling switches
------------------
+--------------------
 
 .. literalinclude:: ../examples/toggle.py
    :linenos:
@@ -87,7 +87,7 @@ Have a look at the following class reference for more details.
    :members:
 
 Reading sensors
------------------
+----------------
 
 Meross devices might be equipped with sensors. Some devices (like temperature and humidity sensor) are in fact
 exclusively readable, configuring themselves as proper sensor devices. Others, as the MSS310, the Thermostat
@@ -105,15 +105,29 @@ MSS310 plug, which implements both the :code:`meross_iot.controller.mixins.elect
    :name: power-consumption
    :language: python
 
+In this case, the core of the script is the method :code:`async_get_instant_metrics()` which
+reads the current electricity data from the device.
+
+.. autoclass:: meross_iot.controller.mixins.electricity.ElectricityMixin
+   :members:
+
 For reading data from the MS100 temperature and humidity sensor, you can rely on the following snippet.
 
-.. literalinclude:: ../examples/electricity.py
-   :linenos:
-   :caption: Reading temperature and humidity
-   :name: temperature-humidity
-   :language: python
+.. TODO
+    .. literalinclude:: ../examples/sensor.py
+       :linenos:
+       :caption: Reading from sensor
+       :name: smart-valve
+       :language: python
 
 Controlling Thermostat
 ----------------------
 
 TDB
+
+.. TODO
+    .. literalinclude:: ../examples/valve.py
+       :linenos:
+       :caption: Operating the smart valve
+       :name: smart-valve
+       :language: python

@@ -155,7 +155,8 @@ class Mts100v3Valve(GenericSubDevice):
     def ambient_temperature(self) -> Optional[float]:
         """
         Current room temperature in Celsius degrees.
-        :return:
+
+        :return: float number
         """
         temp = self.__temperature.get('room')
         if temp is not None:
@@ -209,8 +210,10 @@ class Mts100v3Valve(GenericSubDevice):
     def get_preset_temperature(self, preset: str) -> Optional[float]:
         """
         Returns the current set temperature for the given preset.
+
         :param preset:
-        :return:
+
+        :return: float temperature value
         """
         if preset not in self.get_supported_presets():
             _LOGGER.error(f"Preset {preset} is not supported by this device.")
@@ -223,16 +226,19 @@ class Mts100v3Valve(GenericSubDevice):
     def get_supported_presets() -> Iterable[str]:
         """
         Returns the supported presets of this device.
-        :return:
+
+        :return: an iterable of strings
         """
         return 'custom', 'comfort', 'economy', 'away'
 
     async def async_set_preset_temperature(self, preset: str, temperature: float) -> None:
         """
         Sets the preset temperature configuration.
-        :param preset:
-        :param temperature:
-        :return:
+
+        :param preset: string preset, as reported by `get_supported_presets()`
+        :param temperature: temperature to be set for the given preset
+
+        :return: None
         """
         if preset not in self.get_supported_presets():
             raise ValueError(f"Preset {preset} is not supported by this device. "

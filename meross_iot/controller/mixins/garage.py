@@ -59,20 +59,20 @@ class GarageOpenerMixin:
     async def open(self, channel: int = 0, *args, **kwargs) -> None:
         """
         Operates the door: sends the open command.
-        :param channel:
-        :param args:
-        :param kwargs:
-        :return:
+
+        :param channel: channel to operate: defaults to 0
+
+        :return: None
         """
         await self._operate(state=True, channel=channel, *args, **kwargs)
 
     async def close(self, channel: int = 0, *args, **kwargs) -> None:
         """
         Operates the door: sends the close command.
-        :param channel:
-        :param args:
-        :param kwargs:
-        :return:
+
+        :param channel: channel to operate: defaults to 0
+
+        :return: None
         """
         await self._operate(state=False, channel=channel, *args, **kwargs)
 
@@ -83,9 +83,9 @@ class GarageOpenerMixin:
     def is_open(self, channel: int = 0, *args, **kwargs) -> Optional[bool]:
         """
         The current door-open status. Returns True if the given door is open, False otherwise.
-        :param channel:
-        :param args:
-        :param kwargs:
-        :return:
+
+        :param channel: channel of which status is needed
+
+        :return: False if the door is closed, True otherwise
         """
         return self._door_open_state_by_channel.get(channel)
