@@ -28,7 +28,7 @@ Have a look at the following method signature for more details.
 
 .. automethod:: meross_iot.manager.MerossManager.find_devices
 
-Toggling switches
+Controlling switches
 -----------------
 
 .. literalinclude:: ../examples/toggle.py
@@ -47,6 +47,18 @@ Refer to the following details for a panoramic around the ToggleMixin class.
 
 Controlling bulbs
 -----------------
+
+.. literalinclude:: ../examples/light.py
+   :linenos:
+   :caption: Operating smart bulbs
+   :name: bulbs
+   :language: python
+
+Smart bulbs implement the `meross_iot.controller.mixins.light.LightMixin` interface, which handle
+RGB color settings, as well as luminance and color temperature.
+
+.. autoclass:: meross_iot.controller.mixins.light.LightMixin
+   :members:
 
 Reading sensors
 -----------------
