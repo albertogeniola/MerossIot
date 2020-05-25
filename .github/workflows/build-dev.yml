@@ -26,13 +26,17 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Build artifact
       run: python setup.py sdist bdist_wheel
+    - name: Calculate Version
+      run: |
+        TAG=$(cat $GITHUB_WORKSPACE/.version)$GITHUB_RUN_NUMBER
+        echo "Tag: $TAG"
     - name: Create a Release
       uses: actions/create-release@v1
       env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         # The name of the tag. This should come from the webhook payload, `github.GITHUB_REF` when a user pushes a new tag
-        tag_name: $GITHUB_RUN_NUMBER
+        tag_name: $TAG
         # The name of the release. For example, `Release v1.0.1`
         release_name: Development release $GITHUB_RUN_NUMBER
         # `true` to identify the release as a prerelease. `false` to identify the release as a full release. Default: `false`
