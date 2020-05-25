@@ -28,6 +28,8 @@ jobs:
       run: python setup.py sdist bdist_wheel
     - name: Create a Release
       uses: actions/create-release@v1
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         # The name of the tag. This should come from the webhook payload, `github.GITHUB_REF` when a user pushes a new tag
         tag_name: $GITHUB_RUN_NUMBER
