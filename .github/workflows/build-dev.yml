@@ -45,7 +45,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         # The name of the tag. This should come from the webhook payload, `github.GITHUB_REF` when a user pushes a new tag
-        tag_name: ${{needs.build.output.tag}}
+        tag_name: ${{needs.build.outputs.tag}}
         # The name of the release. For example, `Release v1.0.1`
         release_name: Development release ${{github.RUN_NUMBER}}
         # `true` to identify the release as a prerelease. `false` to identify the release as a full release. Default: `false`
