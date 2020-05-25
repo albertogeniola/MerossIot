@@ -1,0 +1,255 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Welcome to MerossIot Library’s documentation! &mdash; MerossIot Library  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="#" class="icon icon-home"> MerossIot Library
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick-start.html">Quick start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="common-gotchas.html">Common gotchas</a></li>
+<li class="toctree-l1"><a class="reference internal" href="meross-arch.html">Meross Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advanced-topics.html">Advanced topics</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">MerossIot Library</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="#">Docs</a> &raquo;</li>
+        
+      <li>Welcome to MerossIot Library’s documentation!</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="welcome-to-merossiot-library-s-documentation">
+<h1>Welcome to MerossIot Library’s documentation!<a class="headerlink" href="#welcome-to-merossiot-library-s-documentation" title="Permalink to this headline">¶</a></h1>
+<p>So you bought some Meross piece of hardware and you now want to automate stuff with that.
+Well, you’re in the right place.</p>
+</div>
+<div class="section" id="before-using-this-library">
+<h1>Before using this library<a class="headerlink" href="#before-using-this-library" title="Permalink to this headline">¶</a></h1>
+<p>Before going any further, please note that this library is meant to be used by Python developers.
+If this is the first time you approach Python, then it might be a bit too hard to start working with it.
+The most important thing to understand is that this library is built with async pattern in mind.
+If you are not used to <strong>asyncio</strong> or <strong>Python 3.5 async</strong> patterns, you’ll probably have hard time understanding
+how to perform even basic tasks with this library. If that is the case, please take some time to understand
+how asyncio works and how <a class="reference external" href="https://realpython.com/async-io-python">Python leverages async programming</a></p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This library was built by looking at the traffic network between Meross App and the Meross
+backends, such as HTTP api and MQTT broker. Meross did not provide any official documentation and
+you should consider this library as unofficial and unsupported by Meross.</p>
+<p>For this reason, you should consider this library not for production use as there is no warranty
+that Meross does not change the way it works or explicitly blocks it. So far Meross guys seem happy about that
+but you should know that it might happen.</p>
+<p>If you plan to rely on this library for developing 3rd party plugins (eg. building plugins
+for domotic frameworks), please let the developer know about that.</p>
+</div>
+</div>
+<div class="section" id="table-of-contents">
+<h1>Table Of Contents<a class="headerlink" href="#table-of-contents" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick-start.html">Quick start</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quick-start.html#listing-devices">Listing devices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick-start.html#controlling-switches">Controlling switches</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick-start.html#controlling-bulbs">Controlling bulbs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick-start.html#controlling-garage-door-openers">Controlling garage door openers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick-start.html#reading-sensors">Reading sensors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick-start.html#controlling-thermostat">Controlling Thermostat</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="common-gotchas.html">Common gotchas</a></li>
+<li class="toctree-l1"><a class="reference internal" href="meross-arch.html">Meross Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advanced-topics.html">Advanced topics</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="installation.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Alberto Geniola
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
