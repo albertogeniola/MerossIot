@@ -54,8 +54,8 @@ class Ms100Sensor(GenericSubDevice):
                 self.__humidity['latestSampleTime'] = synced_time
                 self.__humidity['latest'] = latest_humidity
 
+            self.__samples.clear()
             for sample in samples:
-                self.__samples.clear()
                 temp, hum, from_ts, to_ts, unknown = sample
                 self.__samples.append({
                     'from_ts': from_ts,
