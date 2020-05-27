@@ -9,6 +9,11 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class Ms100Sensor(GenericSubDevice):
+    """
+    This class maps the functionality offered by the MS100 sensor device.
+    The MS100 offers temperature and humidity sensing.
+    Moreover, this device is capable of triggering settable alerts.
+    """
     _UPDATE_ALL_NAMESPACE = Namespace.HUB_SENSOR_ALL
 
     def __init__(self, hubdevice_uuid: str, subdevice_id: str, manager, **kwargs):
@@ -19,18 +24,15 @@ class Ms100Sensor(GenericSubDevice):
     async def _execute_command(self, method: str, namespace: Namespace, payload: dict, timeout: float = 5) -> dict:
         raise NotImplementedError("This method should never be called directly for subdevices.")
 
-    def __prepare_push_notification_data(self, key, data):
-        multiple = data.get(key, [])
-        if len(multiple) != 1:
-            raise ValueError("Temperature event does not provide exactly one update element")
-        update_element = multiple[0].copy()
+    def __prepare_push_notification_data(self, data: dict):
+        update_element = data.copy()
         del update_element['id']
         return update_element
 
     def handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
         if namespace == Namespace.HUB_ONLINE:
-            update_element = self.__prepare_push_notification_data(key='online', data=data)
+            update_element = self.__prepare_push_notification_data(data=data)
             self._online = OnlineStatus(update_element.get('status', -1))
             locally_handled = True
         elif namespace == Namespace.HUB_SENSOR_ALL:
@@ -39,7 +41,18 @@ class Ms100Sensor(GenericSubDevice):
             self.__humidity.update(data.get('humidity', {}))
             locally_handled = True
         elif namespace == Namespace.HUB_SENSOR_TEMPHUM:
-            raise NotImplementedError("TODO")
+            latest_temperature = data.get('latestTemperature')
+            latest_humidity = data.get('latestHumidity')
+            synced_time = data.get('syncedTime')
+
+            if synced_time is not None and (self.last_sampled_time is None or
+                                             synced_time > self.last_sampled_time.timestamp()):
+                self.__temperature['latestSampleTime'] = synced_time
+                self.__temperature['latest'] = latest_temperature
+                self.__humidity['latestSampleTime'] = synced_time
+                self.__humidity['latest'] = latest_humidity
+            else:
+                _LOGGER.debug("Skipping temperature update as synched time is None or old compared to the latest data")
             locally_handled = True
         elif namespace == Namespace.HUB_SENSOR_ALERT:
             raise NotImplementedError("TODO")
@@ -52,13 +65,39 @@ class Ms100Sensor(GenericSubDevice):
 
     @property
     def last_sampled_temperature(self) -> Optional[float]:
+        """
+        Returns the latest sampled temperature in Celsius degrees.
+        If you want to refresh this data, call `async_update` to force a full
+        data refresh.
+
+        :return: The latest sampled temperature, if available, in Celsius degree
+        """
         temp = self.__temperature.get('latest')
         if temp is None:
             return None
         return float(temp) / 10.0
 
     @property
-    def last_sampled_temperature_time(self) -> Optional[datetime]:
+    def last_sampled_humidity(self) -> Optional[float]:
+        """
+        Exposes the latest sampled humidity, in %.
+        If you want to refresh this data, call `async_update` to force a full
+        data refresh.
+
+        :return: The latest sampled humidity grade in %, if available
+        """
+        humidity = self.__humidity.get('latest')
+        if humidity is None:
+            return None
+        return float(humidity) / 10.0
+
+    @property
+    def last_sampled_time(self) -> Optional[datetime]:
+        """
+        UTC datetime when the latest update has been sampled by the sensor
+
+        :return: latest sampling time in UTC, if available
+        """
         timestamp = self.__temperature.get('latestSampleTime')
         if timestamp is None:
             return None
@@ -67,10 +106,18 @@ class Ms100Sensor(GenericSubDevice):
 
     @property
     def min_supported_temperature(self) -> Optional[float]:
+        """
+        Maximum supported temperature that this device can report
+
+        :return: float value, maximum supported temperature, if available
+        """
         return self.__temperature.get('min')
 
     @property
     def max_supported_temperature(self) -> Optional[float]:
+        """
+        Minimum supported temperature that this device can report
+        """
         return self.__temperature.get('max')
 
 
@@ -92,7 +139,7 @@ class Mts100v3Valve(GenericSubDevice):
     def handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
         if namespace == Namespace.HUB_ONLINE:
-            update_element = self.__prepare_push_notification_data(key='online', data=data)
+            update_element = self.__prepare_push_notification_data(data=data)
             self._online = OnlineStatus(update_element.get('status', -1))
             locally_handled = True
         elif namespace == Namespace.HUB_MTS100_ALL:
@@ -105,15 +152,15 @@ class Mts100v3Valve(GenericSubDevice):
             self.__temperature.update(data.get('temperature', {}))
             locally_handled = True
         elif namespace == Namespace.HUB_TOGGLEX:
-            update_element = self.__prepare_push_notification_data(key='togglex', data=data)
+            update_element = self.__prepare_push_notification_data(data=data)
             self.__togglex.update(update_element)
             locally_handled = True
         elif namespace == Namespace.HUB_MTS100_MODE:
-            update_element = self.__prepare_push_notification_data(key='mode', data=data)
+            update_element = self.__prepare_push_notification_data(data=data)
             self.__mode.update(update_element)
             locally_handled = True
         elif namespace == Namespace.HUB_MTS100_TEMPERATURE:
-            update_element = self.__prepare_push_notification_data(key='temperature', data=data)
+            update_element = self.__prepare_push_notification_data(data=data)
             self.__temperature.update(update_element)
             locally_handled = True
 
@@ -122,11 +169,8 @@ class Mts100v3Valve(GenericSubDevice):
         parent_handled = super().handle_push_notification(namespace=namespace, data=data)
         return locally_handled or parent_handled
 
-    def __prepare_push_notification_data(self, key, data):
-        multiple = data.get(key, [])
-        if len(multiple) != 1:
-            raise ValueError("Temperature event does not provide exactly one update element")
-        update_element = multiple[0].copy()
+    def __prepare_push_notification_data(self, data: dict):
+        update_element = data.copy()
         del update_element['id']
         return update_element
 

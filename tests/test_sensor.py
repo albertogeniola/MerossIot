@@ -34,7 +34,7 @@ class TestSensor(AioHTTPTestCase):
         await dev.async_update()
 
         self.assertIsNotNone(dev.last_sampled_temperature)
-        self.assertIsNotNone(dev.last_sampled_temperature_time)
+        self.assertIsNotNone(dev.last_sampled_time)
 
     async def tearDownAsync(self):
         await self.meross_client.async_logout()

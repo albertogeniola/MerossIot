@@ -40,7 +40,7 @@ class HubMixn(object):
                             f"registered with this hub. The update will be skipped.")
                         return False
                     else:
-                        subdev.handle_push_notification(namespace=namespace, data=data)
+                        subdev.handle_push_notification(namespace=namespace, data=subdev_state)
                 locally_handled = True
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
@@ -53,7 +53,8 @@ class HubMs100Mixin(object):
     __PUSH_MAP = {
         # TODO: check this
         Namespace.HUB_SENSOR_ALERT: 'alert',
-        Namespace.HUB_SENSOR_TEMPHUM: 'temphum'
+        Namespace.HUB_SENSOR_TEMPHUM: 'tempHum',
+        Namespace.HUB_SENSOR_ALL: 'all'
     }
     _execute_command: callable
     _abilities_spec: dict
@@ -104,7 +105,7 @@ class HubMs100Mixin(object):
                             f"registered with this hub. The update will be skipped.")
                         return False
                     else:
-                        subdev.handle_push_notification(namespace=namespace, data=data)
+                        subdev.handle_push_notification(namespace=namespace, data=subdev_state)
                 locally_handled = True
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
@@ -115,6 +116,7 @@ class HubMs100Mixin(object):
 
 class HubMts100Mixin(object):
     __PUSH_MAP = {
+        Namespace.HUB_MTS100_ALL: 'all',
         Namespace.HUB_MTS100_MODE: 'mode',
         Namespace.HUB_MTS100_TEMPERATURE: 'temperature'
     }
@@ -166,7 +168,7 @@ class HubMts100Mixin(object):
                             f"registered with this hub. The update will be skipped.")
                         return False
                     else:
-                        subdev.handle_push_notification(namespace=namespace, data=data)
+                        subdev.handle_push_notification(namespace=namespace, data=subdev_state)
                 locally_handled = True
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
