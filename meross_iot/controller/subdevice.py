@@ -1,4 +1,5 @@
 import logging
+from collections import deque
 from datetime import datetime
 from typing import Optional, Iterable
 
@@ -20,6 +21,7 @@ class Ms100Sensor(GenericSubDevice):
         super().__init__(hubdevice_uuid, subdevice_id, manager, **kwargs)
         self.__temperature = {}
         self.__humidity = {}
+        self.__samples = []
 
     async def _execute_command(self, method: str, namespace: Namespace, payload: dict, timeout: float = 5) -> dict:
         raise NotImplementedError("This method should never be called directly for subdevices.")
@@ -44,13 +46,24 @@ class Ms100Sensor(GenericSubDevice):
             latest_temperature = data.get('latestTemperature')
             latest_humidity = data.get('latestHumidity')
             synced_time = data.get('syncedTime')
-
+            samples = data.get('sample')
             if synced_time is not None and (self.last_sampled_time is None or
                                              synced_time > self.last_sampled_time.timestamp()):
                 self.__temperature['latestSampleTime'] = synced_time
                 self.__temperature['latest'] = latest_temperature
                 self.__humidity['latestSampleTime'] = synced_time
                 self.__humidity['latest'] = latest_humidity
+
+            for sample in samples:
+                self.__samples.clear()
+                temp, hum, from_ts, to_ts, unknown = sample
+                self.__samples.append({
+                    'from_ts': from_ts,
+                    'to_ts': to_ts,
+                    'temperature': float(temp)/10,
+                    'humidity': float(hum)/10
+                })
+
             else:
                 _LOGGER.debug("Skipping temperature update as synched time is None or old compared to the latest data")
             locally_handled = True
