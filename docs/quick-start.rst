@@ -127,9 +127,8 @@ Controlling Thermostat
 
 TDB
 
-.. TODO
-    .. literalinclude:: ../examples/valve.py
-       :linenos:
-       :caption: Operating the smart valve
-       :name: smart-valve
-       :language: python
+.. literalinclude:: ../examples/valve.py
+   :linenos:
+   :caption: Operating the smart valve
+   :name: smart-valve
+   :language: python

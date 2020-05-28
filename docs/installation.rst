@@ -18,4 +18,3 @@ issue the following commands:
    cd MerossIot
    pip install -r requirements.txt
    pip install .
-
