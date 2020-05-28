@@ -35,9 +35,6 @@ async def main():
         time = dev.last_sampled_time
 
         print(f"Current sampled data on {time.isoformat()}; Temperature={temp}°C, Humidity={humid}%")
-
-        # TODO: Remove me
-        await asyncio.sleep(240)
     # Close the manager and logout from http_api
     manager.close()
     await http_api_client.async_logout()

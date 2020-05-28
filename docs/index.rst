@@ -37,6 +37,7 @@ Table Of Contents
    common-gotchas
    meross-arch
    advanced-topics
+   api-reference/index
 
 
 Indices and tables

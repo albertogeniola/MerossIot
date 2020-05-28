@@ -113,12 +113,14 @@ reads the current electricity data from the device.
 
 For reading data from the MS100 temperature and humidity sensor, you can rely on the following snippet.
 
-.. TODO
-    .. literalinclude:: ../examples/sensor.py
-       :linenos:
-       :caption: Reading from sensor
-       :name: smart-valve
-       :language: python
+.. literalinclude:: ../examples/sensor.py
+   :linenos:
+   :caption: Reading from sensor
+   :name: smart-valve
+   :language: python
+
+More details on the specific methods offered by the Ms100 sensor device are documented
+within the `meross_iot.controller.subdevice.Ms100Sensor` class.
 
 Controlling Thermostat
 ----------------------

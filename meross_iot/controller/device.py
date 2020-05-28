@@ -10,6 +10,12 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class BaseDevice(object):
+    """
+    A `BaseDevice` is a generic representation of a Meross device.
+    Any BaseDevice is characterized by some generic information, such as user's defined
+    name, type (i.e. device specific model), firmware/hardware version, a Meross internal
+    identifier, a library assigned internal identifier.
+    """
     def __init__(self, device_uuid: str,
                  manager,  # TODO: type hinting "manager"
                  **kwargs):
@@ -24,39 +30,72 @@ class BaseDevice(object):
         self._hwversion = kwargs.get('hdwareVersion')
         self._online = OnlineStatus(kwargs.get('onlineStatus', -1))
 
-        # TODO: decide how to handle this
-        self._abilities = None
+        self._abilities = {}
 
     @property
     def internal_id(self) -> str:
+        """
+        Internal ID used by this library to identify meross devices. It's basically composed by
+        the Meross ID plus some prefix/suffix.
+        :return:
+        """
         return f"#BASE:{self._uuid}"
 
     @property
     def uuid(self) -> str:
+        """
+        Meross identifier of the device.
+        :return:
+        """
         return self._uuid
 
     @property
     def name(self) -> str:
+        """
+        User's defined name of the device
+        :return:
+        """
         return "unknown" if self._name is None else self._name
 
     @property
     def type(self) -> str:
+        """
+        Device model type
+        :return:
+        """
         return "unknown" if self._type is None else self._type
 
     @property
     def firmware_version(self) -> str:
+        """
+        Device firmware version. When unavailable, 'unknown' is returned
+        :return:
+        """
         return "unknown" if self._fwversion is None else self._fwversion
 
     @property
     def hardware_version(self) -> str:
+        """
+        Device hardware revision
+        :return:
+        """
         return "unknown" if self._hwversion is None else self._hwversion
 
     @property
     def online_status(self) -> OnlineStatus:
+        """
+        Current device online status
+        :return:
+        """
         return self._online
 
     @property
     def channels(self) -> List[ChannelInfo]:
+        """
+        List of channels exposed by this device. Multi-channel devices might expose a master
+        switch at index 0.
+        :return:
+        """
         return self._channels
 
     def update_from_http_state(self, hdevice: HttpDeviceInfo) -> None:
@@ -75,6 +114,13 @@ class BaseDevice(object):
         return False
 
     async def async_update(self, *args, **kwargs) -> None:
+        """
+        Forces a full data update on the device. If your network bandwidth is limited or you are running
+        this program on an embedded device, try to invoke this method only when strictly needed.
+        Most of the parameters of a device are updated automatically upon push-notification received
+        by the meross MQTT cloud.
+        :return: None
+        """
         """
         # This method should be overridden implemented by mixins and never called directly. Its main
         # objective is to call the corresponding GET ALL command, which varies in accordance with the
@@ -96,17 +142,8 @@ class BaseDevice(object):
                                                      payload=payload,
                                                      timeout=timeout)
 
-    def is_hub(self) -> bool:
-        return False
-
     def __str__(self) -> str:
-        basic_info = "%s (%s, HW %s, FW %s): " % (
-            self.name,
-            self.type,
-            self.hardware_version,
-            self.firmware_version
-        )
-
+        basic_info = f"{self.name} ({self.type}, HW {self.hardware_version}, FW {self.firmware_version})"
         return basic_info
 
     @staticmethod
@@ -124,6 +161,11 @@ class BaseDevice(object):
         return res
 
     def lookup_channel(self, channel_id_or_name: Union[int, str]):
+        """
+        Looks up a channel by channel id or channel name
+        :param channel_id_or_name:
+        :return:
+        """
         res = []
         if isinstance(channel_id_or_name, str):
             res = list(filter(lambda c: c.name == channel_id_or_name, self._channels))
