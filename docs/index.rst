@@ -39,7 +39,6 @@ Table Of Contents
    advanced-topics
    api-reference/index
 
-
 Indices and tables
 ==================
 

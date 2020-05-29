@@ -1,5 +1,6 @@
 Installation
 ============
+
 This library works only with **Python 3.6+**.
 Make sure you have Python and pipy installed.
 
