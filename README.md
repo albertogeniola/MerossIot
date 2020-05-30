@@ -1,5 +1,5 @@
 ![DEV Build Status](https://github.com/albertogeniola/MerossIot/workflows/Build%20pre-release/badge.svg?branch=development-0.4.X.X)
-![Master Status](https://github.com/albertogeniola/MerossIot/workflows/Build%200.4.X.X/badge.svg?branch=0.4.X.X)
+![0.4.X.X Build](https://github.com/albertogeniola/MerossIot/workflows/Build%20Test%20and%20Release/badge.svg?branch=0.4.X.X)
 ![Documentation](https://github.com/albertogeniola/MerossIot/workflows/Publish%20Documentation/badge.svg?branch=0.4.X.X)
 [![PyPI version](https://badge.fury.io/py/meross-iot.svg)](https://badge.fury.io/py/meross-iot)
 [![Downloads](https://pepy.tech/badge/meross-iot)](https://pepy.tech/project/meross-iot)
