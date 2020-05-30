@@ -178,7 +178,7 @@ Complete re-engineerization of the library.
 <details>
     <summary>Older</summary>
 
-#### 0.3.4.0
+#### 0.3.4.0RC
 - Added HTTP API logout capability
 - Refectored MerossManager/HTTPClient classes
 #### 0.3.3.3
