@@ -1,10 +1,9 @@
-![Azure DevOps builds (branch)](https://img.shields.io/azure-devops/build/albertogeniola/c4128d1b-c23c-418d-95c5-2de061954ee5/1/0.3.X.X.svg)
-![Deployment](https://albertogeniola.vsrm.visualstudio.com/_apis/public/Release/badge/c4128d1b-c23c-418d-95c5-2de061954ee5/1/1)
-![Test status](https://img.shields.io/azure-devops/tests/albertogeniola/Meross/1?failed_label=failed&label=Tests%20&passed_label=passed&skipped_label=skipped)
+![DEV Build Status](https://github.com/albertogeniola/MerossIot/workflows/Build%20pre-release/badge.svg?branch=development-0.4.X.X)
+![Master Build Status](https://github.com/albertogeniola/MerossIot/workflows/Build/badge.svg?branch=0.4.X.X)
 [![PyPI version](https://badge.fury.io/py/meross-iot.svg)](https://badge.fury.io/py/meross-iot)
 [![Downloads](https://pepy.tech/badge/meross-iot)](https://pepy.tech/project/meross-iot)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/meross-iot.svg?label=Pypi%20Downloads)
-[![Beerpay](https://beerpay.io/albertogeniola/MerossIot/badge.svg?style=flat)](https://beerpay.io/albertogeniola/MerossIot)
+
 
 # Meross IoT library
 A pure-python based library providing API for controlling Meross IoT devices over the internet.
@@ -15,261 +14,74 @@ In such cases, you're invited to open an issue and report tbe working/non-workin
 This will help us to keep track of new devices and current support status of the library.
 
 
-This library is still work in progres
-s, therefore use it with caution.
+This library is still work in progress, therefore use it with caution.
 
 ## Installation
 Due to the popularity of the library, I've decided to list it publicly on the Pipy index.
 So, the installation is as simple as typing the following command:
 
 ```
-pip install meross_iot==0.3.4.0 --upgrade
+pip install meross_iot==0.4.0.0
 ```
 
 ## Usage
-The following script demonstrates how to use this library.
+Refer to the [documentation pages](https://albertogeniola.github.io/MerossIot/) for detailed usage instructions,
+or simply have a look at the `/examples` directory. 
+
+If you are really impatient to use this library, refer to the following snippet of code that looks for a 
+mss310 smart plug and turns it on/off.
 
 ```python
+import asyncio
 import os
-import time
-from random import randint
 
-from meross_iot.cloud.devices.door_openers import GenericGarageDoorOpener
-from meross_iot.cloud.devices.hubs import GenericHub
-from meross_iot.cloud.devices.humidifier import GenericHumidifier, SprayMode
-from meross_iot.cloud.devices.light_bulbs import GenericBulb
-from meross_iot.cloud.devices.power_plugs import GenericPlug
-from meross_iot.cloud.devices.subdevices.thermostats import ValveSubDevice, ThermostatV3Mode
-from meross_iot.cloud.devices.subdevices.sensors import SensorSubDevice
+from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
-from meross_iot.model.push import MerossEventType
 
 EMAIL = os.environ.get('MEROSS_EMAIL') or "YOUR_MEROSS_CLOUD_EMAIL"
 PASSWORD = os.environ.get('MEROSS_PASSWORD') or "YOUR_MEROSS_CLOUD_PASSWORD"
 
 
-def event_handler(eventobj):
-    if eventobj.event_type == MerossEventType.DEVICE_ONLINE_STATUS:
-        print("Device online status changed: %s went %s" % (eventobj.device.name, eventobj.status))
-        pass
+async def main():
+    # Setup the HTTP client API from user-password
+    http_api_client = await MerossHttpClient.async_from_user_password(email=EMAIL, password=PASSWORD)
 
-    elif eventobj.event_type == MerossEventType.DEVICE_SWITCH_STATUS:
-        print("Switch state changed: Device %s (channel %d) went %s" % (eventobj.device.name, eventobj.channel_id,
-                                                                        eventobj.switch_state))
-    elif eventobj.event_type == MerossEventType.CLIENT_CONNECTION:
-        print("MQTT connection state changed: client went %s" % eventobj.status)
+    # Setup and start the device manager
+    manager = MerossManager(http_client=http_api_client)
+    await manager.async_init()
 
-        # TODO: Give example of reconnection?
+    # Retrieve all the MSS310 devices that are registered on this account
+    await manager.async_device_discovery()
+    plugs = manager.find_devices(device_type="mss310")
 
-    elif eventobj.event_type == MerossEventType.GARAGE_DOOR_STATUS:
-        print("Garage door is now %s" % eventobj.door_state)
-
-    elif eventobj.event_type == MerossEventType.THERMOSTAT_MODE_CHANGE:
-        print("Thermostat %s has changed mode to %s" % (eventobj.device.name, eventobj.mode))
-
-    elif eventobj.event_type == MerossEventType.THERMOSTAT_TEMPERATURE_CHANGE:
-        print("Thermostat %s has revealed a temperature change: %s" % (eventobj.device.name, eventobj.temperature))
-
-    elif eventobj.event_type == MerossEventType.SENSOR_TEMPERATURE_CHANGE:
-        print("Sensor %s has revealed a temp/humidity change: %s %s" % (eventobj.device.name, eventobj.temperature, eventobj.humidity))
-
-    elif eventobj.event_type == MerossEventType.SENSOR_TEMPERATURE_ALERT:
-        print("Sensor %s has revealed a temperature alert: %s" % (eventobj.device.name, eventobj.alert))
-
+    if len(plugs) < 1:
+        print("No MSS310 plugs found...")
     else:
-        print("Unknown event!")
+        # Turn it on channel 0
+        # Note that channel argument is optional for MSS310 as they only have one channel
+        dev = plugs[0]
+        print(f"Turning on {dev.name}...")
+        await dev.async_turn_on(channel=0)
+        print("Waiting a bit before turing it off")
+        await asyncio.sleep(5)
+        print(f"Turing off {dev.name}")
+        await dev.async_turn_off(channel=0)
 
+    # Close the manager and logout from http_api
+    manager.close()
+    await http_api_client.async_logout()
 
 if __name__ == '__main__':
-    # Initiates the Meross Cloud Manager. This is in charge of handling the communication with the remote endpoint
-    manager = MerossManager.from_email_and_password(meross_email=EMAIL, meross_password=PASSWORD)
-
-    # Register event handlers for the manager...
-    manager.register_event_handler(event_handler)
-
-    # Starts the manager
-    manager.start()
-
-    # You can retrieve the device you are looking for in various ways:
-    # By kind
-    bulbs = manager.get_devices_by_kind(GenericBulb)
-    plugs = manager.get_devices_by_kind(GenericPlug)
-    door_openers = manager.get_devices_by_kind(GenericGarageDoorOpener)
-    hub_devices = manager.get_devices_by_kind(GenericHub)
-    thermostats = manager.get_devices_by_kind(ValveSubDevice)
-    sensors = manager.get_devices_by_kind(SensorSubDevice)
-    humidifiers = manager.get_devices_by_kind(GenericHumidifier)
-    all_devices = manager.get_supported_devices()
-
-    # Print some basic specs about the discovered devices
-    print("All the bulbs I found:")
-    for b in bulbs:
-        print(b)
-
-    print("All the plugs I found:")
-    for p in plugs:
-        print(p)
-
-    print("All the garage openers I found:")
-    for g in door_openers:
-        print(g)
-
-    print("All the humidifier I found:")
-    for h in all_devices:
-        print(h)
-
-    print("All the hubs I found:")
-    for h in hub_devices:
-        print(h)
-
-    print("All the hub devices I found:")
-    for d in all_devices:
-        print(d)
-
-    # You can also retrieve devices by the UUID/name
-    # a_device = manager.get_device_by_name("My Plug")
-    # a_device = manager.get_device_by_uuid("My Plug")
-    # Or you can retrieve all the device by the HW type
-    # all_mss310 = manager.get_devices_by_type("mss310")
-    # ------------------------------
-    # Let's play the garage openers.
-    # ------------------------------
-    for g in door_openers:
-        if not g.online:
-            print("The garage controller %s seems to be offline. Cannot play with that..." % g.name)
-            continue
-        print("Opening door %s..." % g.name)
-        g.open_door()
-        print("Closing door %s..." % g.name)
-        g.close_door()
-
-    # ---------------------
-    # Let's play with bulbs
-    # ---------------------
-    for b in bulbs:  # type: GenericBulb
-        if not b.online:
-            print("The bulb %s seems to be offline. Cannot play with that..." % b.name)
-            continue
-        print("Let's play with bulb %s" % b.name)
-        if not b.supports_light_control():
-            print("Too bad bulb %s does not support light control %s" % b.name)
-        else:
-            # Is this an rgb bulb?
-            if b.is_rgb():
-                # Let's make it red!
-                b.set_light_color(rgb=(255, 0, 0))
-
-            time.sleep(1)
-
-            if b.is_light_temperature():
-                b.set_light_color(temperature=10)
-
-            time.sleep(1)
-
-            # Let's dimm its brightness
-            if b.get_supports_luminance():
-                random_luminance = randint(10, 100)
-                b.set_light_color(luminance=random_luminance)
-
-        b.async_turn_on()
-        time.sleep(1)
-        b.async_turn_off()
-
-    # ---------------------------
-    # Let's play with smart plugs
-    # ---------------------------
-    for p in plugs:  # type: GenericPlug
-        if not p.online:
-            print("The plug %s seems to be offline. Cannot play with that..." % p.name)
-            continue
-
-        print("Let's play with smart plug %s" % p.name)
-
-        channels = len(p.get_channels())
-        print("The plug %s supports %d channels." % (p.name, channels))
-        for i in range(0, channels):
-            print("Turning on channel %d of %s" % (i, p.name))
-            p.turn_on_channel(i)
-
-            time.sleep(1)
-
-            print("Turning off channel %d of %s" % (i, p.name))
-            p.turn_off_channel(i)
-
-        usb_channel = p.get_usb_channel_index()
-        if usb_channel is not None:
-            print("Awesome! This device also supports USB power.")
-            p.enable_usb()
-            time.sleep(1)
-            p.disable_usb()
-
-        if p.supports_electricity_reading():
-            print("Awesome! This device also supports power consumption reading.")
-            print("Current consumption is: %s" % str(p.get_electricity()))
-
-    # ---------------------
-    # Let's play with smart humidifier
-    # ---------------------
-    for h in humidifiers:  # type: GenericHumidifier
-        if not h.online:
-            print("Smart humidifier %s seems to be offline. Cannot play with it at this time..." % h.name)
-            continue
-
-        # Let's set its color to RED
-        print("Setting the smart humidifier %s color to red" % h.name)
-        h.configure_light(onoff=1, rgb=(255, 0, 0), luminance=100)
-        print("Setting spray-mode to CONTINUOUS")
-        h.set_spray_mode(spray_mode=SprayMode.CONTINUOUS)
-        print("Waiting a bit before turning it off...")
-        time.sleep(10)
-        print("Setting spray-mode to OFF")
-        h.set_spray_mode(spray_mode=SprayMode.OFF)
-
-    # ---------------------------
-    # Let's play with the Thermostat
-    # ---------------------------
-    for t in thermostats:  # type: ValveSubDevice
-        if not t.online:
-            print("The thermostat %s seems to be offline. Cannot play with that..." % t.name)
-            continue
-
-        # Get the current preset mode
-        print("Current mode: %s" % t.mode)
-        print("Let's change the preset mode")
-        t.set_mode(ThermostatV3Mode.COOL)
-
-        # Note that the thermostat will not receive the command instantly, as it needs to be sent by the HUB via its
-        # low power communication channel. So, we need to wait a bit until it gets received.
-        print("Waiting a minute...")
-        time.sleep(60)
-        print("Current mode: %s" % t.mode)
-
-        # Set the target temperature
-        target_temp = randint(10,30)
-        print("Setting the target temperature to %f" % target_temp)
-        t.set_target_temperature(target_temp=target_temp)
-
-        # Note that the thermostat will not receive the command instantly, as it needs to be sent by the HUB via its
-        # low power communication channel. So, we need to wait a bit until it gets received.
-        time.sleep(60)
-        print("Current mode: %s" % t.mode)
-
-    # ---------------------------
-    # Let's check the sensors
-    # ---------------------------
-    for s in sensors:
-        print("Sensor '%s': Temperature: %s, Humidity: %s" % (s.name, s.temperature, s.humidity))
-
-    # At this point, we are all done playing with the library, so we gracefully disconnect and clean resources.
-    # Note! You MUST always call manager.stop() as it will invalidate the token used for this session
-    print("We are done playing. Cleaning resources...")
-    manager.stop()
-
-    print("Bye bye!")
+    # On Windows + Python 3.8, you should uncomment the following
+    # asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main())
+    loop.close()
 ```
 
+
 ## Currently supported devices
-Starting from v0.2.0.0, this library should support the majority of Meross devices on the market.
+Starting from v0.4.0.0, this library should support the majority of Meross devices on the market.
 The list of tested devices is the following:
 - MSL120 (RGB Bulb)
 - MSS110 (Smart plug)
@@ -285,7 +97,7 @@ The list of tested devices is the following:
 - MSXH0 (Smart Humidifier)
 
 I'd like to thank all the people who contributed to the early stage of library development,
-who stimulated me to continue the development and making this library support more devices:
+who stimulated me to continue the development and making this library support more devices.
 
 Thanks to [DanoneKiD](https://github.com/DanoneKiD), 
 [virtualdj](https://github.com/virtualdj), 
@@ -294,47 +106,8 @@ Thanks to [DanoneKiD](https://github.com/DanoneKiD),
 [ping-localhost](https://github.com/ping-localhost),
 [tdippon](https://github.com/tdippon).
 
-## New device or unsupported features?
-If you own a device that is not currently supported or partially supported, you can help the developers in two ways.
-The first one is by donating, so the developer gets enough money to buy the device and implement necessary support.
-The second way is by sharing running the _meross_sniffer_ and _meross_info_gather_ tools.
+Special thanks go to the github sponsors supporting this and other projects. Thanks a lot!
 
-### Meross Sniffer
-The sniffer is a tool that collects the commands that your Meross App sends to a specific device.
-By looking at the commands that the App sends to the unknown/unsuppoted device, the developers can re-implement the same logic on the library.
-To use the meross sniffer, simply do the following:
-1. Install the latest version of this library
-1. Make sure the device you want to study is online and visible from the Meross App
-1. Run the following command:
-
-    ```bash
-    $ meross_sniffer
-    ```
-1. From the prompt, select the device you want the sniffer to analyze
-1. Start issuing commands from the meross App to that device.
-
-When issuing commands from the meross app to the target device, follow a specific logic:
-- Write down separately (on a TXT file) which commands you are issuing
-- If the command you are issuing accepts "scalar" values, make sure you test the lowest one and the greatest one
-
-Then, open an issue on this github repository, and upload the data.zip file.
-
-### Meross Info Gather
-This utility collects debug data for supported meross devices and can help the developers to identify and fix bugs.
-
-Again, its usage is pretty straight forward:
-
-```bash
-$ meross_info_gather
-```
-
-Then simply open an issue on this repository attaching the collected logs.
-
-## Protocol details
-This library was implemented by reverse-engineering the network communications between the plug and the meross network.
-Anyone can do the same by simply installing a Man-In-The-Middle proxy and routing the ssl traffic of an Android emulator through the sniffer.
-
-If you want to understand how the Meross protocol works, [have a look at the Wiki](https://github.com/albertogeniola/MerossIot/wiki). Be aware: this is still work in progress, so some pages of the wiki might still be blank/under construction.
 
 ## Homeassistant integration
 Yeah, it happened. As soon as I started developing this library, I've discovered the HomeAssistant world.
@@ -366,9 +139,8 @@ By issuing a donation, you will:
 (Note that they are used for Unit-Testing on the continuous integration engine when someone pushes a PR... I love DEVOPing!)  
 1. You'll increase the quality of my coding sessions with free-beer!
 
-[![Buy me a beer](http://4.bp.blogspot.com/-1Md6-deTZ84/VA_lzcxMx1I/AAAAAAAACl8/wP_4rXBXwyI/s1600/PayPal-Donation-Button.png)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CQQCK3RN32BHL&source=url)
-
 [![Buy me a coffe!](https://www.buymeacoffee.com/assets/img/custom_images/black_img.png)](https://www.buymeacoffee.com/albertogeniola)
+[![Apply for GitHub sponsorhip](https://korlibs.soywiz.com/i/github_sponsors_big_box_small.png)](https://github.com/sponsors/albertogeniola/dashboard/tiers)
 
 
 ### Look at these babies!
@@ -387,20 +159,30 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
-#### 0.3.4.0 (latest)
-- Added HTTP API logout capability
-- Refectored MerossManager/HTTPClient classes
+#### 0.4.0.0
+Complete re-engineerization of the library.
+
+- Asynchronous approach using asyncio
+- Runtime ability discovery using runtime pluggable mixin architecture
+- Dramatically increased performance using low-level asynchronous aiohttp and almost no locking primitive
+- Added full-featured documentation
+- Added python type hints
+- Moved CI/CD to GitHub pages for letting PR test with on-premise Meross devices 
+
 
 <details>
     <summary>Older</summary>
 
-#### 0.3.3.3 (latest)
+#### 0.3.4.0
+- Added HTTP API logout capability
+- Refectored MerossManager/HTTPClient classes
+#### 0.3.3.3
 - Added lock-assistant capability to help debug deadlock cases
 - Improved tests
-#### 0.3.3.0 (latest)
+#### 0.3.3.0
 - Added auto-reconnection capabilities by default
 - Improved automated testing skipping
-#### 0.3.2.22 (latest)
+#### 0.3.2.22
 - Fixed MerossManager not being thread-safe
 #### 0.3.2.21
 - Fixed status integer not being parsed as INT
