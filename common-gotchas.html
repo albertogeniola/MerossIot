@@ -87,6 +87,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Common gotchas</a></li>
 <li class="toctree-l1"><a class="reference internal" href="meross-arch.html">Meross Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="advanced-topics.html">Advanced topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api-reference/index.html">API Reference</a></li>
 </ul>
 
             
@@ -169,7 +170,17 @@ cause that error. To do so, add this line on top of your script</p>
 call asynchronous methods. Calling an asynchronous method without the preceding <cite>await</cite>
 keyword does not actually invoke the method.</p>
 </dd>
-<dt>Too many tokens</dt><dd><p>TODO</p>
+<dt>Too many tokens</dt><dd><p>This error occurs when your account has logged in many times against the Meross Cloud endpoint without
+releasing any previously acquired token.
+This is usually caused by an abuse of the <cite>MerossManager</cite> or the <cite>MerossHttpClient</cite> classes: when using these
+classes, the developer must close() / logout() the object before ending the script.
+In order to avoid hitting this API error, make sure to always invoke close()/logout() methods before ending the
+script.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The Meross API usually blocks the user for 12/24 hours when reaching the token limit.
+After 12/24 hours, the API starts working again.</p>
+</div>
 </dd>
 </dl>
 </div>

@@ -21,4 +21,14 @@ Calling awaitable the wrong way
     keyword does not actually invoke the method.
 
 Too many tokens
-    TODO
+    This error occurs when your account has logged in many times against the Meross Cloud endpoint without
+    releasing any previously acquired token.
+    This is usually caused by an abuse of the `MerossManager` or the `MerossHttpClient` classes: when using these
+    classes, the developer must close() / logout() the object before ending the script.
+    In order to avoid hitting this API error, make sure to always invoke close()/logout() methods before ending the
+    script.
+
+    .. warning::
+        The Meross API usually blocks the user for 12/24 hours when reaching the token limit.
+        After 12/24 hours, the API starts working again.
+

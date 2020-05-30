@@ -95,6 +95,7 @@
 <li class="toctree-l1"><a class="reference internal" href="common-gotchas.html">Common gotchas</a></li>
 <li class="toctree-l1"><a class="reference internal" href="meross-arch.html">Meross Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="advanced-topics.html">Advanced topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api-reference/index.html">API Reference</a></li>
 </ul>
 
             
@@ -356,73 +357,7 @@ Have a look at the following method signature for more details.</p>
 <p>Meross devices that supports toggling and on/off commands implement the
 <code class="code docutils literal notranslate"><span class="pre">meross_iot.controller.mixins.toggle.ToggleXMixin</span></code>. This class exposes a number of methods
 to control these devices, such <code class="code docutils literal notranslate"><span class="pre">async_turn_off()</span></code> and <code class="code docutils literal notranslate"><span class="pre">async_turn_on()</span></code>.
-Refer to the following details for a panoramic around the ToggleMixin class.</p>
-<dl class="class">
-<dt id="meross_iot.controller.mixins.toggle.ToggleXMixin">
-<em class="property">class </em><code class="sig-prename descclassname">meross_iot.controller.mixins.toggle.</code><code class="sig-name descname">ToggleXMixin</code><span class="sig-paren">(</span><em class="sig-param">device_uuid: str</em>, <em class="sig-param">manager</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.controller.mixins.toggle.ToggleXMixin" title="Permalink to this definition">¶</a></dt>
-<dd><p>This mixin is implemented by devices that support ToggleX operation, such as smart switches
-and smart bulbs.</p>
-<dl class="method">
-<dt id="meross_iot.controller.mixins.toggle.ToggleXMixin.async_toggle">
-<em class="property">async </em><code class="sig-name descname">async_toggle</code><span class="sig-paren">(</span><em class="sig-param">channel=0</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.mixins.toggle.ToggleXMixin.async_toggle" title="Permalink to this definition">¶</a></dt>
-<dd><p>Toggles the switch status of the specified channel</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>channel</strong> – channel index to toggle. Defaults to 0.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>None</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="meross_iot.controller.mixins.toggle.ToggleXMixin.async_turn_off">
-<em class="property">async </em><code class="sig-name descname">async_turn_off</code><span class="sig-paren">(</span><em class="sig-param">channel=0</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.mixins.toggle.ToggleXMixin.async_turn_off" title="Permalink to this definition">¶</a></dt>
-<dd><p>Turns off the specified channel of the device</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>channel</strong> – channel index to turn off. Defaults to 0.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>None</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="meross_iot.controller.mixins.toggle.ToggleXMixin.async_turn_on">
-<em class="property">async </em><code class="sig-name descname">async_turn_on</code><span class="sig-paren">(</span><em class="sig-param">channel=0</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.mixins.toggle.ToggleXMixin.async_turn_on" title="Permalink to this definition">¶</a></dt>
-<dd><p>Turns on the specified channel of the device</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>channel</strong> – channel index to turn on. Defaults to 0.</p></li>
-<li><p><strong>channel</strong> – </p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>None</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="meross_iot.controller.mixins.toggle.ToggleXMixin.is_on">
-<code class="sig-name descname">is_on</code><span class="sig-paren">(</span><em class="sig-param">channel=0</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; Optional[bool]<a class="headerlink" href="#meross_iot.controller.mixins.toggle.ToggleXMixin.is_on" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the ON/OFF state of the switch channel.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>channel</strong> – channel index of interested. Defaults to 0</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>True is the stat is ON, False when it’s OFF</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
+Refer to the <a class="reference internal" href="api-reference/controller/mixins/toggle.html"><span class="doc">ToggleXMixn</span></a> for a panoramic around the ToggleMixin class.</p>
 </div>
 <div class="section" id="controlling-bulbs">
 <h2>Controlling bulbs<a class="headerlink" href="#controlling-bulbs" title="Permalink to this headline">¶</a></h2>
@@ -537,88 +472,8 @@ and smart bulbs.</p>
 </td></tr></table></div>
 </div>
 <p>Smart bulbs implement the <code class="code docutils literal notranslate"><span class="pre">meross_iot.controller.mixins.light.LightMixin</span></code> interface, which handle
-RGB color settings, as well as luminance and color temperature.</p>
-<dl class="class">
-<dt id="meross_iot.controller.mixins.light.LightMixin">
-<em class="property">class </em><code class="sig-prename descclassname">meross_iot.controller.mixins.light.</code><code class="sig-name descname">LightMixin</code><span class="sig-paren">(</span><em class="sig-param">device_uuid: str</em>, <em class="sig-param">manager</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.controller.mixins.light.LightMixin" title="Permalink to this definition">¶</a></dt>
-<dd><p>Mixin class that enables light control.</p>
-<dl class="method">
-<dt id="meross_iot.controller.mixins.light.LightMixin.async_set_light_color">
-<em class="property">async </em><code class="sig-name descname">async_set_light_color</code><span class="sig-paren">(</span><em class="sig-param">channel: int = 0</em>, <em class="sig-param">rgb: Tuple[int</em>, <em class="sig-param">int</em>, <em class="sig-param">int] = None</em>, <em class="sig-param">luminance: int = -1</em>, <em class="sig-param">temperature: int = -1</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.mixins.light.LightMixin.async_set_light_color" title="Permalink to this definition">¶</a></dt>
-<dd><p>Controls the light color of the given bulb.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>channel</strong> – channel to control (for bulbs it’s usually 0)</p></li>
-<li><p><strong>rgb</strong> – (red,green,blue) tuple, where each color is an integer from 0-to-255</p></li>
-<li><p><strong>luminance</strong> – Light intensity (at least on MSL120). Varies from 0 to 100</p></li>
-<li><p><strong>temperature</strong> – Light temperature. Can be used when rgb is not specified.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>None</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="meross_iot.controller.mixins.light.LightMixin.get_rgb_color">
-<code class="sig-name descname">get_rgb_color</code><span class="sig-paren">(</span><em class="sig-param">channel=0</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; Optional[Tuple[int, int, int]]<a class="headerlink" href="#meross_iot.controller.mixins.light.LightMixin.get_rgb_color" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the current RGB configuration of the device.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>channel</strong> – channel to control, defaults to 0 (bulbs generally have only one channel)</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>a Tuple containing three integer 8bits values (red, green, blue)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="meross_iot.controller.mixins.light.LightMixin.get_supports_luminance">
-<code class="sig-name descname">get_supports_luminance</code><span class="sig-paren">(</span><em class="sig-param">channel: int = 0</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#meross_iot.controller.mixins.light.LightMixin.get_supports_luminance" title="Permalink to this definition">¶</a></dt>
-<dd><p>Tells if the current device supports luminance capability</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>channel</strong> – channel to get info from, defaults to 0</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>True if the current device supports luminance mode, False otherwise.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="meross_iot.controller.mixins.light.LightMixin.get_supports_rgb">
-<code class="sig-name descname">get_supports_rgb</code><span class="sig-paren">(</span><em class="sig-param">channel: int = 0</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#meross_iot.controller.mixins.light.LightMixin.get_supports_rgb" title="Permalink to this definition">¶</a></dt>
-<dd><p>Tells if the current device supports RGB capability</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>channel</strong> – channel to get info from, defaults to 0</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>True if the current device supports RGB color, False otherwise.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="meross_iot.controller.mixins.light.LightMixin.get_supports_temperature">
-<code class="sig-name descname">get_supports_temperature</code><span class="sig-paren">(</span><em class="sig-param">channel: int = 0</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#meross_iot.controller.mixins.light.LightMixin.get_supports_temperature" title="Permalink to this definition">¶</a></dt>
-<dd><p>Tells if the current device supports temperature color capability</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>channel</strong> – channel to get info from, defaults to 0</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>True if the current device supports temperature mode, False otherwise.</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
+RGB color settings, as well as luminance and color temperature. More details on this class are available
+<a class="reference internal" href="api-reference/controller/mixins/light.html"><span class="doc">here</span></a></p>
 </div>
 <div class="section" id="controlling-garage-door-openers">
 <h2>Controlling garage door openers<a class="headerlink" href="#controlling-garage-door-openers" title="Permalink to this headline">¶</a></h2>
@@ -759,54 +614,7 @@ absolving the author of this library of all responsibility.</p>
 </td></tr></table></div>
 </div>
 <p>Garage door functionality is implemented by the <code class="code docutils literal notranslate"><span class="pre">meross_iot.controller.mixins.garage.GarageOpenerMixin</span></code>.
-Have a look at the following class reference for more details.</p>
-<dl class="class">
-<dt id="meross_iot.controller.mixins.garage.GarageOpenerMixin">
-<em class="property">class </em><code class="sig-prename descclassname">meross_iot.controller.mixins.garage.</code><code class="sig-name descname">GarageOpenerMixin</code><span class="sig-paren">(</span><em class="sig-param">device_uuid: str</em>, <em class="sig-param">manager</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.controller.mixins.garage.GarageOpenerMixin" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="meross_iot.controller.mixins.garage.GarageOpenerMixin.close">
-<em class="property">async </em><code class="sig-name descname">close</code><span class="sig-paren">(</span><em class="sig-param">channel: int = 0</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.mixins.garage.GarageOpenerMixin.close" title="Permalink to this definition">¶</a></dt>
-<dd><p>Operates the door: sends the close command.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>channel</strong> – channel to operate: defaults to 0</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>None</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="meross_iot.controller.mixins.garage.GarageOpenerMixin.is_open">
-<code class="sig-name descname">is_open</code><span class="sig-paren">(</span><em class="sig-param">channel: int = 0</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; Optional[bool]<a class="headerlink" href="#meross_iot.controller.mixins.garage.GarageOpenerMixin.is_open" title="Permalink to this definition">¶</a></dt>
-<dd><p>The current door-open status. Returns True if the given door is open, False otherwise.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>channel</strong> – channel of which status is needed</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>False if the door is closed, True otherwise</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="meross_iot.controller.mixins.garage.GarageOpenerMixin.open">
-<em class="property">async </em><code class="sig-name descname">open</code><span class="sig-paren">(</span><em class="sig-param">channel: int = 0</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.mixins.garage.GarageOpenerMixin.open" title="Permalink to this definition">¶</a></dt>
-<dd><p>Operates the door: sends the open command.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>channel</strong> – channel to operate: defaults to 0</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>None</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
+Have a look at <a class="reference internal" href="api-reference/controller/mixins/garage.html"><span class="doc">here</span></a> for more details.</p>
 </div>
 <div class="section" id="reading-sensors">
 <h2>Reading sensors<a class="headerlink" href="#reading-sensors" title="Permalink to this headline">¶</a></h2>
@@ -909,32 +717,237 @@ MSS310 plug, which implements both the <code class="code docutils literal notran
 </td></tr></table></div>
 </div>
 <p>In this case, the core of the script is the method <code class="code docutils literal notranslate"><span class="pre">async_get_instant_metrics()</span></code> which
-reads the current electricity data from the device.</p>
-<dl class="class">
-<dt id="meross_iot.controller.mixins.electricity.ElectricityMixin">
-<em class="property">class </em><code class="sig-prename descclassname">meross_iot.controller.mixins.electricity.</code><code class="sig-name descname">ElectricityMixin</code><span class="sig-paren">(</span><em class="sig-param">device_uuid: str</em>, <em class="sig-param">manager</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.controller.mixins.electricity.ElectricityMixin" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="meross_iot.controller.mixins.electricity.ElectricityMixin.async_get_instant_metrics">
-<em class="property">async </em><code class="sig-name descname">async_get_instant_metrics</code><span class="sig-paren">(</span><em class="sig-param">channel=0</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; meross_iot.model.plugin.power.PowerInfo<a class="headerlink" href="#meross_iot.controller.mixins.electricity.ElectricityMixin.async_get_instant_metrics" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the instant power consumption for this device. Please note that current/voltage combination may not
-be accurate as power is. So, refer to power attribute rather than calculate it as Voltage * Current.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>channel</strong> – channel where to read metrics from. Defaults to 0</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>a <cite>PowerInfo</cite> object describing the current measure data</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
+reads the current electricity data from the device. More details on the electricity mixin are
+available <a class="reference internal" href="api-reference/controller/mixins/electricity.html"><span class="doc">here</span></a></p>
 <p>For reading data from the MS100 temperature and humidity sensor, you can rely on the following snippet.</p>
+<div class="literal-block-wrapper docutils container" id="smart-valve">
+<div class="code-block-caption"><span class="caption-text">Reading from sensor</span><a class="headerlink" href="#smart-valve" title="Permalink to this code">¶</a></div>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">asyncio</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">meross_iot.http_api</span> <span class="kn">import</span> <span class="n">MerossHttpClient</span>
+<span class="kn">from</span> <span class="nn">meross_iot.manager</span> <span class="kn">import</span> <span class="n">MerossManager</span>
+
+<span class="n">EMAIL</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;MEROSS_EMAIL&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;YOUR_MEROSS_CLOUD_EMAIL&quot;</span>
+<span class="n">PASSWORD</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;MEROSS_PASSWORD&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;YOUR_MEROSS_CLOUD_PASSWORD&quot;</span>
+
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="c1"># Setup the HTTP client API from user-password</span>
+    <span class="n">http_api_client</span> <span class="o">=</span> <span class="k">await</span> <span class="n">MerossHttpClient</span><span class="o">.</span><span class="n">async_from_user_password</span><span class="p">(</span><span class="n">email</span><span class="o">=</span><span class="n">EMAIL</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="n">PASSWORD</span><span class="p">)</span>
+
+    <span class="c1"># Setup and start the device manager</span>
+    <span class="n">manager</span> <span class="o">=</span> <span class="n">MerossManager</span><span class="p">(</span><span class="n">http_client</span><span class="o">=</span><span class="n">http_api_client</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">manager</span><span class="o">.</span><span class="n">async_init</span><span class="p">()</span>
+
+    <span class="c1"># Retrieve all the MS100 devices that are registered on this account</span>
+    <span class="k">await</span> <span class="n">manager</span><span class="o">.</span><span class="n">async_device_discovery</span><span class="p">()</span>
+    <span class="n">sensors</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">find_devices</span><span class="p">(</span><span class="n">device_type</span><span class="o">=</span><span class="s2">&quot;ms100&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sensors</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No MS100 plugs found...&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">dev</span> <span class="o">=</span> <span class="n">sensors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># Manually force and update to retrieve the latest temperature sensed from</span>
+        <span class="c1"># the device</span>
+        <span class="k">await</span> <span class="n">dev</span><span class="o">.</span><span class="n">async_update</span><span class="p">()</span>
+
+        <span class="c1"># Access read cached data</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="n">dev</span><span class="o">.</span><span class="n">last_sampled_temperature</span>
+        <span class="n">humid</span> <span class="o">=</span> <span class="n">dev</span><span class="o">.</span><span class="n">last_sampled_humidity</span>
+        <span class="n">time</span> <span class="o">=</span> <span class="n">dev</span><span class="o">.</span><span class="n">last_sampled_time</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Current sampled data on {time.isoformat()}; Temperature=</span><span class="si">{temp}</span><span class="s2">°C, Humidity=</span><span class="si">{humid}</span><span class="s2">%&quot;</span><span class="p">)</span>
+    <span class="c1"># Close the manager and logout from http_api</span>
+    <span class="n">manager</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">await</span> <span class="n">http_api_client</span><span class="o">.</span><span class="n">async_logout</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="c1"># On Windows + Python 3.8, you should uncomment the following</span>
+    <span class="c1"># asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())</span>
+    <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_event_loop</span><span class="p">()</span>
+    <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+    <span class="n">loop</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+<p>More details on the specific methods offered by the Ms100 sensor device are documented
+within the <span class="xref std std-doc">Ms100Sensor class &lt;api-reference/controller/subdevice/sensor</span>.</p>
 </div>
 <div class="section" id="controlling-thermostat">
 <h2>Controlling Thermostat<a class="headerlink" href="#controlling-thermostat" title="Permalink to this headline">¶</a></h2>
-<p>TDB</p>
+<p>The Meross thermostat valve is operated via <cite>meross_iot.controller.subdevice.Mts100v3Valve</cite> class.</p>
+<div class="literal-block-wrapper docutils container" id="id1">
+<div class="code-block-caption"><span class="caption-text">Operating the smart valve</span><a class="headerlink" href="#id1" title="Permalink to this code">¶</a></div>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">asyncio</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">randint</span>
+
+<span class="kn">from</span> <span class="nn">meross_iot.http_api</span> <span class="kn">import</span> <span class="n">MerossHttpClient</span>
+<span class="kn">from</span> <span class="nn">meross_iot.manager</span> <span class="kn">import</span> <span class="n">MerossManager</span>
+
+<span class="n">EMAIL</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;MEROSS_EMAIL&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;YOUR_MEROSS_CLOUD_EMAIL&quot;</span>
+<span class="n">PASSWORD</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;MEROSS_PASSWORD&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;YOUR_MEROSS_CLOUD_PASSWORD&quot;</span>
+
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="c1"># Setup the HTTP client API from user-password</span>
+    <span class="n">http_api_client</span> <span class="o">=</span> <span class="k">await</span> <span class="n">MerossHttpClient</span><span class="o">.</span><span class="n">async_from_user_password</span><span class="p">(</span><span class="n">email</span><span class="o">=</span><span class="n">EMAIL</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="n">PASSWORD</span><span class="p">)</span>
+
+    <span class="c1"># Setup and start the device manager</span>
+    <span class="n">manager</span> <span class="o">=</span> <span class="n">MerossManager</span><span class="p">(</span><span class="n">http_client</span><span class="o">=</span><span class="n">http_api_client</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">manager</span><span class="o">.</span><span class="n">async_init</span><span class="p">()</span>
+
+    <span class="c1"># Retrieve all the mts100v3 devices that are registered on this account</span>
+    <span class="k">await</span> <span class="n">manager</span><span class="o">.</span><span class="n">async_device_discovery</span><span class="p">()</span>
+    <span class="n">sensors</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">find_devices</span><span class="p">(</span><span class="n">device_type</span><span class="o">=</span><span class="s2">&quot;mts100v3&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sensors</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No mts100v3 plugs found...&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">dev</span> <span class="o">=</span> <span class="n">sensors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># Manually force and update to retrieve the latest temperature sensed from</span>
+        <span class="c1"># the device</span>
+        <span class="k">await</span> <span class="n">dev</span><span class="o">.</span><span class="n">async_update</span><span class="p">()</span>
+
+        <span class="c1"># Access read cached data</span>
+        <span class="n">on_off</span> <span class="o">=</span> <span class="n">dev</span><span class="o">.</span><span class="n">is_on</span>
+        <span class="c1"># Turn on the device if it&#39;s not on</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">on_off</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Device </span><span class="si">{dev.name}</span><span class="s2"> is off, turning it on...&quot;</span><span class="p">)</span>
+            <span class="k">await</span> <span class="n">dev</span><span class="o">.</span><span class="n">async_turn_on</span><span class="p">()</span>
+
+        <span class="n">temp</span> <span class="o">=</span> <span class="n">dev</span><span class="o">.</span><span class="n">ambient_temperature</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Current ambient temperature = </span><span class="si">{temp}</span><span class="s2"> °C, &quot;</span>
+              <span class="sa">f</span><span class="s2">&quot;Target Temperature = </span><span class="si">{dev.target_temperature}</span><span class="s2">, &quot;</span>
+              <span class="sa">f</span><span class="s2">&quot;mode = </span><span class="si">{dev.mode}</span><span class="s2">,&quot;</span>
+              <span class="sa">f</span><span class="s2">&quot;heating = </span><span class="si">{dev.is_heating}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Randomly choose a temperature between min and max</span>
+        <span class="n">new_temp</span> <span class="o">=</span> <span class="n">randint</span><span class="p">(</span><span class="n">dev</span><span class="o">.</span><span class="n">min_supported_temperature</span><span class="p">,</span> <span class="n">dev</span><span class="o">.</span><span class="n">max_supported_temperature</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Setting target temperature to </span><span class="si">{new_temp}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Close the manager and logout from http_api</span>
+    <span class="n">manager</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">await</span> <span class="n">http_api_client</span><span class="o">.</span><span class="n">async_logout</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="c1"># On Windows + Python 3.8, you should uncomment the following</span>
+    <span class="c1"># asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())</span>
+    <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_event_loop</span><span class="p">()</span>
+    <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+    <span class="n">loop</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+<p>For more information about all the properties and methods exposed by the valve class, have a look at
+<a class="reference internal" href="api-reference/controller/subdevice/valve.html"><span class="doc">Valve reference</span></a></p>
 </div>
 </div>
 
