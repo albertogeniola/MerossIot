@@ -2,7 +2,7 @@ name: Build pre-release
 
 on:
   push:
-    paths-ignore: docs/**
+    paths-ignore: [docs/**, README.md]
     branches: [ development-0.4.X.X ]
 
 jobs:
