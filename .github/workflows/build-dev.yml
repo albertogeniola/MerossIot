@@ -56,8 +56,11 @@ jobs:
           pushd ext-res/tests
           node ./switch.js --dev MEROSS_LAB --toggle=on
           echo "Waiting 60 seconds for the dev environment to become operative..."
-          sleep 60
           popd
+      - name: Sleep for 45 seconds
+        uses: jakejarvis/wait-action@master
+        with:
+          time: '45s'
   test:
     name: Testing
     runs-on: ubuntu-latest
@@ -110,8 +113,6 @@ jobs:
         run: |
           pushd ext-res/tests
           node ./switch.js --dev MEROSS_LAB --toggle=off
-          echo "Waiting 30 seconds for the dev environment to become operative..."
-          sleep 30
           popd
     if: ${{ always() }}
 #
