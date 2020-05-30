@@ -1,4 +1,4 @@
-name: Build 0.4.X.X
+name: Build Test and Release
 
 on:
   push:
@@ -7,10 +7,11 @@ on:
   pull_request:
     branches: [ 0.4.X.X ]
 jobs:
+  # ----------------------------------
+  # BUILD
+  # ----------------------------------
   build:
-    name: Build on node ${{matrix.python_version}}
-    outputs: 
-      tag: ${{steps.tag.outputs.tag}}
+    name: Build on Python ${{matrix.python_version}}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -29,12 +30,10 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Build artifact
       run: python setup.py sdist bdist_wheel
-    - name: Calculate Version
-      id: tag
-      run: |
-        TAG=$(cat $GITHUB_WORKSPACE/.version)$GITHUB_RUN_NUMBER
-        echo "Tag: $TAG"
-        echo "::set-output name=tag::$TAG"
+
+  # -----------------------------------
+  # Turn on ENV
+  # -----------------------------------
   turn-on-env:
     name: Turn on test environment
     runs-on: ubuntu-latest
@@ -62,6 +61,10 @@ jobs:
         uses: jakejarvis/wait-action@master
         with:
           time: '45s'
+        
+  # ---------------------------------
+  # Testing
+  # ---------------------------------
   test:
     name: Testing
     runs-on: ubuntu-latest
@@ -71,7 +74,7 @@ jobs:
     - name: Setup Python ${{matrix.python_version}}
       uses: actions/setup-python@v2
       with:
-        python-version: 3.8
+        python-version: ${{matrix.python_version}}
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -91,7 +94,10 @@ jobs:
         path: junit/test-results.xml
       # Use always() to always run this step to publish test results when there are test failures
       if: ${{ always() }}
-      
+  
+  # ------------------------------
+  # Turn off ENV
+  # ------------------------------
   turn-off-env:
     name: Turn off test environment
     runs-on: ubuntu-latest
@@ -116,6 +122,47 @@ jobs:
           node ./switch.js --dev MEROSS_LAB --toggle=off
           popd
     if: ${{ always() }}
+    
+  # -----------------------------
+  # Build and Release
+  # -----------------------------
+  release:
+    runs-on: ubuntu-latest
+    needs: [test, build]
+    steps:
+      - name: Setup Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - uses: actions/checkout@v2
+      - name: Install python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -U setuptools wheel
+          pip install twine
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Build artifact
+        run: python setup.py sdist bdist_wheel --universal
+      - name: Calculate Version
+        id: tag
+        run: |
+          TAG=$(cat $GITHUB_WORKSPACE/.version)
+          echo "Tag: $TAG"
+          echo "::set-env name=tag::$TAG"
+      - name: Release on GitHub
+        uses: actions/create-release@v1
+        env:
+           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+         tag_name: ${{env.tag}}
+         release_name: Version ${{env.tag}}
+      - name: Release on Pypi
+        env:
+          TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+        run: |
+          twine upload -u "$TWINE_USERNAME" -p "$TWINE_PASSWORD" dist/*
+              
 #
 #  pre-release:
 #    name: Pre-Release on GitHub
