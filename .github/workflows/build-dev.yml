@@ -55,6 +55,9 @@ jobs:
         pip install pytest-cov
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Test with pytest
+      env:
+        MEROSS_EMAIL: ${{ secrets.MEROSS_EMAIL }}
+        MEROSS_PASSWORD: ${{ secrets.MEROSS_PASSWORD }}
       run: |
         pytest tests --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
     - name: Upload pytest test results
