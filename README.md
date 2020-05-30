@@ -20,7 +20,7 @@ This library is still work in progress, therefore use it with caution.
 Due to the popularity of the library, I've decided to list it publicly on the Pipy index.
 So, the installation is as simple as typing the following command:
 
-```
+```bash
 pip install meross_iot==0.4.0.0rc
 ```
 
