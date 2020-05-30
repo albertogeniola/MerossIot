@@ -68,6 +68,9 @@ jobs:
   test:
     name: Testing
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python_version: ['3.7', '3.8']
     needs: [build, turn-on-env]
     steps:
     - uses: actions/checkout@v2
