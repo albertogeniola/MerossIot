@@ -91,6 +91,7 @@ jobs:
   turn-off-env:
     name: Turn off test environment
     runs-on: ubuntu-latest
+    needs: [test]
     env:
       TPLINK_USER: ${{ secrets.TPLINK_USER }}
       TPLINK_PASS: ${{ secrets.TPLINK_PASS }}
@@ -112,6 +113,7 @@ jobs:
           echo "Waiting 30 seconds for the dev environment to become operative..."
           sleep 30
           popd
+    if: ${{ always() }}
 #
 #  pre-release:
 #    name: Pre-Release on GitHub
