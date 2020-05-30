@@ -55,8 +55,8 @@ jobs:
         run: |
           pushd ext-res/tests
           node ./switch.js --dev MEROSS_LAB --toggle=on
-          echo "Waiting 30 seconds for the dev environment to become operative..."
-          sleep 30
+          echo "Waiting 60 seconds for the dev environment to become operative..."
+          sleep 60
           popd
   test:
     name: Testing
