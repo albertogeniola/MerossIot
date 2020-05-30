@@ -1,9 +1,9 @@
 ![DEV Build Status](https://github.com/albertogeniola/MerossIot/workflows/Build%20pre-release/badge.svg?branch=development-0.4.X.X)
-![Master Build Status](https://github.com/albertogeniola/MerossIot/workflows/Build/badge.svg?branch=0.4.X.X)
+![Master Status](https://github.com/albertogeniola/MerossIot/workflows/Build%200.4.X.X/badge.svg?branch=0.4.X.X)
+![Documentation](https://github.com/albertogeniola/MerossIot/workflows/Publish%20Documentation/badge.svg?branch=0.4.X.X)
 [![PyPI version](https://badge.fury.io/py/meross-iot.svg)](https://badge.fury.io/py/meross-iot)
 [![Downloads](https://pepy.tech/badge/meross-iot)](https://pepy.tech/project/meross-iot)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/meross-iot.svg?label=Pypi%20Downloads)
-
 
 # Meross IoT library
 A pure-python based library providing API for controlling Meross IoT devices over the internet.
@@ -23,6 +23,11 @@ So, the installation is as simple as typing the following command:
 ```
 pip install meross_iot==0.4.0.0
 ```
+
+## Requirements
+This library requires __Python 3.7+__. Previous versions won't be supported by this library.
+In case working with previous versions of python is mandatory for your project, consider using 0.3.X.X versions
+of this library (although it's highly recommended to migrate to 0.4.X.X). 
 
 ## Usage
 Refer to the [documentation pages](https://albertogeniola.github.io/MerossIot/) for detailed usage instructions,

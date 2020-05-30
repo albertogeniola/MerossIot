@@ -43,7 +43,7 @@ setup(
         'requests>=2.19.1',
         'retrying>=1.3.3',
     ],
-    python_requires='>=3.6',
+    python_requires='>=3.7',
     test_suite='tests',
     entry_points={
         'console_scripts': ['meross_info_gather=utilities.meross_info_gather:main',

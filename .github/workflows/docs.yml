@@ -1,9 +1,7 @@
-name: Publish docs via GitHub Pages
+name: Publish Documentation
 
 on:
   push:
-    branches: [ 0.4.X.X ]
-  pull_request:
     branches: [ 0.4.X.X ]
 
 jobs:
