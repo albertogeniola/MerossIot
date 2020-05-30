@@ -44,7 +44,10 @@ jobs:
           node-version: 11.x
       - uses: actions/checkout@v2
       - name: Install npm dependencies
-        run: npm install ext-res\tests
+        run: |
+          pushd ext-res/tests
+          npm install 
+          popd
       - name: Powering on the dev-environment
         run: |
           pushd ext-res/tests
