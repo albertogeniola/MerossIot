@@ -3,6 +3,7 @@ name: Publish Documentation
 on:
   push:
     branches: [ 0.4.X.X ]
+    paths: [docs/**]
 
 jobs:
   docs:
