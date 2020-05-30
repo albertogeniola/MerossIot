@@ -34,7 +34,24 @@ jobs:
         TAG=$(cat $GITHUB_WORKSPACE/.version)$GITHUB_RUN_NUMBER
         echo "Tag: $TAG"
         echo "::set-output name=tag::$TAG"
-  
+  turn-on-env:
+    name: Turn on test environment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v1.4.2
+        with:
+          node-version: 11.x
+      - uses: actions/checkout@v2
+      - name: Install npm dependencies
+        run: npm install ext-res\tests
+      - name: Powering on the dev-environment
+        run: |
+          pushd ext-res/tests
+          node ./switch.js --dev MEROSS_LAB --toggle=on
+          echo "Waiting 30 seconds for the dev environment to become operative..."
+          sleep 30
+          popd
   test:
     name: Testing
     runs-on: ubuntu-latest
@@ -64,6 +81,27 @@ jobs:
         path: junit/test-results.xml
       # Use always() to always run this step to publish test results when there are test failures
       if: ${{ always() }}
+      
+  turn-off-env:
+    needs: [test]
+    if: ${{ always() }}
+    name: Turn off test environment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v1.4.2
+        with:
+          node-version: 11.x
+      - uses: actions/checkout@v2
+      - name: Install npm dependencies
+        run: npm install ext-res\tests
+      - name: Powering on the dev-environment
+        run: |
+          pushd ext-res/tests
+          node ./switch.js --dev MEROSS_LAB --toggle=off
+          echo "Waiting 30 seconds for the dev environment to become operative..."
+          sleep 30
+          popd
 #
 #  pre-release:
 #    name: Pre-Release on GitHub
