@@ -43,6 +43,7 @@ jobs:
       matrix:
         python_version: ['3.6', '3.7', '3.8']
     steps:
+    - uses: actions/checkout@v2
     - name: Setup Python ${{matrix.python_version}}
       uses: actions/setup-python@v2
       with:
