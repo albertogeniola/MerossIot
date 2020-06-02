@@ -276,3 +276,6 @@ class ChannelInfo(object):
     def is_master_channel(self) -> bool:
         return self._master
 
+    @property
+    def name(self) -> str:
+        return self._name

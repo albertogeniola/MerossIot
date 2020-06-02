@@ -40,7 +40,7 @@ class MerossManager(object):
     """
 
     def __init__(self,
-                 http_client: Optional[MerossHttpClient] = None,
+                 http_client: MerossHttpClient,
                  auto_reconnect: Optional[bool] = True,
                  domain: Optional[str] = "iot.meross.com",
                  port: Optional[int] = 2001,
