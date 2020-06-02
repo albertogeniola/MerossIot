@@ -54,7 +54,7 @@ class TestToggleX(AioHTTPTestCase):
         # Search for a device with multiple channels
         devices = self.meross_manager.find_devices(online_status=OnlineStatus.ONLINE)
         multi_channel_devices = list(filter(lambda d: len(d.channels) > 1, devices))
-        if len(multi_channel_devices) < 2:
+        if len(multi_channel_devices) < 1:
             self.skipTest("Could not find any online device supporting more than 1 channel")
             return
 
@@ -74,7 +74,7 @@ class TestToggleX(AioHTTPTestCase):
         # Search for a device with multiple channels
         devices = self.meross_manager.find_devices(online_status=OnlineStatus.ONLINE)
         multi_channel_devices = list(filter(lambda d: len(d.channels) > 1, devices))
-        if len(multi_channel_devices) < 2:
+        if len(multi_channel_devices) < 1:
             self.skipTest("Could not find any online device supporting more than 1 channel")
             return
 
