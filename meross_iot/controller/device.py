@@ -153,7 +153,7 @@ class BaseDevice(object):
             return res
 
         for i, val in enumerate(channel_data):
-            name = val.get('name')
+            name = val.get('name', 'Main channel')
             type = val.get('type')
             master = i == 0
             res.append(ChannelInfo(index=i, name=name, channel_type=type, is_master_channel=master))
