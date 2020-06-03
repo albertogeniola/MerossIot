@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import asyncio
 import logging
-from typing import List, Union, Optional, Iterable
+from typing import List, Union, Optional, Iterable, Coroutine, Callable
 
 from meross_iot.model.enums import OnlineStatus, Namespace
 from meross_iot.model.http.device import HttpDeviceInfo
@@ -31,6 +32,30 @@ class BaseDevice(object):
         self._online = OnlineStatus(kwargs.get('onlineStatus', -1))
 
         self._abilities = {}
+        self._push_coros = []
+
+    # TODO: register sync_event_handler?
+
+    def register_push_notification_handler_coroutine(self, coro: Coroutine) -> None:
+        """
+        Registers a coroutine so that it gets invoked whenever a push notification is
+        delivered to this device or when the device state is changed.
+        This allows the developer to "react" to notifications state change due to other users operating the device.
+        :param coro:
+        :return:
+        """
+        if not asyncio.iscoroutinefunction(coro):
+            raise ValueError("The coro parameter must be a coroutine")
+        if coro in self._push_coros:
+            _LOGGER.error(f"Coroutine {coro} was already added to event handlers of this device")
+            return
+        self._push_coros.append(coro)
+
+    def _fire_push_notification_event(self, namespace: Namespace, data: dict):
+        _LOGGER.debug(f"Fire and forget: scheduling {len(self._push_coros)} coroutines as concurrent tasks.")
+        for c in self._push_coros:
+            # Fire and forget
+            asyncio.create_task(c(namespace, data))
 
     @property
     def internal_id(self) -> str:
@@ -106,11 +131,15 @@ class BaseDevice(object):
     def handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         # By design, the base class does not implement any push notification.
         _LOGGER.debug(f"MerossBaseDevice {self.name} handling notification {namespace}")
+
+        # However, we want to notify any registered event handler
+        self._fire_push_notification_event(namespace, data)
         return False
 
     def handle_update(self, namespace: Namespace, data: dict) -> bool:
         # By design, the base class doe snot implement any update logic
         # TODO: we might update name/uuid/other stuff in here...
+        self._fire_push_notification_event(namespace, data)
         return False
 
     async def async_update(self, *args, **kwargs) -> None:
@@ -153,7 +182,7 @@ class BaseDevice(object):
             return res
 
         for i, val in enumerate(channel_data):
-            name = val.get('name')
+            name = val.get('name', 'Main channel')
             type = val.get('type')
             master = i == 0
             res.append(ChannelInfo(index=i, name=name, channel_type=type, is_master_channel=master))
