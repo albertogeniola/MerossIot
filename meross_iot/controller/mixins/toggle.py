@@ -131,7 +131,7 @@ class ToggleMixin(object):
 
         if namespace == Namespace.CONTROL_TOGGLE:
             _LOGGER.debug(f"ToggleMixin handling push notification for namespace {namespace}")
-            payload = data.get('togglex')
+            payload = data.get('toggle')
             if payload is None:
                 _LOGGER.error(f"ToggleMixin could not find 'toggle' attribute in push notification data: {data}")
             else:
