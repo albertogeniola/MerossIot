@@ -129,7 +129,7 @@ class ToggleMixin(object):
     def handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
 
-        if namespace == Namespace.CONTROL_TOGGLEX:
+        if namespace == Namespace.CONTROL_TOGGLE:
             _LOGGER.debug(f"ToggleMixin handling push notification for namespace {namespace}")
             payload = data.get('togglex')
             if payload is None:
