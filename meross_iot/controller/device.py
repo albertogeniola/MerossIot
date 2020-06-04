@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import List, Union, Optional, Iterable, Coroutine, Callable
+from typing import List, Union, Optional, Iterable, Coroutine, Callable, Any
 
 from meross_iot.model.enums import OnlineStatus, Namespace
 from meross_iot.model.http.device import HttpDeviceInfo
@@ -39,7 +39,7 @@ class BaseDevice(object):
 
     # TODO: register sync_event_handler?
 
-    def register_push_notification_handler_coroutine(self, coro: Coroutine) -> None:
+    def register_push_notification_handler_coroutine(self, coro: ()) -> None:
         """
         Registers a coroutine so that it gets invoked whenever a push notification is
         delivered to this device or when the device state is changed.
@@ -53,6 +53,17 @@ class BaseDevice(object):
             _LOGGER.error(f"Coroutine {coro} was already added to event handlers of this device")
             return
         self._push_coros.append(coro)
+
+    def unregister_push_notification_handler_coroutine(self, coro: ()) -> None:
+        """
+        Unregisters the event handler
+        :param coro:
+        :return:
+        """
+        if coro in self._push_coros:
+            self._push_coros.remove(coro)
+        else:
+            _LOGGER.error(f"Coroutine {coro} was not registered as handler for this device")
 
     def _fire_push_notification_event(self, namespace: Namespace, data: dict):
         _LOGGER.debug(f"Fire and forget: scheduling {len(self._push_coros)} coroutines as concurrent tasks.")
