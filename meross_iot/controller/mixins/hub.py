@@ -9,6 +9,7 @@ class HubMixn(object):
     __PUSH_MAP = {
         Namespace.HUB_ONLINE: 'online',
         Namespace.HUB_TOGGLEX: 'togglex',
+        Namespace.HUB_BATTERY: 'battery'
     }
 
     def __init__(self, device_uuid: str,
