@@ -6,6 +6,9 @@ from typing import List, Union, Optional, Iterable, Coroutine, Callable
 
 from meross_iot.model.enums import OnlineStatus, Namespace
 from meross_iot.model.http.device import HttpDeviceInfo
+from datetime import datetime
+
+from meross_iot.model.plugin.hub import BatteryInfo
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -268,6 +271,18 @@ class GenericSubDevice(BaseDevice):
                 continue
             self.handle_push_notification(namespace=self._UPDATE_ALL_NAMESPACE, data=subdev_state)
             break
+
+    async def async_get_battery_life(self) -> BatteryInfo:
+        """
+        Polls the HUB/DEVICE to get its current battery status.
+        :return:
+        """
+        data = await self._hub._execute_command(method='GET',
+                                                namespace=Namespace.HUB_BATTERY,
+                                                payload={'battery': [{'id': self.subdevice_id}]})
+        battery_life_perc = data.get('battery', {})[0].get('value')
+        timestamp = datetime.now()
+        return BatteryInfo(battery_charge=battery_life_perc, sample_ts=timestamp)
 
     @property
     def internal_id(self) -> str:
