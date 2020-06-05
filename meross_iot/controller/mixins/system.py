@@ -40,7 +40,7 @@ class SystemOnlineMixin(object):
         locally_handled = False
         if namespace == Namespace.SYSTEM_ALL:
             online_data = data.get('all').get('system').get('online')
-            status = OnlineStatus(online_data.get("status"))
+            status = OnlineStatus(int(online_data.get("status")))
             self._online = status
             locally_handled = True
 
