@@ -4,10 +4,13 @@ import os
 from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
+from meross_iot.controller.device import BaseDevice
 from meross_iot.controller.mixins.toggle import ToggleXMixin
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
 from meross_iot.model.enums import OnlineStatus
+from meross_iot.model.push.bind import BindPushNotification
+from meross_iot.model.push.generic import GenericPushNotification
 
 EMAIL = os.environ.get('MEROSS_EMAIL')
 PASSWORD = os.environ.get('MEROSS_PASSWORD')
@@ -32,7 +35,7 @@ class TestPushNotificationHandler(AioHTTPTestCase):
             self.test_device = toggle_devices[0]
 
     @unittest_run_loop
-    async def test_push_notification(self):
+    async def test_dev_push_notification(self):
         if self.test_device is None:
             self.skipTest("No ToggleX device has been found to run this test on.")
             return

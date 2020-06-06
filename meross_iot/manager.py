@@ -9,7 +9,7 @@ import time
 from asyncio import Future
 from asyncio import TimeoutError
 from hashlib import md5
-from typing import Optional, List, TypeVar, Iterable
+from typing import Optional, List, TypeVar, Iterable, Callable, Awaitable
 
 import paho.mqtt.client as mqtt
 
@@ -21,6 +21,7 @@ from meross_iot.model.exception import CommandTimeoutError, CommandError
 from meross_iot.model.exception import UnconnectedError
 from meross_iot.model.http.device import HttpDeviceInfo
 from meross_iot.model.http.subdevice import HttpSubdeviceInfo
+from meross_iot.model.push.bind import BindPushNotification
 from meross_iot.model.push.factory import parse_push_notification
 from meross_iot.model.push.generic import GenericPushNotification
 from meross_iot.utilities.mqtt import generate_mqtt_password, generate_client_and_app_id, build_client_response_topic, \
@@ -59,6 +60,7 @@ class MerossManager(object):
         self._app_id, self._client_id = generate_client_and_app_id()
         self._pending_messages_futures = {}
         self._device_registry = DeviceRegistry()
+        self._push_coros = []
 
         # Setup mqtt client
         mqtt_pass = generate_mqtt_password(user_id=self._cloud_creds.user_id, key=self._cloud_creds.key)
@@ -81,6 +83,32 @@ class MerossManager(object):
         self._client_response_topic = build_client_response_topic(user_id=self._cloud_creds.user_id,
                                                                   app_id=self._app_id)
         self._user_topic = build_client_user_topic(user_id=self._cloud_creds.user_id)
+
+    def register_push_notification_handler_coroutine(self, coro: Callable[[GenericPushNotification, BaseDevice], Awaitable]) -> None:
+        """
+        Registers a coroutine so that it gets invoked whenever a push notification is received from the Meross
+        MQTT broker.
+        :param coro: coroutine-function: a function that, when invoked, returns a Coroutine object that can be awaited.
+        :return:
+        """
+        if not asyncio.iscoroutinefunction(coro):
+            raise ValueError("The coro parameter must be a coroutine function")
+        if coro in self._push_coros:
+            _LOGGER.error(f"Coroutine {coro} was already added to event handlers of this device")
+            return
+        self._push_coros.append(coro)
+
+    def unregister_push_notification_handler_coroutine(self, coro: Callable[[GenericPushNotification, BaseDevice], Awaitable]) -> None:
+        """
+        Unregisters the event handler
+        :param coro: coroutine-function: a function that, when invoked, returns a Coroutine object that can be awaited.
+                     This coroutine function should have been previously registered
+        :return:
+        """
+        if coro in self._push_coros:
+            self._push_coros.remove(coro)
+        else:
+            _LOGGER.error(f"Coroutine function {coro} was not registered as handler for this device")
 
     def close(self):
         _LOGGER.info("Disconnecting from mqtt")
@@ -372,41 +400,62 @@ class MerossManager(object):
             if parsed_push_notification is None:
                 _LOGGER.error("Push notification parsing failed. That message won't be dispatched.")
             else:
-                asyncio.run_coroutine_threadsafe(self._dispatch_push_notification(parsed_push_notification), self._loop)
+                asyncio.run_coroutine_threadsafe(self._handle_and_dispatch_push_notification(parsed_push_notification), self._loop)
         else:
             _LOGGER.warning(f"The current implementation of this library does not handle messages received on topic "
                             f"({destination_topic}) and when the message method is {message_method}. "
                             "If you see this message many times, it means Meross has changed the way its protocol "
                             "works. Contact the developer if that happens!")
 
-    async def _dispatch_push_notification(self, push_notification: GenericPushNotification) -> bool:
+    async def _handle_and_dispatch_push_notification(self, push_notification: GenericPushNotification) -> None:
         """
-        This method runs within the event loop and is responsible to deliver push notifications to the corresponding
-        meross device within the register.
+        This method runs within the event loop and is responsible for handling and dispatching push notifications
+        to the relative meross device within the registry.
+
         :param push_notification:
         :return:
         """
-        # TODO: handle generic push notification as Bind/Unbind
 
+        # Basic Handling: before dispatching push notifications, we need to perform some actions within the manager.
+        # For instance we need to trigger a discovery before dispatching Bind push notifications, so that anyone
+        #  who is registered to push notification handling will be able to find the target device for such
+        #  notification.
+        if isinstance(push_notification, BindPushNotification):
+            _LOGGER.info("Received a Bind PushNotification. Triggering Device discovery...")
+            try:
+                await self.async_device_discovery()
+            except Exception as e:
+                _LOGGER.exception("Failed to perform device discovery.")
+        # TODO: Unbind notification? Hub Device Bindind?
+
+        # Dispatching
         # Lookup the originating device and deliver the push notification to that one.
         target_devs = self._device_registry.find_all_by(device_uuids=(push_notification.originating_device_uuid,))
-        if len(target_devs) < 1:
-            _LOGGER.warning("Received a push notification for a device that is not available in the local registry. "
-                            "You may need to trigger a discovery to catch those updates. Device-UUID: "
-                            f"{push_notification.originating_device_uuid}")
-            # TODO: does it make sense to schedule a device discover at this stage without needing to warn the user?
-            return False
+        dev = None
+        if len(target_devs) > 0:
+            # Pass the control to the specific device implementation
+            dev = target_devs[0]
+            try:
+                handled = dev.handle_push_notification(namespace=push_notification.namespace, data=push_notification.raw_data)
+                if not handled:
+                    _LOGGER.warning(f"Uncaught push notification {push_notification.namespace}")
+            except Exception as e:
+                _LOGGER.exception("An unhandled exception occurred while handling push notification")
+        else:
+            _LOGGER.warning(
+                "Received a push notification for a device that is not available in the local registry. "
+                "You may need to trigger a discovery to catch those updates. Device-UUID: "
+                f"{push_notification.originating_device_uuid}")
 
-        # Pass the control to the specific device implementation
-        dev = target_devs[0]
+        # In any case, notify any listener that registered explicitly to push_notification
         try:
-            handled = dev.handle_push_notification(namespace=push_notification.namespace, data=push_notification.raw_data)
-            if not handled:
-                _LOGGER.warning(f"Uncaught push notification {push_notification.namespace}")
-            return handled
+            for handler in self._push_coros:
+                # TODO: use create task rather than awaiting?
+                #  The current implementation makes sure that all the events are processed before new ones
+                #  arrive, but do we really need that?
+                await handler(push_notification=push_notification, target_device=dev)
         except Exception as e:
-            _LOGGER.exception("An unhandled exception occurred while handling push notification")
-            return False
+            _LOGGER.exception(f"An error occurred while executing push notification handling for {push_notification}")
 
     async def async_execute_cmd(self,
                                 destination_device_uuid: str,
@@ -540,7 +589,7 @@ class DeviceRegistry(object):
                     device_name: Optional[str] = None,
                     online_status: Optional[OnlineStatus] = None) -> List[BaseDevice]:
 
-        # Look by Internal UUIDs
+        # Look by Interonnal UUIDs
         if internal_ids is not None:
             res = filter(lambda d: d.internal_id in internal_ids, self._devices_by_internal_id.values())
         else:

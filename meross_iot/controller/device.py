@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import List, Union, Optional, Iterable, Coroutine, Callable, Any
+from typing import List, Union, Optional, Iterable, Coroutine, Callable, Any, Awaitable
 
 from meross_iot.model.enums import OnlineStatus, Namespace
 from meross_iot.model.http.device import HttpDeviceInfo
@@ -39,12 +39,12 @@ class BaseDevice(object):
 
     # TODO: register sync_event_handler?
 
-    def register_push_notification_handler_coroutine(self, coro: ()) -> None:
+    def register_push_notification_handler_coroutine(self, coro: Callable[[Namespace, dict], Awaitable]) -> None:
         """
         Registers a coroutine so that it gets invoked whenever a push notification is
         delivered to this device or when the device state is changed.
         This allows the developer to "react" to notifications state change due to other users operating the device.
-        :param coro:
+        :param coro: coroutine-function: a function that, when invoked, returns a Coroutine object that can be awaited.
         :return:
         """
         if not asyncio.iscoroutinefunction(coro):
@@ -54,10 +54,11 @@ class BaseDevice(object):
             return
         self._push_coros.append(coro)
 
-    def unregister_push_notification_handler_coroutine(self, coro: ()) -> None:
+    def unregister_push_notification_handler_coroutine(self, coro: Callable[[Namespace, dict], Awaitable]) -> None:
         """
         Unregisters the event handler
-        :param coro:
+        :param coro: coroutine-function: a function that, when invoked, returns a Coroutine object that can be awaited.
+                     This coroutine function should have been previously registered
         :return:
         """
         if coro in self._push_coros:
