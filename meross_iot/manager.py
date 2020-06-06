@@ -24,6 +24,7 @@ from meross_iot.model.http.subdevice import HttpSubdeviceInfo
 from meross_iot.model.push.bind import BindPushNotification
 from meross_iot.model.push.factory import parse_push_notification
 from meross_iot.model.push.generic import GenericPushNotification
+from meross_iot.model.push.unbind import UnbindPushNotification
 from meross_iot.utilities.mqtt import generate_mqtt_password, generate_client_and_app_id, build_client_response_topic, \
     build_client_user_topic, verify_message_signature, device_uuid_from_push_notification, build_device_request_topic
 
@@ -407,6 +408,49 @@ class MerossManager(object):
                             "If you see this message many times, it means Meross has changed the way its protocol "
                             "works. Contact the developer if that happens!")
 
+    async def _async_handle_push_notification_pre_dispatching(self, push_notification: GenericPushNotification) -> bool:
+        if isinstance(push_notification, BindPushNotification):
+            _LOGGER.info("Received a Bind PushNotification. Triggering Device discovery...")
+            try:
+                await self.async_device_discovery()
+            except Exception as e:
+                _LOGGER.exception("Failed to perform device discovery.")
+            return True
+        return False
+        # TODO: Hub Device Bindind?
+
+    async def _async_dispatch_push_notification(self, push_notification: GenericPushNotification) -> bool:
+        handled = False
+        # Lookup the originating device and deliver the push notification to that one.
+        target_devs = self._device_registry.find_all_by(device_uuids=(push_notification.originating_device_uuid,))
+        dev = None
+        if len(target_devs) > 0:
+            # Pass the control to the specific device implementation
+            dev = target_devs[0]
+            try:
+                handled = dev.handle_push_notification(namespace=push_notification.namespace,
+                                                       data=push_notification.raw_data)
+            except Exception as e:
+                _LOGGER.exception("An unhandled exception occurred while handling push notification")
+
+        else:
+            _LOGGER.warning(
+                "Received a push notification for a device that is not available in the local registry. "
+                "You may need to trigger a discovery to catch those updates. Device-UUID: "
+                f"{push_notification.originating_device_uuid}")
+
+        return handled
+
+    async def _async_handle_push_notification_post_dispatching(self, push_notification: GenericPushNotification) -> bool:
+        if isinstance(push_notification, UnbindPushNotification):
+            _LOGGER.info("Received an Unbind PushNotification. Releasing device resources...")
+            devs = self._device_registry.find_all_by(device_uuids=(push_notification.originating_device_uuid))
+            for d in devs:
+                _LOGGER.info(f"Reseasing resources for device {d.internal_id}")
+                self._device_registry.relinquish_device(device_internal_id=d.internal_id)
+            return True
+        return False
+
     async def _handle_and_dispatch_push_notification(self, push_notification: GenericPushNotification) -> None:
         """
         This method runs within the event loop and is responsible for handling and dispatching push notifications
@@ -416,46 +460,28 @@ class MerossManager(object):
         :return:
         """
 
-        # Basic Handling: before dispatching push notifications, we need to perform some actions within the manager.
-        # For instance we need to trigger a discovery before dispatching Bind push notifications, so that anyone
-        #  who is registered to push notification handling will be able to find the target device for such
-        #  notification.
-        if isinstance(push_notification, BindPushNotification):
-            _LOGGER.info("Received a Bind PushNotification. Triggering Device discovery...")
-            try:
-                await self.async_device_discovery()
-            except Exception as e:
-                _LOGGER.exception("Failed to perform device discovery.")
-        # TODO: Unbind notification? Hub Device Bindind?
+        # Handling pre-dispatching
+        handled_pre = await self._async_handle_push_notification_pre_dispatching(push_notification=push_notification)
 
         # Dispatching
-        # Lookup the originating device and deliver the push notification to that one.
-        target_devs = self._device_registry.find_all_by(device_uuids=(push_notification.originating_device_uuid,))
-        dev = None
-        if len(target_devs) > 0:
-            # Pass the control to the specific device implementation
-            dev = target_devs[0]
-            try:
-                handled = dev.handle_push_notification(namespace=push_notification.namespace, data=push_notification.raw_data)
-                if not handled:
-                    _LOGGER.warning(f"Uncaught push notification {push_notification.namespace}")
-            except Exception as e:
-                _LOGGER.exception("An unhandled exception occurred while handling push notification")
-        else:
-            _LOGGER.warning(
-                "Received a push notification for a device that is not available in the local registry. "
-                "You may need to trigger a discovery to catch those updates. Device-UUID: "
-                f"{push_notification.originating_device_uuid}")
+        handled_device = await self._async_dispatch_push_notification(push_notification=push_notification)
 
-        # In any case, notify any listener that registered explicitly to push_notification
+        # Notify any listener that registered explicitly to push_notification
+        target_dev = None
+        target_devs = self._device_registry.find_all_by(device_uuids=(push_notification.originating_device_uuid,))
+        if len(target_devs) == 1:
+            target_dev = target_devs[0]
         try:
             for handler in self._push_coros:
-                # TODO: use create task rather than awaiting?
-                #  The current implementation makes sure that all the events are processed before new ones
-                #  arrive, but do we really need that?
-                await handler(push_notification=push_notification, target_device=dev)
+                await handler(push_notification=push_notification, target_device=target_dev)
         except Exception as e:
             _LOGGER.exception(f"An error occurred while executing push notification handling for {push_notification}")
+
+        # Handling post-dispatching
+        handled_post = await self._async_handle_push_notification_post_dispatching(push_notification=push_notification)
+
+        if not (handled_pre or handled_device or handled_post):
+            _LOGGER.warning(f"Uncaught push notification {push_notification.namespace}")
 
     async def async_execute_cmd(self,
                                 destination_device_uuid: str,
@@ -548,16 +574,16 @@ class DeviceRegistry(object):
     def __init__(self):
         self._devices_by_internal_id = {}
 
-    def relinquish_device(self, device_id: str):
-        dev = self._devices_by_internal_id.get(device_id)
+    def relinquish_device(self, device_internal_id: str):
+        dev = self._devices_by_internal_id.get(device_internal_id)
         if dev is None:
-            raise ValueError(f"Cannot relinquish device {device_id} as it does not belong to this registry.")
+            raise ValueError(f"Cannot relinquish device {device_internal_id} as it does not belong to this registry.")
 
         # Dismiss the device
         # TODO: implement the dismiss() method to release device-held resources
         _LOGGER.debug(f"Disposing resources for {dev.name} ({dev.uuid})")
         dev.dismiss()
-        del self._devices_by_internal_id[device_id]
+        del self._devices_by_internal_id[device_internal_id]
         _LOGGER.info(f"Device {dev.name} ({dev.uuid}) removed from registry")
 
     def enroll_device(self, device: BaseDevice):
