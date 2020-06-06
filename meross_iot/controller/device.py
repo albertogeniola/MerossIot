@@ -139,9 +139,17 @@ class BaseDevice(object):
         return self._channels
 
     def update_from_http_state(self, hdevice: HttpDeviceInfo) -> None:
-        # TODO: update local name/hwversion/fwversion/online-status from online http information
         # Careful with online  status: not all the devices might expose an online mixin.
-        raise Exception("Not implemented yet!")
+        if hdevice.uuid != self.uuid:
+            raise ValueError(f"Cannot update device ({self.uuid}) with HttpDeviceInfo for device id {hdevice.uuid}")
+        self._name = hdevice.dev_name
+        self._channels = self._parse_channels(hdevice.channels)
+        self._type = hdevice.device_type
+        self._fwversion = hdevice.fmware_version
+        self._hwversion = hdevice.hdware_version
+        self._online = hdevice.online_status
+
+        # TODO: fire some sort of events to let users see changed data?
 
     def handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         # By design, the base class does not implement any push notification.
@@ -177,6 +185,10 @@ class BaseDevice(object):
                                   "it means there is a device which is not being attached any update mixin."
                                   f"Contact the developer. Current object bases: {self.__class__.__bases__}")
         """
+        pass
+
+    def dismiss(self):
+        # TODO: Should we do something here?
         pass
 
     async def _execute_command(self, method: str, namespace: Namespace, payload: dict, timeout: float = 5) -> dict:

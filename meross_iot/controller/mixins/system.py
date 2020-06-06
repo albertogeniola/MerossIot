@@ -58,7 +58,7 @@ class SystemOnlineMixin(object):
                               f"{data}")
                 locally_handled = False
             else:
-                status = OnlineStatus(payload.get("status"))
+                status = OnlineStatus(int(payload.get("status")))
                 self._online = status
                 locally_handled = True
 
