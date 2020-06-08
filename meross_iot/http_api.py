@@ -36,8 +36,11 @@ class ErrorCodes(Enum):
     CODE_NO_ERROR = 0
     """Not an error"""
 
-    CODE_TOKEN_EXPIRED = 1019
+    CODE_TOKEN_INVALID = 1019
     """Token expired"""
+
+    CODE_TOKEN_EXPIRED = 1022
+    """Token has expired"""
 
     CODE_TOO_MANY_TOKENS = 1301
     """Too many tokens have been issued"""
@@ -147,18 +150,21 @@ class MerossHttpClient(object):
                 jsondata = await response.json()
                 code = jsondata.get('apiStatus')
 
+                error = None
                 try:
-                    result_code = ErrorCodes(code)
-                    if result_code == ErrorCodes.CODE_NO_ERROR:
-                        return jsondata.get("data")
-                    elif result_code == ErrorCodes.CODE_TOKEN_EXPIRED:
-                        raise TokenExpiredException("The provided token has expired")
-                    elif result_code == ErrorCodes.CODE_TOO_MANY_TOKENS:
-                        raise TooManyTokensException("You have issued too many tokens without logging out.")
-                    else:
-                        raise AuthenticatedPostException(f"Failed request to API. Response was: {jsondata}")
-                except:
-                    raise AuthenticatedPostException(f"Cannot parse response code. Response was: {jsondata}")
+                    error = ErrorCodes(code)
+                except ValueError as e:
+                    raise AuthenticatedPostException(f"Unknown/Unhandled response code received from API. "
+                                                     f"Response was: {jsondata}")
+
+                if error == ErrorCodes.CODE_NO_ERROR:
+                    return jsondata.get("data")
+                elif error == ErrorCodes.CODE_TOKEN_EXPIRED:
+                    raise TokenExpiredException("The provided token has expired")
+                elif error == ErrorCodes.CODE_TOO_MANY_TOKENS:
+                    raise TooManyTokensException("You have issued too many tokens without logging out.")
+                else:
+                    raise AuthenticatedPostException(f"Failed request to API. Response was: {jsondata}")
 
     async def async_logout(self):
         """

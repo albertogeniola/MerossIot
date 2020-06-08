@@ -31,7 +31,7 @@ setup(
     long_description_content_type='text/markdown',
     keywords='meross smartplug smartbulb iot mqtt domotic switch MSL120 MSS110 MSS210 MSS310 MSS310h '
              'MSS425e MSS530H MSG100 MSH300 MS100 MSS710 MSXH0',
-
+    data_files=[('.', ['.version'])],
     project_urls={
         'Documentation': 'https://github.com/albertogeniola/MerossIot',
         'Funding': 'https://donate.pypi.org',
