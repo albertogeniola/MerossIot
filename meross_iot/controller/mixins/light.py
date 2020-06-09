@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, Union
+from typing import Optional, Union, Awaitable, Callable
 
 from meross_iot.model.enums import Namespace, LightMode
 from meross_iot.model.plugin.light import LightInfo
@@ -15,7 +15,7 @@ class LightMixin(object):
     """
     _execute_command: callable
     _abilities_spec: dict
-    handle_update: callable
+    #async_handle_update: Callable[[Namespace, dict], Awaitable]
 
     def __init__(self, device_uuid: str,
                  manager,
@@ -25,7 +25,7 @@ class LightMixin(object):
         # Dictionary keeping the status for every channel
         self._channel_light_status = {}
 
-    def handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
+    async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
 
         if namespace == Namespace.CONTROL_LIGHT:
@@ -47,10 +47,10 @@ class LightMixin(object):
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
-        parent_handled = super().handle_push_notification(namespace=namespace, data=data)
+        parent_handled = await super().async_handle_push_notification(namespace=namespace, data=data)
         return locally_handled or parent_handled
 
-    def handle_update(self, namespace: Namespace, data: dict) -> bool:
+    async def async_handle_update(self, namespace: Namespace, data: dict) -> bool:
         _LOGGER.debug(f"Handling {self.__class__.__name__} mixin data update.")
         locally_handled = False
         if namespace == Namespace.SYSTEM_ALL:
@@ -60,7 +60,7 @@ class LightMixin(object):
                                         luminance=light_data.get('luminance'),
                                         temperature=light_data.get('temperature'))
             locally_handled = True
-        super_handled = super().handle_update(namespace=namespace, data=data)
+        super_handled = await super().async_handle_update(namespace=namespace, data=data)
         return super_handled or locally_handled
 
     def _supports_mode(self, mode: LightMode, channel: int = 0) -> bool:

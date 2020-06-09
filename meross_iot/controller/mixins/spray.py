@@ -1,5 +1,5 @@
 import logging
-from typing import Optional
+from typing import Optional, Awaitable, Callable
 
 from meross_iot.model.enums import Namespace, SprayMode
 
@@ -9,7 +9,7 @@ _LOGGER = logging.getLogger(__name__)
 class SprayMixin(object):
     _execute_command: callable
     _abilities_spec: dict
-    handle_update: callable
+    #async_handle_update: Callable[[Namespace, dict], Awaitable]
 
     def __init__(self, device_uuid: str,
                  manager,
@@ -19,7 +19,7 @@ class SprayMixin(object):
         # Dictionary keeping the status for every channel
         self._channel_spray_status = {}
 
-    def handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
+    async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
 
         if namespace == Namespace.CONTROL_SPRAY:
@@ -42,13 +42,13 @@ class SprayMixin(object):
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
-        parent_handled = super().handle_push_notification(namespace=namespace, data=data)
+        parent_handled = await super().async_handle_push_notification(namespace=namespace, data=data)
         return locally_handled or parent_handled
 
     def get_current_mode(self, channel: int = 0, *args, **kwargs) -> Optional[SprayMode]:
         return self._channel_spray_status.get(channel)
 
-    def handle_update(self, namespace: Namespace, data: dict) -> bool:
+    async def async_handle_update(self, namespace: Namespace, data: dict) -> bool:
         _LOGGER.debug(f"Handling {self.__class__.__name__} mixin data update.")
         locally_handled = False
         if namespace == Namespace.SYSTEM_ALL:
@@ -60,7 +60,7 @@ class SprayMixin(object):
                 self._channel_spray_status[channel] = mode
             locally_handled = True
 
-        super_handled = super().handle_update(namespace=namespace, data=data)
+        super_handled = await super().async_handle_update(namespace=namespace, data=data)
         return super_handled or locally_handled
 
     async def async_set_mode(self, mode: SprayMode, channel: int = 0, *args, **kwargs) -> None:

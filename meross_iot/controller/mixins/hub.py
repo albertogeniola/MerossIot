@@ -17,7 +17,7 @@ class HubMixn(object):
                  **kwargs):
         super().__init__(device_uuid=device_uuid, manager=manager, **kwargs)
 
-    def handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
+    async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
         target_data_key = self.__PUSH_MAP.get(namespace)
 
@@ -41,12 +41,12 @@ class HubMixn(object):
                             f"registered with this hub. The update will be skipped.")
                         return False
                     else:
-                        subdev.handle_push_notification(namespace=namespace, data=subdev_state)
+                        await subdev.async_handle_push_notification(namespace=namespace, data=subdev_state)
                 locally_handled = True
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
-        parent_handled = super().handle_push_notification(namespace=namespace, data=data)
+        parent_handled = await super().async_handle_push_notification(namespace=namespace, data=data)
         return locally_handled or parent_handled
 
 
@@ -79,9 +79,9 @@ class HubMs100Mixin(object):
             if target_device is None:
                 _LOGGER.warning(f"Received data for subdevice {target_device}, which has not been registered with this"
                                 f"hub yet. This update will be ignored.")
-            target_device.handle_push_notification(namespace=Namespace.HUB_SENSOR_ALL, data=d)
+            await target_device.async_handle_push_notification(namespace=Namespace.HUB_SENSOR_ALL, data=d)
 
-    def handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
+    async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
         target_data_key = self.__PUSH_MAP.get(namespace)
 
@@ -106,12 +106,12 @@ class HubMs100Mixin(object):
                             f"registered with this hub. The update will be skipped.")
                         return False
                     else:
-                        subdev.handle_push_notification(namespace=namespace, data=subdev_state)
+                        await subdev.async_handle_push_notification(namespace=namespace, data=subdev_state)
                 locally_handled = True
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
-        parent_handled = super().handle_push_notification(namespace=namespace, data=data)
+        parent_handled = await super().async_handle_push_notification(namespace=namespace, data=data)
         return locally_handled or parent_handled
 
 
@@ -143,9 +143,9 @@ class HubMts100Mixin(object):
             if target_device is None:
                 _LOGGER.warning(f"Received data for subdevice {target_device}, which has not been registered with this"
                                 f"hub yet. This update will be ignored.")
-            target_device.handle_push_notification(namespace=Namespace.HUB_MTS100_ALL, data=d)
+            await target_device.async_handle_push_notification(namespace=Namespace.HUB_MTS100_ALL, data=d)
 
-    def handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
+    async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
         target_data_key = self.__PUSH_MAP.get(namespace)
 
@@ -169,10 +169,10 @@ class HubMts100Mixin(object):
                             f"registered with this hub. The update will be skipped.")
                         return False
                     else:
-                        subdev.handle_push_notification(namespace=namespace, data=subdev_state)
+                        await subdev.async_handle_push_notification(namespace=namespace, data=subdev_state)
                 locally_handled = True
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
-        parent_handled = super().handle_push_notification(namespace=namespace, data=data)
+        parent_handled = await super().async_handle_push_notification(namespace=namespace, data=data)
         return locally_handled or parent_handled

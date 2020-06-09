@@ -1,4 +1,6 @@
 import logging
+from collections import Awaitable, Callable
+from typing import Any
 
 from meross_iot.model.enums import Namespace, OnlineStatus
 
@@ -8,7 +10,7 @@ _LOGGER = logging.getLogger(__name__)
 class SystemAllMixin(object):
     _execute_command: callable
     _abilities_spec: dict
-    handle_update: callable
+    #async_handle_update: Callable[[Namespace, dict], Awaitable]
 
     def __init__(self, device_uuid: str,
                  manager,
@@ -22,20 +24,20 @@ class SystemAllMixin(object):
         result = await self._execute_command(method="GET", namespace=Namespace.SYSTEM_ALL, payload={})
 
         # Once we have the response, update all the mixin which are interested
-        self.handle_update(namespace=Namespace.SYSTEM_ALL, data=result)
+        await self.async_handle_update(namespace=Namespace.SYSTEM_ALL, data=result)
 
 
 class SystemOnlineMixin(object):
     _abilities_spec: dict
     _online: OnlineStatus
-    handle_update: callable
+    #async_handle_update: Callable[[Namespace, dict], Awaitable]
 
     def __init__(self, device_uuid: str,
                  manager,
                  **kwargs):
         super().__init__(device_uuid=device_uuid, manager=manager, **kwargs)
 
-    def handle_update(self, namespace: Namespace, data: dict) -> bool:
+    async def async_handle_update(self, namespace: Namespace, data: dict) -> bool:
         _LOGGER.debug(f"Handling {self.__class__.__name__} mixin data update.")
         locally_handled = False
         if namespace == Namespace.SYSTEM_ALL:
@@ -44,10 +46,10 @@ class SystemOnlineMixin(object):
             self._online = status
             locally_handled = True
 
-        super_handled = super().handle_update(namespace=namespace, data=data)
+        super_handled = await super().async_handle_update(namespace=namespace, data=data)
         return super_handled or locally_handled
 
-    def handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
+    async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
 
         if namespace == Namespace.SYSTEM_ONLINE:
@@ -64,5 +66,5 @@ class SystemOnlineMixin(object):
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
-        parent_handled = super().handle_push_notification(namespace=namespace, data=data)
+        parent_handled = await super().async_handle_push_notification(namespace=namespace, data=data)
         return locally_handled or parent_handled

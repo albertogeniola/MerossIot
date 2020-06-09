@@ -66,11 +66,12 @@ class BaseDevice(object):
         else:
             _LOGGER.error(f"Coroutine {coro} was not registered as handler for this device")
 
-    def _fire_push_notification_event(self, namespace: Namespace, data: dict):
-        _LOGGER.debug(f"Fire and forget: scheduling {len(self._push_coros)} coroutines as concurrent tasks.")
+    async def _fire_push_notification_event(self, namespace: Namespace, data: dict):
         for c in self._push_coros:
-            # Fire and forget
-            asyncio.create_task(c(namespace, data))
+            try:
+                await c(namespace, data)
+            except Exception as e:
+                _LOGGER.exception(f"Error occurred while firing push notification event {namespace} with data: {data}")
 
     @property
     def internal_id(self) -> str:
@@ -151,18 +152,18 @@ class BaseDevice(object):
 
         # TODO: fire some sort of events to let users see changed data?
 
-    def handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
+    async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         # By design, the base class does not implement any push notification.
         _LOGGER.debug(f"MerossBaseDevice {self.name} handling notification {namespace}")
 
         # However, we want to notify any registered event handler
-        self._fire_push_notification_event(namespace, data)
+        await self._fire_push_notification_event(namespace, data)
         return False
 
-    def handle_update(self, namespace: Namespace, data: dict) -> bool:
+    async def async_handle_update(self, namespace: Namespace, data: dict) -> bool:
         # By design, the base class doe snot implement any update logic
         # TODO: we might update name/uuid/other stuff in here...
-        self._fire_push_notification_event(namespace, data)
+        await self._fire_push_notification_event(namespace, data)
         return False
 
     async def async_update(self, *args, **kwargs) -> None:
@@ -293,7 +294,7 @@ class GenericSubDevice(BaseDevice):
 
             if subdev_id != self.subdevice_id:
                 continue
-            self.handle_push_notification(namespace=self._UPDATE_ALL_NAMESPACE, data=subdev_state)
+            await self.async_handle_push_notification(namespace=self._UPDATE_ALL_NAMESPACE, data=subdev_state)
             break
 
     async def async_get_battery_life(self) -> BatteryInfo:

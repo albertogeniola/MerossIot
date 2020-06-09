@@ -31,7 +31,7 @@ class Ms100Sensor(GenericSubDevice):
         del update_element['id']
         return update_element
 
-    def handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
+    async def handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
         if namespace == Namespace.HUB_ONLINE:
             update_element = self.__prepare_push_notification_data(data=data)
@@ -73,7 +73,7 @@ class Ms100Sensor(GenericSubDevice):
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
-        parent_handled = super().handle_push_notification(namespace=namespace, data=data)
+        parent_handled = await super().async_handle_push_notification(namespace=namespace, data=data)
         return locally_handled or parent_handled
 
     @property
@@ -149,7 +149,7 @@ class Mts100v3Valve(GenericSubDevice):
     async def _execute_command(self, method: str, namespace: Namespace, payload: dict, timeout: float = 5) -> dict:
         raise NotImplementedError("This method should never be called directly for subdevices.")
 
-    def handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
+    async def handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
         if namespace == Namespace.HUB_ONLINE:
             update_element = self.__prepare_push_notification_data(data=data)
@@ -179,7 +179,7 @@ class Mts100v3Valve(GenericSubDevice):
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
-        parent_handled = super().handle_push_notification(namespace=namespace, data=data)
+        parent_handled = await super().async_handle_push_notification(namespace=namespace, data=data)
         return locally_handled or parent_handled
 
     def __prepare_push_notification_data(self, data: dict):

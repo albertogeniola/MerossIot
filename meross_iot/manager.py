@@ -6,7 +6,7 @@ import ssl
 import string
 import sys
 import time
-from asyncio import Future
+from asyncio import Future, AbstractEventLoop
 from asyncio import TimeoutError
 from hashlib import md5
 from typing import Optional, List, TypeVar, Iterable, Callable, Awaitable
@@ -47,6 +47,7 @@ class MerossManager(object):
                  domain: Optional[str] = "iot.meross.com",
                  port: Optional[int] = 2001,
                  ca_cert: Optional[str] = None,
+                 loop: Optional[AbstractEventLoop] = None,
                  *args,
                  **kwords) -> None:
 
@@ -77,7 +78,7 @@ class MerossManager(object):
                                   ciphers=None)
 
         # Setup synchronization primitives
-        self._loop = asyncio.get_event_loop()
+        self._loop = asyncio.get_event_loop() if loop is None else loop
         self._mqtt_connected_and_subscribed = asyncio.Event()
 
         # Prepare MQTT topic names
@@ -382,9 +383,9 @@ class MerossManager(object):
                 _LOGGER.debug("Found a pending command waiting for response message")
                 if message_method == 'ERROR':
                     err = CommandError(error_payload=message.payload)
-                    self._loop.call_soon_threadsafe(future.set_exception, err)
+                    self._loop.call_soon_threadsafe(_handle_future, future, None, err)
                 elif message_method in ('SETACK', 'GETACK'):
-                    self._loop.call_soon_threadsafe(future.set_result, message)
+                    self._loop.call_soon_threadsafe(_handle_future, future, message, None)  # future.set_exception
                 else:
                     _LOGGER.error(f"Unhandled message method {message_method}. Please report it to the developer."
                                   f"raw_msg: {msg}")
@@ -428,7 +429,7 @@ class MerossManager(object):
             # Pass the control to the specific device implementation
             dev = target_devs[0]
             try:
-                handled = dev.handle_push_notification(namespace=push_notification.namespace,
+                handled = await dev.async_handle_push_notification(namespace=push_notification.namespace,
                                                        data=push_notification.raw_data)
             except Exception as e:
                 _LOGGER.exception("An unhandled exception occurred while handling push notification")
@@ -633,3 +634,10 @@ class DeviceRegistry(object):
             res = filter(lambda d: d.name == device_name, res)
 
         return list(res)
+
+
+def _handle_future(future: Future, result: object, exception: Exception):
+    if exception is not None:
+        future.set_exception(exception)
+    else:
+        future.set_result(result)

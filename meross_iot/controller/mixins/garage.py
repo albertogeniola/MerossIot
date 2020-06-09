@@ -17,7 +17,7 @@ class GarageOpenerMixin:
         super().__init__(device_uuid=device_uuid, manager=manager, **kwargs)
         self._door_open_state_by_channel = {}
 
-    def handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
+    async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
 
         if namespace == Namespace.GARAGE_DOOR_STATE:
@@ -39,10 +39,10 @@ class GarageOpenerMixin:
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
-        parent_handled = super().handle_push_notification(namespace=namespace, data=data)
+        parent_handled = await super().async_handle_push_notification(namespace=namespace, data=data)
         return locally_handled or parent_handled
 
-    def handle_update(self, namespace: Namespace, data: dict) -> bool:
+    async def async_handle_update(self, namespace: Namespace, data: dict) -> bool:
         _LOGGER.debug(f"Handling {self.__class__.__name__} mixin data update.")
         locally_handled = False
         if namespace == Namespace.SYSTEM_ALL:
@@ -53,7 +53,7 @@ class GarageOpenerMixin:
                 self._door_open_state_by_channel[channel_index] = state
             locally_handled = True
 
-        super_handled = super().handle_update(namespace=namespace, data=data)
+        super_handled = await super().async_handle_update(namespace=namespace, data=data)
         return super_handled or locally_handled
 
     async def open(self, channel: int = 0, *args, **kwargs) -> None:
