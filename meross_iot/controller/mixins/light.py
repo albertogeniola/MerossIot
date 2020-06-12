@@ -171,3 +171,29 @@ class LightMixin(object):
         if info is None:
             return None
         return info.rgb_tuple
+
+    def get_luminance(self, channel=0, *args, **kwargs) -> Optional[int]:
+        """
+        Returns the current brightness intensity of the bulb
+
+        :param channel: channel to control, defaults to 0 (bulbs generally have only one channel)
+
+        :return: an integer value from 0 to 100
+        """
+        info = self._channel_light_status.get(channel)
+        if info is None:
+            return None
+        return info.luminance
+
+    def get_color_temperature(self, channel=0, *args, **kwargs) -> Optional[int]:
+        """
+        Returns the current color_temperature
+
+        :param channel: channel to control, defaults to 0 (bulbs generally have only one channel)
+
+        :return: an integer value from 0 to 100
+        """
+        info = self._channel_light_status.get(channel)
+        if info is None:
+            return None
+        return info.temperature
