@@ -56,4 +56,4 @@ class TestMSS425ETest(unittest.TestCase):
     """
 
     def tearDown(self):
-        self.manager.stop()
+        self.manager.stop(logout=True)

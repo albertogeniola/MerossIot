@@ -98,7 +98,7 @@ class TestAutoreconnect(unittest.TestCase):
             new_status = dev.get_status(force_status_refresh=True)
             print("New device status: %s" % new_status)
 
-            self.manager.stop()
+            self.manager.stop(logout=True)
 
     def test_multithreaded_connection_drop(self):
         if not is_python6_or_more():
@@ -141,7 +141,7 @@ class TestAutoreconnect(unittest.TestCase):
                 w.stop()
 
             print("Closing manager.")
-            self.manager.stop()
+            self.manager.stop(logout=True)
 
     def tearDown(self):
         pass

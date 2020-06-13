@@ -54,4 +54,4 @@ class TestMSX0Test(unittest.TestCase):
         self.assertEqual(light_state, (r, g, b))
 
     def tearDown(self):
-        self.manager.stop()
+        self.manager.stop(logout=True)

@@ -274,9 +274,11 @@ if __name__ == '__main__':
         print("Sensor '%s': Temperature: %s, Humidity: %s" % (s.name, s.temperature, s.humidity))
 
     # At this point, we are all done playing with the library, so we gracefully disconnect and clean resources.
-    # Note! You MUST always call manager.stop() as it will invalidate the token used for this session
+    # Note! You MUST always call manager.stop() as it will release resources and invalidate the token 
+    # (when passing logout=True) used for this session. If you fail to do so, the Meross Cloud may refuse to
+    # issue new tokens and block your account.
     print("We are done playing. Cleaning resources...")
-    manager.stop()
+    manager.stop(logout=True)
 
     print("Bye bye!")
 ```

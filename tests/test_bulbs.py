@@ -53,4 +53,4 @@ class TestMSL120Test(unittest.TestCase):
 
     def tearDown(self):
         self.device.turn_off()
-        self.manager.stop()
+        self.manager.stop(logout=True)

@@ -233,6 +233,6 @@ if __name__ == '__main__':
 
     # At this point, we are all done playing with the library, so we gracefully disconnect and clean resources.
     print("We are done playing. Cleaning resources...")
-    manager.stop()
+    manager.stop(logout=True)
 
     print("Bye bye!")

@@ -49,7 +49,7 @@ class TestMSS210Test(unittest.TestCase):
         assert debug is not None
 
     def tearDown(self):
-        self.manager.stop()
+        self.manager.stop(logout=True)
 
 
 class TestMSS310Test(unittest.TestCase):
@@ -98,7 +98,7 @@ class TestMSS310Test(unittest.TestCase):
         assert electricity is not None
 
     def tearDown(self):
-        self.manager.stop()
+        self.manager.stop(logout=True)
 
 
 class TestMSS425ETest(unittest.TestCase):
@@ -165,7 +165,7 @@ class TestMSS425ETest(unittest.TestCase):
         assert debug is not None
 
     def tearDown(self):
-        self.manager.stop()
+        self.manager.stop(logout=True)
 
 
 class TestMSS530HTest(unittest.TestCase):
@@ -211,4 +211,4 @@ class TestMSS530HTest(unittest.TestCase):
         assert debug is not None
 
     def tearDown(self):
-        self.manager.stop()
+        self.manager.stop(logout=True)

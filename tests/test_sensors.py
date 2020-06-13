@@ -46,7 +46,7 @@ class TestMS100Test(unittest.TestCase):
         assert debug is not None
 
     def tearDown(self):
-        self.manager.stop()
+        self.manager.stop(logout=True)
 
 
 if __name__ == '__main__':

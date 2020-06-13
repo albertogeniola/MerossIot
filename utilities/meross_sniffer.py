@@ -226,7 +226,7 @@ def main():
     except:
         l.exception(f"Could not collect sysdata/abilities for {selected_device.get('uuid')}")
 
-    manager.stop()
+    manager.stop(logout=True)
 
     print("Collecting logs...")
     zipObj = ZipFile('data.zip', 'w')
