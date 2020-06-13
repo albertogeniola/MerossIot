@@ -32,3 +32,19 @@ Too many tokens
         The Meross API usually blocks the user for 12/24 hours when reaching the token limit.
         After 12/24 hours, the API starts working again.
 
+Inconsistent device state
+    The current implementation of the library keeps the device status aligned by listening to PUSH notifications
+    received from the Meross MQTT broker. However, the first time the developer accesses the device state,
+    the device state may be inconsistent. For this reason, each device implements the `async_update()` method,
+    which fetches the complete device state. From that moment on, the library automatically handles state update
+    by listening for push notifications.
+
+    There are some edge cases in which the device state could become inconsistent. This happens, for instance,
+    when the MerossManager looses the connection to the MQTT broker and someone else changes the device state
+    (e.g. someone using the Meross app. In this case, the MerossManager looses the PUSH notification message
+    as it's disconnected while the app sends the command to the device.
+
+    To avoid such situations, developers should call the `async_update()` every time the internet connection is
+    lost and then restored.
+
+
