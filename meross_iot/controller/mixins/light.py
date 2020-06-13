@@ -1,6 +1,7 @@
 import logging
 from typing import Optional, Union, Awaitable, Callable
 
+from meross_iot.controller.mixins.toggle import ToggleMixin, ToggleXMixin
 from meross_iot.model.enums import Namespace, LightMode
 from meross_iot.model.plugin.light import LightInfo
 from meross_iot.model.typing import RgbTuple
@@ -58,7 +59,8 @@ class LightMixin(object):
             self._update_channel_status(channel=light_data.get('channel'),
                                         rgb=light_data.get('rgb'),
                                         luminance=light_data.get('luminance'),
-                                        temperature=light_data.get('temperature'))
+                                        temperature=light_data.get('temperature'),
+                                        onoff=light_data.get('onoff'))
             locally_handled = True
         super_handled = await super().async_handle_update(namespace=namespace, data=data)
         return super_handled or locally_handled
@@ -71,25 +73,30 @@ class LightMixin(object):
                                channel: int = 0,
                                rgb: Union[int, RgbTuple] = None,
                                luminance: int = -1,
-                               temperature: int = -1) -> None:
+                               temperature: int = -1,
+                               onoff: int = None) -> None:
         channel_info = self._channel_light_status.get(channel)
         if channel_info is None:
             channel_info = LightInfo()
             self._channel_light_status[channel] = channel_info
 
-        channel_info.update(rgb=rgb, luminance=luminance, temperature=temperature)
+        channel_info.update(rgb=rgb, luminance=luminance, temperature=temperature, onoff=onoff)
 
     async def async_set_light_color(self,
                                     channel: int = 0,
-                                    rgb: RgbTuple = None,
-                                    luminance: int = -1,
-                                    temperature: int = -1,
+                                    onoff: Optional[bool] = None,
+                                    rgb: Optional[RgbTuple] = None,
+                                    luminance: Optional[int] = -1,
+                                    temperature: Optional[int] = -1,
                                     *args,
                                     **kwargs) -> None:
         """
-        Controls the light color of the given bulb.
+        Controls the light color of the given bulb. Please note that the __onoff parameter is ignored if the
+        device supports Toggle or ToggleX operations__.
 
         :param channel: channel to control (for bulbs it's usually 0)
+        :param onoff: when True, the device will be turned on, when false, it will turned off. This parameter is ignored
+                      if the operating device must be controlled via ToggleX or Toggle command.
         :param rgb: (red,green,blue) tuple, where each color is an integer from 0-to-255
         :param luminance: Light intensity (at least on MSL120). Varies from 0 to 100
         :param temperature: Light temperature. Can be used when rgb is not specified.
@@ -106,6 +113,15 @@ class LightMixin(object):
                 'gradual': 0
             }
         }
+
+        # For some reason, not all the Meross Devices do offer 'onoff' control attribute. For instance, the
+        # light of the smart humidifier does require this parameter to be set, while the MSL120 requires
+        # Toggle/ToggleX usage. For this reason, we'll only set the onoff value when Toggle/ToggleX is unavailable.
+        if onoff is not None:
+            if isinstance(self, ToggleMixin) or isinstance(self, ToggleXMixin):
+                _LOGGER.warning(f"Device {self.name} seems to support ToggleX/Toggle; Ignoring onoff parameter.")
+            else:
+                payload['onoff'] = 1 if onoff else 0
 
         mode = 0
         if self._supports_mode(LightMode.MODE_RGB) and rgb is not None:
@@ -197,3 +213,29 @@ class LightMixin(object):
         if info is None:
             return None
         return info.temperature
+
+    def get_light_is_on(self, channel=0, *args, **kwargs) -> Optional[bool]:
+        """
+        Returns True if the light is ON, False otherwise.
+
+        :param channel: channel to control, defaults to 0 (bulbs generally have only one channel)
+
+        :return: current onoff state
+        """
+        # For some reason, Meross devices that support ToggleX and Toggle abilities, do not expose onoff
+        # state within light status. In that case, we return the channel status.
+        if isinstance(self, ToggleXMixin) or isinstance(self, ToggleMixin):
+            return self.is_on(channel=channel)
+
+        info = self._channel_light_status.get(channel)
+        if info is None:
+            return None
+        return info.is_on
+
+    async def async_turn_on(self, channel=0, *args, **kwargs) -> None:
+        if isinstance(self, ToggleXMixin) or isinstance(self, ToggleMixin):
+            await super().async_turn_on(channel=channel, *args, **kwargs)
+
+    async def async_turn_off(self, channel=0, *args, **kwargs) -> None:
+        if isinstance(self, ToggleXMixin) or isinstance(self, ToggleMixin):
+            await super().async_turn_off(channel=channel, *args, **kwargs)

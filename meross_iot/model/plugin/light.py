@@ -8,10 +8,14 @@ class LightInfo(object):
     def __init__(self,
                  rgb: Union[int, Tuple[int, int, int]] = None,
                  luminance: int = None,
-                 temperature: int = None):
+                 temperature: int = None,
+                 capacity: int = None,
+                 onoff: int = None):
         self._rgb = self._convert_rgb(rgb)
         self._luminance = luminance
         self._temperature = temperature
+        self._capacity = capacity
+        self._onoff = onoff
 
     @property
     def rgb_tuple(self) -> Optional[Tuple[int, int, int]]:
@@ -31,11 +35,18 @@ class LightInfo(object):
     def temperature(self) -> Optional[int]:
         return self._temperature
 
+    @property
+    def is_on(self) -> Optional[bool]:
+        if self._onoff is not None:
+            return self._onoff == 1
+        return None
+
     def update(self,
                rgb: Union[int, RgbTuple] = None,
                luminance: int = None,
                temperature: int = None,
                capacity: int = None,
+               onoff: int = None,
                *args,
                **kwargs):
         if rgb is not None:
@@ -46,6 +57,8 @@ class LightInfo(object):
             self._temperature = temperature
         if capacity is not None:
             self._capacity = capacity
+        if onoff is not None:
+            self._onoff = onoff
 
     @staticmethod
     def _convert_rgb(rgb: Union[int, tuple]):
