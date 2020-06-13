@@ -202,6 +202,34 @@
 </dd></dl>
 
 <dl class="method">
+<dt id="meross_iot.controller.mixins.light.LightMixin.get_color_temperature">
+<code class="sig-name descname">get_color_temperature</code><span class="sig-paren">(</span><em class="sig-param">channel=0</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; Optional[int]<a class="headerlink" href="#meross_iot.controller.mixins.light.LightMixin.get_color_temperature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the current color_temperature</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>channel</strong> – channel to control, defaults to 0 (bulbs generally have only one channel)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>an integer value from 0 to 100</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.controller.mixins.light.LightMixin.get_luminance">
+<code class="sig-name descname">get_luminance</code><span class="sig-paren">(</span><em class="sig-param">channel=0</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; Optional[int]<a class="headerlink" href="#meross_iot.controller.mixins.light.LightMixin.get_luminance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the current brightness intensity of the bulb</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>channel</strong> – channel to control, defaults to 0 (bulbs generally have only one channel)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>an integer value from 0 to 100</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
 <dt id="meross_iot.controller.mixins.light.LightMixin.get_rgb_color">
 <code class="sig-name descname">get_rgb_color</code><span class="sig-paren">(</span><em class="sig-param">channel=0</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; Optional[Tuple[int, int, int]]<a class="headerlink" href="#meross_iot.controller.mixins.light.LightMixin.get_rgb_color" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the current RGB configuration of the device.</p>

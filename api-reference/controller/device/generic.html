@@ -182,6 +182,13 @@
 <dt id="meross_iot.controller.device.GenericSubDevice">
 <em class="property">class </em><code class="sig-prename descclassname">meross_iot.controller.device.</code><code class="sig-name descname">GenericSubDevice</code><span class="sig-paren">(</span><em class="sig-param">hubdevice_uuid: str</em>, <em class="sig-param">subdevice_id: str</em>, <em class="sig-param">manager</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.controller.device.GenericSubDevice" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="method">
+<dt id="meross_iot.controller.device.GenericSubDevice.async_get_battery_life">
+<em class="property">async </em><code class="sig-name descname">async_get_battery_life</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; meross_iot.model.plugin.hub.BatteryInfo<a class="headerlink" href="#meross_iot.controller.device.GenericSubDevice.async_get_battery_life" title="Permalink to this definition">¶</a></dt>
+<dd><p>Polls the HUB/DEVICE to get its current battery status.
+:return:</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="meross_iot.controller.device.GenericSubDevice.async_update">
 <em class="property">async </em><code class="sig-name descname">async_update</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.device.GenericSubDevice.async_update" title="Permalink to this definition">¶</a></dt>
 <dd><p>Forces a full data update on the device. If your network bandwidth is limited or you are running
