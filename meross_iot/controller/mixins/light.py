@@ -121,7 +121,10 @@ class LightMixin(object):
             if isinstance(self, ToggleMixin) or isinstance(self, ToggleXMixin):
                 _LOGGER.warning(f"Device {self.name} seems to support ToggleX/Toggle; Ignoring onoff parameter.")
             else:
-                payload['onoff'] = 1 if onoff else 0
+                payload['light']['onoff'] = 1 if onoff else 0
+        else:
+            if self._channel_light_status[channel].is_on is not None:
+                payload['light']['onoff'] = 1 if self._channel_light_status[channel].is_on else 0
 
         mode = 0
         if self._supports_mode(LightMode.MODE_RGB) and rgb is not None:
