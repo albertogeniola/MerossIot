@@ -238,7 +238,11 @@ class LightMixin(object):
     async def async_turn_on(self, channel=0, *args, **kwargs) -> None:
         if isinstance(self, ToggleXMixin) or isinstance(self, ToggleMixin):
             await super().async_turn_on(channel=channel, *args, **kwargs)
+        else:
+            await self.async_set_light_color(channel=channel, onoff=True)
 
     async def async_turn_off(self, channel=0, *args, **kwargs) -> None:
         if isinstance(self, ToggleXMixin) or isinstance(self, ToggleMixin):
             await super().async_turn_off(channel=channel, *args, **kwargs)
+        else:
+            await self.async_set_light_color(channel=channel, onoff=False)
