@@ -31,7 +31,7 @@ class Ms100Sensor(GenericSubDevice):
         del update_element['id']
         return update_element
 
-    async def handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
+    async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
         if namespace == Namespace.HUB_ONLINE:
             update_element = self.__prepare_push_notification_data(data=data)
@@ -149,7 +149,7 @@ class Mts100v3Valve(GenericSubDevice):
     async def _execute_command(self, method: str, namespace: Namespace, payload: dict, timeout: float = 5) -> dict:
         raise NotImplementedError("This method should never be called directly for subdevices.")
 
-    async def handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
+    async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
         if namespace == Namespace.HUB_ONLINE:
             update_element = self.__prepare_push_notification_data(data=data)

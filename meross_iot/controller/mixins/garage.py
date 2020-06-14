@@ -56,7 +56,7 @@ class GarageOpenerMixin:
         super_handled = await super().async_handle_update(namespace=namespace, data=data)
         return super_handled or locally_handled
 
-    async def open(self, channel: int = 0, *args, **kwargs) -> None:
+    async def async_open(self, channel: int = 0, *args, **kwargs) -> None:
         """
         Operates the door: sends the open command.
 
@@ -64,9 +64,9 @@ class GarageOpenerMixin:
 
         :return: None
         """
-        await self._operate(state=True, channel=channel, *args, **kwargs)
+        await self._async_operate(state=True, channel=channel, *args, **kwargs)
 
-    async def close(self, channel: int = 0, *args, **kwargs) -> None:
+    async def async_close(self, channel: int = 0, *args, **kwargs) -> None:
         """
         Operates the door: sends the close command.
 
@@ -74,13 +74,13 @@ class GarageOpenerMixin:
 
         :return: None
         """
-        await self._operate(state=False, channel=channel, *args, **kwargs)
+        await self._async_operate(state=False, channel=channel, *args, **kwargs)
 
-    async def _operate(self, state: bool, channel: int = 0, *args, **kwargs) -> None:
+    async def _async_operate(self, state: bool, channel: int = 0, *args, **kwargs) -> None:
         payload = {"state": {"channel": channel, "open": 1 if state else 0, "uuid": self.uuid}}
         await self._execute_command(method="SET", namespace=Namespace.GARAGE_DOOR_STATE, payload=payload)
 
-    def is_open(self, channel: int = 0, *args, **kwargs) -> Optional[bool]:
+    def get_is_open(self, channel: int = 0, *args, **kwargs) -> Optional[bool]:
         """
         The current door-open status. Returns True if the given door is open, False otherwise.
 

@@ -79,7 +79,8 @@ class HubMs100Mixin(object):
             if target_device is None:
                 _LOGGER.warning(f"Received data for subdevice {target_device}, which has not been registered with this"
                                 f"hub yet. This update will be ignored.")
-            await target_device.async_handle_push_notification(namespace=Namespace.HUB_SENSOR_ALL, data=d)
+            else:
+                await target_device.async_handle_push_notification(namespace=Namespace.HUB_SENSOR_ALL, data=d)
 
     async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
