@@ -36,17 +36,18 @@ class TestLight(AioHTTPTestCase):
                           "The test will be skipped")
             return
 
-        light = rgb_capable[0]
+        for light in rgb_capable:
+            await light.async_update()
 
-        # Set a random color
-        r = randint(0, 256)
-        g = randint(0, 256)
-        b = randint(0, 256)
-        await light.async_set_light_color(rgb=(r, g, b))
+            # Set a random color
+            r = randint(0, 256)
+            g = randint(0, 256)
+            b = randint(0, 256)
+            await light.async_set_light_color(rgb=(r, g, b))
 
-        # Check the color property returns red
-        color = light.get_rgb_color()
-        self.assertEqual(color, (r, g, b))
+            # Check the color property returns red
+            color = light.get_rgb_color()
+            self.assertEqual(color, (r, g, b))
 
     @unittest_run_loop
     async def test_rgb_push_notification(self):
