@@ -306,7 +306,7 @@ class GenericSubDevice(BaseDevice):
                                                 namespace=Namespace.HUB_BATTERY,
                                                 payload={'battery': [{'id': self.subdevice_id}]})
         battery_life_perc = data.get('battery', {})[0].get('value')
-        timestamp = datetime.now()
+        timestamp = datetime.utcnow()
         return BatteryInfo(battery_charge=battery_life_perc, sample_ts=timestamp)
 
     @property
