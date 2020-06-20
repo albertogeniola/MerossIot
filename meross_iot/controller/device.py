@@ -4,7 +4,7 @@ import asyncio
 import logging
 from typing import List, Union, Optional, Iterable, Coroutine, Callable, Any, Awaitable
 
-from meross_iot.model.enums import OnlineStatus, Namespace
+from meross_iot.model.enums import OnlineStatus, Namespace, ConnectionEvent
 from meross_iot.model.http.device import HttpDeviceInfo
 from datetime import datetime
 

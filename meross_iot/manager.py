@@ -16,7 +16,7 @@ import paho.mqtt.client as mqtt
 from meross_iot.controller.device import BaseDevice, HubDevice, GenericSubDevice
 from meross_iot.device_factory import build_meross_device, build_meross_subdevice
 from meross_iot.http_api import MerossHttpClient
-from meross_iot.model.enums import Namespace, OnlineStatus
+from meross_iot.model.enums import Namespace, OnlineStatus, ConnectionEvent
 from meross_iot.model.exception import CommandTimeoutError, CommandError
 from meross_iot.model.exception import UnconnectedError
 from meross_iot.model.http.device import HttpDeviceInfo
@@ -319,6 +319,10 @@ class MerossManager(object):
                 _LOGGER.warning("Client has been disconnected, however auto_reconnect flag is set. "
                                 "Won't stop the looping thread, as it will retry to connect.")
 
+        # When a disconnection occurs, we need to set "unavailable" status.
+        asyncio.run_coroutine_threadsafe(self._notify_connection_event(ConnectionEvent.CONNECTION_DROP),
+                                         loop=self._loop)
+
     def _on_unsubscribe(self):
         # NOTE! This method is called by the paho-mqtt thread, thus any invocation to the
         # asyncio platform must be scheduled via `self._loop.call_soon_threadsafe()` method.
@@ -327,10 +331,13 @@ class MerossManager(object):
     def _on_subscribe(self, client, userdata, mid, granted_qos):
         # NOTE! This method is called by the paho-mqtt thread, thus any invocation to the
         # asyncio platform must be scheduled via `self._loop.call_soon_threadsafe()` method.
-        _LOGGER.debug("Succesfully subscribed to topics.")
+        _LOGGER.debug("Successfully subscribed to topics.")
         self._loop.call_soon_threadsafe(
             self._mqtt_connected_and_subscribed.set
         )
+
+        asyncio.run_coroutine_threadsafe(self._notify_connection_event(ConnectionEvent.CONNECTION_ESTABLISHED),
+                                         loop=self._loop)
 
     def _on_message(self, client, userdata, msg):
         # NOTE! This method is called by the paho-mqtt thread, thus any invocation to the
@@ -527,6 +534,15 @@ class MerossManager(object):
             _LOGGER.error(f"Timeout occurred while waiting a response for message {message} sent to device uuid "
                           f"{target_device_uuid}. Timeout was: {timeout} seconds")
             raise CommandTimeoutError()
+
+    async def _notify_connection_event(self, status: ConnectionEvent):
+        for d in self._device_registry.find_all_by():
+            payload = {
+                'online': {
+                    'status': OnlineStatus.UNKNOWN.value
+                }
+            }
+            await d.async_handle_push_notification(namespace=Namespace.SYSTEM_ONLINE, data=payload)
 
     def _build_mqtt_message(self, method: str, namespace: Namespace, payload: dict):
         """
