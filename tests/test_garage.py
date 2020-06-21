@@ -37,22 +37,29 @@ class TestGarageOpener(AioHTTPTestCase):
         garage = self.garage_devices[0]
 
         # Without a full update, the status will be NONE
-        current_status = garage.is_open(channel=0)
+        current_status = garage.get_is_open(channel=0)
         self.assertIsNone(current_status)
 
-        # Perform an update. Garage must be closed
+        # Trigger the full update
         await garage.async_update()
-        self.assertFalse(garage.is_open())
+        self.assertIsNotNone(garage.get_is_open())
 
-        # Perform the OPEN command
-        await garage.open()
-        await asyncio.sleep(10)
-        self.assertTrue(garage.is_open())
+        # Toggle
+        is_open = garage.get_is_open()
+        if is_open:
+            await garage.async_close()
+        else:
+            await garage.async_open()
+        await asyncio.sleep(30)
+        self.assertEqual(garage.get_is_open(), not is_open)
 
-        # Perform the CLOSE command
-        await garage.close()
-        await asyncio.sleep(10)
-        self.assertFalse(garage.is_open())
+        is_open = garage.get_is_open()
+        if is_open:
+            await garage.async_close()
+        else:
+            await garage.async_open()
+        await asyncio.sleep(30)
+        self.assertEqual(garage.get_is_open(), not is_open)
 
     async def tearDownAsync(self):
         await self.meross_client.async_logout()

@@ -82,8 +82,8 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Wait a bit before running tests
       run: |
-        echo "Waiting 60 seconds before starting..."
-        sleep 60
+        echo "Waiting 120 seconds before starting..."
+        sleep 120
         echo "Waiting done."
     - name: Test with pytest
       env:
