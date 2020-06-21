@@ -664,6 +664,9 @@ class DeviceRegistry(object):
 
 
 def _handle_future(future: Future, result: object, exception: Exception):
+    if future.cancelled():
+        return
+
     if exception is not None:
         future.set_exception(exception)
     else:
