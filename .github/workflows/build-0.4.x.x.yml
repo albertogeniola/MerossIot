@@ -66,6 +66,7 @@ jobs:
     strategy:
       matrix:
         python_version: ['3.7', '3.8']
+      max-parallel: 1
     needs: [build, turn-on-env]
     steps:
     - uses: actions/checkout@v2
@@ -95,7 +96,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: pytest-results
-        path: junit/test-results.xml
+        path: junit/
       # Use always() to always run this step to publish test results when there are test failures
       if: ${{ always() }}
 
@@ -103,7 +104,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: pytest-results-html
-        path: htmlcov
+        path: htmlcov/
       # Use always() to always run this step to publish test results when there are test failures
       if: ${{ always() }}
 
