@@ -42,6 +42,7 @@ setup(
         'paho-mqtt>=1.3.1',
         'requests>=2.19.1',
         'retrying>=1.3.3',
+        'aiohttp[speedups]==3.6.2'
     ],
     python_requires='>=3.7',
     test_suite='tests',
