@@ -432,14 +432,25 @@ class MerossManager(object):
         # Lookup the originating device and deliver the push notification to that one.
         target_devs = self._device_registry.find_all_by(device_uuids=(push_notification.originating_device_uuid,))
         dev = None
+
+        if len(target_devs) < 1:
+            _LOGGER.warning(
+                f"Received a push notification ({push_notification.namespace}) for device(s) ({target_devs}) that "
+                f"are not available in the local registry. Triggering a discovery...")
+
+            # The following is "heavy": it will trigger a discovery every time a notification is received for a
+            # device that is not present within our registry.
+            await self.async_device_discovery(update_subdevice_status=True)
+            target_devs = self._device_registry.find_all_by(device_uuids=(push_notification.originating_device_uuid,))
+
         if len(target_devs) > 0:
             # Pass the control to the specific device implementation
-            dev = target_devs[0]
-            try:
-                handled = await dev.async_handle_push_notification(namespace=push_notification.namespace,
-                                                       data=push_notification.raw_data)
-            except Exception as e:
-                _LOGGER.exception("An unhandled exception occurred while handling push notification")
+            for dev in target_devs:
+                try:
+                    handled = handled or await dev.async_handle_push_notification(namespace=push_notification.namespace,
+                                                                                  data=push_notification.raw_data)
+                except Exception as e:
+                    _LOGGER.exception("An unhandled exception occurred while handling push notification")
 
         else:
             _LOGGER.warning(
