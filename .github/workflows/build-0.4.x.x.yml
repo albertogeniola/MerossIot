@@ -55,13 +55,8 @@ jobs:
         run: |
           pushd ext-res/tests
           node ./switch.js --dev MEROSS_LAB --toggle=on
-          echo "Waiting 60 seconds for the dev environment to become operative..."
           popd
-      - name: Sleep for 45 seconds
-        uses: jakejarvis/wait-action@master
-        with:
-          time: '45s'
-        
+
   # ---------------------------------
   # Testing
   # ---------------------------------
@@ -85,6 +80,11 @@ jobs:
         pip install pytest-html
         pip install pytest-cov
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Wait a bit before running tests
+      run: |
+        echo "Waiting 60 seconds before starting..."
+        sleep 60
+        echo "Waiting done."
     - name: Test with pytest
       env:
         MEROSS_EMAIL: ${{ secrets.MEROSS_EMAIL }}
