@@ -14,9 +14,6 @@ EMAIL = os.environ.get('MEROSS_EMAIL')
 PASSWORD = os.environ.get('MEROSS_PASSWORD')
 
 
-# This test cannot be operated automatically as it requires someone to "trick" the door opening sensor.
-# For now, we simply skip it
-@unittest.skip("This test requires manual interaction to work.")
 class TestGarageOpener(AioHTTPTestCase):
     async def get_application(self):
         return web.Application()
