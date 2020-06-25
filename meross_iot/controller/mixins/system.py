@@ -64,6 +64,11 @@ class SystemOnlineMixin(object):
                 self._online = status
                 locally_handled = True
 
+                # If this is an "DEVICE IS NOW ONLINE" event, then we need to trigger a full state
+                # update on the device.
+                _LOGGER.info("Device just became online: refreshing its state...")
+                await self.async_update()
+
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
         parent_handled = await super().async_handle_push_notification(namespace=namespace, data=data)

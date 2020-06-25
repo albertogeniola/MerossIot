@@ -86,7 +86,7 @@ class MerossManager(object):
                                                                   app_id=self._app_id)
         self._user_topic = build_client_user_topic(user_id=self._cloud_creds.user_id)
 
-    def register_push_notification_handler_coroutine(self, coro: Callable[[GenericPushNotification, BaseDevice], Awaitable]) -> None:
+    def register_push_notification_handler_coroutine(self, coro: Callable[[GenericPushNotification, List[BaseDevice]], Awaitable]) -> None:
         """
         Registers a coroutine so that it gets invoked whenever a push notification is received from the Meross
         MQTT broker.
@@ -100,7 +100,7 @@ class MerossManager(object):
             return
         self._push_coros.append(coro)
 
-    def unregister_push_notification_handler_coroutine(self, coro: Callable[[GenericPushNotification, BaseDevice], Awaitable]) -> None:
+    def unregister_push_notification_handler_coroutine(self, coro: Callable[[GenericPushNotification, List[BaseDevice]], Awaitable]) -> None:
         """
         Unregisters the event handler
         :param coro: coroutine-function: a function that, when invoked, returns a Coroutine object that can be awaited.
@@ -197,7 +197,7 @@ class MerossManager(object):
             ldevice = self._device_registry.lookup_base_by_uuid(hdevice.uuid)
             if ldevice is not None:
                 _LOGGER.info(f"Updating state of device {ldevice.name} ({ldevice.uuid}) from HTTP info...")
-                ldevice.update_from_http_state(hdevice)
+                await ldevice.update_from_http_state(hdevice)
             else:
                 # If the http_device was not locally registered, keep track of it as we will add it later.
                 _LOGGER.info(f"Discovery found a new Meross device {hdevice.dev_name} ({hdevice.uuid}).")
@@ -245,9 +245,8 @@ class MerossManager(object):
                         self._async_enroll_new_http_subdev(subdevice_info=sd,
                                                            hub=d,
                                                            hub_reported_abilities=d._abilities)))
-
         # Wait for factory to build all devices
-        enrolled_subdevices = await asyncio.gather(*tasks, loop=self._loop)
+        enrolled_subdevices = await asyncio.gather(*subdevtasks, loop=self._loop)
 
         # We need to update the state of hubs in order to refresh subdevices online status
         if update_subdevice_status:
@@ -273,6 +272,11 @@ class MerossManager(object):
 
     async def _async_enroll_new_http_dev(self, device_info: HttpDeviceInfo) -> Optional[BaseDevice]:
         try:
+            # Only get abilities if the device is online.
+            if device_info.online_status != OnlineStatus.ONLINE:
+                _LOGGER.info(f"Could not retrieve abilities for device  {device_info.dev_name} ({device_info.uuid}). "
+                              f"This device won't be enrolled.")
+                return None
             res_abilities = await self.async_execute_cmd(destination_device_uuid=device_info.uuid,
                                                          method="GET",
                                                          namespace=Namespace.SYSTEM_ABILITY,
@@ -416,17 +420,6 @@ class MerossManager(object):
                             "If you see this message many times, it means Meross has changed the way its protocol "
                             "works. Contact the developer if that happens!")
 
-    async def _async_handle_push_notification_pre_dispatching(self, push_notification: GenericPushNotification) -> bool:
-        if isinstance(push_notification, BindPushNotification):
-            _LOGGER.info("Received a Bind PushNotification. Triggering Device discovery...")
-            try:
-                await self.async_device_discovery()
-            except Exception as e:
-                _LOGGER.exception("Failed to perform device discovery.")
-            return True
-        return False
-        # TODO: Hub Device Bindind?
-
     async def _async_dispatch_push_notification(self, push_notification: GenericPushNotification) -> bool:
         handled = False
         # Lookup the originating device and deliver the push notification to that one.
@@ -436,12 +429,7 @@ class MerossManager(object):
         if len(target_devs) < 1:
             _LOGGER.warning(
                 f"Received a push notification ({push_notification.namespace}) for device(s) ({target_devs}) that "
-                f"are not available in the local registry. Triggering a discovery...")
-
-            # The following is "heavy": it will trigger a discovery every time a notification is received for a
-            # device that is not present within our registry.
-            await self.async_device_discovery(update_subdevice_status=True)
-            target_devs = self._device_registry.find_all_by(device_uuids=(push_notification.originating_device_uuid,))
+                f"are not available in the local registry. Trigger a discovery to intercept thos events.")
 
         if len(target_devs) > 0:
             # Pass the control to the specific device implementation
@@ -465,7 +453,7 @@ class MerossManager(object):
             _LOGGER.info("Received an Unbind PushNotification. Releasing device resources...")
             devs = self._device_registry.find_all_by(device_uuids=(push_notification.originating_device_uuid))
             for d in devs:
-                _LOGGER.info(f"Reseasing resources for device {d.internal_id}")
+                _LOGGER.info(f"Releasing resources for device {d.internal_id}")
                 self._device_registry.relinquish_device(device_internal_id=d.internal_id)
             return True
         return False
@@ -478,28 +466,22 @@ class MerossManager(object):
         :param push_notification:
         :return:
         """
-
-        # Handling pre-dispatching
-        handled_pre = await self._async_handle_push_notification_pre_dispatching(push_notification=push_notification)
-
         # Dispatching
         handled_device = await self._async_dispatch_push_notification(push_notification=push_notification)
 
         # Notify any listener that registered explicitly to push_notification
-        target_dev = None
         target_devs = self._device_registry.find_all_by(device_uuids=(push_notification.originating_device_uuid,))
-        if len(target_devs) == 1:
-            target_dev = target_devs[0]
+
         try:
             for handler in self._push_coros:
-                await handler(push_notification=push_notification, target_device=target_dev)
+                await handler(push_notification=push_notification, target_device=target_devs)
         except Exception as e:
             _LOGGER.exception(f"An error occurred while executing push notification handling for {push_notification}")
 
         # Handling post-dispatching
         handled_post = await self._async_handle_push_notification_post_dispatching(push_notification=push_notification)
 
-        if not (handled_pre or handled_device or handled_post):
+        if not (handled_device or handled_post):
             _LOGGER.warning(f"Uncaught push notification {push_notification.namespace}")
 
     async def async_execute_cmd(self,

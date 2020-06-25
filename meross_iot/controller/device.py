@@ -139,7 +139,7 @@ class BaseDevice(object):
         """
         return self._channels
 
-    def update_from_http_state(self, hdevice: HttpDeviceInfo) -> None:
+    async def update_from_http_state(self, hdevice: HttpDeviceInfo) -> None:
         # Careful with online  status: not all the devices might expose an online mixin.
         if hdevice.uuid != self.uuid:
             raise ValueError(f"Cannot update device ({self.uuid}) with HttpDeviceInfo for device id {hdevice.uuid}")
@@ -153,7 +153,6 @@ class BaseDevice(object):
         # TODO: fire some sort of events to let users see changed data?
 
     async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
-        # By design, the base class does not implement any push notification.
         _LOGGER.debug(f"MerossBaseDevice {self.name} handling notification {namespace}")
 
         # However, we want to notify any registered event handler
