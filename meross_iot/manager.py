@@ -178,11 +178,14 @@ class MerossManager(object):
 
         self.__initialized = True
 
-    async def async_device_discovery(self, update_subdevice_status: bool = True) -> None:
+    async def async_device_discovery(self, update_subdevice_status: bool = True, meross_device_uuid: str = None) -> None:
         """
         Fetch devices and online status from HTTP API. This method also notifies/updates local device online/offline
         status.
 
+        :param meross_device_uuid: Meross UUID of the device that the user wants to discover (is already known). This parameter
+                            restricts the discovery only to that particular device. When None, all the devices
+                            reported by the HTTP api will be discovered.
         :param update_subdevice_status When True, tells the manager to retrieve the HUB status in order to update
                hub-subdevice online status, which would be UNKNOWN if not explicitly retrieved.
 
@@ -190,6 +193,9 @@ class MerossManager(object):
         """
         # List http devices
         http_devices = await self._http_client.async_list_devices()
+
+        if meross_device_uuid is not None:
+            http_devices = filter(lambda d: d.uuid == meross_device_uuid, http_devices)
 
         # Update state of local devices
         discovered_new_http_devices = []
@@ -202,25 +208,6 @@ class MerossManager(object):
                 # If the http_device was not locally registered, keep track of it as we will add it later.
                 _LOGGER.info(f"Discovery found a new Meross device {hdevice.dev_name} ({hdevice.uuid}).")
                 discovered_new_http_devices.append(hdevice)
-
-        # Check if we got devices that were not listed from http.
-        # This should not happen as the UNBIND event should take care of it.
-        # So we just raise a warning if that happens.
-        inconsistent_local_devices = []
-        for ldevice in self._device_registry.find_all_by():
-            # Skip handling SubDevices as they are taken care of later on.
-            if isinstance(ldevice, GenericSubDevice):
-                continue
-
-            found_in_http = False
-            for hdevice in http_devices:
-                if hdevice.uuid == ldevice.uuid:
-                    found_in_http = True
-                    break
-            if not found_in_http:
-                inconsistent_local_devices.append(ldevice)
-                _LOGGER.warning(f"Device {ldevice.name} ({ldevice.uuid}) is locally registered but has not been "
-                                f"reported by the last HTTP API device-list call.")
 
         # TODO: handle inconsistent devices?
         # For every newly discovered device, retrieve its abilities and then build a corresponding wrapper.
