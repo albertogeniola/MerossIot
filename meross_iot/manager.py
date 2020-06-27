@@ -86,7 +86,8 @@ class MerossManager(object):
                                                                   app_id=self._app_id)
         self._user_topic = build_client_user_topic(user_id=self._cloud_creds.user_id)
 
-    def register_push_notification_handler_coroutine(self, coro: Callable[[GenericPushNotification, List[BaseDevice]], Awaitable]) -> None:
+    def register_push_notification_handler_coroutine(self, coro: Callable[
+        [GenericPushNotification, List[BaseDevice]], Awaitable]) -> None:
         """
         Registers a coroutine so that it gets invoked whenever a push notification is received from the Meross
         MQTT broker.
@@ -100,7 +101,8 @@ class MerossManager(object):
             return
         self._push_coros.append(coro)
 
-    def unregister_push_notification_handler_coroutine(self, coro: Callable[[GenericPushNotification, List[BaseDevice]], Awaitable]) -> None:
+    def unregister_push_notification_handler_coroutine(self, coro: Callable[
+        [GenericPushNotification, List[BaseDevice]], Awaitable]) -> None:
         """
         Unregisters the event handler
         :param coro: coroutine-function: a function that, when invoked, returns a Coroutine object that can be awaited.
@@ -178,7 +180,8 @@ class MerossManager(object):
 
         self.__initialized = True
 
-    async def async_device_discovery(self, update_subdevice_status: bool = True, meross_device_uuid: str = None) -> None:
+    async def async_device_discovery(self, update_subdevice_status: bool = True,
+                                     meross_device_uuid: str = None) -> None:
         """
         Fetch devices and online status from HTTP API. This method also notifies/updates local device online/offline
         status.
@@ -199,25 +202,34 @@ class MerossManager(object):
 
         # Update state of local devices
         discovered_new_http_devices = []
+        already_known_http_devices = {}
         for hdevice in http_devices:
+            # Check if the device is already present into the registry
             ldevice = self._device_registry.lookup_base_by_uuid(hdevice.uuid)
             if ldevice is not None:
-                _LOGGER.info(f"Updating state of device {ldevice.name} ({ldevice.uuid}) from HTTP info...")
-                await ldevice.update_from_http_state(hdevice)
+                already_known_http_devices[hdevice] = ldevice
             else:
                 # If the http_device was not locally registered, keep track of it as we will add it later.
-                _LOGGER.info(f"Discovery found a new Meross device {hdevice.dev_name} ({hdevice.uuid}).")
                 discovered_new_http_devices.append(hdevice)
 
-        # TODO: handle inconsistent devices?
+        # Give some info
+        _LOGGER.info(f"The following devices were already known to me: {already_known_http_devices}")
+        _LOGGER.info(f"The following devices are new to me: {discovered_new_http_devices}")
+
         # For every newly discovered device, retrieve its abilities and then build a corresponding wrapper.
+        # In the meantime, update state of the already known devices
         # Do this in "parallel" with multiple tasks rather than executing every task singularly
         tasks = []
         for d in discovered_new_http_devices:
             tasks.append(self._loop.create_task(self._async_enroll_new_http_dev(d)))
+        for hdevice, ldevice in already_known_http_devices.items():
+            tasks.append(self._loop.create_task(ldevice.update_from_http_state(hdevice)))
 
+        _LOGGER.info(f"Updating {len(already_known_http_devices)} known devices form HTTPINFO and fetching "
+                     f"data from {len(discovered_new_http_devices)} newly discovered devices...")
         # Wait for factory to build all devices
         enrolled_devices = await asyncio.gather(*tasks, loop=self._loop)
+        _LOGGER.info(f"Fetch and update done")
 
         # Let's now handle HubDevices. For every HubDevice we have, we need to fetch new possible subdevices
         # from the HTTP API
@@ -262,7 +274,7 @@ class MerossManager(object):
             # Only get abilities if the device is online.
             if device_info.online_status != OnlineStatus.ONLINE:
                 _LOGGER.info(f"Could not retrieve abilities for device  {device_info.dev_name} ({device_info.uuid}). "
-                              f"This device won't be enrolled.")
+                             f"This device won't be enrolled.")
                 return None
             res_abilities = await self.async_execute_cmd(destination_device_uuid=device_info.uuid,
                                                          method="GET",
@@ -407,7 +419,8 @@ class MerossManager(object):
             if parsed_push_notification is None:
                 _LOGGER.error("Push notification parsing failed. That message won't be dispatched.")
             else:
-                asyncio.run_coroutine_threadsafe(self._handle_and_dispatch_push_notification(parsed_push_notification), self._loop)
+                asyncio.run_coroutine_threadsafe(self._handle_and_dispatch_push_notification(parsed_push_notification),
+                                                 self._loop)
         else:
             _LOGGER.warning(f"The current implementation of this library does not handle messages received on topic "
                             f"({destination_topic}) and when the message method is {message_method}. "
@@ -442,7 +455,8 @@ class MerossManager(object):
 
         return handled
 
-    async def _async_handle_push_notification_post_dispatching(self, push_notification: GenericPushNotification) -> bool:
+    async def _async_handle_push_notification_post_dispatching(self,
+                                                               push_notification: GenericPushNotification) -> bool:
         if isinstance(push_notification, UnbindPushNotification):
             _LOGGER.info("Received an Unbind PushNotification. Releasing device resources...")
             devs = self._device_registry.find_all_by(device_uuids=(push_notification.originating_device_uuid))

@@ -139,7 +139,7 @@ class BaseDevice(object):
         """
         return self._channels
 
-    async def update_from_http_state(self, hdevice: HttpDeviceInfo) -> None:
+    async def update_from_http_state(self, hdevice: HttpDeviceInfo) -> BaseDevice:
         # Careful with online  status: not all the devices might expose an online mixin.
         if hdevice.uuid != self.uuid:
             raise ValueError(f"Cannot update device ({self.uuid}) with HttpDeviceInfo for device id {hdevice.uuid}")
@@ -151,6 +151,7 @@ class BaseDevice(object):
         self._online = hdevice.online_status
 
         # TODO: fire some sort of events to let users see changed data?
+        return self
 
     async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         _LOGGER.debug(f"MerossBaseDevice {self.name} handling notification {namespace}")
