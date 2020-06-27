@@ -194,6 +194,7 @@ class MerossManager(object):
 
         :return:
         """
+        _LOGGER.info(f"\n\n------- Triggering HTTP discovery, filter_device: {meross_device_uuid} -------")
         # List http devices
         http_devices = await self._http_client.async_list_devices()
 
@@ -251,8 +252,7 @@ class MerossManager(object):
         if update_subdevice_status:
             for h in hubs:
                 await h.async_update()
-        # TODO add result logging
-        _LOGGER.debug("HTTP async completed.")
+        _LOGGER.info(f"\n------- HTTP discovery ended -------\n")
 
     async def _async_enroll_new_http_subdev(self,
                                             subdevice_info: HttpSubdeviceInfo,
@@ -435,8 +435,10 @@ class MerossManager(object):
 
         if len(target_devs) < 1:
             _LOGGER.warning(
-                f"Received a push notification ({push_notification.namespace}) for device(s) ({target_devs}) that "
-                f"are not available in the local registry. Trigger a discovery to intercept thos events.")
+                f"Received a push notification ({push_notification.namespace}, "
+                f"raw_data: {json.dumps(push_notification.raw_data)}) for device(s) "
+                f"({push_notification.originating_device_uuid}) that "
+                f"are not available in the local registry. Trigger a discovery to intercept those events.")
 
         if len(target_devs) > 0:
             # Pass the control to the specific device implementation
@@ -490,7 +492,8 @@ class MerossManager(object):
         handled_post = await self._async_handle_push_notification_post_dispatching(push_notification=push_notification)
 
         if not (handled_device or handled_post):
-            _LOGGER.warning(f"Uncaught push notification {push_notification.namespace}")
+            _LOGGER.warning(f"Uncaught push notification {push_notification.namespace}. "
+                            f"Raw data: {json.dumps(push_notification.raw_data)}")
 
     async def async_execute_cmd(self,
                                 destination_device_uuid: str,
