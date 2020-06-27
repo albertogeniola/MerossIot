@@ -6,11 +6,6 @@ from typing import Union
 _LOGGER = logging.getLogger(__name__)
 
 
-class ConnectionEvent(Enum):
-    CONNECTION_DROP = 1
-    CONNECTION_ESTABLISHED = 2
-
-
 class OnlineStatus(Enum):
     ONLINE = 1
     OFFLINE = 2
