@@ -163,6 +163,7 @@ class Mts100v3Valve(GenericSubDevice):
             self.__timeSync = data.get('timeSync', {})
             self.__mode.update(data.get('mode', {}))
             self.__temperature.update(data.get('temperature', {}))
+            self.__temperature['latestSampleTime'] = datetime.utcnow().timestamp()
             locally_handled = True
         elif namespace == Namespace.HUB_TOGGLEX:
             update_element = self.__prepare_push_notification_data(data=data)
@@ -175,6 +176,7 @@ class Mts100v3Valve(GenericSubDevice):
         elif namespace == Namespace.HUB_MTS100_TEMPERATURE:
             update_element = self.__prepare_push_notification_data(data=data)
             self.__temperature.update(update_element)
+            self.__temperature['latestSampleTime'] = datetime.utcnow().timestamp()
             locally_handled = True
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
@@ -209,7 +211,7 @@ class Mts100v3Valve(GenericSubDevice):
             await self.async_turn_on()
 
     @property
-    def ambient_temperature(self) -> Optional[float]:
+    def last_sampled_temperature(self) -> Optional[float]:
         """
         Current room temperature in Celsius degrees.
 
@@ -220,6 +222,40 @@ class Mts100v3Valve(GenericSubDevice):
             return float(temp) / 10.0
         else:
             return None
+
+    async def async_get_temperature(self, *args, **kwargs) -> Optional[float]:
+        """
+        Polls the device in order to retrieve the latest temperature info.
+        You should not use this method so ofter: instead, rely on `last_sampled_temperature` when a cached
+        value is ok.
+
+        :return:
+        """
+        res = await self._hub._execute_command("GET", Namespace.HUB_MTS100_TEMPERATURE, {'temperature': [{"id": self.subdevice_id}]})
+        if res is None:
+            return None
+
+        for d in res.get('temperature'):
+            if d.get('id') == self.subdevice_id:
+                del d['id']
+                self.__temperature.update(d)
+                self.__temperature['latestSampleTime'] = datetime.utcnow().timestamp()
+                break
+
+        return self.last_sampled_temperature
+
+    @property
+    def last_sampled_time(self) -> Optional[datetime]:
+        """
+        UTC datetime when the latest update has been sampled by the sensor
+
+        :return: latest sampling time in UTC, if available
+        """
+        timestamp = self.__temperature.get('latestSampleTime')
+        if timestamp is None:
+            return None
+
+        return datetime.fromtimestamp(timestamp)
 
     @property
     def mode(self) -> Optional[ThermostatV3Mode]:

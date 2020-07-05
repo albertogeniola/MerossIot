@@ -484,7 +484,7 @@ class MerossManager(object):
 
         try:
             for handler in self._push_coros:
-                await handler(push_notification=push_notification, target_device=target_devs)
+                await handler(push_notification=push_notification, target_devices=target_devs)
         except Exception as e:
             _LOGGER.exception(f"An error occurred while executing push notification handling for {push_notification}")
 
