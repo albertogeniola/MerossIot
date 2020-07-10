@@ -29,7 +29,7 @@ This library requires __Python 3.7+__. Previous versions won't be supported by t
 In case working with previous versions of python is mandatory for your project, consider using 0.3.X.X versions
 of this library (although it's highly recommended to migrate to 0.4.X.X). 
 
-## Usage
+## Usage & Documentation
 Refer to the [documentation pages](https://albertogeniola.github.io/MerossIot/) for detailed usage instructions,
 or simply have a look at the `/examples` directory. 
 
@@ -144,8 +144,8 @@ By issuing a donation, you will:
 (Note that they are used for Unit-Testing on the continuous integration engine when someone pushes a PR... I love DEVOPing!)  
 1. You'll increase the quality of my coding sessions with free-beer!
 
-[![Buy me a coffe!](https://www.buymeacoffee.com/assets/img/custom_images/black_img.png)](https://www.buymeacoffee.com/albertogeniola)
-[![Apply for GitHub sponsorhip](https://korlibs.soywiz.com/i/github_sponsors_big_box_small.png)](https://github.com/sponsors/albertogeniola/dashboard/tiers)
+[![Buy me a coffee!](https://www.buymeacoffee.com/assets/img/custom_images/black_img.png)](https://www.buymeacoffee.com/albertogeniola)
+[![Apply for GitHub sponsorship](https://korlibs.soywiz.com/i/github_sponsors_big_box_small.png)](https://github.com/sponsors/albertogeniola/dashboard/tiers)
 
 
 ### Look at these babies!
@@ -180,7 +180,7 @@ Complete re-engineerization of the library.
 
 #### 0.3.4.0RC
 - Added HTTP API logout capability
-- Refectored MerossManager/HTTPClient classes
+- Refactored MerossManager/HTTPClient classes
 #### 0.3.3.3
 - Added lock-assistant capability to help debug deadlock cases
 - Improved tests
@@ -205,7 +205,7 @@ Complete re-engineerization of the library.
 - Hotfix for introduced regression
 - Minor fix for power_plugs
 ### 0.3.2.9
-- Implemented battery statys retrival for HUB devices (valve)
+- Implemented battery stats fetch for HUB devices (valve)
 ### 0.3.2.7
 - Added support for smart humidifier
 ### 0.3.2.6
