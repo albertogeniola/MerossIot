@@ -4,7 +4,7 @@ from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
 from meross_iot.http_api import MerossHttpClient
-from meross_iot.model.http.exception import AuthenticatedPostException
+from meross_iot.model.http.exception import AuthenticatedPostException, BadLoginException
 
 EMAIL = os.environ.get('MEROSS_EMAIL')
 PASSWORD = os.environ.get('MEROSS_PASSWORD')
@@ -41,7 +41,7 @@ class TestHttpMethods(AioHTTPTestCase):
 
     @unittest_run_loop
     async def test_bad_login(self):
-        with self.assertRaises(AuthenticatedPostException):
+        with self.assertRaises(BadLoginException):
             return await MerossHttpClient.async_from_user_password(email="wronguser@anythin.com",
                                                                    password="thisIzWRONG!")
 
