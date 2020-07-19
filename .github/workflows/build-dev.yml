@@ -56,6 +56,10 @@ jobs:
           pushd ext-res/tests
           node ./switch.js --dev MEROSS_LAB --toggle=on
           popd
+
+  # ---------------------------------
+  # Testing
+  # ---------------------------------
   test:
     name: Testing
     runs-on: ubuntu-latest
@@ -91,13 +95,18 @@ jobs:
         path: junit/
       # Use always() to always run this step to publish test results when there are test failures
       if: ${{ always() }}
+
     - name: Upload pytest test results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest-results-coverage
+        name: pytest-results-html
         path: htmlcov/
       # Use always() to always run this step to publish test results when there are test failures
       if: ${{ always() }}
+
+  # ------------------------------
+  # Turn off ENV
+  # ------------------------------
   turn-off-env:
     name: Turn off test environment
     runs-on: ubuntu-latest
