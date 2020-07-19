@@ -1,12 +1,9 @@
-from meross_iot.http_api import ErrorCodes
-
-
 class AuthenticatedPostException(Exception):
     pass
 
 
 class HttpApiError(AuthenticatedPostException):
-    def __init__(self, error_code: ErrorCodes):
+    def __init__(self, error_code):
         self._error_code = error_code
 
     @property
