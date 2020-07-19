@@ -1,6 +1,4 @@
-import asyncio
 import os
-import unittest
 
 from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
@@ -12,6 +10,11 @@ from meross_iot.model.enums import OnlineStatus
 
 EMAIL = os.environ.get('MEROSS_EMAIL')
 PASSWORD = os.environ.get('MEROSS_PASSWORD')
+
+
+if os.name == 'nt':
+    import asyncio
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
 class TestGarageOpener(AioHTTPTestCase):

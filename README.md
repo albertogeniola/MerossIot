@@ -164,6 +164,15 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
+#### 0.4.0.1
+- Fixed #117
+- Extended API error codes
+- Updated paho-mqtt dependency to v1.5.0 
+- Fixed errors caused in tests when running on windows system / Python 3.8
+
+<details>
+    <summary>Older</summary>
+
 #### 0.4.0.0
 Complete re-engineerization of the library.
 
@@ -173,11 +182,6 @@ Complete re-engineerization of the library.
 - Added full-featured documentation
 - Added python type hints
 - Moved CI/CD to GitHub pages for letting PR test with on-premise Meross devices 
-
-
-<details>
-    <summary>Older</summary>
-
 #### 0.3.4.0RC
 - Added HTTP API logout capability
 - Refactored MerossManager/HTTPClient classes

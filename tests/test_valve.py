@@ -36,7 +36,7 @@ class TestValve(AioHTTPTestCase):
 
         for dev in self.test_devices:
             res = await dev.async_update()
-            temperature = dev.ambient_temperature
+            temperature = await dev.async_get_temperature()
             self.assertIsInstance(temperature, float)
 
     @unittest_run_loop

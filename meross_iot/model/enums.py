@@ -7,9 +7,12 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class OnlineStatus(Enum):
+
+    NOT_ONLINE = 0
     ONLINE = 1
     OFFLINE = 2
     UNKNOWN = -1
+    UPGRADING = 3
 
 
 class LightMode(Enum):

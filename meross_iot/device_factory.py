@@ -103,9 +103,10 @@ def _build_cached_type(type_string: str, device_abilities: dict, base_class: typ
         cls = _ABILITY_MATRIX.get(key)
 
         # Check if for this ability the device exposes the X version
-        x_version_ability_key = device_abilities.get(f"{key}X")
-        if x_version_ability_key is not None:
-            clsx = _ABILITY_MATRIX.get(x_version_ability_key)
+        x_key = f"{key}X"
+        x_version_ability = device_abilities.get(x_key)
+        if x_version_ability is not None:
+            clsx = _ABILITY_MATRIX.get(x_key)
 
         # Now, if we have both the clsx and the cls, prefer the clsx, otherwise go for the cls
         if clsx is not None:

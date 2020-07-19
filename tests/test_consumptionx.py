@@ -12,6 +12,12 @@ EMAIL = os.environ.get('MEROSS_EMAIL')
 PASSWORD = os.environ.get('MEROSS_PASSWORD')
 
 
+# Fix event loop for Windows env
+if os.name == 'nt':
+    import asyncio
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+
 class TestConsumptionX(AioHTTPTestCase):
     async def get_application(self):
         return web.Application()

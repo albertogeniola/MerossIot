@@ -16,7 +16,8 @@ from aiohttp import ClientSession
 from meross_iot.model.credentials import MerossCloudCreds
 # Appears to be used as a part of the signature algorithm as constant "salt" (kinda useless)
 from meross_iot.model.http.device import HttpDeviceInfo
-from meross_iot.model.http.exception import TooManyTokensException, TokenExpiredException, AuthenticatedPostException
+from meross_iot.model.http.exception import TooManyTokensException, TokenExpiredException, AuthenticatedPostException, \
+    HttpApiError, BadLoginException
 from meross_iot.model.http.subdevice import HttpSubdeviceInfo
 
 _LOGGER = logging.getLogger(__name__)
@@ -35,6 +36,27 @@ class ErrorCodes(Enum):
 
     CODE_NO_ERROR = 0
     """Not an error"""
+
+    CODE_MISSING_PASSWORD = 1001
+    """Wrong or missing password"""
+
+    CODE_UNEXISTING_ACCOUNT = 1002
+    """Account does not exist"""
+
+    CODE_DISABLED_OR_DELETED_ACCOUNT = 1003
+    """This account has been disabled or deleted"""
+
+    CODE_WRONG_CREDENTIALS = 1004
+    """Wrong email or password"""
+
+    CODE_INVALID_EMAIL = 1005
+    """Invalid email address"""
+
+    CODE_BAD_PASSWORD_FORMAT = 1006
+    """Bad password format"""
+
+    CODE_WRONG_EMAIL = 1008
+    """This email is not registered"""
 
     CODE_TOKEN_INVALID = 1019
     """Token expired"""
@@ -156,15 +178,22 @@ class MerossHttpClient(object):
                 except ValueError as e:
                     raise AuthenticatedPostException(f"Unknown/Unhandled response code received from API. "
                                                      f"Response was: {jsondata}")
-
-                if error == ErrorCodes.CODE_NO_ERROR:
-                    return jsondata.get("data")
-                elif error == ErrorCodes.CODE_TOKEN_EXPIRED:
-                    raise TokenExpiredException("The provided token has expired")
-                elif error == ErrorCodes.CODE_TOO_MANY_TOKENS:
-                    raise TooManyTokensException("You have issued too many tokens without logging out.")
-                else:
-                    raise AuthenticatedPostException(f"Failed request to API. Response was: {jsondata}")
+                finally:
+                    if error is None:
+                        _LOGGER.error(f"Could not parse error code {code}.")
+                    elif error == ErrorCodes.CODE_NO_ERROR:
+                        return jsondata.get("data")
+                    elif error == ErrorCodes.CODE_TOKEN_EXPIRED:
+                        raise TokenExpiredException("The provided token has expired")
+                    elif error == ErrorCodes.CODE_TOO_MANY_TOKENS:
+                        raise TooManyTokensException("You have issued too many tokens without logging out and your "
+                                                     "account might have been temporarly disabled.")
+                    elif error in [ErrorCodes.CODE_WRONG_CREDENTIALS, ErrorCodes.CODE_UNEXISTING_ACCOUNT]:
+                        raise BadLoginException("Invalid username/Password combination")
+                    else:
+                        _LOGGER.error(f"Received non-ok API status code: {error.name}. "
+                                      f"Failed request to API. Response was: {jsondata}")
+                        raise HttpApiError(error)
 
     async def async_logout(self):
         """
