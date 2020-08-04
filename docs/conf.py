@@ -1,3 +1,4 @@
+
 # Configuration file for the Sphinx documentation builder.
 #
 # This file only contains a selection of the most common options. For a full
@@ -67,3 +68,19 @@ html_theme_options = {
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 html_extra_path = ['_custom']
+
+
+# This function reads in a variable and inserts it into JavaScript
+"""
+def add_js_variable(app):
+    # This is a configuration that you've specified for users in `conf.py`
+    js_variable = app.config['my_javascript_variable']
+    js_text = "var my_variable = '%s';" % js_variable
+    app.add_js_file(None, body=js_text)
+# We connect this function to the step after the builder is initialized
+def setup(app):
+    # Tell Sphinx about this configuration variable
+    app.add_config_value('my_javascript_variable')
+    # Run the function after the builder is initialized
+    app.connect('builder-inited', add_js_variable)
+"""
