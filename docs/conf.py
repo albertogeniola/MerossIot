@@ -47,7 +47,7 @@ html_theme = 'sphinx_rtd_theme'
 
 html_theme_options = {
     'canonical_url': '',
-    'analytics_id': 'UA-XXXXXXX-1',  #  Provided by Google in your dashboard
+    'analytics_id': 'UA-10387182-6',
     'logo_only': False,
     'display_version': True,
     'prev_next_buttons_location': 'bottom',
