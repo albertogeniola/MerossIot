@@ -1,6 +1,7 @@
 import uuid as UUID
 from hashlib import md5
 
+
 def build_device_request_topic(client_uuid: str) -> str:
     """
     Builds the MQTT topic where commands should be send to specific devices

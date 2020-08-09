@@ -46,9 +46,7 @@ setup(
     ],
     python_requires='>=3.7',
     test_suite='tests',
-    # TODO: sniffer are not valid any longer.
-    #entry_points={
-    #    'console_scripts': ['meross_info_gather=utilities.meross_info_gather:main',
-    #                        'meross_sniffer=utilities.meross_sniffer:main']
-    #}
+    entry_points={
+        'console_scripts': ['meross_sniffer=utilities.meross_sniffer:main']
+    }
 )
