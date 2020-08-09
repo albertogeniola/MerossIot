@@ -13,8 +13,12 @@ However, some devices _might work as expected even if they are not listed_ among
 In such cases, you're invited to open an issue and report tbe working/non-working status of your device.
 This will help us to keep track of new devices and current support status of the library.
 
-
 This library is still work in progress, therefore use it with caution.
+
+## Requirements
+This library requires __Python 3.7+__. Previous versions won't be supported by this library.
+In case working with previous versions of python is mandatory for your project, consider using 0.3.X.X versions
+of this library (although it's highly recommended to migrate to 0.4.X.X). 
 
 ## Installation
 Due to the popularity of the library, I've decided to list it publicly on the Pipy index.
@@ -24,12 +28,7 @@ So, the installation is as simple as typing the following command:
 pip install meross_iot==0.4.0.2
 ```
 
-## Requirements
-This library requires __Python 3.7+__. Previous versions won't be supported by this library.
-In case working with previous versions of python is mandatory for your project, consider using 0.3.X.X versions
-of this library (although it's highly recommended to migrate to 0.4.X.X). 
-
-## Usage & Documentation
+## Usage & Full Documentation
 Refer to the [documentation pages](https://albertogeniola.github.io/MerossIot/) for detailed usage instructions,
 or simply have a look at the `/examples` directory. 
 
@@ -113,6 +112,13 @@ Thanks to [DanoneKiD](https://github.com/DanoneKiD),
 
 Special thanks go to the github sponsors supporting this and other projects. Thanks a lot!
 
+## Unsupported device or feature?
+In case you own a Meross Device that is not currently supported by this library, you may ask the developers to 
+add specific support for that device. To do so, you will need to "sniff" low-level communication between your Meross
+App and the specific device. Such data can help the developers to add support for that device.
+
+Please [have a look at there](https://albertogeniola.github.io/MerossIot/advanced-topics.html#sniff-device-data) 
+to discover how to use the Meross Sniffing tool to do so.   
 
 ## Homeassistant integration
 Yeah, it happened. As soon as I started developing this library, I've discovered the HomeAssistant world.
