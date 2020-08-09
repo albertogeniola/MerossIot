@@ -14,7 +14,7 @@ import paho.mqtt.client as mqtt
 
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
-from meross_iot.model.enums import Namespace
+from meross_iot.model.enums import Namespace, OnlineStatus
 from meross_iot.utilities.mqtt import build_device_request_topic, build_client_response_topic, build_client_user_topic
 
 SNIFF_LOG_FILE = 'sniff.log'
@@ -179,6 +179,8 @@ async def main():
             break
 
     print(f"You have selected {selected_device.dev_name}.")
+    if selected_device.online_status != OnlineStatus.ONLINE:
+        print("!! WARNING !! You selected a device that has not been reported as online. ")
 
     # Start the manager
     creds = http.cloud_credentials
