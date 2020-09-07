@@ -92,7 +92,7 @@ The list of tested devices is the following:
 - MSS210 (Smart plug)
 - MSS310 (Smart plug with power consumption)
 - MSS310h (Smart plug with power consumption)
-- MSS425e (Smart strip)
+- MSS425E/MSS425F (Smart strip)
 - MSS530H (Wall-mount switches)
 - MSG100 (Garage opener)
 - MSH300 (Smart hub + valve thermostat)
