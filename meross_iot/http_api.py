@@ -117,7 +117,7 @@ class MerossHttpClient(object):
         :return:
         """
         data = {"email": email, "password": password}
-        response_data = await cls._async_authenticated_post(_LOGIN_URL, params_data=data)
+        response_data = await cls._async_authenticated_post(_LOGIN_URL, params_data=data, mask_params_in_log=True)
         creds = MerossCloudCreds(
             token=response_data["token"],
             key=response_data["key"],
@@ -131,7 +131,8 @@ class MerossHttpClient(object):
     async def _async_authenticated_post(cls,
                                         url: str,
                                         params_data: dict,
-                                        cloud_creds: Optional[MerossCloudCreds] = None
+                                        cloud_creds: Optional[MerossCloudCreds] = None,
+                                        mask_params_in_log: bool = False
                                         ) -> dict:
 
         nonce = _generate_nonce(16)
@@ -160,6 +161,10 @@ class MerossHttpClient(object):
         }
 
         # Perform the request.
+        headers_with_masked_authrorization = headers.copy()
+        if 'Authorization' in headers_with_masked_authrorization:
+            headers_with_masked_authrorization['Authorization'] = 'XXXX'
+
         _LOGGER.debug(f"Performing HTTP request against {url}, headers: {headers}, post data: {payload}")
         async with ClientSession() as session:
             async with session.post(url, data=payload, headers=headers) as response:
