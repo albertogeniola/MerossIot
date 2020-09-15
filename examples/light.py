@@ -29,6 +29,9 @@ async def main():
         # rgb capabilities. For this reason, we first need to check for rgb before issuing
         # color commands.
         dev = plugs[0]
+
+        # Update device status: this is needed only the very first time we play with this device (or if the
+        #  connection goes down)
         await dev.async_update()
         if not dev.get_supports_rgb():
             print("Unfortunately, this device does not support RGB...")
