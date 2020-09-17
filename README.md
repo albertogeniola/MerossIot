@@ -173,6 +173,7 @@ Anyways, feel free to contribute via donations!
 #### 0.4.0.3
 - Improved sniffing data masking
 - Added light.py update instruction
+- Added error logs in case of missing async_update() call first call
 
 <details>
     <summary>Older</summary>
