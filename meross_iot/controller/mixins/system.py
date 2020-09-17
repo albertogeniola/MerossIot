@@ -1,7 +1,4 @@
 import logging
-from collections import Awaitable, Callable
-from typing import Any
-
 from meross_iot.model.enums import Namespace, OnlineStatus
 
 _LOGGER = logging.getLogger(__name__)

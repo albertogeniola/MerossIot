@@ -43,6 +43,12 @@ class BaseDevice(object):
     def last_full_update_timestamp(self):
         return self._last_full_update_ts
 
+    def check_full_update_done(self):
+        update_done = self._last_full_update_ts is not None
+        if not update_done:
+            _LOGGER.error(f"Please invoke async_update() for this device ({self._name}) before accessing its state. Failure to do so may result in inconsistent state.")
+        return update_done
+
     def register_push_notification_handler_coroutine(self, coro: Callable[[Namespace, dict], Awaitable]) -> None:
         """
         Registers a coroutine so that it gets invoked whenever a push notification is

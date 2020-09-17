@@ -1,6 +1,6 @@
 import os
 from random import randint
-
+import asyncio
 from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
@@ -14,7 +14,6 @@ PASSWORD = os.environ.get('MEROSS_PASSWORD')
 
 
 if os.name == 'nt':
-    import asyncio
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
@@ -30,6 +29,10 @@ class TestLight(AioHTTPTestCase):
         await manager.async_init()
         devices = await manager.async_device_discovery()
         self.light_devices = manager.find_devices(device_class=LightMixin, online_status=OnlineStatus.ONLINE)
+
+        # Update the states of all devices a first time
+        concurrent_update = [d.async_update() for d in self.light_devices]
+        await asyncio.gather(*concurrent_update)
 
     @unittest_run_loop
     async def test_rgb(self):
