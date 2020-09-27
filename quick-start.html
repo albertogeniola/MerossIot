@@ -100,6 +100,7 @@
 <li class="toctree-l1"><a class="reference internal" href="common-gotchas.html">Common gotchas</a></li>
 <li class="toctree-l1"><a class="reference internal" href="meross-arch.html">Meross Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="advanced-topics.html">Advanced topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="meross-protocol.html">Meross Protocol Inspection</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api-reference/index.html">API Reference</a></li>
 </ul>
 
@@ -312,7 +313,12 @@ Have a look at the following method signature for more details.</p>
 42
 43
 44
-45</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">asyncio</span>
+45
+46
+47
+48
+49
+50</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">asyncio</span>
 <span class="kn">import</span> <span class="nn">os</span>
 
 <span class="kn">from</span> <span class="nn">meross_iot.http_api</span> <span class="kn">import</span> <span class="n">MerossHttpClient</span>
@@ -340,6 +346,11 @@ Have a look at the following method signature for more details.</p>
         <span class="c1"># Turn it on channel 0</span>
         <span class="c1"># Note that channel argument is optional for MSS310 as they only have one channel</span>
         <span class="n">dev</span> <span class="o">=</span> <span class="n">plugs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># Update device status: this is needed only the very first time we play with this device (or if the</span>
+        <span class="c1">#  connection goes down)</span>
+        <span class="k">await</span> <span class="n">dev</span><span class="o">.</span><span class="n">async_update</span><span class="p">()</span>
+
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Turning on </span><span class="si">{dev.name}</span><span class="s2">...&quot;</span><span class="p">)</span>
         <span class="k">await</span> <span class="n">dev</span><span class="o">.</span><span class="n">async_turn_on</span><span class="p">(</span><span class="n">channel</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Waiting a bit before turing it off&quot;</span><span class="p">)</span>
@@ -421,7 +432,11 @@ Refer to the <a class="reference internal" href="api-reference/controller/mixins
 50
 51
 52
-53</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">asyncio</span>
+53
+54
+55
+56
+57</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">asyncio</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">randint</span>
 
@@ -443,7 +458,7 @@ Refer to the <a class="reference internal" href="api-reference/controller/mixins
 
     <span class="c1"># Retrieve the MSL120 devices that are registered on this account</span>
     <span class="k">await</span> <span class="n">manager</span><span class="o">.</span><span class="n">async_device_discovery</span><span class="p">()</span>
-    <span class="n">plugs</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">find_devices</span><span class="p">(</span><span class="n">device_type</span><span class="o">=</span><span class="s2">&quot;msl120&quot;</span><span class="p">,</span> <span class="n">online_status</span><span class="o">=</span><span class="n">OnlineStatus</span><span class="o">.</span><span class="n">ONLINE</span><span class="p">)</span>
+    <span class="n">plugs</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">find_devices</span><span class="p">(</span><span class="n">device_type</span><span class="o">=</span><span class="s2">&quot;msl120b&quot;</span><span class="p">,</span> <span class="n">online_status</span><span class="o">=</span><span class="n">OnlineStatus</span><span class="o">.</span><span class="n">ONLINE</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">plugs</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No online msl120 smart bulbs found...&quot;</span><span class="p">)</span>
@@ -452,6 +467,10 @@ Refer to the <a class="reference internal" href="api-reference/controller/mixins
         <span class="c1"># rgb capabilities. For this reason, we first need to check for rgb before issuing</span>
         <span class="c1"># color commands.</span>
         <span class="n">dev</span> <span class="o">=</span> <span class="n">plugs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># Update device status: this is needed only the very first time we play with this device (or if the</span>
+        <span class="c1">#  connection goes down)</span>
+        <span class="k">await</span> <span class="n">dev</span><span class="o">.</span><span class="n">async_update</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">dev</span><span class="o">.</span><span class="n">get_supports_rgb</span><span class="p">():</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Unfortunately, this device does not support RGB...&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -556,7 +575,8 @@ absolving the author of this library of all responsibility.</p>
 57
 58
 59
-60</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">asyncio</span>
+60
+61</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">asyncio</span>
 <span class="kn">import</span> <span class="nn">os</span>
 
 <span class="kn">from</span> <span class="nn">meross_iot.controller.mixins.garage</span> <span class="kn">import</span> <span class="n">GarageOpenerMixin</span>
@@ -584,7 +604,8 @@ absolving the author of this library of all responsibility.</p>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">dev</span> <span class="o">=</span> <span class="n">openers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-        <span class="c1"># Update device status</span>
+        <span class="c1"># Update device status: this is needed only the very first time we play with this device (or if the</span>
+        <span class="c1">#  connection goes down)</span>
         <span class="k">await</span> <span class="n">dev</span><span class="o">.</span><span class="n">async_update</span><span class="p">()</span>
 
         <span class="c1"># Check current door status</span>
@@ -676,7 +697,11 @@ MSS310 plug, which implements both the <code class="code docutils literal notran
 40
 41
 42
-43</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">asyncio</span>
+43
+44
+45
+46
+47</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">asyncio</span>
 <span class="kn">import</span> <span class="nn">os</span>
 
 <span class="kn">from</span> <span class="nn">meross_iot.controller.mixins.electricity</span> <span class="kn">import</span> <span class="n">ElectricityMixin</span>
@@ -704,6 +729,10 @@ MSS310 plug, which implements both the <code class="code docutils literal notran
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No electricity-capable device found...&quot;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">dev</span> <span class="o">=</span> <span class="n">devs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># Update device status: this is needed only the very first time we play with this device (or if the</span>
+        <span class="c1">#  connection goes down)</span>
+        <span class="k">await</span> <span class="n">dev</span><span class="o">.</span><span class="n">async_update</span><span class="p">()</span>
 
         <span class="c1"># Read the electricity power/voltage/current</span>
         <span class="n">instant_consumption</span> <span class="o">=</span> <span class="k">await</span> <span class="n">dev</span><span class="o">.</span><span class="n">async_get_instant_metrics</span><span class="p">()</span>
@@ -802,7 +831,7 @@ available <a class="reference internal" href="api-reference/controller/mixins/el
         <span class="n">dev</span> <span class="o">=</span> <span class="n">sensors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
         <span class="c1"># Manually force and update to retrieve the latest temperature sensed from</span>
-        <span class="c1"># the device</span>
+        <span class="c1"># the device. This ensures we get the most recent data and not a cached value</span>
         <span class="k">await</span> <span class="n">dev</span><span class="o">.</span><span class="n">async_update</span><span class="p">()</span>
 
         <span class="c1"># Access read cached data</span>
@@ -919,7 +948,7 @@ within the <span class="xref std std-doc">Ms100Sensor class &lt;api-reference/co
         <span class="n">dev</span> <span class="o">=</span> <span class="n">sensors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
         <span class="c1"># Manually force and update to retrieve the latest temperature sensed from</span>
-        <span class="c1"># the device</span>
+        <span class="c1"># the device (this ensures we get the most recent value rather than a cached one)</span>
         <span class="k">await</span> <span class="n">dev</span><span class="o">.</span><span class="n">async_update</span><span class="p">()</span>
 
         <span class="c1"># Access read cached data</span>

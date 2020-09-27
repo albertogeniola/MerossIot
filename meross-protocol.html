@@ -1,0 +1,351 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Meross Protocol Inspection &mdash; MerossIot Library  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+        <script data-ad-client="ca-pub-9110025741700767" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API Reference" href="api-reference/index.html" />
+    <link rel="prev" title="Advanced topics" href="advanced-topics.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: white" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> MerossIot Library
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick-start.html">Quick start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="common-gotchas.html">Common gotchas</a></li>
+<li class="toctree-l1"><a class="reference internal" href="meross-arch.html">Meross Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advanced-topics.html">Advanced topics</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Meross Protocol Inspection</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#client-device-pairing">Client device pairing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api-reference/index.html">API Reference</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MerossIot Library</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Meross Protocol Inspection</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/meross-protocol.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="meross-protocol-inspection">
+<h1>Meross Protocol Inspection<a class="headerlink" href="#meross-protocol-inspection" title="Permalink to this headline">¶</a></h1>
+<p>This section reports the outcomes of many hours of network sniffing, inspection and reverse engineering, in an
+attempt to provide other developers enough information to build their client API/Libraries.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>It is explicitly forbidden to copy, republish this information without explicit consent from the Author.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>There is no guarantee about the accuracy of the following information. Meross may update their
+firmware/protocol at any time, possibly making all the following information no more valid.</p>
+</div>
+<div class="section" id="client-device-pairing">
+<h2>Client device pairing<a class="headerlink" href="#client-device-pairing" title="Permalink to this headline">¶</a></h2>
+<p>The pairing protocol of a new Meross device can be resumed as follows:</p>
+<ol class="arabic simple">
+<li><p>The user puts the device into pairing mode (basically pressing and holding the hardware button on the device)</p></li>
+<li><p>The user uses the APP to configure the device and to use a specific WIFI and to bind it to a Meross account</p></li>
+<li><p>The plug connects to the Wifi, and then connects to the Meross MQTT broker</p></li>
+</ol>
+<p>Once the user puts the device into “pairing mode”, the device will put itself into Access Point mode, setting up an
+open Wifi network. The name of this network starts as “Meross_&lt;STR1&gt;_&lt;STR2&gt;”. This allows the the App to recognize all
+the Meross device that are available to be paired by simply scanning all the wifi networks and filtering via the
+SSID prefix.</p>
+<p>Now it starts the second phase of the pairing protocol. The app connects to the Wifi access point of the
+device to pair, and obtain an IP address via a DHCP. The DHCP also pushes the default gateway route, that is
+the IP address of the meross plug itself. At this point, the APP performs two separate HTTP posts against to the
+plug, in sequence.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="p">:</span> <span class="n">POST</span>
+<span class="n">host</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">PLUG_IP_ADDRESS</span><span class="o">&gt;</span>
+<span class="n">path</span><span class="p">:</span> <span class="o">/</span><span class="n">config</span>
+<span class="n">headers</span><span class="p">:</span> <span class="s2">&quot;Content-Type: application/json&quot;</span>
+<span class="n">body</span><span class="p">:</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;header&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;messageId&quot;</span><span class="p">:</span> <span class="s2">&quot;{{MESSAGE_ID}}&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="p">{{</span><span class="n">TIMESTAMP</span><span class="p">}},</span>
+            <span class="s2">&quot;sign&quot;</span><span class="p">:</span> <span class="s2">&quot;{{SIGNATURE}}&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;SET&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;namespace&quot;</span><span class="p">:</span> <span class="s2">&quot;Appliance.Config.Key&quot;</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;payload&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;gateway&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;host&quot;</span><span class="p">:</span><span class="s2">&quot;{{MQTT_HOST}}&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;port&quot;</span><span class="p">:</span><span class="s2">&quot;{{MQTT_PORT}}&quot;</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;{{KEY}}&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;userId&quot;</span><span class="p">:</span> <span class="s2">&quot;{{USER_ID}}&quot;</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+</pre></div>
+</div>
+<p>This POST message instructs the plug to use a specific gateway host/port as MQTT broker. It carries the userId
+(which is numerical, but treated as string) and a secret key. The userId and the key parameters
+are retrieved by the app itself by logging into the Meross account, via HTTP api. The aim of this request is to
+tell the plug to which MQTT broker to connect and which are the credentials that should be used to do so.
+Once sent, the PLUG won’t try to connect to the MQTT broker, as it is still into “pairing mode”. There is still another
+step to perform in order to make it connect to the MQTT broker: setting the local Wifi connection parameters.</p>
+<p>To do so, the APP sends another message to the plug device.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="p">:</span> <span class="n">POST</span>
+<span class="n">host</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">PLUG_IP_ADDRESS</span><span class="o">&gt;</span>
+<span class="n">path</span><span class="p">:</span> <span class="o">/</span><span class="n">config</span>
+<span class="n">headers</span><span class="p">:</span> <span class="s2">&quot;Content-Type: application/json&quot;</span>
+<span class="n">body</span><span class="p">:</span>
+    <span class="p">{</span>
+    <span class="s2">&quot;header&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;messageId&quot;</span><span class="p">:</span> <span class="s2">&quot;{{MESSAGE_ID}}&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="p">{{</span><span class="n">TIMESTAMP</span><span class="p">}},</span>
+        <span class="s2">&quot;sign&quot;</span><span class="p">:</span> <span class="s2">&quot;{{SIGNATURE}}&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;SET&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;namespace&quot;</span><span class="p">:</span> <span class="s2">&quot;Appliance.Config.Wifi&quot;</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;payload&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;wifi&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;ssid&quot;</span><span class="p">:</span> <span class="s2">&quot;{{BASE64_ENCODED_SSID}}&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;{{BASE64_ENCODED_PASSWORD}}&quot;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Since the plug configures an open WIFI and sends the base64 SSID-password to the plug, it is literally
+broadcasting the Wifi credentials to the neighborhood. This is a serious flaw in security.</p>
+</div>
+<p>Before sending this message, the APP asks the user to input the SSID and the password of the domestic WIFI connection
+where the plug should connect to. Once obtained, the app builds up the message above and sends it to the plug.
+At this point, the plug reboots itself and attempts to connect to the Wifi network. If successful, it tries to connect
+to the MQTT broker (the one that has been configured in the first POST message), using the following credentials.</p>
+<blockquote>
+<div><p>username: &lt;mac-address&gt;</p>
+<p>password: &lt;userId&gt;_md5(&lt;mac-address&gt;&lt;key&gt;)</p>
+</div></blockquote>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The mac address should be in lower case, following the form XX:XX:XX:XX:XX:XX. The password is calculated as the
+numerical userId, followed by the underscore digit, followed by the md5 hex digest (in lower case) of the
+concatenated string &lt;mac-address&gt; + &lt;key&gt;, where the key and the userId have been retrieved by the APP at login
+time via HTTP API.</p>
+</div>
+<p>The plug assumes that the broker uses TLS secured connection, so it expects the broker to use SSL. However it seems
+that the plug does not perform any kind of validation of the server certificate. The author was able to make a MSS210
+plug to connect to its MQTT broker, which was serving a server certificate signed by an untrusted CA certificate.
+The only check that is performed by the Meross client device is about the IP address/hostname of the server
+certificate. In other words, the Common Name (CN) of the server certificate must match the IP address/hostname of the
+MQTT broker where the device is connecting to.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This is another important flaw. A simple DNS spoofing attack may de-route the device client to connect against
+a malicious mqtt server.</p>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="api-reference/index.html" class="btn btn-neutral float-right" title="API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="advanced-topics.html" class="btn btn-neutral float-left" title="Advanced topics" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Alberto Geniola
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    <!-- Theme Analytics -->
+    <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-10387182-6', 'auto');
+    ga('send', 'pageview');
+    </script>
+
+    
+   
+
+</body>
+</html>
