@@ -170,13 +170,16 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
-#### 0.4.0.2
-- Re-Implemented Meross Sniffer utility
+#### 0.4.0.3
+- Improved sniffing data masking
+- Added light.py update instruction
+- Added error logs in case of missing async_update() call first call
 
 <details>
     <summary>Older</summary>
 
-
+#### 0.4.0.2
+- Re-Implemented Meross Sniffer utility
 #### 0.4.0.1
 - Fixed #117
 - Extended API error codes

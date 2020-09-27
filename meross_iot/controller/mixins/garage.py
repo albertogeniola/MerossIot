@@ -9,6 +9,7 @@ _LOGGER = logging.getLogger(__name__)
 class GarageOpenerMixin:
     _execute_command: callable
     _abilities_spec: dict
+    check_full_update_done: callable
     uuid: str
 
     def __init__(self, device_uuid: str,
@@ -88,4 +89,5 @@ class GarageOpenerMixin:
 
         :return: False if the door is closed, True otherwise
         """
+        self.check_full_update_done()
         return self._door_open_state_by_channel.get(channel)

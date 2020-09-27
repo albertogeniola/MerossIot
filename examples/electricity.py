@@ -27,6 +27,10 @@ async def main():
     else:
         dev = devs[0]
 
+        # Update device status: this is needed only the very first time we play with this device (or if the
+        #  connection goes down)
+        await dev.async_update()
+
         # Read the electricity power/voltage/current
         instant_consumption = await dev.async_get_instant_metrics()
         print(f"Current consumption data: {instant_consumption}")

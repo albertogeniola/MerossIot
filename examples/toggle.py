@@ -26,6 +26,11 @@ async def main():
         # Turn it on channel 0
         # Note that channel argument is optional for MSS310 as they only have one channel
         dev = plugs[0]
+
+        # Update device status: this is needed only the very first time we play with this device (or if the
+        #  connection goes down)
+        await dev.async_update()
+
         print(f"Turning on {dev.name}...")
         await dev.async_turn_on(channel=0)
         print("Waiting a bit before turing it off")

@@ -16,6 +16,7 @@ class LightMixin(object):
     """
     _execute_command: callable
     _abilities_spec: dict
+    check_full_update_done: callable
     #async_handle_update: Callable[[Namespace, dict], Awaitable]
 
     def __init__(self, device_uuid: str,
@@ -66,6 +67,7 @@ class LightMixin(object):
         return super_handled or locally_handled
 
     def _supports_mode(self, mode: LightMode, channel: int = 0) -> bool:
+        self.check_full_update_done()
         capacity = self._abilities_spec.get(Namespace.CONTROL_LIGHT.value).get('capacity')
         return (capacity & mode.value) == mode.value
 
@@ -156,6 +158,7 @@ class LightMixin(object):
 
         :return: True if the current device supports RGB color, False otherwise.
         """
+        self.check_full_update_done()
         return self._supports_mode(LightMode.MODE_RGB, channel=channel)
 
     def get_supports_luminance(self, channel: int = 0) -> bool:
@@ -166,6 +169,7 @@ class LightMixin(object):
 
         :return: True if the current device supports luminance mode, False otherwise.
         """
+        self.check_full_update_done()
         return self._supports_mode(LightMode.MODE_LUMINANCE, channel=channel)
 
     def get_supports_temperature(self, channel: int = 0) -> bool:
@@ -176,6 +180,7 @@ class LightMixin(object):
 
         :return: True if the current device supports temperature mode, False otherwise.
         """
+        self.check_full_update_done()
         return self._supports_mode(LightMode.MODE_TEMPERATURE, channel=channel)
 
     def get_rgb_color(self, channel=0, *args, **kwargs) -> Optional[RgbTuple]:
@@ -186,6 +191,7 @@ class LightMixin(object):
 
         :return: a Tuple containing three integer 8bits values (red, green, blue)
         """
+        self.check_full_update_done()
         info = self._channel_light_status.get(channel)
         if info is None:
             return None
@@ -199,6 +205,7 @@ class LightMixin(object):
 
         :return: an integer value from 0 to 100
         """
+        self.check_full_update_done()
         info = self._channel_light_status.get(channel)
         if info is None:
             return None
@@ -212,6 +219,7 @@ class LightMixin(object):
 
         :return: an integer value from 0 to 100
         """
+        self.check_full_update_done()
         info = self._channel_light_status.get(channel)
         if info is None:
             return None
@@ -227,6 +235,7 @@ class LightMixin(object):
         """
         # For some reason, Meross devices that support ToggleX and Toggle abilities, do not expose onoff
         # state within light status. In that case, we return the channel status.
+        self.check_full_update_done()
         if isinstance(self, ToggleXMixin) or isinstance(self, ToggleMixin):
             return self.is_on(channel=channel)
 

@@ -106,7 +106,7 @@ class DeviceSniffer(object):
         self.subscribe_event.wait()
         self.subscribe_event.clear()
 
-        l.info("Subscribing to topic: {self.user_topic}")
+        l.info(f"Subscribing to topic: {self.user_topic}")
         self._mqtt_client.subscribe(self.user_topic)
         self.subscribe_event.wait()
         self.subscribe_event.clear()

@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
 from typing import List, Union, Optional, Iterable, Coroutine, Callable, Any, Awaitable
 
 from meross_iot.model.enums import OnlineStatus, Namespace
 from meross_iot.model.http.device import HttpDeviceInfo
 from datetime import datetime
-
 from meross_iot.model.plugin.hub import BatteryInfo
 
 _LOGGER = logging.getLogger(__name__)
@@ -36,8 +36,18 @@ class BaseDevice(object):
 
         self._abilities = {}
         self._push_coros = []
-
+        self._last_full_update_ts = None
     # TODO: register sync_event_handler?
+
+    @property
+    def last_full_update_timestamp(self):
+        return self._last_full_update_ts
+
+    def check_full_update_done(self):
+        update_done = self._last_full_update_ts is not None
+        if not update_done:
+            _LOGGER.error(f"Please invoke async_update() for this device ({self._name}) before accessing its state. Failure to do so may result in inconsistent state.")
+        return update_done
 
     def register_push_notification_handler_coroutine(self, coro: Callable[[Namespace, dict], Awaitable]) -> None:
         """
@@ -164,6 +174,10 @@ class BaseDevice(object):
         # By design, the base class doe snot implement any update logic
         # TODO: we might update name/uuid/other stuff in here...
         await self._fire_push_notification_event(namespace, data)
+        self._last_full_update_ts = time.time() * 1000
+
+        # Even though we handle the event, we return False as we did not handle the event in any way
+        # rather than updating the last_full_update_ts
         return False
 
     async def async_update(self, *args, **kwargs) -> None:
@@ -182,9 +196,6 @@ class BaseDevice(object):
         # with _handle_update) as we want to use only an UPDATE_ALL method.
         # However, we want to keep it within the MerossBaseDevice so that we expose a consistent
         # interface.
-        raise NotImplementedError("This method should never be called on the BaseMerossDevice. If this happens,"
-                                  "it means there is a device which is not being attached any update mixin."
-                                  f"Contact the developer. Current object bases: {self.__class__.__bases__}")
         """
         pass
 

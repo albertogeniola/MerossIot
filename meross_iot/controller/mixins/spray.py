@@ -9,6 +9,7 @@ _LOGGER = logging.getLogger(__name__)
 class SprayMixin(object):
     _execute_command: callable
     _abilities_spec: dict
+    check_full_update_done: callable
     #async_handle_update: Callable[[Namespace, dict], Awaitable]
 
     def __init__(self, device_uuid: str,
@@ -46,6 +47,7 @@ class SprayMixin(object):
         return locally_handled or parent_handled
 
     def get_current_mode(self, channel: int = 0, *args, **kwargs) -> Optional[SprayMode]:
+        self.check_full_update_done()
         return self._channel_spray_status.get(channel)
 
     async def async_handle_update(self, namespace: Namespace, data: dict) -> bool:

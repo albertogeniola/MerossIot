@@ -12,6 +12,7 @@ class ToggleXMixin(object):
     and smart bulbs.
     """
     _execute_command: callable
+    check_full_update_done: callable
     #async_handle_update: Callable[[Namespace, dict], Awaitable]
 
     def __init__(self, device_uuid: str,
@@ -73,6 +74,7 @@ class ToggleXMixin(object):
 
         :return: True is the stat is ON, False when it's OFF
         """
+        self.check_full_update_done()
         return self._channel_togglex_status.get(channel, None)
 
     async def async_turn_off(self, channel=0, *args, **kwargs) -> None:
@@ -158,6 +160,7 @@ class ToggleMixin(object):
         return super_handled or locally_handled
 
     def is_on(self, channel=0, *args, **kwargs) -> Optional[bool]:
+        self.check_full_update_done()
         return self._channel_toggle_status.get(channel, None)
 
     async def async_turn_off(self, channel=0, *args, **kwargs) -> None:

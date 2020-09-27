@@ -20,7 +20,7 @@ async def main():
 
     # Retrieve the MSL120 devices that are registered on this account
     await manager.async_device_discovery()
-    plugs = manager.find_devices(device_type="msl120", online_status=OnlineStatus.ONLINE)
+    plugs = manager.find_devices(device_type="msl120b", online_status=OnlineStatus.ONLINE)
 
     if len(plugs) < 1:
         print("No online msl120 smart bulbs found...")
@@ -29,6 +29,10 @@ async def main():
         # rgb capabilities. For this reason, we first need to check for rgb before issuing
         # color commands.
         dev = plugs[0]
+
+        # Update device status: this is needed only the very first time we play with this device (or if the
+        #  connection goes down)
+        await dev.async_update()
         if not dev.get_supports_rgb():
             print("Unfortunately, this device does not support RGB...")
         else:

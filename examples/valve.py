@@ -27,7 +27,7 @@ async def main():
         dev = sensors[0]
 
         # Manually force and update to retrieve the latest temperature sensed from
-        # the device
+        # the device (this ensures we get the most recent value rather than a cached one)
         await dev.async_update()
 
         # Access read cached data

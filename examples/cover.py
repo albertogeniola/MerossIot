@@ -26,7 +26,8 @@ async def main():
     else:
         dev = openers[0]
 
-        # Update device status
+        # Update device status: this is needed only the very first time we play with this device (or if the
+        #  connection goes down)
         await dev.async_update()
 
         # Check current door status

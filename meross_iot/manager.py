@@ -343,7 +343,7 @@ class MerossManager(object):
         # When subscribing again on the mqtt, trigger an update for all the devices that are currently registered
         tasks = []
 
-        _LOGGER.warning("Subscribed to topics, updating state for already known devices...")
+        _LOGGER.info("Subscribed to topics, updating state for already known devices...")
         for d in self.find_devices():
             tasks.append(self._loop.create_task(d.async_update()))
         results = asyncio.gather(*tasks)
