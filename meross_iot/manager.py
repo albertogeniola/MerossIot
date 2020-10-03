@@ -27,11 +27,44 @@ from meross_iot.model.push.generic import GenericPushNotification
 from meross_iot.model.push.unbind import UnbindPushNotification
 from meross_iot.utilities.mqtt import generate_mqtt_password, generate_client_and_app_id, build_client_response_topic, \
     build_client_user_topic, verify_message_signature, device_uuid_from_push_notification, build_device_request_topic
+from datetime import datetime, timedelta
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO, stream=sys.stdout)
 _LOGGER = logging.getLogger(__name__)
 
 T = TypeVar('T', bound=BaseDevice)  # Declare type variable
+
+
+class RateLimiter(object):
+    def __init__(self, window_interval: timedelta, window_max_requests: int):
+        self._window_max_requests = window_max_requests
+        self._window_interval = window_interval
+        self._setup_window()
+
+    def _setup_window(self):
+        self._window_start = datetime.now()
+        self._window_end = self._window_start + self._window_interval
+        self._tokens = self._window_max_requests
+
+    def _check_window(self):
+        now = datetime.now()
+        if now > self._window_end:
+            self._window_start = datetime.now()
+            self._window_end = self._window_start + self._window_interval
+            self._tokens = self._window_max_requests
+
+    def try_get_token(self, message=None):
+        self._check_window()
+        if self._tokens > 0:
+            self._tokens -= 1
+            return True
+
+        if message is None:
+            _LOGGER.warning("Rate limiter kicked in.")
+        else:
+            _LOGGER.warning(message)
+
+        return False
 
 
 class MerossManager(object):
@@ -48,6 +81,7 @@ class MerossManager(object):
                  port: Optional[int] = 2001,
                  ca_cert: Optional[str] = None,
                  loop: Optional[AbstractEventLoop] = None,
+                 max_requests_per_second: Optional[int] = 4,
                  *args,
                  **kwords) -> None:
 
@@ -85,6 +119,9 @@ class MerossManager(object):
         self._client_response_topic = build_client_response_topic(user_id=self._cloud_creds.user_id,
                                                                   app_id=self._app_id)
         self._user_topic = build_client_user_topic(user_id=self._cloud_creds.user_id)
+
+        # Setup a rate limiter
+        self._limiter = RateLimiter(window_interval=timedelta(seconds=1), window_max_requests=max_requests_per_second)
 
     def register_push_notification_handler_coroutine(self, coro: Callable[
         [GenericPushNotification, List[BaseDevice]], Awaitable]) -> None:
@@ -516,6 +553,16 @@ class MerossManager(object):
         if not self._mqtt_client.is_connected():
             _LOGGER.error("The MQTT client is not connected to the remote broker. Have you called async_init()?")
             raise UnconnectedError()
+
+        # Check API rate limits.
+        if not self._limiter.try_get_token(message=f"Rate limiter: re-scheduling. Command {method} {namespace} "
+                                                   f"message to {destination_device_uuid}"):
+            # TODO: avoid starvation. We should prevent chatty device from putting too heavy load.
+            #  This can be achieved by holding per-uuid stats.
+            await asyncio.sleep(delay=1, loop=self._loop)
+            return await self.async_execute_cmd(destination_device_uuid=destination_device_uuid,
+                                                method=method, namespace=namespace, payload=payload,
+                                                timeout=timeout)
 
         # Build the mqtt message we will send to the broker
         message, message_id = self._build_mqtt_message(method, namespace, payload)
