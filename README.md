@@ -25,7 +25,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```bash
-pip install meross_iot==0.4.0.2
+pip install meross_iot==0.4.0.4
 ```
 
 ## Usage & Full Documentation
@@ -64,6 +64,11 @@ async def main():
         # Turn it on channel 0
         # Note that channel argument is optional for MSS310 as they only have one channel
         dev = plugs[0]
+        
+        # The first time we play with a device, we must update its status
+        await dev.async_update()
+        
+        # We can now start playing with that
         print(f"Turning on {dev.name}...")
         await dev.async_turn_on(channel=0)
         print("Waiting a bit before turing it off")
@@ -170,14 +175,17 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
-#### 0.4.0.3
-- Improved sniffing data masking
-- Added light.py update instruction
-- Added error logs in case of missing async_update() call first call
+#### 0.4.0.4
+- Implemented MQTT rate-limiter
+- Updated documentation
 
 <details>
     <summary>Older</summary>
 
+#### 0.4.0.3
+- Improved sniffing data masking
+- Added light.py update instruction
+- Added error logs in case of missing async_update() call first call
 #### 0.4.0.2
 - Re-Implemented Meross Sniffer utility
 #### 0.4.0.1
