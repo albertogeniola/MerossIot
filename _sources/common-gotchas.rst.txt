@@ -48,3 +48,15 @@ Inconsistent device state
     lost and then restored.
 
 
+Ban from Meross cloud
+    Meross security team may suspend the user accounts that perform too many requests.
+    In some cases, an automated email is delivered to the email address of the user account,
+    warning him about imminent suspension. In other cases, the account might be suspended without any notice.
+    If that happens, the user need to contact Meross team and ask for ban-removal.
+    In any case, to prevent that from happening, be sure to adopt convenient rate-limits,
+    as introduced in version 0.4.0.4.
+
+    At the time of writing, such rate limits are not documented. The MerossManager automatically applies conservative
+    limits in order to prevent banning from Meross Cloud, however it's up to the Developer to properly configure
+    the rate limits as explained in :ref:`advanced-topics:Managing rate limits`.
+
