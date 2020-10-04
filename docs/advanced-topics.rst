@@ -1,6 +1,36 @@
 Advanced topics
 ===============
 
+Managing rate limits
+--------------------
+
+Starting from version 0.4.0.4, the `MerossManager` object limits the MQTT messages sent to the Meross cloud,
+in order to prevent ban from Meross security team when flooding the remote MQTT broker.
+
+The current implementation of rate limits is based on a *global* rate limiter and on a *per device* rate limiter.
+Each command issued by the manager is first checked against the device limits.
+If that limit is not reached yet, then a second check is performed against the global limit.
+If both the checks pass, then the command is issued.
+
+In case any of the two limits is reached, the Manager can proceed in two ways.
+If the *limit_hits/burst_rate* is **below** the `over_limit_threshold_percentage`, then the message is simply delayed of over_limit_delay_seconds.
+If the *limit_hits/burst_rate* is **above** the `over_limit_threshold_percentage`, then the message is droped and `RateLimitExceeded` is raised.
+
+Both limit checks are based on the `Token bucket policy <https://it.wikipedia.org/wiki/Token_bucket>`_ and the developer can set them up when building the `MerossManager` object.
+In fact, the `MerossManager` supports the following parameters:
+
+=============================== ============= =========================================================================
+Parameter                       Default value Description
+------------------------------- ------------- -------------------------------------------------------------------------
+burst_requests_per_second_limit 4             Maximum number of requests that can be served in a-second burst
+------------------------------- ------------- -------------------------------------------------------------------------
+requests_per_second_limit       1             Number of new tokens per second
+------------------------------- ------------- -------------------------------------------------------------------------
+over_limit_delay_seconds        1             Seconds to delay when limit is reached
+------------------------------- ------------- -------------------------------------------------------------------------
+over_limit_threshold_percentage 1000          Percentage threshold above which messages are dropped rather than delayed
+=============================== ============= =========================================================================
+
 Sniff device data
 -----------------
 
