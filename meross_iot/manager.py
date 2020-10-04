@@ -178,7 +178,7 @@ class MerossManager(object):
 
         # Setup synchronization primitives
         self._loop = asyncio.get_event_loop() if loop is None else loop
-        self._mqtt_connected_and_subscribed = asyncio.Event()
+        self._mqtt_connected_and_subscribed = asyncio.Event(loop=self._loop)
 
         # Prepare MQTT topic names
         self._client_response_topic = build_client_response_topic(user_id=self._cloud_creds.user_id,
@@ -455,8 +455,8 @@ class MerossManager(object):
         _LOGGER.info("Subscribed to topics, updating state for already known devices...")
         for d in self.find_devices():
             tasks.append(self._loop.create_task(d.async_update()))
-        results = asyncio.gather(*tasks)
-        _LOGGER.info(f"Updated {len(results)} devices.")
+        results = asyncio.gather(*tasks, loop=self._loop)
+        _LOGGER.info(f"Updated {len(list(results))} devices.")
 
     def _on_message(self, client, userdata, msg):
         # NOTE! This method is called by the paho-mqtt thread, thus any invocation to the
@@ -529,7 +529,7 @@ class MerossManager(object):
                 _LOGGER.error("Push notification parsing failed. That message won't be dispatched.")
             else:
                 asyncio.run_coroutine_threadsafe(self._handle_and_dispatch_push_notification(parsed_push_notification),
-                                                 self._loop)
+                                                 loop=self._loop)
         else:
             _LOGGER.warning(f"The current implementation of this library does not handle messages received on topic "
                             f"({destination_topic}) and when the message method is {message_method}. "
