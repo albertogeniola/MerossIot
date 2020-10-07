@@ -25,7 +25,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```bash
-pip install meross_iot==0.4.0.5
+pip install meross_iot==0.4.0.6
 ```
 
 ## Usage & Full Documentation
@@ -175,14 +175,16 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
-#### 0.4.0.5
-- Implemented MQTT rate-limiter
-- Updated documentation
-- Fixed error occurring with paho-mqtt > 1.5.0
+#### 0.4.0.6
+- Added device internal id parameter to async event handlers
 
 <details>
     <summary>Older</summary>
 
+#### 0.4.0.5
+- Implemented MQTT rate-limiter
+- Updated documentation
+- Fixed error occurring with paho-mqtt > 1.5.0
 #### 0.4.0.3
 - Improved sniffing data masking
 - Added light.py update instruction
