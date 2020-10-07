@@ -149,7 +149,7 @@ jobs:
     needs: [build]
     steps:
     - name: Calculate Version
-      id: tag
+      id: debug
       run: |
         echo "Workspace."
         ls -l $GITHUB_WORKSPACE
