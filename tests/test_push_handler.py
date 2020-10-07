@@ -60,7 +60,7 @@ class TestPushNotificationHandler(AioHTTPTestCase):
             e = asyncio.Event()
 
             # Define the coroutine for handling push notification
-            async def my_coro(namespace, data):
+            async def my_coro(namespace, data, device_internal_id):
                 e.set()
 
             dev.register_push_notification_handler_coroutine(my_coro)

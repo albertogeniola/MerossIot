@@ -46,15 +46,17 @@ class BaseDevice(object):
     def check_full_update_done(self):
         update_done = self._last_full_update_ts is not None
         if not update_done:
-            _LOGGER.error(f"Please invoke async_update() for this device ({self._name}) before accessing its state. Failure to do so may result in inconsistent state.")
+            _LOGGER.error(f"Please invoke async_update() for this device ({self._name}) "
+                          "before accessing its state. Failure to do so may result in inconsistent state.")
         return update_done
 
-    def register_push_notification_handler_coroutine(self, coro: Callable[[Namespace, dict], Awaitable]) -> None:
+    def register_push_notification_handler_coroutine(self, coro: Callable[[Namespace, dict, str], Awaitable]) -> None:
         """
         Registers a coroutine so that it gets invoked whenever a push notification is
         delivered to this device or when the device state is changed.
         This allows the developer to "react" to notifications state change due to other users operating the device.
-        :param coro: coroutine-function: a function that, when invoked, returns a Coroutine object that can be awaited.
+        :param coro: coroutine-function to invoke when the state changes.
+                     Its signature must be (namespace: Namespace, data: dict, device_internal_id: str)
         :return:
         """
         if not asyncio.iscoroutinefunction(coro):
@@ -76,10 +78,10 @@ class BaseDevice(object):
         else:
             _LOGGER.error(f"Coroutine {coro} was not registered as handler for this device")
 
-    async def _fire_push_notification_event(self, namespace: Namespace, data: dict):
+    async def _fire_push_notification_event(self, namespace: Namespace, data: dict, device_internal_id: str):
         for c in self._push_coros:
             try:
-                await c(namespace, data)
+                await c(namespace=namespace, data=data, device_internal_id=device_internal_id)
             except Exception as e:
                 _LOGGER.exception(f"Error occurred while firing push notification event {namespace} with data: {data}")
 
@@ -167,13 +169,13 @@ class BaseDevice(object):
         _LOGGER.debug(f"MerossBaseDevice {self.name} handling notification {namespace}")
 
         # However, we want to notify any registered event handler
-        await self._fire_push_notification_event(namespace, data)
+        await self._fire_push_notification_event(namespace=namespace, data=data, device_internal_id=self.internal_id)
         return False
 
     async def async_handle_update(self, namespace: Namespace, data: dict) -> bool:
         # By design, the base class doe snot implement any update logic
         # TODO: we might update name/uuid/other stuff in here...
-        await self._fire_push_notification_event(namespace, data)
+        await self._fire_push_notification_event(namespace=namespace, data=data, device_internal_id=self.internal_id)
         self._last_full_update_ts = time.time() * 1000
 
         # Even though we handle the event, we return False as we did not handle the event in any way

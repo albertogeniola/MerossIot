@@ -103,7 +103,7 @@ class TestValve(AioHTTPTestCase):
         res = await dev.async_get_battery_life()
 
         self.assertIsInstance(res, BatteryInfo)
-        self.assertGreater(res.remaining_charge, 0)
+        self.assertGreater(res.remaining_charge, -1)
 
     @unittest_run_loop
     async def test_push_notification(self):
