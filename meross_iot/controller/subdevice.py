@@ -145,6 +145,7 @@ class Mts100v3Valve(GenericSubDevice):
         self.__temperature = {}
         self._schedule_b_mode = None
         self._last_active_time = None
+        self.__adjust = {}
 
     async def _execute_command(self, method: str, namespace: Namespace, payload: dict, timeout: float = 5) -> dict:
         raise NotImplementedError("This method should never be called directly for subdevices.")
@@ -164,6 +165,8 @@ class Mts100v3Valve(GenericSubDevice):
             self.__mode.update(data.get('mode', {}))
             self.__temperature.update(data.get('temperature', {}))
             self.__temperature['latestSampleTime'] = datetime.utcnow().timestamp()
+            self.__adjust.update(data.get('temperature', {}))
+            self.__adjust['latestSampleTime'] = datetime.utcnow().timestamp()
             locally_handled = True
         elif namespace == Namespace.HUB_TOGGLEX:
             update_element = self.__prepare_push_notification_data(data=data)
@@ -355,3 +358,46 @@ class Mts100v3Valve(GenericSubDevice):
                                           payload=payload)
         # Update local state
         self.__temperature['currentSet'] = target_temp
+
+    async def async_get_adjust(self, *args, **kwargs) -> Optional[float]:
+        """
+        :return:
+        """
+        res = await self._hub._execute_command("GET", Namespace.HUB_MTS100_ADJUST, {'adjust': [{"id": self.subdevice_id}]})
+        if res is None:
+            return None
+
+        for d in res.get('adjust'):
+            if d.get('id') == self.subdevice_id:
+                del d['id']
+                self.__adjust.update(d)
+                self.__adjust['latestSampleTime'] = datetime.utcnow().timestamp()
+                break
+
+        return self.adjust
+
+    @property
+    def adjust(self) -> Optional[float]:
+        """
+        Returns the adjust temperature value for the sensor if available
+
+        :return:
+        """
+        adjust = self.__adjust.get('temperature')
+        if adjust is None:
+            return None
+
+        return float(self.__adjust.get('temperature')) / 100.0
+
+
+    async def async_set_adjust(self, temperature: float) -> None:
+        # The API expects the adjust temperature in HUNDREDS (not consistent with the temperature set), so we need to multiply the user's input by 100
+        # N.B. the App enforces on the frontend a limit on the adjustment (+/- 5 C°), tests show there is no limit on the API
+        adjust_temp = temperature * 100
+        payload = {'adjust': [{'id': self.subdevice_id, 'temperature': adjust_temp}]}
+        await self._hub._execute_command(method='SET',
+                                          namespace=Namespace.HUB_MTS100_ADJUST,
+                                          payload=payload)
+        # Update local state
+        self.__adjust.update({'temperature': adjust_temp})
+        self.__adjust['latestSampleTime'] = datetime.utcnow().timestamp()
