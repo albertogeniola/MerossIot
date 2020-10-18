@@ -94,6 +94,9 @@
 <li class="toctree-l1"><a class="reference internal" href="advanced-topics.html">Advanced topics</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Meross Protocol Inspection</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#client-device-pairing">Client device pairing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#meross-mqtt-architecture">Meross MQTT architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#flow-app-commands">Flow: App commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#flow-push-notifications">Flow: Push notifications</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="api-reference/index.html">API Reference</a></li>
@@ -277,6 +280,46 @@ MQTT broker where the device is connecting to.</p>
 <p>This is another important flaw. A simple DNS spoofing attack may de-route the device client to connect against
 a malicious mqtt server.</p>
 </div>
+</div>
+<div class="section" id="meross-mqtt-architecture">
+<h2>Meross MQTT architecture<a class="headerlink" href="#meross-mqtt-architecture" title="Permalink to this headline">¶</a></h2>
+<p>Most of the communication between the Meross App and the devices happens via a MQTT broker that Meross hosts (at the time of writing) on AWS cloud.
+By inspecting the network traffic among the Meross App, the MQTT broker and the Meross devices, we identify the following <strong>topics</strong>.</p>
+<a class="reference internal image-reference" href="static/img/mqtt-subscriptions.png"><img alt="Meross MQTT topics" src="static/img/mqtt-subscriptions.png" style="width: 800px;" /></a>
+<p>From the image above, we can discriminate 4 different topics:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt><em>/appliance/&lt;device_uuid&gt;/subscribe</em></dt><dd><p>Specific to every Meross appliance (as the <em>device_uuid</em> portion of the tropic is unique for every hardware device).
+It represents the topic from where the appliance pulls commands to be executed.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><em>/appliance/&lt;device_uuid&gt;/publish</em></dt><dd><p>Specific to every Meross appliance (as the <em>device_uuid</em> portion of the tropic is unique for every hardware device).
+It is the topic where the appliance publishes events (push notifications).</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><em>/appliance/&lt;user_id&gt;/subscribe</em></dt><dd><p>Specific for user_id, it is the topic where push notifications are published.
+In general, the Meross App subscribes to this topic in order to update its state as events happen on the physical device.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><em>/appliance/&lt;user_id&gt;-&lt;app_id&gt;/publish</em></dt><dd><p>It is the topic to which the Meross App subscribes. It is used by the app to receive the response to commands sent to the appliance.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+<div class="section" id="flow-app-commands">
+<h2>Flow: App commands<a class="headerlink" href="#flow-app-commands" title="Permalink to this headline">¶</a></h2>
+<a class="reference internal image-reference" href="static/img/mqtt-app-command-flow.png"><img alt="App command flow" src="static/img/mqtt-app-command-flow.png" style="width: 800px;" /></a>
+</div>
+<div class="section" id="flow-push-notifications">
+<h2>Flow: Push notifications<a class="headerlink" href="#flow-push-notifications" title="Permalink to this headline">¶</a></h2>
+<a class="reference internal image-reference" href="static/img/mqtt-device-event-flow.png"><img alt="Device event flow" src="static/img/mqtt-device-event-flow.png" style="width: 800px;" /></a>
 </div>
 </div>
 

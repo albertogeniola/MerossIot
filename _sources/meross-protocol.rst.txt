@@ -119,3 +119,44 @@ MQTT broker where the device is connecting to.
    This is another important flaw. A simple DNS spoofing attack may de-route the device client to connect against
    a malicious mqtt server.
 
+
+Meross MQTT architecture
+---------------------
+
+Most of the communication between the Meross App and the devices happens via a MQTT broker that Meross hosts (at the time of writing) on AWS cloud.
+By inspecting the network traffic among the Meross App, the MQTT broker and the Meross devices, we identify the following **topics**.
+
+.. image:: static/img/mqtt-subscriptions.png
+   :width: 800
+   :alt: Meross MQTT topics
+
+From the image above, we can discriminate 4 different topics:
+
+- */appliance/<device_uuid>/subscribe*
+    Specific to every Meross appliance (as the *device_uuid* portion of the tropic is unique for every hardware device).
+    It represents the topic from where the appliance pulls commands to be executed.
+
+- */appliance/<device_uuid>/publish*
+    Specific to every Meross appliance (as the *device_uuid* portion of the tropic is unique for every hardware device).
+    It is the topic where the appliance publishes events (push notifications).
+
+- */appliance/<user_id>/subscribe*
+    Specific for user_id, it is the topic where push notifications are published.
+    In general, the Meross App subscribes to this topic in order to update its state as events happen on the physical device.
+
+- */appliance/<user_id>-<app_id>/publish*
+    It is the topic to which the Meross App subscribes. It is used by the app to receive the response to commands sent to the appliance.
+
+Flow: App commands
+------------------
+
+.. image:: static/img/mqtt-app-command-flow.png
+   :width: 800
+   :alt: App command flow
+
+Flow: Push notifications
+------------------------
+
+.. image:: static/img/mqtt-device-event-flow.png
+   :width: 800
+   :alt: Device event flow
