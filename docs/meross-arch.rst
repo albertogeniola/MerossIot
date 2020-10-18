@@ -1,5 +1,0 @@
-Meross Architecture
-===================
-
-TBD
-
