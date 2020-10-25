@@ -31,7 +31,7 @@ async def main():
         await dev.async_update()
 
         # Check current door status
-        open_status = dev.is_open()
+        open_status = dev.get_is_open()
         if open_status:
             print(f"Door {dev.name} is open")
         else:
