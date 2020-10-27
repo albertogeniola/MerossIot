@@ -76,6 +76,12 @@ class TokenBucketRateLimiter(object):
     def over_limit_percentace(self):
         return (self._limit_hits_in_window / self._max_burst) * 100
 
+    @property
+    def current_stats(self) -> str:
+        perc = self._limit_hits_in_window / self._tokens_per_interval
+        return f"Limiter window: {self._window_interval_seconds} seconds, " \
+               f"HitRate: {self._limit_hits_in_window} ({perc}%)"
+
     def check_limit_reached(self) -> bool:
         # Add tokens if needed
         self._add_tokens()
@@ -194,6 +200,15 @@ class MerossManager(object):
             global_tokens_per_interval=requests_per_second_limit,
             device_tokens_per_interval=requests_per_second_limit
         )
+        _LOGGER.info("Applying rate-limit checker config: \n "
+                     "- Global Max Burst Rate: %d" 
+                     "- Per-Device Max Burst Rate: %d" 
+                     "- Global Burst Rate: %d"
+                     "- Per-Device Burst Rate: %d",
+                     burst_requests_per_second_limit,
+                     burst_requests_per_second_limit,
+                     requests_per_second_limit,
+                     requests_per_second_limit)
 
     def register_push_notification_handler_coroutine(self, coro: Callable[
         [GenericPushNotification, List[BaseDevice]], Awaitable]) -> None:
@@ -638,7 +653,7 @@ class MerossManager(object):
 
             # In case the limit is hit but the the overlimit is sustainable, do not raise an exception, just
             # buy some time
-            _LOGGER.debug(f"Rate limit reached: api call will be delayed by {self._over_limit_delay} seconds")
+            _LOGGER.warning(f"Rate limit reached: api call will be delayed by {self._over_limit_delay} seconds")
             await asyncio.sleep(delay=self._over_limit_delay, loop=self._loop)
             return await self.async_execute_cmd(destination_device_uuid=destination_device_uuid,
                                                 method=method, namespace=namespace, payload=payload,
@@ -663,7 +678,7 @@ class MerossManager(object):
             return await asyncio.wait_for(future, timeout, loop=self._loop)
         except TimeoutError as e:
             _LOGGER.error(f"Timeout occurred while waiting a response for message {message} sent to device uuid "
-                          f"{target_device_uuid}. Timeout was: {timeout} seconds")
+                          f"{target_device_uuid}. Timeout was: {timeout} seconds.")
             raise CommandTimeoutError()
 
     async def _notify_connection_drop(self):

@@ -1,5 +1,4 @@
 import logging
-from collections import deque
 from datetime import datetime
 from typing import Optional, Iterable
 
@@ -68,8 +67,8 @@ class Ms100Sensor(GenericSubDevice):
                 _LOGGER.debug("Skipping temperature update as synched time is None or old compared to the latest data")
             locally_handled = True
         elif namespace == Namespace.HUB_SENSOR_ALERT:
-            raise NotImplementedError("TODO")
-            locally_handled = True
+            locally_handled = False
+            # TODO: not yet implemented
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
