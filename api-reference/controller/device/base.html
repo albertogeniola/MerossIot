@@ -184,16 +184,16 @@
             
   <div class="section" id="basedevice">
 <h1>BaseDevice<a class="headerlink" href="#basedevice" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
+<dl class="py class">
 <dt id="meross_iot.controller.device.BaseDevice">
-<em class="property">class </em><code class="sig-prename descclassname">meross_iot.controller.device.</code><code class="sig-name descname">BaseDevice</code><span class="sig-paren">(</span><em class="sig-param">device_uuid: str</em>, <em class="sig-param">manager</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.controller.device.BaseDevice" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">meross_iot.controller.device.</code><code class="sig-name descname">BaseDevice</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">device_uuid</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">manager</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.controller.device.BaseDevice" title="Permalink to this definition">¶</a></dt>
 <dd><p>A <cite>BaseDevice</cite> is a generic representation of a Meross device.
 Any BaseDevice is characterized by some generic information, such as user’s defined
 name, type (i.e. device specific model), firmware/hardware version, a Meross internal
 identifier, a library assigned internal identifier.</p>
-<dl class="method">
+<dl class="py method">
 <dt id="meross_iot.controller.device.BaseDevice.async_update">
-<em class="property">async </em><code class="sig-name descname">async_update</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.device.BaseDevice.async_update" title="Permalink to this definition">¶</a></dt>
+<em class="property">async </em><code class="sig-name descname">async_update</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.device.BaseDevice.async_update" title="Permalink to this definition">¶</a></dt>
 <dd><p>Forces a full data update on the device. If your network bandwidth is limited or you are running
 this program on an embedded device, try to invoke this method only when strictly needed.
 Most of the parameters of a device are updated automatically upon push-notification received
@@ -201,7 +201,7 @@ by the meross MQTT cloud.
 :return: None</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="meross_iot.controller.device.BaseDevice.channels">
 <em class="property">property </em><code class="sig-name descname">channels</code><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.channels" title="Permalink to this definition">¶</a></dt>
 <dd><p>List of channels exposed by this device. Multi-channel devices might expose a master
@@ -209,21 +209,21 @@ switch at index 0.
 :return:</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="meross_iot.controller.device.BaseDevice.firmware_version">
 <em class="property">property </em><code class="sig-name descname">firmware_version</code><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.firmware_version" title="Permalink to this definition">¶</a></dt>
 <dd><p>Device firmware version. When unavailable, ‘unknown’ is returned
 :return:</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="meross_iot.controller.device.BaseDevice.hardware_version">
 <em class="property">property </em><code class="sig-name descname">hardware_version</code><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.hardware_version" title="Permalink to this definition">¶</a></dt>
 <dd><p>Device hardware revision
 :return:</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="meross_iot.controller.device.BaseDevice.internal_id">
 <em class="property">property </em><code class="sig-name descname">internal_id</code><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.internal_id" title="Permalink to this definition">¶</a></dt>
 <dd><p>Internal ID used by this library to identify meross devices. It’s basically composed by
@@ -231,31 +231,31 @@ the Meross ID plus some prefix/suffix.
 :return:</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="meross_iot.controller.device.BaseDevice.lookup_channel">
-<code class="sig-name descname">lookup_channel</code><span class="sig-paren">(</span><em class="sig-param">channel_id_or_name: Union[int, str]</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.lookup_channel" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">lookup_channel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">channel_id_or_name</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>str<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.lookup_channel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Looks up a channel by channel id or channel name
 :param channel_id_or_name:
 :return:</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="meross_iot.controller.device.BaseDevice.name">
 <em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.name" title="Permalink to this definition">¶</a></dt>
 <dd><p>User’s defined name of the device
 :return:</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="meross_iot.controller.device.BaseDevice.online_status">
 <em class="property">property </em><code class="sig-name descname">online_status</code><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.online_status" title="Permalink to this definition">¶</a></dt>
 <dd><p>Current device online status
 :return:</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="meross_iot.controller.device.BaseDevice.register_push_notification_handler_coroutine">
-<code class="sig-name descname">register_push_notification_handler_coroutine</code><span class="sig-paren">(</span><em class="sig-param">coro: Callable[[meross_iot.model.enums.Namespace, dict, str], Awaitable]</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.device.BaseDevice.register_push_notification_handler_coroutine" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">register_push_notification_handler_coroutine</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">coro</span><span class="p">:</span> <span class="n">Callable<span class="p">[</span><span class="p">[</span>meross_iot.model.enums.Namespace<span class="p">, </span>dict<span class="p">, </span>str<span class="p">]</span><span class="p">, </span>Awaitable<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.device.BaseDevice.register_push_notification_handler_coroutine" title="Permalink to this definition">¶</a></dt>
 <dd><p>Registers a coroutine so that it gets invoked whenever a push notification is
 delivered to this device or when the device state is changed.
 This allows the developer to “react” to notifications state change due to other users operating the device.
@@ -270,16 +270,16 @@ This allows the developer to “react” to notifications state change due to ot
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="meross_iot.controller.device.BaseDevice.type">
 <em class="property">property </em><code class="sig-name descname">type</code><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.type" title="Permalink to this definition">¶</a></dt>
 <dd><p>Device model type
 :return:</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="meross_iot.controller.device.BaseDevice.unregister_push_notification_handler_coroutine">
-<code class="sig-name descname">unregister_push_notification_handler_coroutine</code><span class="sig-paren">(</span><em class="sig-param">coro: Callable[[meross_iot.model.enums.Namespace, dict], Awaitable]</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.device.BaseDevice.unregister_push_notification_handler_coroutine" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">unregister_push_notification_handler_coroutine</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">coro</span><span class="p">:</span> <span class="n">Callable<span class="p">[</span><span class="p">[</span>meross_iot.model.enums.Namespace<span class="p">, </span>dict<span class="p">]</span><span class="p">, </span>Awaitable<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.device.BaseDevice.unregister_push_notification_handler_coroutine" title="Permalink to this definition">¶</a></dt>
 <dd><p>Unregisters the event handler
 :param coro: coroutine-function: a function that, when invoked, returns a Coroutine object that can be awaited.</p>
 <blockquote>
@@ -292,7 +292,7 @@ This allows the developer to “react” to notifications state change due to ot
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="meross_iot.controller.device.BaseDevice.uuid">
 <em class="property">property </em><code class="sig-name descname">uuid</code><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.uuid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Meross identifier of the device.
