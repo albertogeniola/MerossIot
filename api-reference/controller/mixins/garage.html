@@ -184,12 +184,12 @@
             
   <div class="section" id="garageopenermixin">
 <h1>GarageOpenerMixin<a class="headerlink" href="#garageopenermixin" title="Permalink to this headline">¶</a></h1>
-<dl class="py class">
+<dl class="class">
 <dt id="meross_iot.controller.mixins.garage.GarageOpenerMixin">
-<em class="property">class </em><code class="sig-prename descclassname">meross_iot.controller.mixins.garage.</code><code class="sig-name descname">GarageOpenerMixin</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">device_uuid</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">manager</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.controller.mixins.garage.GarageOpenerMixin" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="py method">
+<em class="property">class </em><code class="sig-prename descclassname">meross_iot.controller.mixins.garage.</code><code class="sig-name descname">GarageOpenerMixin</code><span class="sig-paren">(</span><em class="sig-param">device_uuid: str</em>, <em class="sig-param">manager</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.controller.mixins.garage.GarageOpenerMixin" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
 <dt id="meross_iot.controller.mixins.garage.GarageOpenerMixin.async_close">
-<em class="property">async </em><code class="sig-name descname">async_close</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">channel</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.mixins.garage.GarageOpenerMixin.async_close" title="Permalink to this definition">¶</a></dt>
+<em class="property">async </em><code class="sig-name descname">async_close</code><span class="sig-paren">(</span><em class="sig-param">channel: int = 0</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.mixins.garage.GarageOpenerMixin.async_close" title="Permalink to this definition">¶</a></dt>
 <dd><p>Operates the door: sends the close command.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -201,9 +201,9 @@
 </dl>
 </dd></dl>
 
-<dl class="py method">
+<dl class="method">
 <dt id="meross_iot.controller.mixins.garage.GarageOpenerMixin.async_open">
-<em class="property">async </em><code class="sig-name descname">async_open</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">channel</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.mixins.garage.GarageOpenerMixin.async_open" title="Permalink to this definition">¶</a></dt>
+<em class="property">async </em><code class="sig-name descname">async_open</code><span class="sig-paren">(</span><em class="sig-param">channel: int = 0</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.mixins.garage.GarageOpenerMixin.async_open" title="Permalink to this definition">¶</a></dt>
 <dd><p>Operates the door: sends the open command.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -215,9 +215,9 @@
 </dl>
 </dd></dl>
 
-<dl class="py method">
+<dl class="method">
 <dt id="meross_iot.controller.mixins.garage.GarageOpenerMixin.get_is_open">
-<code class="sig-name descname">get_is_open</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">channel</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span> &#x2192; Optional<span class="p">[</span>bool<span class="p">]</span><a class="headerlink" href="#meross_iot.controller.mixins.garage.GarageOpenerMixin.get_is_open" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_is_open</code><span class="sig-paren">(</span><em class="sig-param">channel: int = 0</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; Optional[bool]<a class="headerlink" href="#meross_iot.controller.mixins.garage.GarageOpenerMixin.get_is_open" title="Permalink to this definition">¶</a></dt>
 <dd><p>The current door-open status. Returns True if the given door is open, False otherwise.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
