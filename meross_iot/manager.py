@@ -30,6 +30,7 @@ from enum import Enum
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO, stream=sys.stdout)
 _LOGGER = logging.getLogger(__name__)
+_LIMITER = logging.getLogger("meross_iot.manager.apilimiter")
 
 T = TypeVar('T', bound=BaseDevice)  # Declare type variable
 
@@ -107,7 +108,8 @@ class RateLimitChecker(object):
                  global_tokens_per_interval=2,
                  device_burst_rate=2,
                  device_time_window=timedelta(seconds=1),
-                 device_tokens_per_interval=1):
+                 device_tokens_per_interval=1,
+                 enable_stats=True):
         # Global limiter configuration
         self._global_limiter = TokenBucketRateLimiter(window_interval=global_time_window,
                                                       tokens_per_interval=global_tokens_per_interval,
@@ -117,6 +119,9 @@ class RateLimitChecker(object):
         self._device_burst_rate = device_burst_rate
         self._device_time_window = device_time_window
         self._device_tokens_per_interval = device_tokens_per_interval
+
+    def get_global_logger_stats(self) -> str:
+        return self._global_limiter.current_stats
 
     def check_limits(self, device_uuid) -> Tuple[RateLimitResult, float]:
         # Check the device limit first
@@ -643,6 +648,7 @@ class MerossManager(object):
 
         # Check API rate limits.
         limit_result, overlimit_percentage = self._limiter.check_limits(device_uuid=destination_device_uuid)
+        _LIMITER.debug("Current stats:%s\nOver limit percentage: %f %%", self._limiter.get_global_logger_stats(), self._over_limit_threshold)
         if limit_result != RateLimitResult.NotLimited:
             _LOGGER.debug(f"Current over-limit: {overlimit_percentage} %")
             # If the over-limit rate is too high, just drop the call.
