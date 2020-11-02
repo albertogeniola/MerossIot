@@ -175,14 +175,12 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
-#### 0.4.0.7
-- Improved logging for API rate limiters
+#### 0.4.0.6
+- Added device internal id parameter to async event handlers
 
 <details>
     <summary>Older</summary>
     
-#### 0.4.0.6
-- Added device internal id parameter to async event handlers
 #### 0.4.0.5
 - Implemented MQTT rate-limiter
 - Updated documentation
