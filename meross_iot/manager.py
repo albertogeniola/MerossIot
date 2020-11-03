@@ -79,6 +79,7 @@ class TokenBucketRateLimiter(object):
         Those calls were possibly delayed, aborted.
         :return:
         """
+        self._add_tokens()
         return self._limit_hits_in_window
 
     @property
@@ -89,17 +90,28 @@ class TokenBucketRateLimiter(object):
         the limit. This property will then return (50 / 100) * 100 -> 50%.
         :return:
         """
+        self._add_tokens()
         return (self._limit_hits_in_window / self._max_burst) * 100
 
     @property
-    def current_stats(self) -> str:
-        perc = self._limit_hits_in_window / self._tokens_per_interval
-        return f"Limiter window: {self._window_interval_seconds} seconds, " \
-               f"Over-limit hits: {self._limit_hits_in_window} ({perc}%)"
+    def current_window_hitrate(self) -> int:
+        """
+        Number of API cassl performed in the current time-window.
+        :return:
+        """
+        self._add_tokens()
+        return self._max_burst - self._remaining_tokens
 
     @property
-    def current_window_hitrate(self) -> int:
-        return self._max_burst - self._remaining_tokens
+    def current_window_capacity(self):
+        """
+        Percentage of API calls performed in the current time-window with respect to the burst limit.
+        For instance, if 90 api calls have been performed over a burst limit of 100, this method returns 90
+        (i.e. 90% of the limit capacity reached)
+        :return:
+        """
+        self._add_tokens()
+        return (self._limit_hits_in_window / self._max_burst) * 100
 
     def check_limit_reached(self) -> bool:
         # Add tokens if needed
