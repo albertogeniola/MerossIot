@@ -238,6 +238,10 @@ class MerossManager(object):
                      requests_per_second_limit,
                      requests_per_second_limit)
 
+    @property
+    def limiter(self) -> RateLimitChecker:
+        return self._limiter
+
     def register_push_notification_handler_coroutine(self, coro: Callable[
         [GenericPushNotification, List[BaseDevice]], Awaitable]) -> None:
         """
