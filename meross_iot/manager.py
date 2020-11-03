@@ -9,7 +9,7 @@ from time import time
 from asyncio import Future, AbstractEventLoop
 from asyncio import TimeoutError
 from hashlib import md5
-from typing import Optional, List, TypeVar, Iterable, Callable, Awaitable, Tuple
+from typing import Optional, List, TypeVar, Iterable, Callable, Awaitable, Tuple, Dict
 import paho.mqtt.client as mqtt
 from meross_iot.controller.device import BaseDevice, HubDevice, GenericSubDevice
 from meross_iot.device_factory import build_meross_device, build_meross_subdevice
@@ -19,7 +19,6 @@ from meross_iot.model.exception import CommandTimeoutError, CommandError, RateLi
 from meross_iot.model.exception import UnconnectedError
 from meross_iot.model.http.device import HttpDeviceInfo
 from meross_iot.model.http.subdevice import HttpSubdeviceInfo
-from meross_iot.model.push.bind import BindPushNotification
 from meross_iot.model.push.factory import parse_push_notification
 from meross_iot.model.push.generic import GenericPushNotification
 from meross_iot.model.push.unbind import UnbindPushNotification
@@ -74,14 +73,33 @@ class TokenBucketRateLimiter(object):
         self._limit_hits_in_window = 0
 
     @property
+    def current_over_limit_hits(self) -> int:
+        """
+        How many calls have been performed, within the time window, above the configured limit.
+        Those calls were possibly delayed, aborted.
+        :return:
+        """
+        return self._limit_hits_in_window
+
+    @property
     def over_limit_percentace(self):
+        """
+        Represents the percentage of the API calls over the configured limit, with respect to the maximum burst size.
+        If the burst size is 100, and in the current time window there were 150 api calls, then 50 o f them are over
+        the limit. This property will then return (50 / 100) * 100 -> 50%.
+        :return:
+        """
         return (self._limit_hits_in_window / self._max_burst) * 100
 
     @property
     def current_stats(self) -> str:
         perc = self._limit_hits_in_window / self._tokens_per_interval
         return f"Limiter window: {self._window_interval_seconds} seconds, " \
-               f"HitRate: {self._limit_hits_in_window} ({perc}%)"
+               f"Over-limit hits: {self._limit_hits_in_window} ({perc}%)"
+
+    @property
+    def current_window_hitrate(self) -> int:
+        return self._max_burst - self._remaining_tokens
 
     def check_limit_reached(self) -> bool:
         # Add tokens if needed
@@ -120,8 +138,13 @@ class RateLimitChecker(object):
         self._device_time_window = device_time_window
         self._device_tokens_per_interval = device_tokens_per_interval
 
-    def get_global_logger_stats(self) -> str:
-        return self._global_limiter.current_stats
+    @property
+    def global_rate_limiter(self) -> TokenBucketRateLimiter:
+        return self._global_limiter
+
+    @property
+    def device_limiters(self) -> Dict[str, TokenBucketRateLimiter]:
+        return self._devices_limiters
 
     def check_limits(self, device_uuid) -> Tuple[RateLimitResult, float]:
         # Check the device limit first
@@ -155,7 +178,7 @@ class MerossManager(object):
                  ca_cert: Optional[str] = None,
                  loop: Optional[AbstractEventLoop] = None,
                  over_limit_delay_seconds: int = 1,
-                 over_limit_threshold_percentage: float = 1000,
+                 over_limit_threshold_percentage: float = 400,
                  burst_requests_per_second_limit: int = 4,
                  requests_per_second_limit: int = 1,
                  *args,
@@ -648,7 +671,11 @@ class MerossManager(object):
 
         # Check API rate limits.
         limit_result, overlimit_percentage = self._limiter.check_limits(device_uuid=destination_device_uuid)
-        _LIMITER.debug("Current stats:%s\nOver limit percentage: %f %%", self._limiter.get_global_logger_stats(), self._over_limit_threshold)
+        _LIMITER.debug("Number of API request within the last time-window: %s\n"
+                       "Global over limit percentage: %f %%",
+                       self._limiter.global_rate_limiter.current_window_hitrate,
+                       self._limiter.global_rate_limiter.over_limit_percentace)
+
         if limit_result != RateLimitResult.NotLimited:
             _LOGGER.debug(f"Current over-limit: {overlimit_percentage} %")
             # If the over-limit rate is too high, just drop the call.
