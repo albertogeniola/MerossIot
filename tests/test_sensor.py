@@ -3,7 +3,7 @@ import os
 from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
-from meross_iot.controller.subdevice import Ms100Sensor
+from meross_iot.controller.known.subdevice import Ms100Sensor
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
 from meross_iot.model.plugin.hub import BatteryInfo

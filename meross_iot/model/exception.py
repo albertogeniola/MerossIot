@@ -14,3 +14,7 @@ class CommandError(Exception):
 
 class RateLimitExceeded(Exception):
     pass
+
+
+class UnknownDeviceType(Exception):
+    pass

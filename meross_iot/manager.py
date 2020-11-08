@@ -5,14 +5,18 @@ import random
 import ssl
 import string
 import sys
-from time import time
 from asyncio import Future, AbstractEventLoop
 from asyncio import TimeoutError
+from datetime import timedelta
+from enum import Enum
 from hashlib import md5
+from time import time
 from typing import Optional, List, TypeVar, Iterable, Callable, Awaitable, Tuple, Dict
+
 import paho.mqtt.client as mqtt
+
 from meross_iot.controller.device import BaseDevice, HubDevice, GenericSubDevice
-from meross_iot.device_factory import build_meross_device, build_meross_subdevice
+from meross_iot.device_factory import build_meross_device_from_abilities, build_meross_subdevice
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.model.enums import Namespace, OnlineStatus
 from meross_iot.model.exception import CommandTimeoutError, CommandError, RateLimitExceeded
@@ -24,8 +28,6 @@ from meross_iot.model.push.generic import GenericPushNotification
 from meross_iot.model.push.unbind import UnbindPushNotification
 from meross_iot.utilities.mqtt import generate_mqtt_password, generate_client_and_app_id, build_client_response_topic, \
     build_client_user_topic, verify_message_signature, device_uuid_from_push_notification, build_device_request_topic
-from datetime import timedelta
-from enum import Enum
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO, stream=sys.stdout)
 _LOGGER = logging.getLogger(__name__)
@@ -455,7 +457,7 @@ class MerossManager(object):
             return None
 
         # Build a full-featured device using the given ability set
-        device = build_meross_device(http_device_info=device_info, device_abilities=abilities, manager=self)
+        device = build_meross_device_from_abilities(http_device_info=device_info, device_abilities=abilities, manager=self)
 
         # Enroll the device
         self._device_registry.enroll_device(device)

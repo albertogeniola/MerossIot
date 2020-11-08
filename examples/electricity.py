@@ -2,7 +2,6 @@ import asyncio
 import os
 
 from meross_iot.controller.mixins.electricity import ElectricityMixin
-from meross_iot.controller.mixins.garage import GarageOpenerMixin
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
 

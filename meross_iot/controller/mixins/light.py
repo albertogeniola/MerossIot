@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, Union, Awaitable, Callable
+from typing import Optional, Union
 
 from meross_iot.controller.mixins.toggle import ToggleMixin, ToggleXMixin
 from meross_iot.model.enums import Namespace, LightMode

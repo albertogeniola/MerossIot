@@ -1,9 +1,9 @@
 import logging
+from datetime import datetime
 from typing import Optional
 
 from meross_iot.model.enums import Namespace
 from meross_iot.model.plugin.power import PowerInfo
-from datetime import datetime
 
 _LOGGER = logging.getLogger(__name__)
 

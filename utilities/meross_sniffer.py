@@ -1,15 +1,16 @@
 import asyncio
+import getpass
 import json
 import logging
 import os
 import ssl
+import sys
 import uuid as UUID
 from hashlib import md5
 from os import path, environ
 from threading import Event
 from zipfile import ZipFile
-import getpass
-import sys
+
 import paho.mqtt.client as mqtt
 
 from meross_iot.http_api import MerossHttpClient
