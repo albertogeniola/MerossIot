@@ -774,7 +774,8 @@ class MerossManager(object):
                     "namespace": namespace.value,  # Example: "Appliance.System.All",
                     "payloadVersion": 1,
                     "sign": signature,  # Example: "b4236ac6fb399e70c3d61e98fcb68b74",
-                    "timestamp": timestamp
+                    "timestamp": timestamp,
+                    'triggerSrc': 'Android'
                 },
             "payload": payload
         }
