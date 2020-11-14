@@ -37,7 +37,7 @@ async def main():
             print(f"Device {dev.name} is off, turning it on...")
             await dev.async_turn_on()
 
-        temp = dev.ambient_temperature
+        temp = await dev.async_get_temperature()
         print(f"Current ambient temperature = {temp} °C, "
               f"Target Temperature = {dev.target_temperature}, "
               f"mode = {dev.mode},"
