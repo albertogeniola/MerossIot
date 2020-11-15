@@ -175,12 +175,15 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
-#### 0.4.0.6
-- Added device internal id parameter to async event handlers
+#### 0.4.1.0
+- Implemented exponential backoff for api-rate limiter
+- Fixed memory leakage that occurred for long-lived sessions of the MerossManager 
 
 <details>
     <summary>Older</summary>
-    
+
+#### 0.4.0.6
+- Added device internal id parameter to async event handlers    
 #### 0.4.0.5
 - Implemented MQTT rate-limiter
 - Updated documentation
