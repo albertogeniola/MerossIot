@@ -48,7 +48,7 @@ class TestLimits(AioHTTPTestCase):
         if len(self.test_sensors) < 1:
             self.skipTest("No device found for this test")
 
-        await self._perform_requests(sensor=self.test_sensors[0], n_requests=20)
+        await self._perform_requests(sensor=self.test_sensors[0], n_requests=4)
 
     @unittest_run_loop
     async def test_unsustainable_rate(self):
