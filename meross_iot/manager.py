@@ -714,4 +714,5 @@ def _handle_future(future: Future, result: object, exception: Exception):
     if exception is not None:
         future.set_exception(exception)
     else:
-        future.set_result(result)
+        if not future.cancelled():
+            future.set_result(result)
