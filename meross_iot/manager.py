@@ -434,6 +434,7 @@ class MerossManager(object):
                 else:
                     _LOGGER.error(f"Unhandled message method {message_method}. Please report it to the developer."
                                   f"raw_msg: {msg}")
+                del self._pending_messages_futures[message_id]
         # Check case 3: PUSH notification.
         # Again, here we don't check the source topic, we trust that's legitimate.
         elif destination_topic == build_client_user_topic(self._cloud_creds.user_id) and message_method == 'PUSH':
@@ -714,5 +715,9 @@ def _handle_future(future: Future, result: object, exception: Exception):
     if exception is not None:
         future.set_exception(exception)
     else:
-        if not future.cancelled():
+        if future.cancelled():
+            _LOGGER.debug("Skipping set_result for cancelled future.")
+        elif future.done():
+            _LOGGER.error("This future is already done: cannot set result.")
+        else:
             future.set_result(result)
