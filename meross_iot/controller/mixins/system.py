@@ -1,4 +1,5 @@
 import logging
+
 from meross_iot.model.enums import Namespace, OnlineStatus
 
 _LOGGER = logging.getLogger(__name__)

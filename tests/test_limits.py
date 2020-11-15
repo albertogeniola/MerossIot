@@ -1,16 +1,13 @@
-import os
-from random import randint
 import asyncio
-from typing import List, Any
+import os
+from typing import List
 
 from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
 from meross_iot.controller.mixins.electricity import ElectricityMixin
-from meross_iot.controller.mixins.light import LightMixin
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
-from meross_iot.model.enums import OnlineStatus
 from meross_iot.model.exception import RateLimitExceeded
 
 EMAIL = os.environ.get('MEROSS_EMAIL')

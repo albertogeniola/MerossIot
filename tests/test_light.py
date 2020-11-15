@@ -1,6 +1,7 @@
+import asyncio
 import os
 from random import randint
-import asyncio
+
 from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 

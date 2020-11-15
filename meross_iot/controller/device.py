@@ -3,11 +3,11 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from typing import List, Union, Optional, Iterable, Coroutine, Callable, Any, Awaitable
+from datetime import datetime
+from typing import List, Union, Optional, Iterable, Callable, Awaitable
 
 from meross_iot.model.enums import OnlineStatus, Namespace
 from meross_iot.model.http.device import HttpDeviceInfo
-from datetime import datetime
 from meross_iot.model.plugin.hub import BatteryInfo
 
 _LOGGER = logging.getLogger(__name__)
