@@ -16,10 +16,11 @@ from typing import Optional, List, TypeVar, Iterable, Callable, Awaitable, Tuple
 import paho.mqtt.client as mqtt
 
 from meross_iot.controller.device import BaseDevice, HubDevice, GenericSubDevice
-from meross_iot.device_factory import build_meross_device_from_abilities, build_meross_subdevice
+from meross_iot.device_factory import build_meross_device_from_abilities, build_meross_subdevice, \
+    build_meross_device_from_known_types
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.model.enums import Namespace, OnlineStatus
-from meross_iot.model.exception import CommandTimeoutError, CommandError, RateLimitExceeded
+from meross_iot.model.exception import CommandTimeoutError, CommandError, RateLimitExceeded, UnknownDeviceType
 from meross_iot.model.exception import UnconnectedError
 from meross_iot.model.http.device import HttpDeviceInfo
 from meross_iot.model.http.subdevice import HttpSubdeviceInfo
@@ -51,8 +52,7 @@ class MerossManager(object):
                  port: Optional[int] = 2001,
                  ca_cert: Optional[str] = None,
                  loop: Optional[AbstractEventLoop] = None,
-                 backoff_baseline_seconds: int = 1.0,
-                 over_limit_threshold_percentage: float = 200,
+                 over_limit_threshold_percentage: float = 300,
                  burst_requests_per_second_limit: int = 2,
                  requests_per_second_limit: int = 1,
                  *args,
@@ -273,7 +273,7 @@ class MerossManager(object):
                     subdevtasks.append(self._loop.create_task(
                         self._async_enroll_new_http_subdev(subdevice_info=sd,
                                                            hub=d,
-                                                           hub_reported_abilities=d._abilities)))
+                                                           hub_reported_abilities=d.abilities)))
         # Wait for factory to build all devices
         enrolled_subdevices = await asyncio.gather(*subdevtasks, loop=self._loop)
 
@@ -299,28 +299,35 @@ class MerossManager(object):
         return subdevice
 
     async def _async_enroll_new_http_dev(self, device_info: HttpDeviceInfo) -> Optional[BaseDevice]:
-        try:
-            # Only get abilities if the device is online.
-            if device_info.online_status != OnlineStatus.ONLINE:
-                _LOGGER.info(f"Could not retrieve abilities for device  {device_info.dev_name} ({device_info.uuid}). "
-                             f"This device won't be enrolled.")
-                return None
-            res_abilities = await self.async_execute_cmd(destination_device_uuid=device_info.uuid,
-                                                         method="GET",
-                                                         namespace=Namespace.SYSTEM_ABILITY,
-                                                         payload={})
-            abilities = res_abilities.get('ability')
-        except CommandTimeoutError:
-            _LOGGER.error(f"Failed to retrieve abilities for device {device_info.dev_name} ({device_info.uuid}). "
-                          f"This device won't be enrolled.")
-            return None
-
-        # Build a full-featured device using the given ability set
-        device = build_meross_device_from_abilities(http_device_info=device_info, device_abilities=abilities, manager=self)
+        # If the device is online, try to query the device for its abilities.
+        device = None
+        abilities = None
+        if device_info.online_status == OnlineStatus.ONLINE:
+            try:
+                res_abilities = await self.async_execute_cmd(destination_device_uuid=device_info.uuid,
+                                                             method="GET",
+                                                             namespace=Namespace.SYSTEM_ABILITY,
+                                                             payload={})
+                abilities = res_abilities.get('ability')
+            except CommandTimeoutError:
+                _LOGGER.error(f"Device {device_info.dev_name} ({device_info.uuid}) is online, but we were unable to"
+                              f"fetch its abilities.")
+        if abilities is not None:
+            # Build a full-featured device using the given ability set
+            device = build_meross_device_from_abilities(http_device_info=device_info, device_abilities=abilities, manager=self)
+        else:
+            # In case we failed to build device's abilities at runtime, try to build the device statically
+            # based on its model type.
+            try:
+                device = build_meross_device_from_known_types(http_device_info=device_info, manager=self)
+                _LOGGER.warning(f"Device {device_info.dev_name} ({device_info.uuid}) was built statically via known types.")
+            except UnknownDeviceType:
+                _LOGGER.error(f"Could not build statically device {device_info.dev_name} ({device_info.uuid}) as it's not a known type.")
 
         # Enroll the device
-        self._device_registry.enroll_device(device)
-        return device
+        if device is not None:
+            self._device_registry.enroll_device(device)
+            return device
 
     def _on_connect(self, client, userdata, rc, other):
         # NOTE! This method is called by the paho-mqtt thread, thus any invocation to the

@@ -34,10 +34,17 @@ class BaseDevice(object):
         self._hwversion = kwargs.get('hdwareVersion')
         self._online = OnlineStatus(kwargs.get('onlineStatus', -1))
 
-        self._abilities = {}
+        if hasattr(self, "_abilities_spec"):
+            self._abilities = self._abilities_spec
+        else:
+            self._abilities = {}
         self._push_coros = []
         self._last_full_update_ts = None
     # TODO: register sync_event_handler?
+
+    @property
+    def abilities(self):
+        return self._abilities
 
     @property
     def last_full_update_timestamp(self):
@@ -212,7 +219,7 @@ class BaseDevice(object):
                                                      payload=payload,
                                                      timeout=timeout)
 
-    def __str__(self) -> str:
+    def __repr__(self):
         basic_info = f"{self.name} ({self.type}, HW {self.hardware_version}, FW {self.firmware_version})"
         return basic_info
 

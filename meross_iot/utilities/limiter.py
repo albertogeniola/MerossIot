@@ -23,7 +23,7 @@ class ExponentialBackoff(BackoffLogic):
         self._failures = 0
 
     def wait_interval(self) -> float:
-        current = min(pow(self._baseline, 1+self._failures), self._cap)
+        current = min(self._baseline * pow(2, self._failures), self._cap)
         self._failures += 1
         return current
 
@@ -145,7 +145,7 @@ class RateLimitChecker(object):
                                                                  tokens_per_interval=global_tokens_per_interval,
                                                                  max_burst_size=global_burst_rate,
                                                                  backoff_logic=ExponentialBackoff(
-                                                                     start_backoff_seconds=2,
+                                                                     start_backoff_seconds=0.5,
                                                                      max_backoff_seconds=60
                                                                  ))
         # Device limiters
@@ -175,7 +175,7 @@ class RateLimitChecker(object):
                 window_interval=self._device_time_window,
                 tokens_per_interval=self._device_tokens_per_interval,
                 max_burst_size=self._device_burst_rate,
-                backoff_logic=ExponentialBackoff(start_backoff_seconds=1, max_backoff_seconds=30))
+                backoff_logic=ExponentialBackoff(start_backoff_seconds=0.5, max_backoff_seconds=30))
         device_limiter = self._devices_limiters[device_uuid]
         limit_hit, wait_time = device_limiter.check_limit_reached()
         if limit_hit:

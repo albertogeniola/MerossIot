@@ -9,7 +9,8 @@ class MSXH0(SprayMixin, LightMixin, ToggleXMixin, BaseDevice):
     MSXH0 Smart Humidifier devices
     """
     def __init__(self, device_uuid: str, manager, **kwargs):
+        if 'channels' not in kwargs:
+            kwargs['channels'] = [{}]
         super().__init__(device_uuid=device_uuid,
                          manager=manager,
-                         channels=[{}],  # Single channel humidifier
                          **kwargs)

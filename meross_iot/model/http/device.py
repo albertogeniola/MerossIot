@@ -60,3 +60,6 @@ class HttpDeviceInfo(BaseDictPayload):
         self.domain = domain
         self.reserved_domain = reserved_domain
 
+    def __repr__(self):
+        basic_info = f"{self.dev_name} ({self.device_type}, HW {self.hdware_version}, FW {self.fmware_version})"
+        return basic_info

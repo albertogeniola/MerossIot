@@ -7,15 +7,16 @@ class MSS420F(ToggleXMixin, BaseDevice):
     MSS420F power strip
     """
     def __init__(self, device_uuid: str, manager, **kwargs):
-        super().__init__(device_uuid=device_uuid,
-                         manager=manager,
-                         channels=[
+        if 'channels' not in kwargs:
+            kwargs['channels'] = [
                              {},  # Master channel
                              {},  # First switch
                              {},  # Second switch
                              {},  # Third switch
                              {},  # Fourth switch
-                         ],
+                         ]
+        super().__init__(device_uuid=device_uuid,
+                         manager=manager,
                          **kwargs)
 
 
@@ -24,9 +25,8 @@ class MSS425E(ToggleXMixin, BaseDevice):
     MSS425E power strip
     """
     def __init__(self, device_uuid: str, manager, **kwargs):
-        super().__init__(device_uuid=device_uuid,
-                         manager=manager,
-                         channels=[
+        if 'channels' not in kwargs:
+            kwargs['channels'] = [
                              {},  # Master channel
                              {},  # First switch
                              {},  # Second switch
@@ -34,7 +34,9 @@ class MSS425E(ToggleXMixin, BaseDevice):
                              {
                                  'type': 'USB'
                              }  # USB switch
-                         ],
+                         ]
+        super().__init__(device_uuid=device_uuid,
+                         manager=manager,
                          **kwargs)
 
 
@@ -43,9 +45,8 @@ class MSS425F(ToggleXMixin, BaseDevice):
     MSS425F power strip
     """
     def __init__(self, device_uuid: str, manager, **kwargs):
-        super().__init__(device_uuid=device_uuid,
-                         manager=manager,
-                         channels=[
+        if 'channels' not in kwargs:
+            kwargs['channels'] = [
                              {},  # Master channel
                              {},  # First switch
                              {},  # Second switch
@@ -54,7 +55,9 @@ class MSS425F(ToggleXMixin, BaseDevice):
                              {
                                  'type': 'USB'
                              }  # USB switch
-                         ],
+                         ]
+        super().__init__(device_uuid=device_uuid,
+                         manager=manager,
                          **kwargs)
 
 
@@ -62,14 +65,14 @@ class MSS530(ToggleXMixin, BaseDevice):
     """
     MSS530 Multiple light control switches
     """
-
     def __init__(self, device_uuid: str, manager, **kwargs):
-        super().__init__(device_uuid=device_uuid,
-                         manager=manager,
-                         channels=[
+        if 'channels' not in kwargs:
+            kwargs['channels'] = [
                              {},  # Master channel
                              {},  # First switch
                              {},  # Second switch
                              {},  # Third switch
-                         ],  # Single channel bulb
+                         ]
+        super().__init__(device_uuid=device_uuid,
+                         manager=manager,
                          **kwargs)
