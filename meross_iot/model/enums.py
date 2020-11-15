@@ -85,6 +85,7 @@ class Namespace(Enum):
     HUB_MTS100_ALL = 'Appliance.Hub.Mts100.All'
     HUB_MTS100_TEMPERATURE = 'Appliance.Hub.Mts100.Temperature'
     HUB_MTS100_MODE = 'Appliance.Hub.Mts100.Mode'
+    HUB_MTS100_ADJUST = 'Appliance.Hub.Mts100.Adjust'
 
 
 def get_or_parse_namespace(namespace: Union[Namespace, str]):
