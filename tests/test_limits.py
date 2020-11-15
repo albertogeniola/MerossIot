@@ -28,7 +28,7 @@ class TestLimits(AioHTTPTestCase):
         self.meross_client = await MerossHttpClient.async_from_user_password(email=EMAIL, password=PASSWORD)
 
         # Look for a device to be used for this test
-        manager = MerossManager(http_client=self.meross_client, max_requests_per_second=4)
+        manager = MerossManager(http_client=self.meross_client, max_requests_per_second=2)
         await manager.async_init()
         devices = await manager.async_device_discovery()
 

@@ -7,11 +7,9 @@ import string
 import sys
 from asyncio import Future, AbstractEventLoop
 from asyncio import TimeoutError
-from datetime import timedelta
-from enum import Enum
 from hashlib import md5
 from time import time
-from typing import Optional, List, TypeVar, Iterable, Callable, Awaitable, Tuple, Dict
+from typing import Optional, List, TypeVar, Iterable, Callable, Awaitable
 
 import paho.mqtt.client as mqtt
 
