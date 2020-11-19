@@ -308,8 +308,8 @@ class MerossManager(object):
                                                              payload={})
                 abilities = res_abilities.get('ability')
             except CommandTimeoutError:
-                _LOGGER.error(f"Device {device_info.dev_name} ({device_info.uuid}) is online, but we were unable to"
-                              f"fetch its abilities.")
+                _LOGGER.warning(f"Device {device_info.dev_name} ({device_info.uuid}) is online, but timeout occurred "
+                                f"when fetching its abilities.")
         if abilities is not None:
             # Build a full-featured device using the given ability set
             device = build_meross_device_from_abilities(http_device_info=device_info, device_abilities=abilities, manager=self)
