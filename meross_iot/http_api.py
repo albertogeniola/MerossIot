@@ -335,7 +335,7 @@ def authenticated_command_executor(method, *args, **kwargs):
     return cmd
 
 
-if __name__ == '__main__':
+def main():
     import sys
     from argparse import ArgumentParser
     # Root parser
@@ -350,10 +350,12 @@ if __name__ == '__main__':
     auth_subparsers = parser_auth.add_subparsers()
 
     # auth login
-    auth_login = auth_subparsers.add_parser('login', description="Logs in into meross HTTP api and prints out the credentials")
+    auth_login = auth_subparsers.add_parser('login',
+                                            description="Logs in into meross HTTP api and prints out the credentials")
     auth_login.add_argument('--email', type=str, required=True, help='Account username/email')
     auth_login.add_argument('--password', type=str, required=True, help='Account password')
-    auth_login.add_argument('--set-env-var', default=True, action='store_true', help='When set, stores the credentials into the environment var MEROSS_CREDS')
+    auth_login.add_argument('--set-env-var', default=True, action='store_true',
+                            help='When set, stores the credentials into the environment var MEROSS_CREDS')
     auth_login.set_defaults(func=unauthenticated_command_executor(MerossHttpClient.async_login))
 
     # auth logout
@@ -379,3 +381,7 @@ if __name__ == '__main__':
 
     data = parser.parse_args(sys.argv[1:])
     data.func(data)
+
+
+if __name__ == '__main__':
+    main()
