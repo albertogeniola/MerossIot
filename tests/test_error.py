@@ -21,6 +21,8 @@ class TestError(AioHTTPTestCase):
         return web.Application()
 
     async def setUpAsync(self):
+        # Wait some time before next test-burst
+        await asyncio.sleep(10)
         self.meross_client = await async_get_client()
 
         # Look for a device to be used for this test

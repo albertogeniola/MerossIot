@@ -21,6 +21,8 @@ class TestToggle(AioHTTPTestCase):
         return web.Application()
 
     async def setUpAsync(self):
+        # Wait some time before next test-burst
+        await asyncio.sleep(10)
         self.meross_client = await async_get_client()
 
         # Look for a device to be used for this test
@@ -61,7 +63,7 @@ class TestToggle(AioHTTPTestCase):
             return
 
         # Create a new manager
-        new_meross_client = await MerossHttpClient.async_from_user_password(email=EMAIL, password=PASSWORD)
+        new_meross_client = await async_get_client()
         m = None
         try:
             # Retrieve the same device with another manager

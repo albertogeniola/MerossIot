@@ -17,6 +17,8 @@ class TestHttpMethods(AioHTTPTestCase):
         return web.Application()
 
     async def setUpAsync(self):
+        # Wait some time before next test-burst
+        await asyncio.sleep(10)
         self.meross_client = await async_get_client()
 
     @unittest_run_loop
