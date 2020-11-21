@@ -1,5 +1,4 @@
 import os
-
 from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
@@ -12,6 +11,8 @@ from tests import async_get_client
 if os.name == 'nt':
     import asyncio
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+else:
+    import asyncio
 
 
 class TestConsumptionX(AioHTTPTestCase):

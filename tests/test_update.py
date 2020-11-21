@@ -10,9 +10,12 @@ from meross_iot.manager import MerossManager
 from meross_iot.model.enums import OnlineStatus
 from tests import async_get_client
 
+
 if os.name == 'nt':
     import asyncio
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+else:
+    import asyncio
 
 
 class TestUpdate(AioHTTPTestCase):

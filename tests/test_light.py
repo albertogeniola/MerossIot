@@ -1,4 +1,3 @@
-import asyncio
 import os
 from random import randint
 
@@ -11,8 +10,12 @@ from meross_iot.manager import MerossManager
 from meross_iot.model.enums import OnlineStatus
 from tests import async_get_client
 
+
 if os.name == 'nt':
+    import asyncio
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+else:
+    import asyncio
 
 
 class TestLight(AioHTTPTestCase):
@@ -68,7 +71,7 @@ class TestLight(AioHTTPTestCase):
         light = rgb_capable[0]
 
         # Create a new manager
-        new_meross_client = await MerossHttpClient.async_from_user_password(email=EMAIL, password=PASSWORD)
+        new_meross_client = await async_get_client()
         m = None
         try:
             # Retrieve the same device with another manager
