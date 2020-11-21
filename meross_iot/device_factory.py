@@ -8,7 +8,7 @@ from meross_iot.controller.known.openers import MSG100
 from meross_iot.controller.known.plugs import MSS110, MSS210, MSS310, MSS710
 from meross_iot.controller.known.strips import MSS425E, MSS420F, MSS425F, MSS530
 from meross_iot.controller.known.subdevice import Mts100v3Valve, Ms100Sensor
-from meross_iot.controller.mixins.consumption import ConsumptionXMixin
+from meross_iot.controller.mixins.consumption import ConsumptionXMixin, ConsumptionMixin
 from meross_iot.controller.mixins.electricity import ElectricityMixin
 from meross_iot.controller.mixins.garage import GarageOpenerMixin
 from meross_iot.controller.mixins.hub import HubMts100Mixin, HubMixn, HubMs100Mixin
@@ -46,6 +46,7 @@ _ABILITY_MATRIX = {
     Namespace.CONTROL_TOGGLEX.value: ToggleXMixin,
     Namespace.CONTROL_TOGGLE.value: ToggleMixin,
     Namespace.CONTROL_CONSUMPTIONX.value: ConsumptionXMixin,
+    Namespace.CONTROL_CONSUMPTION.value: ConsumptionMixin,
     Namespace.CONTROL_ELECTRICITY.value: ElectricityMixin,
 
     # Light abilities
