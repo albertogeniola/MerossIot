@@ -4,6 +4,8 @@ from typing import Union, List
 
 from meross_iot.model.enums import OnlineStatus
 from meross_iot.model.shared import BaseDictPayload
+import json
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -61,5 +63,8 @@ class HttpDeviceInfo(BaseDictPayload):
         self.reserved_domain = reserved_domain
 
     def __repr__(self):
+        return json.dumps(self.__dict__, default=lambda x: x.isoformat() if isinstance(x,datetime) else x.name if(isinstance(x,OnlineStatus)) else "NOT-SERIALIZABLE")
+
+    def __str__(self):
         basic_info = f"{self.dev_name} ({self.device_type}, HW {self.hdware_version}, FW {self.fmware_version})"
         return basic_info
