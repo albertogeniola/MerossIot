@@ -1,4 +1,5 @@
 import base64
+import logging
 import os
 
 from meross_iot.http_api import MerossHttpClient
@@ -9,10 +10,15 @@ PASSWORD = os.environ.get('MEROSS_PASSWORD')
 CREDS = os.getenv("__MEROSS_CREDS")
 
 
+_LOGGER = logging.getLogger(__name__)
+
+
 async def async_get_client() -> MerossHttpClient:
     if CREDS is not None:
+        _LOGGER.info("Found cached credentials. Using them.")
         jsoncreds = base64.b64decode(CREDS)
         creds = MerossCloudCreds.from_json(jsoncreds)
         return await MerossHttpClient.async_from_cloud_creds(creds)
     else:
+        _LOGGER.info("Using username-password credentials")
         return await MerossHttpClient.async_from_user_password(email=EMAIL, password=PASSWORD)
