@@ -116,7 +116,7 @@ class TestValve(AioHTTPTestCase):
         await dev1.async_turn_on()
 
         # Create a new manager
-        new_meross_client = await MerossHttpClient.async_from_user_password(email=EMAIL, password=PASSWORD)
+        new_meross_client = await async_get_client()
         m = None
         try:
             # Retrieve the same device with another manager
