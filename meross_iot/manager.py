@@ -208,7 +208,7 @@ class MerossManager(object):
         self.__initialized = True
 
     async def async_device_discovery(self, update_subdevice_status: bool = True,
-                                     meross_device_uuid: str = None) -> None:
+                                     meross_device_uuid: str = None) -> Iterable[BaseDevice]:
         """
         Fetch devices and online status from HTTP API. This method also notifies/updates local device online/offline
         status.
@@ -280,6 +280,11 @@ class MerossManager(object):
             for h in hubs:
                 await h.async_update()
         _LOGGER.info(f"\n------- HTTP discovery ended -------\n")
+
+        res = []
+        res.extend(enrolled_devices)
+        res.extend(enrolled_subdevices)
+        return res
 
     async def _async_enroll_new_http_subdev(self,
                                             subdevice_info: HttpSubdeviceInfo,
