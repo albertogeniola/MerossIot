@@ -9,10 +9,7 @@ from meross_iot.controller.mixins.light import LightMixin
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
 from meross_iot.model.enums import OnlineStatus
-
-EMAIL = os.environ.get('MEROSS_EMAIL')
-PASSWORD = os.environ.get('MEROSS_PASSWORD')
-
+from tests import async_get_client
 
 if os.name == 'nt':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
@@ -23,7 +20,7 @@ class TestLight(AioHTTPTestCase):
         return web.Application()
 
     async def setUpAsync(self):
-        self.meross_client = await MerossHttpClient.async_from_user_password(email=EMAIL, password=PASSWORD)
+        self.meross_client = await async_get_client()
 
         # Look for a device to be used for this test
         manager = MerossManager(http_client=self.meross_client)

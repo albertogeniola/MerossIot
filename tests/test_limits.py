@@ -6,13 +6,9 @@ from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
 from meross_iot.controller.mixins.electricity import ElectricityMixin
-from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
 from meross_iot.model.exception import RateLimitExceeded
-
-EMAIL = os.environ.get('MEROSS_EMAIL')
-PASSWORD = os.environ.get('MEROSS_PASSWORD')
-
+from tests import async_get_client
 
 if os.name == 'nt':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
@@ -25,7 +21,7 @@ class TestLimits(AioHTTPTestCase):
         return web.Application()
 
     async def setUpAsync(self):
-        self.meross_client = await MerossHttpClient.async_from_user_password(email=EMAIL, password=PASSWORD)
+        self.meross_client = await async_get_client()
 
         # Look for a device to be used for this test
         manager = MerossManager(http_client=self.meross_client, max_requests_per_second=2)

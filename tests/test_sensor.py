@@ -4,13 +4,9 @@ from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
 from meross_iot.controller.known.subdevice import Ms100Sensor
-from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
 from meross_iot.model.plugin.hub import BatteryInfo
-
-EMAIL = os.environ.get('MEROSS_EMAIL')
-PASSWORD = os.environ.get('MEROSS_PASSWORD')
-
+from tests import async_get_client
 
 if os.name == 'nt':
     import asyncio
@@ -22,7 +18,7 @@ class TestSensor(AioHTTPTestCase):
         return web.Application()
 
     async def setUpAsync(self):
-        self.meross_client = await MerossHttpClient.async_from_user_password(email=EMAIL, password=PASSWORD)
+        self.meross_client = await async_get_client()
 
         # Look for a device to be used for this test
         self.meross_manager = MerossManager(http_client=self.meross_client)

@@ -7,10 +7,7 @@ from meross_iot.controller.mixins.toggle import ToggleMixin
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
 from meross_iot.model.enums import OnlineStatus
-
-EMAIL = os.environ.get('MEROSS_EMAIL')
-PASSWORD = os.environ.get('MEROSS_PASSWORD')
-
+from tests import async_get_client
 
 if os.name == 'nt':
     import asyncio
@@ -24,7 +21,7 @@ class TestToggle(AioHTTPTestCase):
         return web.Application()
 
     async def setUpAsync(self):
-        self.meross_client = await MerossHttpClient.async_from_user_password(email=EMAIL, password=PASSWORD)
+        self.meross_client = await async_get_client()
 
         # Look for a device to be used for this test
         self.meross_manager = MerossManager(http_client=self.meross_client)
