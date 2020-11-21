@@ -178,7 +178,9 @@ Anyways, feel free to contribute via donations!
 #### 0.4.1.0
 - Implemented exponential backoff for api-rate limiter
 - Fixed memory leakage that occurred for long-lived sessions of the MerossManager 
-- Static known device types support added 
+- Static known device types support added
+- Returning newly discovery devices from the discovery method() 
+- Implemented first version of meross_api_cli 
 
 <details>
     <summary>Older</summary>
