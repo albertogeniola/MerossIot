@@ -93,7 +93,8 @@ jobs:
       run: |
         pip install .
         # Set credentials into memory
-        meross_api_cli auth login --email $MEROSS_EMAIL --password "$MEROSS_PASSWORD"
+        TOKEN=$(meross_api_cli auth login --email $MEROSS_EMAIL --password "$MEROSS_PASSWORD" | base64)
+        echo "__MEROSS_CREDS=$TOKEN">>$GITHUB_ENV
         pytest tests --doctest-modules --junitxml=junit/test-results.xml --cov=. --cov-report=xml --cov-report=html --html=junit/test-results.html --self-contained-html
         meross_api_cli auth logout
     - name: Upload pytest test results
