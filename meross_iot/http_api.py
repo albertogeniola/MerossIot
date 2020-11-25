@@ -148,9 +148,6 @@ class MerossHttpClient(object):
                                         cloud_creds: Optional[MerossCloudCreds] = None,
                                         mask_params_in_log: bool = False
                                         ) -> dict:
-        if cloud_creds is None:
-            _LOGGER.warning("Executing authenticated post with NONE credentials!")
-
         nonce = _generate_nonce(16)
         timestamp_millis = int(round(time.time() * 1000))
         login_params = _encode_params(params_data)
