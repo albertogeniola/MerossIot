@@ -308,7 +308,7 @@ def authenticated_command_executor(method, *args, **kwargs):
         async def execute(method, *args, **kwargs):
             b64creds = os.getenv("__MEROSS_CREDS", None)
             if b64creds is None:
-                raise ValueError("This method should requires __MEROSS_CREDS env variable set. "
+                raise ValueError("This method requires __MEROSS_CREDS env variable set. "
                                  "Please invoke auth login first.")
 
             jsoncreds = base64.b64decode(b64creds)
