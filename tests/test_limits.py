@@ -26,7 +26,7 @@ class TestLimits(AioHTTPTestCase):
     async def setUpAsync(self):
         # Wait some time before next test-burst
         await asyncio.sleep(10)
-        self.meross_client = await async_get_client()
+        self.meross_client, self.requires_logout = await async_get_client()
 
         # Look for a device to be used for this test
         manager = MerossManager(http_client=self.meross_client, max_requests_per_second=2)
@@ -56,4 +56,5 @@ class TestLimits(AioHTTPTestCase):
             await self._perform_requests(sensor=self.test_sensors[0], n_requests=200)
 
     async def tearDownAsync(self):
-        await self.meross_client.async_logout()
+        if self.requires_logout:
+            await self.meross_client.async_logout()

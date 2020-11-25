@@ -25,7 +25,7 @@ class TestLight(AioHTTPTestCase):
     async def setUpAsync(self):
         # Wait some time before next test-burst
         await asyncio.sleep(10)
-        self.meross_client = await async_get_client()
+        self.meross_client, self.requires_logout = await async_get_client()
 
         # Look for a device to be used for this test
         manager = MerossManager(http_client=self.meross_client)
@@ -71,7 +71,7 @@ class TestLight(AioHTTPTestCase):
         light = rgb_capable[0]
 
         # Create a new manager
-        new_meross_client = await async_get_client()
+        new_meross_client, requires_logout = await async_get_client()
         m = None
         try:
             # Retrieve the same device with another manager
@@ -95,7 +95,9 @@ class TestLight(AioHTTPTestCase):
         finally:
             if m is not None:
                 m.close()
-            await new_meross_client.async_logout()
+            if requires_logout:
+                await new_meross_client.async_logout()
 
     async def tearDownAsync(self):
-        await self.meross_client.async_logout()
+        if self.requires_logout:
+            await self.meross_client.async_logout()

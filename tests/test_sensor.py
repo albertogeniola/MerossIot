@@ -24,7 +24,7 @@ class TestSensor(AioHTTPTestCase):
     async def setUpAsync(self):
         # Wait some time before next test-burst
         await asyncio.sleep(10)
-        self.meross_client = await async_get_client()
+        self.meross_client, self.requires_logout = await async_get_client()
 
         # Look for a device to be used for this test
         self.meross_manager = MerossManager(http_client=self.meross_client)
@@ -56,4 +56,5 @@ class TestSensor(AioHTTPTestCase):
         self.assertGreater(res.remaining_charge, 0)
 
     async def tearDownAsync(self):
-        await self.meross_client.async_logout()
+        if self.requires_logout:
+            await self.meross_client.async_logout()
