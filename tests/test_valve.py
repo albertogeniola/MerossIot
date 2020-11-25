@@ -5,7 +5,7 @@ from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 from meross_iot.controller.known.subdevice import Mts100v3Valve
 from meross_iot.manager import MerossManager
-from meross_iot.model.enums import ThermostatV3Mode
+from meross_iot.model.enums import ThermostatV3Mode, OnlineStatus
 from meross_iot.model.plugin.hub import BatteryInfo
 from tests import async_get_client
 import os
@@ -32,7 +32,7 @@ class TestValve(AioHTTPTestCase):
         self.meross_manager = MerossManager(http_client=self.meross_client)
         await self.meross_manager.async_init()
         await self.meross_manager.async_device_discovery()
-        self.test_devices = self.meross_manager.find_devices(device_class=Mts100v3Valve)
+        self.test_devices = self.meross_manager.find_devices(device_class=Mts100v3Valve, online_status=OnlineStatus.ONLINE)
 
     @unittest_run_loop
     async def test_ambient_temperature(self):

@@ -6,6 +6,7 @@ from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
 from meross_iot.controller.mixins.electricity import ElectricityMixin
 from meross_iot.manager import MerossManager
+from meross_iot.model.enums import OnlineStatus
 from meross_iot.model.exception import RateLimitExceeded
 from tests import async_get_client
 
@@ -32,7 +33,7 @@ class TestLimits(AioHTTPTestCase):
         await manager.async_init()
         devices = await manager.async_device_discovery()
 
-        self.test_sensors = manager.find_devices(device_class=ElectricityMixin)
+        self.test_sensors = manager.find_devices(device_class=ElectricityMixin, online_status=OnlineStatus.ONLINE)
 
     async def _perform_requests(self, sensor: ElectricityMixin, n_requests: int):
         tasks = []
