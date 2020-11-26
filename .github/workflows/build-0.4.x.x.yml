@@ -162,6 +162,8 @@ jobs:
         run: python setup.py sdist bdist_wheel --universal
       - name: Calculate Version
         id: tag
+        env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
         run: |
           TAG=$(cat $GITHUB_WORKSPACE/.version)
           echo "Tag: $TAG"
