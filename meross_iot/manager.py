@@ -387,7 +387,7 @@ class MerossManager(object):
         _LOGGER.info("Subscribed to topics, scheduling state update for already known devices.")
         i = 0
         for d in self.find_devices():
-            _schedule_later(coro=d.async_update(), delay=i, loop=self._loop)
+            await _schedule_later(coro=d.async_update(), delay=i, loop=self._loop)
             i += _CONNECTION_DROP_UPDATE_SCHEDULE_INTERVAL
 
     def _on_message(self, client, userdata, msg):
@@ -738,5 +738,7 @@ def _handle_future(future: Future, result: object, exception: Exception):
 
 
 async def _schedule_later(coro, delay, loop):
-    await asyncio.sleep(delay=delay, loop=loop)
-    loop.create_task(coro)
+    async def delayed_execution(wait_delay, loop):
+        await asyncio.sleep(delay=wait_delay, loop=loop)
+        await coro
+    loop.create_task(delayed_execution(wait_delay=delay, loop=loop))
