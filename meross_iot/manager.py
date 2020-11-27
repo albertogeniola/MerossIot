@@ -298,7 +298,10 @@ class MerossManager(object):
                                            hub_reported_abilities=hub_reported_abilities,
                                            manager=self)
         # Register the device to the hub
-        hub.register_subdevice(subdevice=subdevice)
+        if hub.get_subdevice(subdevice_id=subdevice.subdevice_id) is None:
+            hub.register_subdevice(subdevice=subdevice)
+        else:
+            _LOGGER.debug("HUB %s already knows subdevice %s", hub.uuid, subdevice)
 
         # Enroll the device
         self._device_registry.enroll_device(subdevice)
@@ -387,7 +390,7 @@ class MerossManager(object):
         _LOGGER.info("Subscribed to topics, scheduling state update for already known devices.")
         i = 0
         for d in self.find_devices():
-            await _schedule_later(coro=d.async_update(), delay=i, loop=self._loop)
+            _schedule_later(coroutine=d.async_update(), start_delay=i, loop=self._loop)
             i += _CONNECTION_DROP_UPDATE_SCHEDULE_INTERVAL
 
     def _on_message(self, client, userdata, msg):
@@ -737,8 +740,8 @@ def _handle_future(future: Future, result: object, exception: Exception):
             future.set_result(result)
 
 
-async def _schedule_later(coro, delay, loop):
-    async def delayed_execution(wait_delay, loop):
-        await asyncio.sleep(delay=wait_delay, loop=loop)
+def _schedule_later(coroutine, start_delay, loop):
+    async def delayed_execution(coro, delay, loop):
+        await asyncio.sleep(delay=delay, loop=loop)
         await coro
-    loop.create_task(delayed_execution(wait_delay=delay, loop=loop))
+    asyncio.ensure_future(delayed_execution(coro=coroutine, delay=start_delay, loop=loop), loop=loop)

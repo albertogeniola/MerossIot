@@ -181,6 +181,7 @@ Anyways, feel free to contribute via donations!
 - Static known device types support added
 - Returning newly discovery devices from the discovery method() 
 - Implemented first version of meross_api_cli 
+- Improved device state recover after connection drop
 
 <details>
     <summary>Older</summary>
