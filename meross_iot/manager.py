@@ -33,6 +33,9 @@ logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO, stre
 _LOGGER = logging.getLogger(__name__)
 _LIMITER = logging.getLogger("meross_iot.manager.apilimiter")
 
+
+_CONNECTION_DROP_UPDATE_SCHEDULE_INTERVAL = 2
+
 T = TypeVar('T', bound=BaseDevice)  # Declare type variable
 
 
@@ -379,14 +382,13 @@ class MerossManager(object):
             self._mqtt_connected_and_subscribed.set
         )
 
-        # When subscribing again on the mqtt, trigger an update for all the devices that are currently registered
-        tasks = []
-
-        _LOGGER.info("Subscribed to topics, updating state for already known devices...")
+        # When subscribing again on the mqtt, trigger an update for all the devices that are currently registered.
+        # To avoid flooding, schedule updates every 2s intervals.
+        _LOGGER.info("Subscribed to topics, scheduling state update for already known devices.")
+        i = 0
         for d in self.find_devices():
-            tasks.append(self._loop.create_task(d.async_update()))
-        results = asyncio.gather(*tasks, loop=self._loop)
-        _LOGGER.info(f"Updated {len(list(results))} devices.")
+            _schedule_later(coro=d.async_update(), delay=i, loop=self._loop)
+            i += _CONNECTION_DROP_UPDATE_SCHEDULE_INTERVAL
 
     def _on_message(self, client, userdata, msg):
         # NOTE! This method is called by the paho-mqtt thread, thus any invocation to the
@@ -733,3 +735,8 @@ def _handle_future(future: Future, result: object, exception: Exception):
             _LOGGER.error("This future is already done: cannot set result.")
         else:
             future.set_result(result)
+
+
+async def _schedule_later(coro, delay, loop):
+    await asyncio.sleep(delay=delay, loop=loop)
+    loop.create_task(coro)
