@@ -380,13 +380,9 @@ class MerossManager(object):
         )
 
         # When subscribing again on the mqtt, trigger an update for all the devices that are currently registered
-        tasks = []
-
-        _LOGGER.info("Subscribed to topics, updating state for already known devices...")
+        _LOGGER.info("Subscribed to topics, scheduling state update for already known devices.")
         for d in self.find_devices():
-            tasks.append(self._loop.create_task(d.async_update()))
-        results = asyncio.gather(*tasks, loop=self._loop)
-        _LOGGER.info(f"Updated {len(list(results))} devices.")
+            self._loop.create_task(d.async_update())
 
     def _on_message(self, client, userdata, msg):
         # NOTE! This method is called by the paho-mqtt thread, thus any invocation to the
