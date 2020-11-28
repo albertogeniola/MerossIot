@@ -540,7 +540,7 @@ class MerossManager(object):
             _LOGGER.warning(f"Uncaught push notification {push_notification.namespace}. "
                             f"Raw data: {json.dumps(push_notification.raw_data)}")
 
-    async def _api_rate_limit_checks(self, destination_device_uuid: str) -> Tuple[RateLimitResultStrategy, float]:
+    def _api_rate_limit_checks(self, destination_device_uuid: str) -> Tuple[RateLimitResultStrategy, float]:
         limit_result, time_to_wait, overlimit_percentage = self._limiter.check_limits(
             device_uuid=destination_device_uuid)
         _LIMITER.debug("Number of API request within the last time-window: %s\n"
@@ -552,13 +552,13 @@ class MerossManager(object):
             _LOGGER.debug(f"Current over-limit: {overlimit_percentage} %")
             # If the over-limit rate is too high, just drop the call.
             if overlimit_percentage > self._over_limit_threshold:
-                _LOGGER.error(f"Rate limit reached: over-limit percentage is {overlimit_percentage}% which exceeds "
+                _LOGGER.debug(f"Rate limit reached: over-limit percentage is {overlimit_percentage}% which exceeds "
                               f"the current {self._over_limit_threshold} limit.")
                 return RateLimitResultStrategy.DropCall, time_to_wait
 
             # In case the limit is hit but the the overlimit is sustainable, do not raise an exception, just
             # buy some time
-            _LOGGER.info(f"Rate limit reached ({limit_result})")
+            _LOGGER.debug(f"Rate limit reached ({limit_result}).")
             return RateLimitResultStrategy.DelayCall, time_to_wait
         else:
             return RateLimitResultStrategy.PerformCall, 0
@@ -596,14 +596,15 @@ class MerossManager(object):
                 pass
             elif rate_limiting_action == RateLimitResultStrategy.DelayCall or \
                     rate_limiting_action == RateLimitResultStrategy.DropCall and not drop_on_overquota:
-                _schedule_later(
-                    coroutine=self.async_execute_cmd(destination_device_uuid=destination_device_uuid,
-                                                     method=method, namespace=namespace, payload=payload,
-                                                     timeout=timeout),
-                    start_delay=time_to_wait,
-                    loop=self._loop)
-                return
+                _LOGGER.debug("The current API rate is too high or exceeds the overquota limit (%f %%). The call will be delayed of %f s.",
+                              self._over_limit_threshold, time_to_wait)
+                await asyncio.sleep(delay=time_to_wait, loop=self._loop)
+                return await self.async_execute_cmd(destination_device_uuid=destination_device_uuid,
+                                                    method=method, namespace=namespace, payload=payload,
+                                                    timeout=timeout)
             elif rate_limiting_action == RateLimitResultStrategy.DropCall:
+                _LOGGER.error("The current API rate exceeds the overquota limit (%f %%). The call will be dropped.",
+                              self._over_limit_threshold)
                 raise RateLimitExceeded()
             else:
                 raise ValueError("Unsupported rate-limiting action")
