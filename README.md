@@ -184,6 +184,7 @@ Anyways, feel free to contribute via donations!
 - Improved device state recover after connection drop
 - Added API rate skip options
 - Tuned API rate limiting defaults
+- Fixed meross_sniffer utility not starting when ran from commandline
 
 <details>
     <summary>Older</summary>
