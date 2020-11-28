@@ -65,8 +65,12 @@ class SprayMixin(object):
         super_handled = await super().async_handle_update(namespace=namespace, data=data)
         return super_handled or locally_handled
 
-    async def async_set_mode(self, mode: SprayMode, channel: int = 0, *args, **kwargs) -> None:
+    async def async_set_mode(self, mode: SprayMode, channel: int = 0, skip_rate_limits: bool = False, drop_on_overquota: bool = True, *args, **kwargs) -> None:
         payload = {'spray': {'channel': channel, 'mode': mode.value}}
-        await self._execute_command(method='SET', namespace=Namespace.CONTROL_SPRAY, payload=payload)
+        await self._execute_command(method='SET',
+                                    namespace=Namespace.CONTROL_SPRAY,
+                                    payload=payload,
+                                    skip_rate_limits=skip_rate_limits,
+                                    drop_on_overquota=drop_on_overquota)
         # Immediately update local state
         self._channel_spray_status[channel] = mode

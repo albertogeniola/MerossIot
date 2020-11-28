@@ -9,7 +9,7 @@ from asyncio import Future, AbstractEventLoop
 from asyncio import TimeoutError
 from hashlib import md5
 from time import time
-from typing import Optional, List, TypeVar, Iterable, Callable, Awaitable
+from typing import Optional, List, TypeVar, Iterable, Callable, Awaitable, Tuple
 
 import paho.mqtt.client as mqtt
 
@@ -25,7 +25,7 @@ from meross_iot.model.http.subdevice import HttpSubdeviceInfo
 from meross_iot.model.push.factory import parse_push_notification
 from meross_iot.model.push.generic import GenericPushNotification
 from meross_iot.model.push.unbind import UnbindPushNotification
-from meross_iot.utilities.limiter import RateLimitChecker, RateLimitResult
+from meross_iot.utilities.limiter import RateLimitChecker, RateLimitResult, RateLimitResultStrategy
 from meross_iot.utilities.mqtt import generate_mqtt_password, generate_client_and_app_id, build_client_response_topic, \
     build_client_user_topic, verify_message_signature, device_uuid_from_push_notification, build_device_request_topic
 
@@ -540,30 +540,9 @@ class MerossManager(object):
             _LOGGER.warning(f"Uncaught push notification {push_notification.namespace}. "
                             f"Raw data: {json.dumps(push_notification.raw_data)}")
 
-    async def async_execute_cmd(self,
-                                destination_device_uuid: str,
-                                method: str,
-                                namespace: Namespace,
-                                payload: dict,
-                                timeout: float = 5.0):
-        """
-        This method sends a command to the MQTT Meross broker.
-
-        :param destination_device_uuid:
-        :param method: Can be GET/SET
-        :param namespace: Command namspace
-        :param payload: A dict containing the payload to be sent
-        :param timeout:
-
-        :return:
-        """
-        # Only proceed if we are connected to the remote endpoint
-        if not self._mqtt_client.is_connected():
-            _LOGGER.error("The MQTT client is not connected to the remote broker. Have you called async_init()?")
-            raise UnconnectedError()
-
-        # Check API rate limits.
-        limit_result, time_to_wait, overlimit_percentage = self._limiter.check_limits(device_uuid=destination_device_uuid)
+    async def _api_rate_limit_checks(self, destination_device_uuid: str) -> Tuple[RateLimitResultStrategy, float]:
+        limit_result, time_to_wait, overlimit_percentage = self._limiter.check_limits(
+            device_uuid=destination_device_uuid)
         _LIMITER.debug("Number of API request within the last time-window: %s\n"
                        "Global over limit percentage: %f %%",
                        self._limiter.global_rate_limiter.current_window_hitrate,
@@ -574,17 +553,62 @@ class MerossManager(object):
             # If the over-limit rate is too high, just drop the call.
             if overlimit_percentage > self._over_limit_threshold:
                 _LOGGER.error(f"Rate limit reached: over-limit percentage is {overlimit_percentage}% which exceeds "
-                              f"the current {self._over_limit_threshold} limit. The call will be dropped.")
-                raise RateLimitExceeded()
+                              f"the current {self._over_limit_threshold} limit.")
+                return RateLimitResultStrategy.DropCall, time_to_wait
 
             # In case the limit is hit but the the overlimit is sustainable, do not raise an exception, just
             # buy some time
-            _LOGGER.warning(f"Rate limit reached ({limit_result}): api call will be delayed by {time_to_wait} seconds")
-            await asyncio.sleep(delay=time_to_wait, loop=self._loop)
-            return await self.async_execute_cmd(destination_device_uuid=destination_device_uuid,
-                                                method=method, namespace=namespace, payload=payload,
-                                                timeout=timeout)
+            _LOGGER.info(f"Rate limit reached ({limit_result})")
+            return RateLimitResultStrategy.DelayCall, time_to_wait
+        else:
+            return RateLimitResultStrategy.PerformCall, 0
 
+    async def async_execute_cmd(self,
+                                destination_device_uuid: str,
+                                method: str,
+                                namespace: Namespace,
+                                payload: dict,
+                                timeout: float = 5.0,
+                                skip_rate_limiting_check: bool = False,
+                                drop_on_overquota: bool = True):
+        """
+        This method sends a command to the MQTT Meross broker.
+
+        :param destination_device_uuid:
+        :param method: Can be GET/SET
+        :param namespace: Command namspace
+        :param payload: A dict containing the payload to be sent
+        :param timeout: Maximum time interval in seconds to wait for the command-answer
+        :param skip_rate_limiting_check: When True, no API rate limit is performed for executing the command
+        :param drop_on_overquota: When True, API calls that hit the overquota limit will be dropped.
+                                  If set to False, those calls will not be dropped, but delayed accordingly.
+        :return:
+        """
+        # Only proceed if we are connected to the remote endpoint
+        if not self._mqtt_client.is_connected():
+            _LOGGER.error("The MQTT client is not connected to the remote broker. Have you called async_init()?")
+            raise UnconnectedError()
+
+        # Check rate limits
+        if not skip_rate_limiting_check:
+            rate_limiting_action, time_to_wait = self._api_rate_limit_checks(destination_device_uuid=destination_device_uuid)
+            if rate_limiting_action == RateLimitResultStrategy.PerformCall:
+                pass
+            elif rate_limiting_action == RateLimitResultStrategy.DelayCall or \
+                    rate_limiting_action == RateLimitResultStrategy.DropCall and not drop_on_overquota:
+                _schedule_later(
+                    coroutine=self.async_execute_cmd(destination_device_uuid=destination_device_uuid,
+                                                     method=method, namespace=namespace, payload=payload,
+                                                     timeout=timeout),
+                    start_delay=time_to_wait,
+                    loop=self._loop)
+                return
+            elif rate_limiting_action == RateLimitResultStrategy.DropCall:
+                raise RateLimitExceeded()
+            else:
+                raise ValueError("Unsupported rate-limiting action")
+
+        # Send the message over the network
         # Build the mqtt message we will send to the broker
         message, message_id = self._build_mqtt_message(method, namespace, payload)
 

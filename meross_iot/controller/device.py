@@ -189,7 +189,11 @@ class BaseDevice(object):
         # rather than updating the last_full_update_ts
         return False
 
-    async def async_update(self, *args, **kwargs) -> None:
+    async def async_update(self,
+                           skip_rate_limits: bool = False,
+                           drop_on_overquota: bool = True,
+                           *args,
+                           **kwargs) -> None:
         """
         Forces a full data update on the device. If your network bandwidth is limited or you are running
         this program on an embedded device, try to invoke this method only when strictly needed.
@@ -203,7 +207,7 @@ class BaseDevice(object):
         # device type. For instance, wifi devices use GET System.Appliance.ALL while HUBs use a different one.
         # Implementing mixin should never call the super() implementation (as it happens
         # with _handle_update) as we want to use only an UPDATE_ALL method.
-        # However, we want to keep it within the MerossBaseDevice so that we expose a consistent
+        # Howe                               ver, we want to keep it within the MerossBaseDevice so that we expose a consistent
         # interface.
         """
         pass
@@ -212,12 +216,21 @@ class BaseDevice(object):
         # TODO: Should we do something here?
         pass
 
-    async def _execute_command(self, method: str, namespace: Namespace, payload: dict, timeout: float = 5) -> dict:
+    async def _execute_command(self,
+                               method: str,
+                               namespace: Namespace,
+                               payload: dict,
+                               timeout: float = 5,
+                               skip_rate_limits: bool = False,
+                               drop_on_overquota: bool = True
+                               ) -> dict:
         return await self._manager.async_execute_cmd(destination_device_uuid=self.uuid,
                                                      method=method,
                                                      namespace=namespace,
                                                      payload=payload,
-                                                     timeout=timeout)
+                                                     timeout=timeout,
+                                                     skip_rate_limiting_check=skip_rate_limits,
+                                                     drop_on_overquota=drop_on_overquota)
 
     def __repr__(self):
         basic_info = f"{self.name} ({self.type}, HW {self.hardware_version}, FW {self.firmware_version})"
@@ -291,11 +304,22 @@ class GenericSubDevice(BaseDevice):
             raise ValueError("Specified hub device is not present")
         self._hub = hub[0]
 
-    async def _execute_command(self, method: str, namespace: Namespace, payload: dict, timeout: float = 5) -> dict:
+    async def _execute_command(self,
+                               method: str,
+                               namespace: Namespace,
+                               payload: dict,
+                               timeout: float = 5,
+                               skip_rate_limits: bool = False,
+                               drop_on_overquota: bool = True
+                               ) -> dict:
         # Every command should be invoked via HUB?
         raise NotImplementedError("Subdevices should rely on Hub in order to send commands.")
 
-    async def async_update(self, *args, **kwargs) -> None:
+    async def async_update(self,
+                           skip_rate_limits: bool = False,
+                           drop_on_overquota: bool = True,
+                           *args,
+                           **kwargs) -> None:
         if self._UPDATE_ALL_NAMESPACE is None:
             _LOGGER.error("GenericSubDevice does not implement any GET_ALL namespace. Update won't be performed.")
             pass
@@ -307,7 +331,9 @@ class GenericSubDevice(BaseDevice):
         # we need to query all sub-devices.
         result = await self._hub._execute_command(method="GET",
                                                   namespace=self._UPDATE_ALL_NAMESPACE,
-                                                  payload={'all': [{'id': self.subdevice_id}]})
+                                                  payload={'all': [{'id': self.subdevice_id}]},
+                                                  skip_rate_limits=skip_rate_limits,
+                                                  drop_on_overquota=drop_on_overquota)
         subdevices_states = result.get('all')
         for subdev_state in subdevices_states:
             subdev_id = subdev_state.get('id')
@@ -317,14 +343,20 @@ class GenericSubDevice(BaseDevice):
             await self.async_handle_push_notification(namespace=self._UPDATE_ALL_NAMESPACE, data=subdev_state)
             break
 
-    async def async_get_battery_life(self) -> BatteryInfo:
+    async def async_get_battery_life(self,
+                                     skip_rate_limits: bool = False,
+                                     drop_on_overquota: bool = True,
+                                     *args,
+                                     **kwargs) -> BatteryInfo:
         """
         Polls the HUB/DEVICE to get its current battery status.
         :return:
         """
         data = await self._hub._execute_command(method='GET',
                                                 namespace=Namespace.HUB_BATTERY,
-                                                payload={'battery': [{'id': self.subdevice_id}]})
+                                                payload={'battery': [{'id': self.subdevice_id}]},
+                                                skip_rate_limits=skip_rate_limits,
+                                                drop_on_overquota=drop_on_overquota)
         battery_life_perc = data.get('battery', {})[0].get('value')
         timestamp = datetime.utcnow()
         return BatteryInfo(battery_charge=battery_life_perc, sample_ts=timestamp)

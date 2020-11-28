@@ -132,6 +132,12 @@ class RateLimitResult(Enum):
     PerDeviceLimitReached = 2
 
 
+class RateLimitResultStrategy(Enum):
+    PerformCall = 0,
+    DelayCall = 1,
+    DropCall = 2
+
+
 class RateLimitChecker(object):
     def __init__(self,
                  global_burst_rate=2,

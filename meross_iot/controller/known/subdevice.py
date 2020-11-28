@@ -22,7 +22,13 @@ class Ms100Sensor(GenericSubDevice):
         self.__humidity = {}
         self.__samples = []
 
-    async def _execute_command(self, method: str, namespace: Namespace, payload: dict, timeout: float = 5) -> dict:
+    async def _execute_command(self,
+                               method: str,
+                               namespace: Namespace,
+                               payload: dict,
+                               timeout: float = 5,
+                               skip_rate_limits: bool = False,
+                               drop_on_overquota: bool = True) -> dict:
         raise NotImplementedError("This method should never be called directly for subdevices.")
 
     def __prepare_push_notification_data(self, data: dict):
@@ -145,7 +151,13 @@ class Mts100v3Valve(GenericSubDevice):
         self._schedule_b_mode = None
         self._last_active_time = None
 
-    async def _execute_command(self, method: str, namespace: Namespace, payload: dict, timeout: float = 5) -> dict:
+    async def _execute_command(self,
+                               method: str,
+                               namespace: Namespace,
+                               payload: dict,
+                               timeout: float = 5,
+                               skip_rate_limits: bool = False,
+                               drop_on_overquota: bool = True) -> dict:
         raise NotImplementedError("This method should never be called directly for subdevices.")
 
     async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
@@ -191,15 +203,21 @@ class Mts100v3Valve(GenericSubDevice):
     def is_on(self) -> Optional[bool]:
         return self.__togglex.get('onoff') == 1
 
-    async def async_turn_off(self, *args, **kwargs):
-        await self._hub._execute_command("SET", Namespace.HUB_TOGGLEX, {'togglex': [{"id": self.subdevice_id,
-                                                                                     "onoff": 0, "channel": 0}]})
+    async def async_turn_off(self, skip_rate_limits: bool = False, drop_on_overquota: bool = True, *args, **kwargs):
+        await self._hub._execute_command(method="SET",
+                                         namespace=Namespace.HUB_TOGGLEX,
+                                         payload={'togglex': [{"id": self.subdevice_id,"onoff": 0, "channel": 0}]},
+                                         skip_rate_limits=skip_rate_limits,
+                                         drop_on_overquota=drop_on_overquota)
         # Assume the command was ok, so immediately update the internal state
         self.__togglex['onoff'] = 0
 
-    async def async_turn_on(self, *args, **kwargs):
-        await self._hub._execute_command("SET", Namespace.HUB_TOGGLEX, {'togglex': [{"id": self.subdevice_id,
-                                                                                     "onoff": 1, "channel": 0}]})
+    async def async_turn_on(self, skip_rate_limits: bool = False, drop_on_overquota: bool = True, *args, **kwargs):
+        await self._hub._execute_command(method="SET",
+                                         namespace=Namespace.HUB_TOGGLEX,
+                                         payload={'togglex': [{"id": self.subdevice_id, "onoff": 1, "channel": 0}]},
+                                         skip_rate_limits=skip_rate_limits,
+                                         drop_on_overquota=drop_on_overquota)
         # Assume the command was ok, so immediately update the internal state
         self.__togglex['onoff'] = 1
 
@@ -222,7 +240,7 @@ class Mts100v3Valve(GenericSubDevice):
         else:
             return None
 
-    async def async_get_temperature(self, *args, **kwargs) -> Optional[float]:
+    async def async_get_temperature(self, skip_rate_limits: bool = False, drop_on_overquota: bool = True, *args, **kwargs) -> Optional[float]:
         """
         Polls the device in order to retrieve the latest temperature info.
         You should not use this method so ofter: instead, rely on `last_sampled_temperature` when a cached
@@ -230,7 +248,11 @@ class Mts100v3Valve(GenericSubDevice):
 
         :return:
         """
-        res = await self._hub._execute_command("GET", Namespace.HUB_MTS100_TEMPERATURE, {'temperature': [{"id": self.subdevice_id}]})
+        res = await self._hub._execute_command(method="GET",
+                                               namespace=Namespace.HUB_MTS100_TEMPERATURE,
+                                               payload={'temperature': [{"id": self.subdevice_id}]},
+                                               skip_rate_limits=skip_rate_limits,
+                                               drop_on_overquota=drop_on_overquota)
         if res is None:
             return None
 
@@ -262,9 +284,13 @@ class Mts100v3Valve(GenericSubDevice):
         if m is not None:
             return ThermostatV3Mode(m)
 
-    async def async_set_mode(self, mode: ThermostatV3Mode) -> None:
+    async def async_set_mode(self, mode: ThermostatV3Mode, skip_rate_limits: bool = False, drop_on_overquota: bool = True, *args, **kwargs) -> None:
         payload = {'mode': [{'id': self.subdevice_id, 'state': mode.value}]}
-        await self._hub._execute_command(method='SET', namespace=Namespace.HUB_MTS100_MODE, payload=payload)
+        await self._hub._execute_command(method='SET',
+                                         namespace=Namespace.HUB_MTS100_MODE,
+                                         payload=payload,
+                                         skip_rate_limits=skip_rate_limits,
+                                         drop_on_overquota=drop_on_overquota)
         self.__mode['state'] = mode.value
 
     @property
@@ -323,7 +349,7 @@ class Mts100v3Valve(GenericSubDevice):
         """
         return 'custom', 'comfort', 'economy', 'away'
 
-    async def async_set_preset_temperature(self, preset: str, temperature: float) -> None:
+    async def async_set_preset_temperature(self, preset: str, temperature: float, skip_rate_limits: bool = False, drop_on_overquota: bool = True, *args, **kwargs) -> None:
         """
         Sets the preset temperature configuration.
 
@@ -336,21 +362,23 @@ class Mts100v3Valve(GenericSubDevice):
             raise ValueError(f"Preset {preset} is not supported by this device. "
                              f"Valid presets are: {self.get_supported_presets()}")
         target_temp = temperature * 10
-        await self._hub._execute_command(method="SET", namespace=Namespace.HUB_MTS100_TEMPERATURE, payload={
-            'temperature': [{
-                'id': self.subdevice_id,
-                preset: target_temp
-            }]})
+        await self._hub._execute_command(method="SET",
+                                         namespace=Namespace.HUB_MTS100_TEMPERATURE,
+                                         payload={'temperature': [{'id': self.subdevice_id,preset: target_temp}]},
+                                         skip_rate_limits=skip_rate_limits,
+                                         drop_on_overquota=drop_on_overquota)
 
         # Update local state
         self.__temperature[preset] = target_temp
 
-    async def async_set_target_temperature(self, temperature: float) -> None:
+    async def async_set_target_temperature(self, temperature: float, skip_rate_limits: bool = False, drop_on_overquota: bool = True, *args, **kwargs) -> None:
         # The API expects the target temperature in DECIMALS, so we need to multiply the user's input by 10
         target_temp = temperature * 10
         payload = {'temperature': [{'id': self.subdevice_id, 'custom': target_temp}]}
         await self._hub._execute_command(method='SET',
-                                          namespace=Namespace.HUB_MTS100_TEMPERATURE,
-                                          payload=payload)
+                                         namespace=Namespace.HUB_MTS100_TEMPERATURE,
+                                         payload=payload,
+                                         skip_rate_limits=skip_rate_limits,
+                                         drop_on_overquota=drop_on_overquota)
         # Update local state
         self.__temperature['currentSet'] = target_temp

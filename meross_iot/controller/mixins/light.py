@@ -90,6 +90,8 @@ class LightMixin(object):
                                     rgb: Optional[RgbTuple] = None,
                                     luminance: Optional[int] = -1,
                                     temperature: Optional[int] = -1,
+                                    skip_rate_limits: bool = False,
+                                    drop_on_overquota: bool = True,
                                     *args,
                                     **kwargs) -> None:
         """
@@ -145,7 +147,11 @@ class LightMixin(object):
 
         payload['light']['capacity'] = mode
 
-        await self._execute_command(method='SET', namespace=Namespace.CONTROL_LIGHT, payload=payload)
+        await self._execute_command(method='SET',
+                                    namespace=Namespace.CONTROL_LIGHT,
+                                    payload=payload,
+                                    skip_rate_limits=skip_rate_limits,
+                                    drop_on_overquota=drop_on_overquota)
 
         # If the command was ok, immediately update the local state.
         self._update_channel_status(channel, rgb=rgb, luminance=luminance, temperature=temperature)
