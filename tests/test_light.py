@@ -81,6 +81,8 @@ class TestLight(AioHTTPTestCase):
             devs = m.find_devices(device_uuids=(light.uuid,))
             dev = devs[0]
 
+            await dev.async_update()
+
             # Set RGB color to known state
             r = await light.async_set_light_color(rgb=(255, 0, 0))
             await asyncio.sleep(2)
