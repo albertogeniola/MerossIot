@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python_version: ['3.7', '3.8']
+        python_version: ['3.7.x', '3.8.x', '3.9.x']
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
@@ -65,7 +65,7 @@ jobs:
     runs-on: webking-ws
     strategy:
       matrix:
-        python_version: ['3.7', '3.8']
+        python_version: ['3.7.x', '3.8.x', '3.9.x']
       max-parallel: 1
     needs: [build, turn-on-env]
     steps:
