@@ -325,7 +325,7 @@ class GenericSubDevice(BaseDevice):
             pass
 
         # When dealing with hubs, we need to "intercept" the UPDATE()
-        await super().async_update(*args, **kwargs)
+        await super().async_update(skip_rate_limits=skip_rate_limits, drop_on_overquota=drop_on_overquota, *args, **kwargs)
 
         # When issuing an update-all command to the hub,
         # we need to query all sub-devices.

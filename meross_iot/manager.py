@@ -281,7 +281,7 @@ class MerossManager(object):
         # We need to update the state of hubs in order to refresh subdevices online status
         if update_subdevice_status:
             for h in hubs:
-                await h.async_update()
+                await h.async_update(drop_on_overquota=False)
         _LOGGER.info(f"\n------- HTTP discovery ended -------\n")
 
         res = []
@@ -390,7 +390,7 @@ class MerossManager(object):
         _LOGGER.info("Subscribed to topics, scheduling state update for already known devices.")
         i = 0
         for d in self.find_devices():
-            _schedule_later(coroutine=d.async_update(), start_delay=i, loop=self._loop)
+            _schedule_later(coroutine=d.async_update(drop_on_overquota=False), start_delay=i, loop=self._loop)
             i += _CONNECTION_DROP_UPDATE_SCHEDULE_INTERVAL
 
     def _on_message(self, client, userdata, msg):
