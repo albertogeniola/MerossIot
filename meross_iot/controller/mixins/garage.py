@@ -8,7 +8,6 @@ _LOGGER = logging.getLogger(__name__)
 
 class GarageOpenerMixin:
     _execute_command: callable
-    _abilities_spec: dict
     check_full_update_done: callable
     uuid: str
 

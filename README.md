@@ -25,7 +25,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```bash
-pip install meross_iot==0.4.1.0rc6
+pip install meross_iot==0.4.1.0rc7
 ```
 
 ## Usage & Full Documentation
@@ -175,7 +175,7 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
-#### 0.4.1.0rc6
+#### 0.4.1.0rc7
 - Implemented exponential backoff for api-rate limiter
 - Fixed memory leakage that occurred for long-lived sessions of the MerossManager 
 - Static known device types support added
@@ -185,6 +185,9 @@ Anyways, feel free to contribute via donations!
 - Added API rate skip options
 - Tuned API rate limiting defaults
 - Fixed meross_sniffer utility not starting when ran from commandline
+- Addressed problems with online events not being propagated correctly in some edge cases
+- Fixed some known-cached types that were missing SystemOnline and SystemAll mixins 
+- Removed warning logs from LightMixin when checking supported modes
 
 <details>
     <summary>Older</summary>

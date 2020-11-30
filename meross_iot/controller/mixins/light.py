@@ -15,7 +15,6 @@ class LightMixin(object):
     Mixin class that enables light control.
     """
     _execute_command: callable
-    _abilities_spec: dict
     check_full_update_done: callable
     #async_handle_update: Callable[[Namespace, dict], Awaitable]
 
@@ -67,8 +66,10 @@ class LightMixin(object):
         return super_handled or locally_handled
 
     def _supports_mode(self, mode: LightMode, channel: int = 0) -> bool:
-        self.check_full_update_done()
-        capacity = self._abilities_spec.get(Namespace.CONTROL_LIGHT.value).get('capacity')
+        capacity = self.abilities.get(Namespace.CONTROL_LIGHT.value, {}).get('capacity')
+        if capacity is None:
+            return False
+
         return (capacity & mode.value) == mode.value
 
     def _update_channel_status(self,
@@ -164,7 +165,6 @@ class LightMixin(object):
 
         :return: True if the current device supports RGB color, False otherwise.
         """
-        self.check_full_update_done()
         return self._supports_mode(LightMode.MODE_RGB, channel=channel)
 
     def get_supports_luminance(self, channel: int = 0) -> bool:
@@ -175,7 +175,6 @@ class LightMixin(object):
 
         :return: True if the current device supports luminance mode, False otherwise.
         """
-        self.check_full_update_done()
         return self._supports_mode(LightMode.MODE_LUMINANCE, channel=channel)
 
     def get_supports_temperature(self, channel: int = 0) -> bool:
@@ -186,7 +185,6 @@ class LightMixin(object):
 
         :return: True if the current device supports temperature mode, False otherwise.
         """
-        self.check_full_update_done()
         return self._supports_mode(LightMode.MODE_TEMPERATURE, channel=channel)
 
     def get_rgb_color(self, channel=0, *args, **kwargs) -> Optional[RgbTuple]:

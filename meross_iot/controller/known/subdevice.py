@@ -31,15 +31,10 @@ class Ms100Sensor(GenericSubDevice):
                                drop_on_overquota: bool = True) -> dict:
         raise NotImplementedError("This method should never be called directly for subdevices.")
 
-    def __prepare_push_notification_data(self, data: dict):
-        update_element = data.copy()
-        del update_element['id']
-        return update_element
-
     async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
         if namespace == Namespace.HUB_ONLINE:
-            update_element = self.__prepare_push_notification_data(data=data)
+            update_element = self._prepare_push_notification_data(data=data, filter_accessor='online')
             self._online = OnlineStatus(update_element.get('status', -1))
             locally_handled = True
         elif namespace == Namespace.HUB_SENSOR_ALL:
@@ -163,7 +158,7 @@ class Mts100v3Valve(GenericSubDevice):
     async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
         if namespace == Namespace.HUB_ONLINE:
-            update_element = self.__prepare_push_notification_data(data=data)
+            update_element = self._prepare_push_notification_data(data=data, filter_accessor='online')
             self._online = OnlineStatus(update_element.get('status', -1))
             locally_handled = True
         elif namespace == Namespace.HUB_MTS100_ALL:
@@ -177,15 +172,15 @@ class Mts100v3Valve(GenericSubDevice):
             self.__temperature['latestSampleTime'] = datetime.utcnow().timestamp()
             locally_handled = True
         elif namespace == Namespace.HUB_TOGGLEX:
-            update_element = self.__prepare_push_notification_data(data=data)
+            update_element = self._prepare_push_notification_data(data=data, filter_accessor='togglex')
             self.__togglex.update(update_element)
             locally_handled = True
         elif namespace == Namespace.HUB_MTS100_MODE:
-            update_element = self.__prepare_push_notification_data(data=data)
+            update_element = self._prepare_push_notification_data(data=data, filter_accessor='mode')
             self.__mode.update(update_element)
             locally_handled = True
         elif namespace == Namespace.HUB_MTS100_TEMPERATURE:
-            update_element = self.__prepare_push_notification_data(data=data)
+            update_element = self._prepare_push_notification_data(data=data, filter_accessor='temperature')
             self.__temperature.update(update_element)
             self.__temperature['latestSampleTime'] = datetime.utcnow().timestamp()
             locally_handled = True
@@ -194,11 +189,6 @@ class Mts100v3Valve(GenericSubDevice):
         # ancestors to catch all events.
         parent_handled = await super().async_handle_push_notification(namespace=namespace, data=data)
         return locally_handled or parent_handled
-
-    def __prepare_push_notification_data(self, data: dict):
-        update_element = data.copy()
-        del update_element['id']
-        return update_element
 
     def is_on(self) -> Optional[bool]:
         return self.__togglex.get('onoff') == 1

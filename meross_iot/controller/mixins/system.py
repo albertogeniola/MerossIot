@@ -7,7 +7,6 @@ _LOGGER = logging.getLogger(__name__)
 
 class SystemAllMixin(object):
     _execute_command: callable
-    _abilities_spec: dict
     #async_handle_update: Callable[[Namespace, dict], Awaitable]
 
     def __init__(self, device_uuid: str,
@@ -30,7 +29,6 @@ class SystemAllMixin(object):
 
 
 class SystemOnlineMixin(object):
-    _abilities_spec: dict
     _online: OnlineStatus
     #async_handle_update: Callable[[Namespace, dict], Awaitable]
 

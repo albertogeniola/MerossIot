@@ -1,9 +1,10 @@
 from meross_iot.controller.device import BaseDevice
 from meross_iot.controller.mixins.electricity import ElectricityMixin
+from meross_iot.controller.mixins.system import SystemOnlineMixin, SystemAllMixin
 from meross_iot.controller.mixins.toggle import ToggleMixin, ToggleXMixin
 
 
-class MSS110(ToggleMixin, BaseDevice):
+class MSS110(SystemAllMixin, SystemOnlineMixin, ToggleMixin, BaseDevice):
     """
     MSS110 smart plug
     """
@@ -15,7 +16,7 @@ class MSS110(ToggleMixin, BaseDevice):
                          **kwargs)
 
 
-class MSS210(ToggleXMixin, BaseDevice):
+class MSS210(SystemAllMixin, SystemOnlineMixin, ToggleXMixin, BaseDevice):
     """
     MSS210 smart plug
     """
@@ -27,7 +28,7 @@ class MSS210(ToggleXMixin, BaseDevice):
                          **kwargs)
 
 
-class MSS310(ElectricityMixin, ToggleXMixin, BaseDevice):
+class MSS310(SystemAllMixin, SystemOnlineMixin, ElectricityMixin, ToggleXMixin, BaseDevice):
     """
     MSS310 device with electricity/power consumption reading
     """
@@ -39,7 +40,7 @@ class MSS310(ElectricityMixin, ToggleXMixin, BaseDevice):
                          **kwargs)
 
 
-class MSS710(ToggleXMixin, BaseDevice):
+class MSS710(SystemAllMixin, SystemOnlineMixin, ToggleXMixin, BaseDevice):
     """
     MSS710 device
     """

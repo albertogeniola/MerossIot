@@ -1,8 +1,9 @@
 from meross_iot.controller.device import BaseDevice
+from meross_iot.controller.mixins.system import SystemOnlineMixin, SystemAllMixin
 from meross_iot.controller.mixins.toggle import ToggleXMixin
 
 
-class MSS420F(ToggleXMixin, BaseDevice):
+class MSS420F(SystemAllMixin, SystemOnlineMixin, ToggleXMixin, BaseDevice):
     """
     MSS420F power strip
     """
@@ -20,7 +21,7 @@ class MSS420F(ToggleXMixin, BaseDevice):
                          **kwargs)
 
 
-class MSS425E(ToggleXMixin, BaseDevice):
+class MSS425E(SystemAllMixin, SystemOnlineMixin, ToggleXMixin, BaseDevice):
     """
     MSS425E power strip
     """
@@ -40,7 +41,7 @@ class MSS425E(ToggleXMixin, BaseDevice):
                          **kwargs)
 
 
-class MSS425F(ToggleXMixin, BaseDevice):
+class MSS425F(SystemAllMixin, SystemOnlineMixin, ToggleXMixin, BaseDevice):
     """
     MSS425F power strip
     """
@@ -61,7 +62,7 @@ class MSS425F(ToggleXMixin, BaseDevice):
                          **kwargs)
 
 
-class MSS530(ToggleXMixin, BaseDevice):
+class MSS530(SystemAllMixin, SystemOnlineMixin, ToggleXMixin, BaseDevice):
     """
     MSS530 Multiple light control switches
     """

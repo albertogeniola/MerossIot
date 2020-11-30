@@ -58,7 +58,6 @@ class HubMs100Mixin(object):
         Namespace.HUB_SENSOR_ALL: 'all'
     }
     _execute_command: callable
-    _abilities_spec: dict
     get_subdevice: callable
     uuid: str
 
@@ -127,7 +126,6 @@ class HubMts100Mixin(object):
         Namespace.HUB_MTS100_TEMPERATURE: 'temperature'
     }
     _execute_command: callable
-    _abilities_spec: dict
     get_subdevices: callable
     uuid: str
 

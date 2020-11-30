@@ -8,7 +8,6 @@ _LOGGER = logging.getLogger(__name__)
 
 class SprayMixin(object):
     _execute_command: callable
-    _abilities_spec: dict
     check_full_update_done: callable
     #async_handle_update: Callable[[Namespace, dict], Awaitable]
 

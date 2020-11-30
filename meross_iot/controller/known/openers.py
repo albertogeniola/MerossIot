@@ -1,8 +1,9 @@
 from meross_iot.controller.device import BaseDevice
 from meross_iot.controller.mixins.garage import GarageOpenerMixin
+from meross_iot.controller.mixins.system import SystemOnlineMixin, SystemAllMixin
 
 
-class MSG100(GarageOpenerMixin, BaseDevice):
+class MSG100(SystemAllMixin, SystemOnlineMixin, GarageOpenerMixin, BaseDevice):
     """
     MSG100 Garage Opener
     """

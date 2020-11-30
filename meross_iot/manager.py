@@ -329,7 +329,8 @@ class MerossManager(object):
             # based on its model type.
             try:
                 device = build_meross_device_from_known_types(http_device_info=device_info, manager=self)
-                _LOGGER.warning(f"Device {device_info.dev_name} ({device_info.uuid}) was built statically via known types.")
+                _LOGGER.warning(f"Device {device_info.dev_name} ({device_info.uuid}) was built statically via known "
+                                f"types, because we failed to retrieve updated abilities for the given device.")
             except UnknownDeviceType:
                 _LOGGER.error(f"Could not build statically device {device_info.dev_name} ({device_info.uuid}) as it's not a known type.")
 
@@ -489,8 +490,8 @@ class MerossManager(object):
             # Pass the control to the specific device implementation
             for dev in target_devs:
                 try:
-                    handled = handled or await dev.async_handle_push_notification(namespace=push_notification.namespace,
-                                                                                  data=push_notification.raw_data)
+                    handled = await dev.async_handle_push_notification(namespace=push_notification.namespace,
+                                                                       data=push_notification.raw_data) or handled
                 except Exception as e:
                     _LOGGER.exception("An unhandled exception occurred while handling push notification")
 

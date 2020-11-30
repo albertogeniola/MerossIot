@@ -1,10 +1,11 @@
 from meross_iot.controller.device import BaseDevice
 from meross_iot.controller.mixins.light import LightMixin
 from meross_iot.controller.mixins.spray import SprayMixin
+from meross_iot.controller.mixins.system import SystemAllMixin, SystemOnlineMixin
 from meross_iot.controller.mixins.toggle import ToggleXMixin
 
 
-class MSXH0(SprayMixin, LightMixin, ToggleXMixin, BaseDevice):
+class MSXH0(SystemAllMixin, SystemOnlineMixin, SprayMixin, LightMixin, ToggleXMixin, BaseDevice):
     """
     MSXH0 Smart Humidifier devices
     """

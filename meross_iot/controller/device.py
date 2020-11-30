@@ -4,7 +4,7 @@ import asyncio
 import logging
 import time
 from datetime import datetime
-from typing import List, Union, Optional, Iterable, Callable, Awaitable
+from typing import List, Union, Optional, Iterable, Callable, Awaitable, Dict
 
 from meross_iot.model.enums import OnlineStatus, Namespace
 from meross_iot.model.http.device import HttpDeviceInfo
@@ -282,7 +282,7 @@ class HubDevice(BaseDevice):
     def register_subdevice(self, subdevice: GenericSubDevice) -> None:
         # If the device is already registed, skip it
         if subdevice.subdevice_id in self._sub_devices:
-            _LOGGER.error(f"Subdevice {subdevice.subdevice_id} has been already registered to this HUB ({self.name})")
+            _LOGGER.info(f"Subdevice {subdevice.subdevice_id} has been already registered to this HUB ({self.name})")
             return
 
         self._sub_devices[subdevice.subdevice_id] = subdevice
@@ -376,6 +376,20 @@ class GenericSubDevice(BaseDevice):
             return self._hub.online_status
 
         return self._online
+
+    def _prepare_push_notification_data(self, data: dict, filter_accessor: str) -> Dict:
+        # Operate only on relative accessor
+        context = data.get(filter_accessor)
+
+        for notification in context:
+            if notification.get('id') != self.subdevice_id:
+                _LOGGER.warning("Ignoring notification %s as it does not target "
+                                "to subdevice id %s", notification, self.subdevice_id)
+                continue
+            return notification
+
+        _LOGGER.warning("Push notification %s was delivered to device %s, but not sub-id was the expected sub-id %s",
+                        data, self.name, self.subdevice_id)
 
 
 class ChannelInfo(object):
