@@ -377,19 +377,24 @@ class GenericSubDevice(BaseDevice):
 
         return self._online
 
-    def _prepare_push_notification_data(self, data: dict, filter_accessor: str) -> Dict:
-        # Operate only on relative accessor
-        context = data.get(filter_accessor)
-
-        for notification in context:
-            if notification.get('id') != self.subdevice_id:
-                _LOGGER.warning("Ignoring notification %s as it does not target "
-                                "to subdevice id %s", notification, self.subdevice_id)
-                continue
+    def _prepare_push_notification_data(self, data: dict, filter_accessor: str = None) -> Dict:
+        if filter_accessor is not None:
+            # Operate only on relative accessor
+            context = data.get(filter_accessor)
+            for notification in context:
+                if notification.get('id') != self.subdevice_id:
+                    _LOGGER.warning("Ignoring notification %s as it does not target "
+                                    "to subdevice id %s", notification, self.subdevice_id)
+                    continue
+                return notification
+        else:
+            notification = data.copy()
+            if 'id' in notification:
+                if notification.get('id') != self.subdevice_id:
+                    _LOGGER.error("Ignoring notification %s as it does not target "
+                                  "to subdevice id %s", notification, self.subdevice_id)
+                notification.pop('id')
             return notification
-
-        _LOGGER.warning("Push notification %s was delivered to device %s, but not sub-id was the expected sub-id %s",
-                        data, self.name, self.subdevice_id)
 
 
 class ChannelInfo(object):
