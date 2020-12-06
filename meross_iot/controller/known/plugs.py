@@ -40,6 +40,17 @@ class MSS310(SystemAllMixin, SystemOnlineMixin, ElectricityMixin, ToggleXMixin, 
                          **kwargs)
 
 
+class MSS620(SystemAllMixin, SystemOnlineMixin, ToggleXMixin, BaseDevice):
+    """
+    MSS710 device
+    """
+    def __init__(self, device_uuid: str, manager, **kwargs):
+        if 'channels' not in kwargs:
+            kwargs['channels'] = [{}]
+        super().__init__(device_uuid=device_uuid,
+                         manager=manager,
+                         **kwargs)
+
 class MSS710(SystemAllMixin, SystemOnlineMixin, ToggleXMixin, BaseDevice):
     """
     MSS710 device
