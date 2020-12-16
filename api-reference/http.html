@@ -182,8 +182,184 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="http-client">
-<h1>HTTP Client<a class="headerlink" href="#http-client" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-meross_iot.http_api">
+<span id="http-client"></span><h1>HTTP Client<a class="headerlink" href="#module-meross_iot.http_api" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="meross_iot.http_api.ErrorCodes">
+<em class="property">class </em><code class="sig-prename descclassname">meross_iot.http_api.</code><code class="sig-name descname">ErrorCodes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.http_api.ErrorCodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>An enumeration.</p>
+<dl class="py attribute">
+<dt id="meross_iot.http_api.ErrorCodes.CODE_BAD_PASSWORD_FORMAT">
+<code class="sig-name descname">CODE_BAD_PASSWORD_FORMAT</code><em class="property"> = 1006</em><a class="headerlink" href="#meross_iot.http_api.ErrorCodes.CODE_BAD_PASSWORD_FORMAT" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bad password format</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="meross_iot.http_api.ErrorCodes.CODE_DISABLED_OR_DELETED_ACCOUNT">
+<code class="sig-name descname">CODE_DISABLED_OR_DELETED_ACCOUNT</code><em class="property"> = 1003</em><a class="headerlink" href="#meross_iot.http_api.ErrorCodes.CODE_DISABLED_OR_DELETED_ACCOUNT" title="Permalink to this definition">¶</a></dt>
+<dd><p>This account has been disabled or deleted</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="meross_iot.http_api.ErrorCodes.CODE_INVALID_EMAIL">
+<code class="sig-name descname">CODE_INVALID_EMAIL</code><em class="property"> = 1005</em><a class="headerlink" href="#meross_iot.http_api.ErrorCodes.CODE_INVALID_EMAIL" title="Permalink to this definition">¶</a></dt>
+<dd><p>Invalid email address</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="meross_iot.http_api.ErrorCodes.CODE_MISSING_PASSWORD">
+<code class="sig-name descname">CODE_MISSING_PASSWORD</code><em class="property"> = 1001</em><a class="headerlink" href="#meross_iot.http_api.ErrorCodes.CODE_MISSING_PASSWORD" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrong or missing password</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="meross_iot.http_api.ErrorCodes.CODE_NO_ERROR">
+<code class="sig-name descname">CODE_NO_ERROR</code><em class="property"> = 0</em><a class="headerlink" href="#meross_iot.http_api.ErrorCodes.CODE_NO_ERROR" title="Permalink to this definition">¶</a></dt>
+<dd><p>Not an error</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="meross_iot.http_api.ErrorCodes.CODE_TOKEN_EXPIRED">
+<code class="sig-name descname">CODE_TOKEN_EXPIRED</code><em class="property"> = 1200</em><a class="headerlink" href="#meross_iot.http_api.ErrorCodes.CODE_TOKEN_EXPIRED" title="Permalink to this definition">¶</a></dt>
+<dd><p>Token has expired</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="meross_iot.http_api.ErrorCodes.CODE_TOKEN_INVALID">
+<code class="sig-name descname">CODE_TOKEN_INVALID</code><em class="property"> = 1019</em><a class="headerlink" href="#meross_iot.http_api.ErrorCodes.CODE_TOKEN_INVALID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Token expired</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="meross_iot.http_api.ErrorCodes.CODE_TOO_MANY_TOKENS">
+<code class="sig-name descname">CODE_TOO_MANY_TOKENS</code><em class="property"> = 1301</em><a class="headerlink" href="#meross_iot.http_api.ErrorCodes.CODE_TOO_MANY_TOKENS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Too many tokens have been issued</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="meross_iot.http_api.ErrorCodes.CODE_UNEXISTING_ACCOUNT">
+<code class="sig-name descname">CODE_UNEXISTING_ACCOUNT</code><em class="property"> = 1002</em><a class="headerlink" href="#meross_iot.http_api.ErrorCodes.CODE_UNEXISTING_ACCOUNT" title="Permalink to this definition">¶</a></dt>
+<dd><p>Account does not exist</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="meross_iot.http_api.ErrorCodes.CODE_WRONG_CREDENTIALS">
+<code class="sig-name descname">CODE_WRONG_CREDENTIALS</code><em class="property"> = 1004</em><a class="headerlink" href="#meross_iot.http_api.ErrorCodes.CODE_WRONG_CREDENTIALS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrong email or password</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="meross_iot.http_api.ErrorCodes.CODE_WRONG_EMAIL">
+<code class="sig-name descname">CODE_WRONG_EMAIL</code><em class="property"> = 1008</em><a class="headerlink" href="#meross_iot.http_api.ErrorCodes.CODE_WRONG_EMAIL" title="Permalink to this definition">¶</a></dt>
+<dd><p>This email is not registered</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="meross_iot.http_api.MerossHttpClient">
+<em class="property">class </em><code class="sig-prename descclassname">meross_iot.http_api.</code><code class="sig-name descname">MerossHttpClient</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cloud_credentials</span><span class="p">:</span> <span class="n">meross_iot.model.credentials.MerossCloudCreds</span></em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.http_api.MerossHttpClient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Utility class for dealing with Meross HTTP API.
+This class simplifies the usage of the Meross HTTP API providing login, logout and device listing API.</p>
+<dl class="py method">
+<dt id="meross_iot.http_api.MerossHttpClient.async_from_user_password">
+<em class="property">async classmethod </em><code class="sig-name descname">async_from_user_password</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">email</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">password</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#meross_iot.http_api.MerossHttpClient" title="meross_iot.http_api.MerossHttpClient">meross_iot.http_api.MerossHttpClient</a><a class="headerlink" href="#meross_iot.http_api.MerossHttpClient.async_from_user_password" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds a MerossHttpClient using username/password combination.
+In any case, the login will generate a token, which might expire at any time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>email</strong> – Meross account email</p></li>
+<li><p><strong>password</strong> – Meross account password</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="meross_iot.http_api.MerossHttpClient.async_invalidate_credentials">
+<em class="property">async classmethod </em><code class="sig-name descname">async_invalidate_credentials</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">creds</span><span class="p">:</span> <span class="n">meross_iot.model.credentials.MerossCloudCreds</span></em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.http_api.MerossHttpClient.async_invalidate_credentials" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class method used to invalidate credentials without logging in with a full MerossHttpClient.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>creds</strong> – <cite>MerossCloudCredentials</cite> as returned by <cite>async_login()</cite> or <cite>async_from_user_password()</cite></p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="meross_iot.http_api.MerossHttpClient.async_list_devices">
+<em class="property">async </em><code class="sig-name descname">async_list_devices</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>meross_iot.model.http.device.HttpDeviceInfo<span class="p">]</span><a class="headerlink" href="#meross_iot.http_api.MerossHttpClient.async_list_devices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Asks to the HTTP api to list the Meross device belonging to the given user account.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="meross_iot.http_api.MerossHttpClient.async_list_hub_subdevices">
+<em class="property">async </em><code class="sig-name descname">async_list_hub_subdevices</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">hub_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>meross_iot.model.http.subdevice.HttpSubdeviceInfo<span class="p">]</span><a class="headerlink" href="#meross_iot.http_api.MerossHttpClient.async_list_hub_subdevices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the sub-devices associated to the given hub.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>hub_id</strong> – Meross native UUID of the HUB</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="meross_iot.http_api.MerossHttpClient.async_login">
+<em class="property">async classmethod </em><code class="sig-name descname">async_login</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">email</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">password</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">set_env_var</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">creds_env_var_name</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'__MEROSS_CREDS'</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span> &#x2192; meross_iot.model.credentials.MerossCloudCreds<a class="headerlink" href="#meross_iot.http_api.MerossHttpClient.async_login" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs the login against the Meross HTTP endpoint.
+This api returns a MerossCloudCreds object, which contains a token.
+Be cautious when invoking this API: asking for too many tokens as the Meross HTTP API might refuse
+to issue more tokens. Instead, you should keep using the same issued token when possible, possibly
+storing it across sessions. When you are done using a specific token, be sure to invoke logout
+to invalidate it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>email</strong> – Meross account email</p></li>
+<li><p><strong>password</strong> – Meross account password</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="meross_iot.http_api.MerossHttpClient.async_logout">
+<em class="property">async </em><code class="sig-name descname">async_logout</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.http_api.MerossHttpClient.async_logout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Invalidates the credentials stored in this object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="meross_iot.http_api.MerossHttpClient.cloud_credentials">
+<em class="property">property </em><code class="sig-name descname">cloud_credentials</code><a class="headerlink" href="#meross_iot.http_api.MerossHttpClient.cloud_credentials" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the meross credentials returned by the the HTTP Api
+:return:</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 
 

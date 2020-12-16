@@ -182,8 +182,127 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="merossmanager">
-<h1>MerossManager<a class="headerlink" href="#merossmanager" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-meross_iot.manager">
+<span id="merossmanager"></span><h1>MerossManager<a class="headerlink" href="#module-meross_iot.manager" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="meross_iot.manager.MerossManager">
+<em class="property">class </em><code class="sig-prename descclassname">meross_iot.manager.</code><code class="sig-name descname">MerossManager</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">http_client</span><span class="p">:</span> <span class="n"><a class="reference internal" href="http.html#meross_iot.http_api.MerossHttpClient" title="meross_iot.http_api.MerossHttpClient">meross_iot.http_api.MerossHttpClient</a></span></em>, <em class="sig-param"><span class="n">auto_reconnect</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>bool<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">domain</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">'iot.meross.com'</span></em>, <em class="sig-param"><span class="n">port</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">2001</span></em>, <em class="sig-param"><span class="n">ca_cert</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">loop</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>asyncio.events.AbstractEventLoop<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">over_limit_threshold_percentage</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">300</span></em>, <em class="sig-param"><span class="n">burst_requests_per_second_limit</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">2</span></em>, <em class="sig-param"><span class="n">requests_per_second_limit</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwords</span></em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.manager.MerossManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class implements a full-features Meross Client, which provides device discovery and registry.
+<em>Note</em>: The manager must be initialized before invoking any of its discovery/registry methods. As soon as
+you create a manager, you shoul call <a class="reference internal" href="#meross_iot.manager.MerossManager.async_init" title="meross_iot.manager.MerossManager.async_init"><code class="xref py py-meth docutils literal notranslate"><span class="pre">async_init()</span></code></a>!</p>
+<dl class="py method">
+<dt id="meross_iot.manager.MerossManager.async_device_discovery">
+<em class="property">async </em><code class="sig-name descname">async_device_discovery</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">update_subdevice_status</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">meross_device_uuid</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; Iterable<span class="p">[</span><a class="reference internal" href="controller/device/base.html#meross_iot.controller.device.BaseDevice" title="meross_iot.controller.device.BaseDevice">meross_iot.controller.device.BaseDevice</a><span class="p">]</span><a class="headerlink" href="#meross_iot.manager.MerossManager.async_device_discovery" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch devices and online status from HTTP API. This method also notifies/updates local device online/offline
+status.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>meross_device_uuid</strong> – Meross UUID of the device that the user wants to discover (is already known). This parameter
+restricts the discovery only to that particular device. When None, all the devices
+reported by the HTTP api will be discovered.</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>:param update_subdevice_status When True, tells the manager to retrieve the HUB status in order to update</dt><dd><p>hub-subdevice online status, which would be UNKNOWN if not explicitly retrieved.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="meross_iot.manager.MerossManager.async_execute_cmd">
+<em class="property">async </em><code class="sig-name descname">async_execute_cmd</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">destination_device_uuid</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">method</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">namespace</span><span class="p">:</span> <span class="n">meross_iot.model.enums.Namespace</span></em>, <em class="sig-param"><span class="n">payload</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">timeout</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">5.0</span></em>, <em class="sig-param"><span class="n">skip_rate_limiting_check</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">drop_on_overquota</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.manager.MerossManager.async_execute_cmd" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method sends a command to the MQTT Meross broker.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>destination_device_uuid</strong> – </p></li>
+<li><p><strong>method</strong> – Can be GET/SET</p></li>
+<li><p><strong>namespace</strong> – Command namspace</p></li>
+<li><p><strong>payload</strong> – A dict containing the payload to be sent</p></li>
+<li><p><strong>timeout</strong> – Maximum time interval in seconds to wait for the command-answer</p></li>
+<li><p><strong>skip_rate_limiting_check</strong> – When True, no API rate limit is performed for executing the command</p></li>
+<li><p><strong>drop_on_overquota</strong> – When True, API calls that hit the overquota limit will be dropped.
+If set to False, those calls will not be dropped, but delayed accordingly.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="meross_iot.manager.MerossManager.async_init">
+<em class="property">async </em><code class="sig-name descname">async_init</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.manager.MerossManager.async_init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connects to the remote MQTT broker and subscribes to the relevant topics. This method should be
+invoked only once before using any other method of this class.
+:return:</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="meross_iot.manager.MerossManager.find_devices">
+<code class="sig-name descname">find_devices</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">device_uuids</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Iterable<span class="p">[</span>str<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">internal_ids</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Iterable<span class="p">[</span>str<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">device_type</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">device_class</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>type<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">device_name</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">online_status</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>meross_iot.model.enums.OnlineStatus<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>T<span class="p">]</span><a class="headerlink" href="#meross_iot.manager.MerossManager.find_devices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lists devices that have been discovered via this manager. When invoked with no arguments,
+it returns the whole list of registered devices. When one or more filter arguments are specified,
+it returns the list of devices that satisfy all the filters (consider multiple filters as in logical AND).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>device_uuids</strong> – List of Meross native device UUIDs. When specified, only devices that have a native UUID
+contained in this list are returned.</p></li>
+<li><p><strong>internal_ids</strong> – Iterable List of MerossIot device ids. When specified, only devices that have a
+derived-ids contained in this list are returned.</p></li>
+<li><p><strong>device_type</strong> – Device type string as reported by meross app (e.g. “mss310” or “msl120”). Note that this
+field is case sensitive.</p></li>
+<li><p><strong>device_class</strong> – Filter based on the resulting device class. You can filter also for capability Mixins,
+such as <code class="code docutils literal notranslate"><span class="pre">meross_iot.controller.mixins.toggle.ToggleXMixin</span></code> (returns all the devices supporting
+ToggleX capability) or <code class="code docutils literal notranslate"><span class="pre">meross_iot.controller.mixins.light.LightMixin</span></code>
+(returns all the device that supports light control).
+You can also identify all the HUB devices by specifying <code class="code docutils literal notranslate"><span class="pre">meross_iot.controller.device.HubDevice</span></code>,
+Sensors as <code class="code docutils literal notranslate"><span class="pre">meross_iot.controller.subdevice.Ms100Sensor</span></code> and Valves as
+Sensors as <code class="code docutils literal notranslate"><span class="pre">meross_iot.controller.subdevice.Mts100v3Valve</span></code>.</p></li>
+<li><p><strong>device_name</strong> – Filter the devices based on their assigned name (case sensitive)</p></li>
+<li><p><strong>online_status</strong> – Filter the devices based on their <code class="code docutils literal notranslate"><span class="pre">meross_iot.model.enums.OnlineStatus</span></code>
+as reported by the HTTP api or byt the relative hub (when dealing with subdevices).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The list of devices that match the provided filters, if any.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="meross_iot.manager.MerossManager.register_push_notification_handler_coroutine">
+<code class="sig-name descname">register_push_notification_handler_coroutine</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">coro</span><span class="p">:</span> <span class="n">Callable<span class="p">[</span><span class="p">[</span>meross_iot.model.push.generic.GenericPushNotification<span class="p">, </span>List<span class="p">[</span><a class="reference internal" href="controller/device/base.html#meross_iot.controller.device.BaseDevice" title="meross_iot.controller.device.BaseDevice">meross_iot.controller.device.BaseDevice</a><span class="p">]</span><span class="p">]</span><span class="p">, </span>Awaitable<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.manager.MerossManager.register_push_notification_handler_coroutine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Registers a coroutine so that it gets invoked whenever a push notification is received from the Meross
+MQTT broker.
+:param coro: coroutine-function: a function that, when invoked, returns a Coroutine object that can be awaited.
+:return:</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="meross_iot.manager.MerossManager.unregister_push_notification_handler_coroutine">
+<code class="sig-name descname">unregister_push_notification_handler_coroutine</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">coro</span><span class="p">:</span> <span class="n">Callable<span class="p">[</span><span class="p">[</span>meross_iot.model.push.generic.GenericPushNotification<span class="p">, </span>List<span class="p">[</span><a class="reference internal" href="controller/device/base.html#meross_iot.controller.device.BaseDevice" title="meross_iot.controller.device.BaseDevice">meross_iot.controller.device.BaseDevice</a><span class="p">]</span><span class="p">]</span><span class="p">, </span>Awaitable<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.manager.MerossManager.unregister_push_notification_handler_coroutine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unregisters the event handler
+:param coro: coroutine-function: a function that, when invoked, returns a Coroutine object that can be awaited.</p>
+<blockquote>
+<div><p>This coroutine function should have been previously registered</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 
 
