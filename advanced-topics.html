@@ -92,6 +92,7 @@
 <li class="toctree-l1"><a class="reference internal" href="common-gotchas.html">Common gotchas</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Advanced topics</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#managing-rate-limits">Managing rate limits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#logging">Logging</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#sniff-device-data">Sniff device data</a></li>
 </ul>
 </li>
@@ -206,6 +207,13 @@ In fact, the <cite>MerossManager</cite> supports the following parameters:</p>
 </tr>
 </tbody>
 </table>
+</div>
+<div class="section" id="logging">
+<h2>Logging<a class="headerlink" href="#logging" title="Permalink to this headline">¶</a></h2>
+<p>This library relies on the standard Python’s logging module.
+It is possible to control the logging verbosity by modifying the severity of meross_iot log level, as shown
+in the following example.</p>
+<p>That code snippet will raise the log-level to WARNING, so DEBUG and INFO messages are not logged any longer.</p>
 </div>
 <div class="section" id="sniff-device-data">
 <h2>Sniff device data<a class="headerlink" href="#sniff-device-data" title="Permalink to this headline">¶</a></h2>

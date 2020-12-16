@@ -193,7 +193,7 @@ name, type (i.e. device specific model), firmware/hardware version, a Meross int
 identifier, a library assigned internal identifier.</p>
 <dl class="method">
 <dt id="meross_iot.controller.device.BaseDevice.async_update">
-<em class="property">async </em><code class="sig-name descname">async_update</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.device.BaseDevice.async_update" title="Permalink to this definition">¶</a></dt>
+<em class="property">async </em><code class="sig-name descname">async_update</code><span class="sig-paren">(</span><em class="sig-param">skip_rate_limits: bool = False</em>, <em class="sig-param">drop_on_overquota: bool = True</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.device.BaseDevice.async_update" title="Permalink to this definition">¶</a></dt>
 <dd><p>Forces a full data update on the device. If your network bandwidth is limited or you are running
 this program on an embedded device, try to invoke this method only when strictly needed.
 Most of the parameters of a device are updated automatically upon push-notification received

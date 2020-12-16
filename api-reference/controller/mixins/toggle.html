@@ -205,7 +205,7 @@ and smart bulbs.</p>
 
 <dl class="method">
 <dt id="meross_iot.controller.mixins.toggle.ToggleXMixin.async_turn_off">
-<em class="property">async </em><code class="sig-name descname">async_turn_off</code><span class="sig-paren">(</span><em class="sig-param">channel=0</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.mixins.toggle.ToggleXMixin.async_turn_off" title="Permalink to this definition">¶</a></dt>
+<em class="property">async </em><code class="sig-name descname">async_turn_off</code><span class="sig-paren">(</span><em class="sig-param">channel=0</em>, <em class="sig-param">skip_rate_limits: bool = False</em>, <em class="sig-param">drop_on_overquota: bool = True</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.mixins.toggle.ToggleXMixin.async_turn_off" title="Permalink to this definition">¶</a></dt>
 <dd><p>Turns off the specified channel of the device</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -219,7 +219,7 @@ and smart bulbs.</p>
 
 <dl class="method">
 <dt id="meross_iot.controller.mixins.toggle.ToggleXMixin.async_turn_on">
-<em class="property">async </em><code class="sig-name descname">async_turn_on</code><span class="sig-paren">(</span><em class="sig-param">channel=0</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.mixins.toggle.ToggleXMixin.async_turn_on" title="Permalink to this definition">¶</a></dt>
+<em class="property">async </em><code class="sig-name descname">async_turn_on</code><span class="sig-paren">(</span><em class="sig-param">channel=0</em>, <em class="sig-param">skip_rate_limits: bool = False</em>, <em class="sig-param">drop_on_overquota: bool = True</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.mixins.toggle.ToggleXMixin.async_turn_on" title="Permalink to this definition">¶</a></dt>
 <dd><p>Turns on the specified channel of the device</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
