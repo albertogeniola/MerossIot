@@ -1,21 +1,21 @@
 import asyncio
+import getpass
 import json
 import logging
 import os
 import ssl
+import sys
 import uuid as UUID
 from hashlib import md5
 from os import path, environ
 from threading import Event
 from zipfile import ZipFile
-import getpass
-import sys
 import paho.mqtt.client as mqtt
-
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
 from meross_iot.model.enums import Namespace, OnlineStatus
 from meross_iot.utilities.mqtt import build_device_request_topic, build_client_response_topic, build_client_user_topic
+
 
 SNIFF_LOG_FILE = 'sniff.log'
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -136,7 +136,7 @@ class DeviceSniffer(object):
         l.debug("Disconnected from MQTT brocker")
 
 
-async def main():
+async def _main():
     print("Welcome to the Sniffer utility. This python script will gather some useful information about your "
           "Meross devices. All the collected information will be zipped into a zip archive. "
           "You could share such zip file with the developers to help them add support for your device. "
@@ -243,11 +243,15 @@ async def main():
     print("Thanks for helping the Meross community!")
 
 
-if __name__ == '__main__':
+def main():
     # On Windows + Python 3.8, you should uncomment the following
     if os.name == 'nt':
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(main())
+    loop.run_until_complete(_main())
     loop.close()
+
+
+if __name__ == '__main__':
+    main()

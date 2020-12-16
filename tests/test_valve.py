@@ -1,18 +1,22 @@
 import asyncio
-import os
 from random import randint
 
 from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
-
-from meross_iot.controller.subdevice import Mts100v3Valve
-from meross_iot.http_api import MerossHttpClient
+from meross_iot.controller.known.subdevice import Mts100v3Valve
 from meross_iot.manager import MerossManager
-from meross_iot.model.enums import ThermostatV3Mode
+from meross_iot.model.enums import ThermostatV3Mode, OnlineStatus
 from meross_iot.model.plugin.hub import BatteryInfo
+from tests import async_get_client
+import os
 
-EMAIL = os.environ.get('MEROSS_EMAIL')
-PASSWORD = os.environ.get('MEROSS_PASSWORD')
+
+if os.name == 'nt':
+    import asyncio
+
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+else:
+    import asyncio
 
 
 class TestValve(AioHTTPTestCase):
@@ -20,13 +24,15 @@ class TestValve(AioHTTPTestCase):
         return web.Application()
 
     async def setUpAsync(self):
-        self.meross_client = await MerossHttpClient.async_from_user_password(email=EMAIL, password=PASSWORD)
+        # Wait some time before next test-burst
+        await asyncio.sleep(10)
+        self.meross_client, self.requires_logout = await async_get_client()
 
         # Look for a device to be used for this test
         self.meross_manager = MerossManager(http_client=self.meross_client)
         await self.meross_manager.async_init()
         await self.meross_manager.async_device_discovery()
-        self.test_devices = self.meross_manager.find_devices(device_class=Mts100v3Valve)
+        self.test_devices = self.meross_manager.find_devices(device_class=Mts100v3Valve, online_status=OnlineStatus.ONLINE)
 
     @unittest_run_loop
     async def test_ambient_temperature(self):
@@ -117,7 +123,7 @@ class TestValve(AioHTTPTestCase):
         await dev1.async_turn_on()
 
         # Create a new manager
-        new_meross_client = await MerossHttpClient.async_from_user_password(email=EMAIL, password=PASSWORD)
+        new_meross_client, requires_logout = await async_get_client()
         m = None
         try:
             # Retrieve the same device with another manager
@@ -151,7 +157,9 @@ class TestValve(AioHTTPTestCase):
         finally:
             if m is not None:
                 m.close()
-            await new_meross_client.async_logout()
+            if requires_logout:
+                await new_meross_client.async_logout()
 
     async def tearDownAsync(self):
-        await self.meross_client.async_logout()
+        if self.requires_logout:
+            await self.meross_client.async_logout()

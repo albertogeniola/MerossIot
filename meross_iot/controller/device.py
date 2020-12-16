@@ -3,11 +3,11 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from typing import List, Union, Optional, Iterable, Coroutine, Callable, Any, Awaitable
+from datetime import datetime
+from typing import List, Union, Optional, Iterable, Callable, Awaitable, Dict
 
 from meross_iot.model.enums import OnlineStatus, Namespace
 from meross_iot.model.http.device import HttpDeviceInfo
-from datetime import datetime
 from meross_iot.model.plugin.hub import BatteryInfo
 
 _LOGGER = logging.getLogger(__name__)
@@ -34,10 +34,17 @@ class BaseDevice(object):
         self._hwversion = kwargs.get('hdwareVersion')
         self._online = OnlineStatus(kwargs.get('onlineStatus', -1))
 
-        self._abilities = {}
+        if hasattr(self, "_abilities_spec"):
+            self._abilities = self._abilities_spec
+        else:
+            self._abilities = {}
         self._push_coros = []
         self._last_full_update_ts = None
     # TODO: register sync_event_handler?
+
+    @property
+    def abilities(self):
+        return self._abilities
 
     @property
     def last_full_update_timestamp(self):
@@ -182,7 +189,11 @@ class BaseDevice(object):
         # rather than updating the last_full_update_ts
         return False
 
-    async def async_update(self, *args, **kwargs) -> None:
+    async def async_update(self,
+                           skip_rate_limits: bool = False,
+                           drop_on_overquota: bool = True,
+                           *args,
+                           **kwargs) -> None:
         """
         Forces a full data update on the device. If your network bandwidth is limited or you are running
         this program on an embedded device, try to invoke this method only when strictly needed.
@@ -196,7 +207,7 @@ class BaseDevice(object):
         # device type. For instance, wifi devices use GET System.Appliance.ALL while HUBs use a different one.
         # Implementing mixin should never call the super() implementation (as it happens
         # with _handle_update) as we want to use only an UPDATE_ALL method.
-        # However, we want to keep it within the MerossBaseDevice so that we expose a consistent
+        # Howe                               ver, we want to keep it within the MerossBaseDevice so that we expose a consistent
         # interface.
         """
         pass
@@ -205,14 +216,23 @@ class BaseDevice(object):
         # TODO: Should we do something here?
         pass
 
-    async def _execute_command(self, method: str, namespace: Namespace, payload: dict, timeout: float = 5) -> dict:
+    async def _execute_command(self,
+                               method: str,
+                               namespace: Namespace,
+                               payload: dict,
+                               timeout: float = 5,
+                               skip_rate_limits: bool = False,
+                               drop_on_overquota: bool = True
+                               ) -> dict:
         return await self._manager.async_execute_cmd(destination_device_uuid=self.uuid,
                                                      method=method,
                                                      namespace=namespace,
                                                      payload=payload,
-                                                     timeout=timeout)
+                                                     timeout=timeout,
+                                                     skip_rate_limiting_check=skip_rate_limits,
+                                                     drop_on_overquota=drop_on_overquota)
 
-    def __str__(self) -> str:
+    def __repr__(self):
         basic_info = f"{self.name} ({self.type}, HW {self.hardware_version}, FW {self.firmware_version})"
         return basic_info
 
@@ -262,7 +282,7 @@ class HubDevice(BaseDevice):
     def register_subdevice(self, subdevice: GenericSubDevice) -> None:
         # If the device is already registed, skip it
         if subdevice.subdevice_id in self._sub_devices:
-            _LOGGER.error(f"Subdevice {subdevice.subdevice_id} has been already registered to this HUB ({self.name})")
+            _LOGGER.info(f"Subdevice {subdevice.subdevice_id} has been already registered to this HUB ({self.name})")
             return
 
         self._sub_devices[subdevice.subdevice_id] = subdevice
@@ -284,23 +304,36 @@ class GenericSubDevice(BaseDevice):
             raise ValueError("Specified hub device is not present")
         self._hub = hub[0]
 
-    async def _execute_command(self, method: str, namespace: Namespace, payload: dict, timeout: float = 5) -> dict:
+    async def _execute_command(self,
+                               method: str,
+                               namespace: Namespace,
+                               payload: dict,
+                               timeout: float = 5,
+                               skip_rate_limits: bool = False,
+                               drop_on_overquota: bool = True
+                               ) -> dict:
         # Every command should be invoked via HUB?
         raise NotImplementedError("Subdevices should rely on Hub in order to send commands.")
 
-    async def async_update(self, *args, **kwargs) -> None:
+    async def async_update(self,
+                           skip_rate_limits: bool = False,
+                           drop_on_overquota: bool = True,
+                           *args,
+                           **kwargs) -> None:
         if self._UPDATE_ALL_NAMESPACE is None:
             _LOGGER.error("GenericSubDevice does not implement any GET_ALL namespace. Update won't be performed.")
             pass
 
         # When dealing with hubs, we need to "intercept" the UPDATE()
-        await super().async_update(*args, **kwargs)
+        await super().async_update(skip_rate_limits=skip_rate_limits, drop_on_overquota=drop_on_overquota, *args, **kwargs)
 
         # When issuing an update-all command to the hub,
         # we need to query all sub-devices.
         result = await self._hub._execute_command(method="GET",
                                                   namespace=self._UPDATE_ALL_NAMESPACE,
-                                                  payload={'all': [{'id': self.subdevice_id}]})
+                                                  payload={'all': [{'id': self.subdevice_id}]},
+                                                  skip_rate_limits=skip_rate_limits,
+                                                  drop_on_overquota=drop_on_overquota)
         subdevices_states = result.get('all')
         for subdev_state in subdevices_states:
             subdev_id = subdev_state.get('id')
@@ -310,14 +343,20 @@ class GenericSubDevice(BaseDevice):
             await self.async_handle_push_notification(namespace=self._UPDATE_ALL_NAMESPACE, data=subdev_state)
             break
 
-    async def async_get_battery_life(self) -> BatteryInfo:
+    async def async_get_battery_life(self,
+                                     skip_rate_limits: bool = False,
+                                     drop_on_overquota: bool = True,
+                                     *args,
+                                     **kwargs) -> BatteryInfo:
         """
         Polls the HUB/DEVICE to get its current battery status.
         :return:
         """
         data = await self._hub._execute_command(method='GET',
                                                 namespace=Namespace.HUB_BATTERY,
-                                                payload={'battery': [{'id': self.subdevice_id}]})
+                                                payload={'battery': [{'id': self.subdevice_id}]},
+                                                skip_rate_limits=skip_rate_limits,
+                                                drop_on_overquota=drop_on_overquota)
         battery_life_perc = data.get('battery', {})[0].get('value')
         timestamp = datetime.utcnow()
         return BatteryInfo(battery_charge=battery_life_perc, sample_ts=timestamp)
@@ -337,6 +376,25 @@ class GenericSubDevice(BaseDevice):
             return self._hub.online_status
 
         return self._online
+
+    def _prepare_push_notification_data(self, data: dict, filter_accessor: str = None) -> Dict:
+        if filter_accessor is not None:
+            # Operate only on relative accessor
+            context = data.get(filter_accessor)
+            for notification in context:
+                if notification.get('id') != self.subdevice_id:
+                    _LOGGER.warning("Ignoring notification %s as it does not target "
+                                    "to subdevice id %s", notification, self.subdevice_id)
+                    continue
+                return notification
+        else:
+            notification = data.copy()
+            if 'id' in notification:
+                if notification.get('id') != self.subdevice_id:
+                    _LOGGER.error("Ignoring notification %s as it does not target "
+                                  "to subdevice id %s", notification, self.subdevice_id)
+                notification.pop('id')
+            return notification
 
 
 class ChannelInfo(object):

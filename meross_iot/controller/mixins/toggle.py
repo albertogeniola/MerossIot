@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, Awaitable, Callable
+from typing import Optional
 
 from meross_iot.model.enums import Namespace
 
@@ -77,7 +77,7 @@ class ToggleXMixin(object):
         self.check_full_update_done()
         return self._channel_togglex_status.get(channel, None)
 
-    async def async_turn_off(self, channel=0, *args, **kwargs) -> None:
+    async def async_turn_off(self, channel=0, skip_rate_limits: bool = False, drop_on_overquota: bool = True, *args, **kwargs) -> None:
         """
         Turns off the specified channel of the device
 
@@ -85,11 +85,16 @@ class ToggleXMixin(object):
 
         :return: None
         """
-        await self._execute_command("SET", Namespace.CONTROL_TOGGLEX, {'togglex': {"onoff": 0, "channel": channel}})
+        await self._execute_command(method="SET",
+                                    namespace=Namespace.CONTROL_TOGGLEX,
+                                    payload={'togglex': {"onoff": 0, "channel": channel}},
+                                    skip_rate_limits=skip_rate_limits,
+                                    drop_on_overquota=drop_on_overquota)
+
         # Assume the command was ok, so immediately update the internal state
         self._channel_togglex_status[channel] = False
 
-    async def async_turn_on(self, channel=0, *args, **kwargs) -> None:
+    async def async_turn_on(self, channel=0, skip_rate_limits: bool = False, drop_on_overquota: bool = True, *args, **kwargs) -> None:
         """
         Turns on the specified channel of the device
 
@@ -98,7 +103,11 @@ class ToggleXMixin(object):
 
         :return: None
         """
-        await self._execute_command("SET", Namespace.CONTROL_TOGGLEX, {'togglex': {"onoff": 1, "channel": channel}})
+        await self._execute_command(method="SET",
+                                    namespace=Namespace.CONTROL_TOGGLEX,
+                                    payload={'togglex': {"onoff": 1, "channel": channel}},
+                                    skip_rate_limits=skip_rate_limits,
+                                    drop_on_overquota=drop_on_overquota)
         # Assume the command was ok, so immediately update the internal state
         self._channel_togglex_status[channel] = True
 
@@ -163,11 +172,23 @@ class ToggleMixin(object):
         self.check_full_update_done()
         return self._channel_toggle_status.get(channel, None)
 
-    async def async_turn_off(self, channel=0, *args, **kwargs) -> None:
-        await self._execute_command("SET", Namespace.CONTROL_TOGGLE, {'toggle': {"onoff": 0, "channel": channel}})
+    async def async_turn_off(self, channel=0, skip_rate_limits: bool = False, drop_on_overquota: bool = True, *args, **kwargs) -> None:
+        await self._execute_command(method="SET",
+                                    namespace=Namespace.CONTROL_TOGGLE,
+                                    payload={'toggle': {"onoff": 0, "channel": channel}},
+                                    skip_rate_limits=skip_rate_limits,
+                                    drop_on_overquota=drop_on_overquota)
+        # Assume the command was ok, so immediately update the internal state
+        self._channel_toggle_status[channel] = False
 
-    async def async_turn_on(self, channel=0, *args, **kwargs) -> None:
-        await self._execute_command("SET", Namespace.CONTROL_TOGGLE, {'toggle': {"onoff": 1, "channel": channel}})
+    async def async_turn_on(self, channel=0, skip_rate_limits: bool = False, drop_on_overquota: bool = True, *args, **kwargs) -> None:
+        await self._execute_command(method="SET",
+                                    namespace=Namespace.CONTROL_TOGGLE,
+                                    payload={'toggle': {"onoff": 1, "channel": channel}},
+                                    skip_rate_limits=skip_rate_limits,
+                                    drop_on_overquota=drop_on_overquota)
+        # Assume the command was ok, so immediately update the internal state
+        self._channel_toggle_status[channel] = True
 
     async def async_toggle(self, channel=0, *args, **kwargs) -> None:
         if self.is_on(channel=channel):

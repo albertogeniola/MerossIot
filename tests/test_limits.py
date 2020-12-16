@@ -1,24 +1,20 @@
 import os
-from random import randint
-import asyncio
-from typing import List, Any
+from typing import List
 
 from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
 from meross_iot.controller.mixins.electricity import ElectricityMixin
-from meross_iot.controller.mixins.light import LightMixin
-from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
 from meross_iot.model.enums import OnlineStatus
 from meross_iot.model.exception import RateLimitExceeded
-
-EMAIL = os.environ.get('MEROSS_EMAIL')
-PASSWORD = os.environ.get('MEROSS_PASSWORD')
-
+from tests import async_get_client
 
 if os.name == 'nt':
+    import asyncio
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+else:
+    import asyncio
 
 
 class TestLimits(AioHTTPTestCase):
@@ -28,14 +24,16 @@ class TestLimits(AioHTTPTestCase):
         return web.Application()
 
     async def setUpAsync(self):
-        self.meross_client = await MerossHttpClient.async_from_user_password(email=EMAIL, password=PASSWORD)
+        # Wait some time before next test-burst
+        await asyncio.sleep(10)
+        self.meross_client, self.requires_logout = await async_get_client()
 
         # Look for a device to be used for this test
-        manager = MerossManager(http_client=self.meross_client, max_requests_per_second=4)
+        manager = MerossManager(http_client=self.meross_client, max_requests_per_second=2)
         await manager.async_init()
         devices = await manager.async_device_discovery()
 
-        self.test_sensors = manager.find_devices(device_class=ElectricityMixin)
+        self.test_sensors = manager.find_devices(device_class=ElectricityMixin, online_status=OnlineStatus.ONLINE)
 
     async def _perform_requests(self, sensor: ElectricityMixin, n_requests: int):
         tasks = []
@@ -48,7 +46,7 @@ class TestLimits(AioHTTPTestCase):
         if len(self.test_sensors) < 1:
             self.skipTest("No device found for this test")
 
-        await self._perform_requests(sensor=self.test_sensors[0], n_requests=20)
+        await self._perform_requests(sensor=self.test_sensors[0], n_requests=4)
 
     @unittest_run_loop
     async def test_unsustainable_rate(self):
@@ -58,4 +56,5 @@ class TestLimits(AioHTTPTestCase):
             await self._perform_requests(sensor=self.test_sensors[0], n_requests=200)
 
     async def tearDownAsync(self):
-        await self.meross_client.async_logout()
+        if self.requires_logout:
+            await self.meross_client.async_logout()

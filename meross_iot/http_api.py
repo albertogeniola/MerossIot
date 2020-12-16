@@ -19,6 +19,8 @@ from meross_iot.model.http.device import HttpDeviceInfo
 from meross_iot.model.http.exception import TooManyTokensException, TokenExpiredException, AuthenticatedPostException, \
     HttpApiError, BadLoginException
 from meross_iot.model.http.subdevice import HttpSubdeviceInfo
+import os
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -61,7 +63,7 @@ class ErrorCodes(Enum):
     CODE_TOKEN_INVALID = 1019
     """Token expired"""
 
-    CODE_TOKEN_EXPIRED = 1022
+    CODE_TOKEN_EXPIRED = 1200
     """Token has expired"""
 
     CODE_TOO_MANY_TOKENS = 1301
@@ -102,7 +104,17 @@ class MerossHttpClient(object):
         return MerossHttpClient(cloud_credentials=creds)
 
     @classmethod
-    async def async_login(cls, email: str, password: str) -> MerossCloudCreds:
+    async def async_from_cloud_creds(cls, creds: MerossCloudCreds) -> MerossHttpClient:
+        # Use _log method to verify the credentials
+        verify_creds = await cls._async_log(creds=creds)
+        return MerossHttpClient(cloud_credentials=creds)
+
+    @classmethod
+    async def async_login(cls, email: str,
+                          password: str,
+                          set_env_var: bool = False,
+                          creds_env_var_name: str = '__MEROSS_CREDS',
+                          *args, **kwargs) -> MerossCloudCreds:
         """
         Performs the login against the Meross HTTP endpoint.
         This api returns a MerossCloudCreds object, which contains a token.
@@ -125,6 +137,8 @@ class MerossHttpClient(object):
             user_email=response_data["email"],
             issued_on=datetime.utcnow()
         )
+        if set_env_var:
+            os.environ[creds_env_var_name] = base64.b64encode(creds.to_json().encode("utf8")).decode("utf8")
         return creds
 
     @classmethod
@@ -134,7 +148,6 @@ class MerossHttpClient(object):
                                         cloud_creds: Optional[MerossCloudCreds] = None,
                                         mask_params_in_log: bool = False
                                         ) -> dict:
-
         nonce = _generate_nonce(16)
         timestamp_millis = int(round(time.time() * 1000))
         login_params = _encode_params(params_data)
@@ -224,7 +237,8 @@ class MerossHttpClient(object):
         result = await cls._async_authenticated_post(_LOGOUT_URL, {}, cloud_creds=creds)
         return result
 
-    async def _async_log(self) -> dict:
+    @classmethod
+    async def _async_log(cls, creds: MerossCloudCreds) -> dict:
         """
         Executes the LOG HTTP api. So far, it's still unknown whether this is needed and what it does.
         Most probably it logs the device specification to the remote endpoint for stats.
@@ -235,7 +249,7 @@ class MerossHttpClient(object):
         #  emulating an Android 6 device.
         data = {'extra': {}, 'model': 'Android,Android SDK built for x86_64', 'system': 'Android',
                 'uuid': '493dd9174941ed58waitForOpenWifi', 'vendor': 'Meross', 'version': '6.0'}
-        return await self._async_authenticated_post(_LOG_URL, params_data=data)
+        return await cls._async_authenticated_post(_LOG_URL, params_data=data, cloud_creds=creds)
 
     async def async_list_devices(self) -> List[HttpDeviceInfo]:
         """
@@ -266,3 +280,105 @@ def _encode_params(parameters: dict):
 def _generate_nonce(length: int):
     return ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(length))
 
+
+def unauthenticated_command_executor(func, *args, **kwargs):
+    def cmd(*iargs, **ikwargs):
+        import asyncio
+
+        # Fix event loop for Windows env
+        if os.name == 'nt':
+            import asyncio
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+        params = {k: v for (k, v) in iargs[0].__dict__.items() if k not in ("func", )}
+
+        loop = asyncio.get_event_loop()
+        data = loop.run_until_complete(func(**params))
+        print(data)
+        loop.close()
+
+    return cmd
+
+
+def authenticated_command_executor(method, *args, **kwargs):
+    def cmd(*iargs, **ikwargs):
+        import asyncio
+        import os
+
+        async def execute(method, *args, **kwargs):
+            b64creds = os.getenv("__MEROSS_CREDS", None)
+            if b64creds is None:
+                raise ValueError("This method requires __MEROSS_CREDS env variable set. "
+                                 "Please invoke auth login first.")
+
+            jsoncreds = base64.b64decode(b64creds)
+            creds = MerossCloudCreds.from_json(jsoncreds)
+            client = await MerossHttpClient.async_from_cloud_creds(creds)
+            m = getattr(client, method)
+            return await m(*args, **kwargs)
+
+        # Fix event loop for Windows env
+        if os.name == 'nt':
+            import asyncio
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+        params = {k: v for (k, v) in iargs[0].__dict__.items() if k not in ("func", "credentials")}
+
+        loop = asyncio.get_event_loop()
+        data = loop.run_until_complete(execute(method, **params))
+        print(data)
+        loop.close()
+
+    return cmd
+
+
+def main():
+    import sys
+    from argparse import ArgumentParser
+    # Root parser
+    parser = ArgumentParser(
+        prog="meross_api_cli",
+        description="Meross HTTP API utility",
+        epilog="Created by Alberto Geniola")
+    subparsers = parser.add_subparsers()
+
+    # auth parser
+    parser_auth = subparsers.add_parser('auth')
+    auth_subparsers = parser_auth.add_subparsers()
+
+    # auth login
+    auth_login = auth_subparsers.add_parser('login',
+                                            description="Logs in into meross HTTP api and prints out the credentials")
+    auth_login.add_argument('--email', type=str, required=True, help='Account username/email')
+    auth_login.add_argument('--password', type=str, required=True, help='Account password')
+    auth_login.add_argument('--set-env-var', default=True, action='store_true',
+                            help='When set, stores the credentials into the environment var MEROSS_CREDS')
+    auth_login.set_defaults(func=unauthenticated_command_executor(MerossHttpClient.async_login))
+
+    # auth logout
+    auth_login = auth_subparsers.add_parser('logout', description="Logs out by invalidating the current token")
+    auth_login.set_defaults(func=authenticated_command_executor("async_logout"))
+
+    # device parser
+    parser_device = subparsers.add_parser('device')
+    device_subparsers = parser_device.add_subparsers()
+
+    # devlist
+    dev_list = device_subparsers.add_parser('list', description="Lists meross devices")
+    dev_list.set_defaults(func=authenticated_command_executor("async_list_devices"))
+
+    # hub parser
+    parser_hub = subparsers.add_parser('hub')
+    parser_hub.add_argument("--hub_id", required=True, help="Hub uuid")
+    hub_subparsers = parser_hub.add_subparsers()
+
+    # getsubdevices
+    subdev_list = hub_subparsers.add_parser('list_sub_devices', description="Lists subdevices for the given hub")
+    subdev_list.set_defaults(func=authenticated_command_executor("async_list_hub_subdevices"))
+
+    data = parser.parse_args(sys.argv[1:])
+    data.func(data)
+
+
+if __name__ == '__main__':
+    main()

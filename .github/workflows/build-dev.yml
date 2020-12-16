@@ -50,7 +50,7 @@ jobs:
       TPLINK_PASS: ${{ secrets.TPLINK_PASS }}
     steps:
       - name: Setup Node.js environment
-        uses: actions/setup-node@v1.4.2
+        uses: actions/setup-node@v2-beta
         with:
           node-version: 11.x
       - uses: actions/checkout@v2
@@ -95,7 +95,11 @@ jobs:
         MEROSS_EMAIL: ${{ secrets.MEROSS_EMAIL }}
         MEROSS_PASSWORD: ${{ secrets.MEROSS_PASSWORD }}
       run: |
+        pip install .
+        # Set credentials into memory
+        meross_api_cli auth login --email $MEROSS_EMAIL --password "$MEROSS_PASSWORD"
         pytest tests --doctest-modules --junitxml=junit/test-results.xml --cov=. --cov-report=xml --cov-report=html --html=junit/test-results.html --self-contained-html
+        meross_api_cli auth logout
     - name: Upload pytest test results
       uses: actions/upload-artifact@v2
       with:
@@ -124,7 +128,7 @@ jobs:
       TPLINK_PASS: ${{ secrets.TPLINK_PASS }}
     steps:
       - name: Setup Node.js environment
-        uses: actions/setup-node@v1.4.2
+        uses: actions/setup-node@v2-beta
         with:
           node-version: 11.x
       - uses: actions/checkout@v2

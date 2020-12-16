@@ -5,128 +5,38 @@ import random
 import ssl
 import string
 import sys
-from time import time
 from asyncio import Future, AbstractEventLoop
 from asyncio import TimeoutError
 from hashlib import md5
+from time import time
 from typing import Optional, List, TypeVar, Iterable, Callable, Awaitable, Tuple
+
 import paho.mqtt.client as mqtt
+
 from meross_iot.controller.device import BaseDevice, HubDevice, GenericSubDevice
-from meross_iot.device_factory import build_meross_device, build_meross_subdevice
+from meross_iot.device_factory import build_meross_device_from_abilities, build_meross_subdevice, \
+    build_meross_device_from_known_types
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.model.enums import Namespace, OnlineStatus
-from meross_iot.model.exception import CommandTimeoutError, CommandError, RateLimitExceeded
+from meross_iot.model.exception import CommandTimeoutError, CommandError, RateLimitExceeded, UnknownDeviceType
 from meross_iot.model.exception import UnconnectedError
 from meross_iot.model.http.device import HttpDeviceInfo
 from meross_iot.model.http.subdevice import HttpSubdeviceInfo
-from meross_iot.model.push.bind import BindPushNotification
 from meross_iot.model.push.factory import parse_push_notification
 from meross_iot.model.push.generic import GenericPushNotification
 from meross_iot.model.push.unbind import UnbindPushNotification
+from meross_iot.utilities.limiter import RateLimitChecker, RateLimitResult, RateLimitResultStrategy
 from meross_iot.utilities.mqtt import generate_mqtt_password, generate_client_and_app_id, build_client_response_topic, \
     build_client_user_topic, verify_message_signature, device_uuid_from_push_notification, build_device_request_topic
-from datetime import timedelta
-from enum import Enum
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO, stream=sys.stdout)
 _LOGGER = logging.getLogger(__name__)
+_LIMITER = logging.getLogger("meross_iot.manager.apilimiter")
+
+
+_CONNECTION_DROP_UPDATE_SCHEDULE_INTERVAL = 2
 
 T = TypeVar('T', bound=BaseDevice)  # Declare type variable
-
-
-class TokenBucketRateLimiter(object):
-    """
-    Simple implementation of token bucket rate limiter algorithm
-    Careful: This class is not thread-safe.
-    """
-
-    def __init__(self,
-                 window_interval: timedelta,
-                 tokens_per_interval: int,
-                 max_burst_size: int):
-        self._window_interval_seconds = window_interval.total_seconds()
-        self._tokens_per_interval = tokens_per_interval
-        self._max_burst = max_burst_size
-
-        # Let's keep track of limit hits in the ongoing time-window
-        self._limit_hits_in_window = 0
-
-        # Set the initial interval end in the past, so that the first iteration is consistent with the following ones
-        self._current_window_end = time() - self._window_interval_seconds
-        self._remaining_tokens = 0
-
-    def _add_tokens(self):
-        # Calculate the number of tokens that we should add.
-        # This is calculated as number of intervals we skipped * tokens_per_interval
-        # However, we can only add up to max_burst tokens
-        now = time()
-        if now < self._current_window_end:
-            # Do not add tokens for intervals that have been already
-            # considered
-            return
-
-        # Calculate how many intervals have passed since the end of the previous one
-        n_intervals = (now - self._current_window_end) // self._window_interval_seconds + 1
-        n_tokens = n_intervals * self._tokens_per_interval
-        self._remaining_tokens = min(self._remaining_tokens + n_tokens, self._max_burst)
-        self._current_window_end = now + self._window_interval_seconds
-        self._limit_hits_in_window = 0
-
-    @property
-    def over_limit_percentace(self):
-        return (self._limit_hits_in_window / self._max_burst) * 100
-
-    def check_limit_reached(self) -> bool:
-        # Add tokens if needed
-        self._add_tokens()
-
-        if self._remaining_tokens > 0:
-            self._remaining_tokens -= 1
-            return False
-
-        self._limit_hits_in_window += 1
-        return True
-
-
-class RateLimitResult(Enum):
-    NotLimited = 0,
-    GlobalLimitReached = 1,
-    PerDeviceLimitReached = 2
-
-
-class RateLimitChecker(object):
-    def __init__(self,
-                 global_burst_rate=4,
-                 global_time_window=timedelta(seconds=1),
-                 global_tokens_per_interval=2,
-                 device_burst_rate=2,
-                 device_time_window=timedelta(seconds=1),
-                 device_tokens_per_interval=1):
-        # Global limiter configuration
-        self._global_limiter = TokenBucketRateLimiter(window_interval=global_time_window,
-                                                      tokens_per_interval=global_tokens_per_interval,
-                                                      max_burst_size=global_burst_rate)
-        # Device limiters
-        self._devices_limiters = {}
-        self._device_burst_rate = device_burst_rate
-        self._device_time_window = device_time_window
-        self._device_tokens_per_interval = device_tokens_per_interval
-
-    def check_limits(self, device_uuid) -> Tuple[RateLimitResult, float]:
-        # Check the device limit first
-        if device_uuid not in self._devices_limiters:
-            self._devices_limiters[device_uuid] = TokenBucketRateLimiter(window_interval=self._device_time_window,
-                                                                         tokens_per_interval=self._device_tokens_per_interval,
-                                                                         max_burst_size=self._device_burst_rate)
-        device_limiter = self._devices_limiters[device_uuid]
-        if device_limiter.check_limit_reached():
-            return RateLimitResult.PerDeviceLimitReached, device_limiter.over_limit_percentace
-
-        # Check the global rate limiter
-        if self._global_limiter.check_limit_reached():
-            return RateLimitResult.GlobalLimitReached, self._global_limiter.over_limit_percentace
-
-        return RateLimitResult.NotLimited, 0
 
 
 class MerossManager(object):
@@ -143,9 +53,8 @@ class MerossManager(object):
                  port: Optional[int] = 2001,
                  ca_cert: Optional[str] = None,
                  loop: Optional[AbstractEventLoop] = None,
-                 over_limit_delay_seconds: int = 1,
-                 over_limit_threshold_percentage: float = 1000,
-                 burst_requests_per_second_limit: int = 4,
+                 over_limit_threshold_percentage: float = 300,
+                 burst_requests_per_second_limit: int = 2,
                  requests_per_second_limit: int = 1,
                  *args,
                  **kwords) -> None:
@@ -186,7 +95,6 @@ class MerossManager(object):
         self._user_topic = build_client_user_topic(user_id=self._cloud_creds.user_id)
 
         # Setup a rate limiter
-        self._over_limit_delay = over_limit_delay_seconds
         self._over_limit_threshold = over_limit_threshold_percentage
         self._limiter = RateLimitChecker(
             global_burst_rate=burst_requests_per_second_limit,
@@ -194,6 +102,19 @@ class MerossManager(object):
             global_tokens_per_interval=requests_per_second_limit,
             device_tokens_per_interval=requests_per_second_limit
         )
+        _LOGGER.info("Applying rate-limit checker config: \n "
+                     "- Global Max Burst Rate: %d" 
+                     "- Per-Device Max Burst Rate: %d" 
+                     "- Global Burst Rate: %d"
+                     "- Per-Device Burst Rate: %d",
+                     burst_requests_per_second_limit,
+                     burst_requests_per_second_limit,
+                     requests_per_second_limit,
+                     requests_per_second_limit)
+
+    @property
+    def limiter(self) -> RateLimitChecker:
+        return self._limiter
 
     def register_push_notification_handler_coroutine(self, coro: Callable[
         [GenericPushNotification, List[BaseDevice]], Awaitable]) -> None:
@@ -290,7 +211,7 @@ class MerossManager(object):
         self.__initialized = True
 
     async def async_device_discovery(self, update_subdevice_status: bool = True,
-                                     meross_device_uuid: str = None) -> None:
+                                     meross_device_uuid: str = None) -> Iterable[BaseDevice]:
         """
         Fetch devices and online status from HTTP API. This method also notifies/updates local device online/offline
         status.
@@ -353,15 +274,20 @@ class MerossManager(object):
                     subdevtasks.append(self._loop.create_task(
                         self._async_enroll_new_http_subdev(subdevice_info=sd,
                                                            hub=d,
-                                                           hub_reported_abilities=d._abilities)))
+                                                           hub_reported_abilities=d.abilities)))
         # Wait for factory to build all devices
         enrolled_subdevices = await asyncio.gather(*subdevtasks, loop=self._loop)
 
         # We need to update the state of hubs in order to refresh subdevices online status
         if update_subdevice_status:
             for h in hubs:
-                await h.async_update()
+                await h.async_update(drop_on_overquota=False)
         _LOGGER.info(f"\n------- HTTP discovery ended -------\n")
+
+        res = []
+        res.extend(enrolled_devices)
+        res.extend(enrolled_subdevices)
+        return res
 
     async def _async_enroll_new_http_subdev(self,
                                             subdevice_info: HttpSubdeviceInfo,
@@ -372,35 +298,46 @@ class MerossManager(object):
                                            hub_reported_abilities=hub_reported_abilities,
                                            manager=self)
         # Register the device to the hub
-        hub.register_subdevice(subdevice=subdevice)
+        if hub.get_subdevice(subdevice_id=subdevice.subdevice_id) is None:
+            hub.register_subdevice(subdevice=subdevice)
+        else:
+            _LOGGER.debug("HUB %s already knows subdevice %s", hub.uuid, subdevice)
 
         # Enroll the device
         self._device_registry.enroll_device(subdevice)
         return subdevice
 
     async def _async_enroll_new_http_dev(self, device_info: HttpDeviceInfo) -> Optional[BaseDevice]:
-        try:
-            # Only get abilities if the device is online.
-            if device_info.online_status != OnlineStatus.ONLINE:
-                _LOGGER.info(f"Could not retrieve abilities for device  {device_info.dev_name} ({device_info.uuid}). "
-                             f"This device won't be enrolled.")
-                return None
-            res_abilities = await self.async_execute_cmd(destination_device_uuid=device_info.uuid,
-                                                         method="GET",
-                                                         namespace=Namespace.SYSTEM_ABILITY,
-                                                         payload={})
-            abilities = res_abilities.get('ability')
-        except CommandTimeoutError:
-            _LOGGER.error(f"Failed to retrieve abilities for device {device_info.dev_name} ({device_info.uuid}). "
-                          f"This device won't be enrolled.")
-            return None
-
-        # Build a full-featured device using the given ability set
-        device = build_meross_device(http_device_info=device_info, device_abilities=abilities, manager=self)
+        # If the device is online, try to query the device for its abilities.
+        device = None
+        abilities = None
+        if device_info.online_status == OnlineStatus.ONLINE:
+            try:
+                res_abilities = await self.async_execute_cmd(destination_device_uuid=device_info.uuid,
+                                                             method="GET",
+                                                             namespace=Namespace.SYSTEM_ABILITY,
+                                                             payload={})
+                abilities = res_abilities.get('ability')
+            except CommandTimeoutError:
+                _LOGGER.warning(f"Device {device_info.dev_name} ({device_info.uuid}) is online, but timeout occurred "
+                                f"when fetching its abilities.")
+        if abilities is not None:
+            # Build a full-featured device using the given ability set
+            device = build_meross_device_from_abilities(http_device_info=device_info, device_abilities=abilities, manager=self)
+        else:
+            # In case we failed to build device's abilities at runtime, try to build the device statically
+            # based on its model type.
+            try:
+                device = build_meross_device_from_known_types(http_device_info=device_info, manager=self)
+                _LOGGER.warning(f"Device {device_info.dev_name} ({device_info.uuid}) was built statically via known "
+                                f"types, because we failed to retrieve updated abilities for the given device.")
+            except UnknownDeviceType:
+                _LOGGER.error(f"Could not build statically device {device_info.dev_name} ({device_info.uuid}) as it's not a known type.")
 
         # Enroll the device
-        self._device_registry.enroll_device(device)
-        return device
+        if device is not None:
+            self._device_registry.enroll_device(device)
+            return device
 
     def _on_connect(self, client, userdata, rc, other):
         # NOTE! This method is called by the paho-mqtt thread, thus any invocation to the
@@ -409,7 +346,7 @@ class MerossManager(object):
         _LOGGER.debug(f"Connected with result code {rc}")
         # Subscribe to the relevant topics
         _LOGGER.debug("Subscribing to topics...")
-        client.subscribe([(self._user_topic, 0), (self._client_response_topic, 0)])
+        client.subscribe([(self._user_topic, 0), (self._client_response_topic, 0)], qos=1)
 
     def _on_disconnect(self, client, userdata, rc):
         # NOTE! This method is called by the paho-mqtt thread, thus any invocation to the
@@ -449,14 +386,13 @@ class MerossManager(object):
             self._mqtt_connected_and_subscribed.set
         )
 
-        # When subscribing again on the mqtt, trigger an update for all the devices that are currently registered
-        tasks = []
-
-        _LOGGER.info("Subscribed to topics, updating state for already known devices...")
+        # When subscribing again on the mqtt, trigger an update for all the devices that are currently registered.
+        # To avoid flooding, schedule updates every 2s intervals.
+        _LOGGER.info("Subscribed to topics, scheduling state update for already known devices.")
+        i = 0
         for d in self.find_devices():
-            tasks.append(self._loop.create_task(d.async_update()))
-        results = asyncio.gather(*tasks, loop=self._loop)
-        _LOGGER.info(f"Updated {len(list(results))} devices.")
+            _schedule_later(coroutine=d.async_update(drop_on_overquota=False), start_delay=i, loop=self._loop)
+            i += _CONNECTION_DROP_UPDATE_SCHEDULE_INTERVAL
 
     def _on_message(self, client, userdata, msg):
         # NOTE! This method is called by the paho-mqtt thread, thus any invocation to the
@@ -515,6 +451,7 @@ class MerossManager(object):
                 else:
                     _LOGGER.error(f"Unhandled message method {message_method}. Please report it to the developer."
                                   f"raw_msg: {msg}")
+                del self._pending_messages_futures[message_id]
         # Check case 3: PUSH notification.
         # Again, here we don't check the source topic, we trust that's legitimate.
         elif destination_topic == build_client_user_topic(self._cloud_creds.user_id) and message_method == 'PUSH':
@@ -553,8 +490,8 @@ class MerossManager(object):
             # Pass the control to the specific device implementation
             for dev in target_devs:
                 try:
-                    handled = handled or await dev.async_handle_push_notification(namespace=push_notification.namespace,
-                                                                                  data=push_notification.raw_data)
+                    handled = await dev.async_handle_push_notification(namespace=push_notification.namespace,
+                                                                       data=push_notification.raw_data) or handled
                 except Exception as e:
                     _LOGGER.exception("An unhandled exception occurred while handling push notification")
 
@@ -604,12 +541,37 @@ class MerossManager(object):
             _LOGGER.warning(f"Uncaught push notification {push_notification.namespace}. "
                             f"Raw data: {json.dumps(push_notification.raw_data)}")
 
+    def _api_rate_limit_checks(self, destination_device_uuid: str) -> Tuple[RateLimitResultStrategy, float]:
+        limit_result, time_to_wait, overlimit_percentage = self._limiter.check_limits(
+            device_uuid=destination_device_uuid)
+        _LIMITER.debug("Number of API request within the last time-window: %s\n"
+                       "Global over limit percentage: %f %%",
+                       self._limiter.global_rate_limiter.current_window_hitrate,
+                       self._limiter.global_rate_limiter.over_limit_percentace)
+
+        if limit_result != RateLimitResult.NotLimited:
+            _LOGGER.debug(f"Current over-limit: {overlimit_percentage} %")
+            # If the over-limit rate is too high, just drop the call.
+            if overlimit_percentage > self._over_limit_threshold:
+                _LOGGER.debug(f"Rate limit reached: over-limit percentage is {overlimit_percentage}% which exceeds "
+                              f"the current {self._over_limit_threshold} limit.")
+                return RateLimitResultStrategy.DropCall, time_to_wait
+
+            # In case the limit is hit but the the overlimit is sustainable, do not raise an exception, just
+            # buy some time
+            _LOGGER.debug(f"Rate limit reached ({limit_result}).")
+            return RateLimitResultStrategy.DelayCall, time_to_wait
+        else:
+            return RateLimitResultStrategy.PerformCall, 0
+
     async def async_execute_cmd(self,
                                 destination_device_uuid: str,
                                 method: str,
                                 namespace: Namespace,
                                 payload: dict,
-                                timeout: float = 5.0):
+                                timeout: float = 5.0,
+                                skip_rate_limiting_check: bool = False,
+                                drop_on_overquota: bool = True):
         """
         This method sends a command to the MQTT Meross broker.
 
@@ -617,8 +579,10 @@ class MerossManager(object):
         :param method: Can be GET/SET
         :param namespace: Command namspace
         :param payload: A dict containing the payload to be sent
-        :param timeout:
-
+        :param timeout: Maximum time interval in seconds to wait for the command-answer
+        :param skip_rate_limiting_check: When True, no API rate limit is performed for executing the command
+        :param drop_on_overquota: When True, API calls that hit the overquota limit will be dropped.
+                                  If set to False, those calls will not be dropped, but delayed accordingly.
         :return:
         """
         # Only proceed if we are connected to the remote endpoint
@@ -626,24 +590,27 @@ class MerossManager(object):
             _LOGGER.error("The MQTT client is not connected to the remote broker. Have you called async_init()?")
             raise UnconnectedError()
 
-        # Check API rate limits.
-        limit_result, overlimit_percentage = self._limiter.check_limits(device_uuid=destination_device_uuid)
-        if limit_result != RateLimitResult.NotLimited:
-            _LOGGER.debug(f"Current over-limit: {overlimit_percentage} %")
-            # If the over-limit rate is too high, just drop the call.
-            if overlimit_percentage > self._over_limit_threshold:
-                _LOGGER.error(f"Rate limit reached: over-limit percentage is {overlimit_percentage}% which exceeds "
-                              f"the current {self._over_limit_threshold} limit. The call will be dropped.")
+        # Check rate limits
+        if not skip_rate_limiting_check:
+            rate_limiting_action, time_to_wait = self._api_rate_limit_checks(destination_device_uuid=destination_device_uuid)
+            if rate_limiting_action == RateLimitResultStrategy.PerformCall:
+                pass
+            elif rate_limiting_action == RateLimitResultStrategy.DelayCall or \
+                    rate_limiting_action == RateLimitResultStrategy.DropCall and not drop_on_overquota:
+                _LOGGER.debug("The current API rate is too high or exceeds the overquota limit (%f %%). The call will be delayed of %f s.",
+                              self._over_limit_threshold, time_to_wait)
+                await asyncio.sleep(delay=time_to_wait, loop=self._loop)
+                return await self.async_execute_cmd(destination_device_uuid=destination_device_uuid,
+                                                    method=method, namespace=namespace, payload=payload,
+                                                    timeout=timeout)
+            elif rate_limiting_action == RateLimitResultStrategy.DropCall:
+                _LOGGER.error("The current API rate exceeds the overquota limit (%f %%). The call will be dropped.",
+                              self._over_limit_threshold)
                 raise RateLimitExceeded()
+            else:
+                raise ValueError("Unsupported rate-limiting action")
 
-            # In case the limit is hit but the the overlimit is sustainable, do not raise an exception, just
-            # buy some time
-            _LOGGER.debug(f"Rate limit reached: api call will be delayed by {self._over_limit_delay} seconds")
-            await asyncio.sleep(delay=self._over_limit_delay, loop=self._loop)
-            return await self.async_execute_cmd(destination_device_uuid=destination_device_uuid,
-                                                method=method, namespace=namespace, payload=payload,
-                                                timeout=timeout)
-
+        # Send the message over the network
         # Build the mqtt message we will send to the broker
         message, message_id = self._build_mqtt_message(method, namespace, payload)
 
@@ -658,12 +625,12 @@ class MerossManager(object):
         return response.get('payload')
 
     async def _async_send_and_wait_ack(self, future: Future, target_device_uuid: str, message: dict, timeout: float):
-        md = self._mqtt_client.publish(topic=build_device_request_topic(target_device_uuid), payload=message)
+        md = self._mqtt_client.publish(topic=build_device_request_topic(target_device_uuid), payload=message, qos=1)
         try:
             return await asyncio.wait_for(future, timeout, loop=self._loop)
         except TimeoutError as e:
             _LOGGER.error(f"Timeout occurred while waiting a response for message {message} sent to device uuid "
-                          f"{target_device_uuid}. Timeout was: {timeout} seconds")
+                          f"{target_device_uuid}. Timeout was: {timeout} seconds.")
             raise CommandTimeoutError()
 
     async def _notify_connection_drop(self):
@@ -710,7 +677,8 @@ class MerossManager(object):
                     "namespace": namespace.value,  # Example: "Appliance.System.All",
                     "payloadVersion": 1,
                     "sign": signature,  # Example: "b4236ac6fb399e70c3d61e98fcb68b74",
-                    "timestamp": timestamp
+                    "timestamp": timestamp,
+                    'triggerSrc': 'Android'
                 },
             "payload": payload
         }
@@ -790,4 +758,16 @@ def _handle_future(future: Future, result: object, exception: Exception):
     if exception is not None:
         future.set_exception(exception)
     else:
-        future.set_result(result)
+        if future.cancelled():
+            _LOGGER.debug("Skipping set_result for cancelled future.")
+        elif future.done():
+            _LOGGER.error("This future is already done: cannot set result.")
+        else:
+            future.set_result(result)
+
+
+def _schedule_later(coroutine, start_delay, loop):
+    async def delayed_execution(coro, delay, loop):
+        await asyncio.sleep(delay=delay, loop=loop)
+        await coro
+    asyncio.ensure_future(delayed_execution(coro=coroutine, delay=start_delay, loop=loop), loop=loop)

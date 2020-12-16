@@ -3,18 +3,18 @@ import os
 from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
-from meross_iot.controller.subdevice import Ms100Sensor
-from meross_iot.http_api import MerossHttpClient
+from meross_iot.controller.known.subdevice import Ms100Sensor
 from meross_iot.manager import MerossManager
+from meross_iot.model.enums import OnlineStatus
 from meross_iot.model.plugin.hub import BatteryInfo
-
-EMAIL = os.environ.get('MEROSS_EMAIL')
-PASSWORD = os.environ.get('MEROSS_PASSWORD')
+from tests import async_get_client
 
 
 if os.name == 'nt':
     import asyncio
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+else:
+    import asyncio
 
 
 class TestSensor(AioHTTPTestCase):
@@ -22,13 +22,15 @@ class TestSensor(AioHTTPTestCase):
         return web.Application()
 
     async def setUpAsync(self):
-        self.meross_client = await MerossHttpClient.async_from_user_password(email=EMAIL, password=PASSWORD)
+        # Wait some time before next test-burst
+        await asyncio.sleep(10)
+        self.meross_client, self.requires_logout = await async_get_client()
 
         # Look for a device to be used for this test
         self.meross_manager = MerossManager(http_client=self.meross_client)
         await self.meross_manager.async_init()
         await self.meross_manager.async_device_discovery()
-        self.test_devices = self.meross_manager.find_devices(device_class=Ms100Sensor)
+        self.test_devices = self.meross_manager.find_devices(device_class=Ms100Sensor, online_status=OnlineStatus.ONLINE)
 
     @unittest_run_loop
     async def test_temperature(self):
@@ -54,4 +56,5 @@ class TestSensor(AioHTTPTestCase):
         self.assertGreater(res.remaining_charge, 0)
 
     async def tearDownAsync(self):
-        await self.meross_client.async_logout()
+        if self.requires_logout:
+            await self.meross_client.async_logout()

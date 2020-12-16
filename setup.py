@@ -47,6 +47,6 @@ setup(
     python_requires='>=3.7',
     test_suite='tests',
     entry_points={
-        'console_scripts': ['meross_sniffer=utilities.meross_sniffer:main']
+        'console_scripts': ['meross_sniffer=utilities.meross_sniffer:main', 'meross_api_cli=meross_iot.http_api:main']
     }
 )

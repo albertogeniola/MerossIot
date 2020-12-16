@@ -25,7 +25,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```bash
-pip install meross_iot==0.4.0.6
+pip install meross_iot==0.4.1.0rc7
 ```
 
 ## Usage & Full Documentation
@@ -175,12 +175,25 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
-#### 0.4.0.6
-- Added device internal id parameter to async event handlers
+#### 0.4.1.0rc7
+- Implemented exponential backoff for api-rate limiter
+- Fixed memory leakage that occurred for long-lived sessions of the MerossManager 
+- Static known device types support added
+- Returning newly discovery devices from the discovery method() 
+- Implemented first version of meross_api_cli 
+- Improved device state recover after connection drop
+- Added API rate skip options
+- Tuned API rate limiting defaults
+- Fixed meross_sniffer utility not starting when ran from commandline
+- Addressed problems with online events not being propagated correctly in some edge cases
+- Fixed some known-cached types that were missing SystemOnline and SystemAll mixins 
+- Removed warning logs from LightMixin when checking supported modes
 
 <details>
     <summary>Older</summary>
 
+#### 0.4.0.6
+- Added device internal id parameter to async event handlers    
 #### 0.4.0.5
 - Implemented MQTT rate-limiter
 - Updated documentation

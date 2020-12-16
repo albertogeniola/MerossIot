@@ -57,7 +57,9 @@ class Namespace(Enum):
     CONTROL_TOGGLE = 'Appliance.Control.Toggle'
     CONTROL_TOGGLEX = 'Appliance.Control.ToggleX'
     CONTROL_ELECTRICITY = 'Appliance.Control.Electricity'
+    CONTROL_CONSUMPTION = 'Appliance.Control.Consumption'
     CONTROL_CONSUMPTIONX = 'Appliance.Control.ConsumptionX'
+
 
     # Bulbs-only abilities
     CONTROL_LIGHT = 'Appliance.Control.Light'

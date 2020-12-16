@@ -1,6 +1,6 @@
 import os
 from random import randint
-import asyncio
+
 from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
@@ -8,13 +8,14 @@ from meross_iot.controller.mixins.light import LightMixin
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
 from meross_iot.model.enums import OnlineStatus
-
-EMAIL = os.environ.get('MEROSS_EMAIL')
-PASSWORD = os.environ.get('MEROSS_PASSWORD')
+from tests import async_get_client
 
 
 if os.name == 'nt':
+    import asyncio
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+else:
+    import asyncio
 
 
 class TestLight(AioHTTPTestCase):
@@ -22,7 +23,9 @@ class TestLight(AioHTTPTestCase):
         return web.Application()
 
     async def setUpAsync(self):
-        self.meross_client = await MerossHttpClient.async_from_user_password(email=EMAIL, password=PASSWORD)
+        # Wait some time before next test-burst
+        await asyncio.sleep(10)
+        self.meross_client, self.requires_logout = await async_get_client()
 
         # Look for a device to be used for this test
         manager = MerossManager(http_client=self.meross_client)
@@ -68,7 +71,7 @@ class TestLight(AioHTTPTestCase):
         light = rgb_capable[0]
 
         # Create a new manager
-        new_meross_client = await MerossHttpClient.async_from_user_password(email=EMAIL, password=PASSWORD)
+        new_meross_client, requires_logout = await async_get_client()
         m = None
         try:
             # Retrieve the same device with another manager
@@ -77,6 +80,8 @@ class TestLight(AioHTTPTestCase):
             await m.async_device_discovery()
             devs = m.find_devices(device_uuids=(light.uuid,))
             dev = devs[0]
+
+            await dev.async_update()
 
             # Set RGB color to known state
             r = await light.async_set_light_color(rgb=(255, 0, 0))
@@ -92,7 +97,9 @@ class TestLight(AioHTTPTestCase):
         finally:
             if m is not None:
                 m.close()
-            await new_meross_client.async_logout()
+            if requires_logout:
+                await new_meross_client.async_logout()
 
     async def tearDownAsync(self):
-        await self.meross_client.async_logout()
+        if self.requires_logout:
+            await self.meross_client.async_logout()

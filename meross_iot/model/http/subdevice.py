@@ -1,6 +1,8 @@
 import logging
 
 from meross_iot.model.shared import BaseDictPayload
+import json
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -23,3 +25,9 @@ class HttpSubdeviceInfo(BaseDictPayload):
         self.sub_device_name = sub_device_name
         self.sub_device_icon_id = sub_device_icon_id
 
+    def __repr__(self):
+        return json.dumps(self.__dict__)
+
+    def __str__(self):
+        basic_info = f"{self.sub_device_name} ({self.sub_device_type}, ID {self.sub_device_id}, TRUE-ID {self.true_id})"
+        return basic_info
