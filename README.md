@@ -25,7 +25,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```bash
-pip install meross_iot==0.4.1.0rc7
+pip install meross_iot==0.4.1.1rc1
 ```
 
 ## Usage & Full Documentation
@@ -191,6 +191,9 @@ Anyways, feel free to contribute via donations!
 
 <details>
     <summary>Older</summary>
+
+#### 0.4.1.1rc2
+- Merged #150 (Added MSS620 support)
 
 #### 0.4.0.6
 - Added device internal id parameter to async event handlers    
