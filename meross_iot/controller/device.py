@@ -233,7 +233,7 @@ class BaseDevice(object):
                                                      drop_on_overquota=drop_on_overquota)
 
     def __repr__(self):
-        basic_info = f"{self.name} ({self.type}, HW {self.hardware_version}, FW {self.firmware_version})"
+        basic_info = f"{self.name} ({self.type}, HW {self.hardware_version}, FW {self.firmware_version}, class: {self.__class__.__name__})"
         return basic_info
 
     @staticmethod
