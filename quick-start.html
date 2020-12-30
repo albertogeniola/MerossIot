@@ -243,7 +243,7 @@ would you not read it?</p>
     <span class="c1"># Print them</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;I&#39;ve found the following devices:&quot;</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">dev</span> <span class="ow">in</span> <span class="n">meross_devices</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;- </span><span class="si">{</span><span class="n">dev</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">dev</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="n">dev</span><span class="o">.</span><span class="n">online_status</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;- </span><span class="si">{dev.name}</span><span class="s2"> (</span><span class="si">{dev.type}</span><span class="s2">): </span><span class="si">{dev.online_status}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="c1"># Close the manager and logout from http_api</span>
     <span class="n">manager</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
@@ -263,39 +263,6 @@ then you can invoke the <code class="code docutils literal notranslate"><span cl
 <code class="code docutils literal notranslate"><span class="pre">find_device()</span></code> which allows you to list all the devices that have been discovered by the manager.</p>
 <p>In case you want to search for specific devices, you can pass some filtering argument to this method.
 Have a look at the following method signature for more details.</p>
-<dl class="py method">
-<dt id="meross_iot.manager.MerossManager.find_devices">
-<code class="sig-prename descclassname">MerossManager.</code><code class="sig-name descname">find_devices</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">device_uuids</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Iterable<span class="p">[</span>str<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">internal_ids</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Iterable<span class="p">[</span>str<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">device_type</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">device_class</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>type<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">device_name</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">online_status</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>meross_iot.model.enums.OnlineStatus<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>T<span class="p">]</span><a class="headerlink" href="#meross_iot.manager.MerossManager.find_devices" title="Permalink to this definition">¶</a></dt>
-<dd><p>Lists devices that have been discovered via this manager. When invoked with no arguments,
-it returns the whole list of registered devices. When one or more filter arguments are specified,
-it returns the list of devices that satisfy all the filters (consider multiple filters as in logical AND).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>device_uuids</strong> – List of Meross native device UUIDs. When specified, only devices that have a native UUID
-contained in this list are returned.</p></li>
-<li><p><strong>internal_ids</strong> – Iterable List of MerossIot device ids. When specified, only devices that have a
-derived-ids contained in this list are returned.</p></li>
-<li><p><strong>device_type</strong> – Device type string as reported by meross app (e.g. “mss310” or “msl120”). Note that this
-field is case sensitive.</p></li>
-<li><p><strong>device_class</strong> – Filter based on the resulting device class. You can filter also for capability Mixins,
-such as <code class="code docutils literal notranslate"><span class="pre">meross_iot.controller.mixins.toggle.ToggleXMixin</span></code> (returns all the devices supporting
-ToggleX capability) or <code class="code docutils literal notranslate"><span class="pre">meross_iot.controller.mixins.light.LightMixin</span></code>
-(returns all the device that supports light control).
-You can also identify all the HUB devices by specifying <code class="code docutils literal notranslate"><span class="pre">meross_iot.controller.device.HubDevice</span></code>,
-Sensors as <code class="code docutils literal notranslate"><span class="pre">meross_iot.controller.subdevice.Ms100Sensor</span></code> and Valves as
-Sensors as <code class="code docutils literal notranslate"><span class="pre">meross_iot.controller.subdevice.Mts100v3Valve</span></code>.</p></li>
-<li><p><strong>device_name</strong> – Filter the devices based on their assigned name (case sensitive)</p></li>
-<li><p><strong>online_status</strong> – Filter the devices based on their <code class="code docutils literal notranslate"><span class="pre">meross_iot.model.enums.OnlineStatus</span></code>
-as reported by the HTTP api or byt the relative hub (when dealing with subdevices).</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The list of devices that match the provided filters, if any.</p>
-</dd>
-</dl>
-</dd></dl>
-
 </div>
 <div class="section" id="controlling-switches">
 <h2>Controlling switches<a class="headerlink" href="#controlling-switches" title="Permalink to this headline">¶</a></h2>
@@ -383,11 +350,11 @@ as reported by the HTTP api or byt the relative hub (when dealing with subdevice
         <span class="c1">#  connection goes down)</span>
         <span class="k">await</span> <span class="n">dev</span><span class="o">.</span><span class="n">async_update</span><span class="p">()</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Turning on </span><span class="si">{</span><span class="n">dev</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Turning on </span><span class="si">{dev.name}</span><span class="s2">...&quot;</span><span class="p">)</span>
         <span class="k">await</span> <span class="n">dev</span><span class="o">.</span><span class="n">async_turn_on</span><span class="p">(</span><span class="n">channel</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Waiting a bit before turing it off&quot;</span><span class="p">)</span>
         <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Turing off </span><span class="si">{</span><span class="n">dev</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Turing off </span><span class="si">{dev.name}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">await</span> <span class="n">dev</span><span class="o">.</span><span class="n">async_turn_off</span><span class="p">(</span><span class="n">channel</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
     <span class="c1"># Close the manager and logout from http_api</span>
@@ -508,10 +475,10 @@ Refer to the <a class="reference internal" href="api-reference/controller/mixins
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Check the current RGB color</span>
             <span class="n">current_color</span> <span class="o">=</span> <span class="n">dev</span><span class="o">.</span><span class="n">get_rgb_color</span><span class="p">()</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Currently, device </span><span class="si">{</span><span class="n">dev</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> is set to color (RGB) = </span><span class="si">{</span><span class="n">current_color</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Currently, device </span><span class="si">{dev.name}</span><span class="s2"> is set to color (RGB) = </span><span class="si">{current_color}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="c1"># Randomly chose a new color</span>
             <span class="n">rgb</span> <span class="o">=</span> <span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span> <span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span> <span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Chosen random color (R,G,B): </span><span class="si">{</span><span class="n">rgb</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Chosen random color (R,G,B): </span><span class="si">{rgb}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">await</span> <span class="n">dev</span><span class="o">.</span><span class="n">async_set_light_color</span><span class="p">(</span><span class="n">rgb</span><span class="o">=</span><span class="n">rgb</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Color changed!&quot;</span><span class="p">)</span>
 
@@ -643,9 +610,9 @@ absolving the author of this library of all responsibility.</p>
         <span class="c1"># Check current door status</span>
         <span class="n">open_status</span> <span class="o">=</span> <span class="n">dev</span><span class="o">.</span><span class="n">get_is_open</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">open_status</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Door </span><span class="si">{</span><span class="n">dev</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> is open&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Door </span><span class="si">{dev.name}</span><span class="s2"> is open&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Door </span><span class="si">{</span><span class="n">dev</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> is closed&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Door </span><span class="si">{dev.name}</span><span class="s2"> is closed&quot;</span><span class="p">)</span>
 
         <span class="c1"># To open the door, uncomment the following:</span>
         <span class="c1">#print(f&quot;Opening door {dev.name}...&quot;)</span>
@@ -766,7 +733,7 @@ MSS310 plug, which implements both the <code class="code docutils literal notran
 
         <span class="c1"># Read the electricity power/voltage/current</span>
         <span class="n">instant_consumption</span> <span class="o">=</span> <span class="k">await</span> <span class="n">dev</span><span class="o">.</span><span class="n">async_get_instant_metrics</span><span class="p">()</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Current consumption data: </span><span class="si">{</span><span class="n">instant_consumption</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Current consumption data: </span><span class="si">{instant_consumption}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="c1"># Close the manager and logout from http_api</span>
     <span class="n">manager</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
@@ -869,7 +836,7 @@ available <a class="reference internal" href="api-reference/controller/mixins/el
         <span class="n">humid</span> <span class="o">=</span> <span class="n">dev</span><span class="o">.</span><span class="n">last_sampled_humidity</span>
         <span class="n">time</span> <span class="o">=</span> <span class="n">dev</span><span class="o">.</span><span class="n">last_sampled_time</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Current sampled data on </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span><span class="si">}</span><span class="s2">; Temperature=</span><span class="si">{</span><span class="n">temp</span><span class="si">}</span><span class="s2">°C, Humidity=</span><span class="si">{</span><span class="n">humid</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Current sampled data on {time.isoformat()}; Temperature=</span><span class="si">{temp}</span><span class="s2">°C, Humidity=</span><span class="si">{humid}</span><span class="s2">%&quot;</span><span class="p">)</span>
     <span class="c1"># Close the manager and logout from http_api</span>
     <span class="n">manager</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
     <span class="k">await</span> <span class="n">http_api_client</span><span class="o">.</span><span class="n">async_logout</span><span class="p">()</span>
@@ -950,7 +917,8 @@ within the <span class="xref std std-doc">Ms100Sensor class &lt;api-reference/co
 57
 58
 59
-60</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">asyncio</span>
+60
+61</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">asyncio</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">randint</span>
 
@@ -983,21 +951,22 @@ within the <span class="xref std std-doc">Ms100Sensor class &lt;api-reference/co
         <span class="k">await</span> <span class="n">dev</span><span class="o">.</span><span class="n">async_update</span><span class="p">()</span>
 
         <span class="c1"># Access read cached data</span>
-        <span class="n">on_off</span> <span class="o">=</span> <span class="n">dev</span><span class="o">.</span><span class="n">is_on</span>
+        <span class="n">on_off</span> <span class="o">=</span> <span class="n">dev</span><span class="o">.</span><span class="n">is_on</span><span class="p">()</span>
+
         <span class="c1"># Turn on the device if it&#39;s not on</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">on_off</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Device </span><span class="si">{</span><span class="n">dev</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> is off, turning it on...&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Device </span><span class="si">{dev.name}</span><span class="s2"> is off, turning it on...&quot;</span><span class="p">)</span>
             <span class="k">await</span> <span class="n">dev</span><span class="o">.</span><span class="n">async_turn_on</span><span class="p">()</span>
 
         <span class="n">temp</span> <span class="o">=</span> <span class="k">await</span> <span class="n">dev</span><span class="o">.</span><span class="n">async_get_temperature</span><span class="p">()</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Current ambient temperature = </span><span class="si">{</span><span class="n">temp</span><span class="si">}</span><span class="s2"> °C, &quot;</span>
-              <span class="sa">f</span><span class="s2">&quot;Target Temperature = </span><span class="si">{</span><span class="n">dev</span><span class="o">.</span><span class="n">target_temperature</span><span class="si">}</span><span class="s2">, &quot;</span>
-              <span class="sa">f</span><span class="s2">&quot;mode = </span><span class="si">{</span><span class="n">dev</span><span class="o">.</span><span class="n">mode</span><span class="si">}</span><span class="s2">,&quot;</span>
-              <span class="sa">f</span><span class="s2">&quot;heating = </span><span class="si">{</span><span class="n">dev</span><span class="o">.</span><span class="n">is_heating</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Current ambient temperature = </span><span class="si">{temp}</span><span class="s2"> °C, &quot;</span>
+              <span class="sa">f</span><span class="s2">&quot;Target Temperature = </span><span class="si">{dev.target_temperature}</span><span class="s2">, &quot;</span>
+              <span class="sa">f</span><span class="s2">&quot;mode = </span><span class="si">{dev.mode}</span><span class="s2">,&quot;</span>
+              <span class="sa">f</span><span class="s2">&quot;heating = </span><span class="si">{dev.is_heating}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="c1"># Randomly choose a temperature between min and max</span>
         <span class="n">new_temp</span> <span class="o">=</span> <span class="n">randint</span><span class="p">(</span><span class="n">dev</span><span class="o">.</span><span class="n">min_supported_temperature</span><span class="p">,</span> <span class="n">dev</span><span class="o">.</span><span class="n">max_supported_temperature</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Setting target temperature to </span><span class="si">{</span><span class="n">new_temp</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Setting target temperature to </span><span class="si">{new_temp}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="c1"># Close the manager and logout from http_api</span>
     <span class="n">manager</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
