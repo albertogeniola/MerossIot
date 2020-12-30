@@ -457,7 +457,7 @@ Refer to the <a class="reference internal" href="api-reference/controller/mixins
 
     <span class="c1"># Retrieve the MSL120 devices that are registered on this account</span>
     <span class="k">await</span> <span class="n">manager</span><span class="o">.</span><span class="n">async_device_discovery</span><span class="p">()</span>
-    <span class="n">plugs</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">find_devices</span><span class="p">(</span><span class="n">device_type</span><span class="o">=</span><span class="s2">&quot;msl120b&quot;</span><span class="p">,</span> <span class="n">online_status</span><span class="o">=</span><span class="n">OnlineStatus</span><span class="o">.</span><span class="n">ONLINE</span><span class="p">)</span>
+    <span class="n">plugs</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">find_devices</span><span class="p">(</span><span class="n">device_type</span><span class="o">=</span><span class="s2">&quot;msl120&quot;</span><span class="p">,</span> <span class="n">online_status</span><span class="o">=</span><span class="n">OnlineStatus</span><span class="o">.</span><span class="n">ONLINE</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">plugs</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No online msl120 smart bulbs found...&quot;</span><span class="p">)</span>
