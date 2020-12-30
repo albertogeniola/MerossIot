@@ -31,7 +31,8 @@ async def main():
         await dev.async_update()
 
         # Access read cached data
-        on_off = dev.is_on
+        on_off = dev.is_on()
+
         # Turn on the device if it's not on
         if not on_off:
             print(f"Device {dev.name} is off, turning it on...")
