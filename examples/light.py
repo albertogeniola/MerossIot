@@ -20,7 +20,7 @@ async def main():
 
     # Retrieve the MSL120 devices that are registered on this account
     await manager.async_device_discovery()
-    plugs = manager.find_devices(device_type="msl120b", online_status=OnlineStatus.ONLINE)
+    plugs = manager.find_devices(device_type="msl120", online_status=OnlineStatus.ONLINE)
 
     if len(plugs) < 1:
         print("No online msl120 smart bulbs found...")
