@@ -70,6 +70,7 @@ class Namespace(Enum):
     # Roller Shutter abilities
     ROLLER_SHUTTER_STATE = 'Appliance.RollerShutter.State'
     ROLLER_SHUTTER_POSITION = 'Appliance.RollerShutter.Position'
+    ROLLER_SHUTTER_CONFIG = 'Appliance.RollerShutter.Config'
 
     # Humidifier
     CONTROL_SPRAY = 'Appliance.Control.Spray'
