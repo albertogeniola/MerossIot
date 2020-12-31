@@ -182,6 +182,12 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-reference/controller/mixins/garage.html#meross_iot.controller.mixins.garage.GarageOpenerMixin.async_close">async_close() (meross_iot.controller.mixins.garage.GarageOpenerMixin method)</a>
 </li>
+      <li><a href="api-reference/manager.html#meross_iot.manager.MerossManager.async_device_discovery">async_device_discovery() (meross_iot.manager.MerossManager method)</a>
+</li>
+      <li><a href="api-reference/manager.html#meross_iot.manager.MerossManager.async_execute_cmd">async_execute_cmd() (meross_iot.manager.MerossManager method)</a>
+</li>
+      <li><a href="api-reference/http.html#meross_iot.http_api.MerossHttpClient.async_from_user_password">async_from_user_password() (meross_iot.http_api.MerossHttpClient class method)</a>
+</li>
       <li><a href="api-reference/controller/device/generic.html#meross_iot.controller.device.GenericSubDevice.async_get_battery_life">async_get_battery_life() (meross_iot.controller.device.GenericSubDevice method)</a>
 </li>
       <li><a href="api-reference/controller/mixins/consumption.html#meross_iot.controller.mixins.consumption.ConsumptionXMixin.async_get_daily_power_consumption">async_get_daily_power_consumption() (meross_iot.controller.mixins.consumption.ConsumptionXMixin method)</a>
@@ -190,10 +196,22 @@
 </li>
       <li><a href="api-reference/controller/subdevice/valve.html#meross_iot.controller.known.subdevice.Mts100v3Valve.async_get_temperature">async_get_temperature() (meross_iot.controller.known.subdevice.Mts100v3Valve method)</a>
 </li>
-      <li><a href="api-reference/controller/mixins/garage.html#meross_iot.controller.mixins.garage.GarageOpenerMixin.async_open">async_open() (meross_iot.controller.mixins.garage.GarageOpenerMixin method)</a>
+      <li><a href="api-reference/manager.html#meross_iot.manager.MerossManager.async_init">async_init() (meross_iot.manager.MerossManager method)</a>
+</li>
+      <li><a href="api-reference/http.html#meross_iot.http_api.MerossHttpClient.async_invalidate_credentials">async_invalidate_credentials() (meross_iot.http_api.MerossHttpClient class method)</a>
+</li>
+      <li><a href="api-reference/http.html#meross_iot.http_api.MerossHttpClient.async_list_devices">async_list_devices() (meross_iot.http_api.MerossHttpClient method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api-reference/http.html#meross_iot.http_api.MerossHttpClient.async_list_hub_subdevices">async_list_hub_subdevices() (meross_iot.http_api.MerossHttpClient method)</a>
+</li>
+      <li><a href="api-reference/http.html#meross_iot.http_api.MerossHttpClient.async_login">async_login() (meross_iot.http_api.MerossHttpClient class method)</a>
+</li>
+      <li><a href="api-reference/http.html#meross_iot.http_api.MerossHttpClient.async_logout">async_logout() (meross_iot.http_api.MerossHttpClient method)</a>
+</li>
+      <li><a href="api-reference/controller/mixins/garage.html#meross_iot.controller.mixins.garage.GarageOpenerMixin.async_open">async_open() (meross_iot.controller.mixins.garage.GarageOpenerMixin method)</a>
+</li>
       <li><a href="api-reference/controller/mixins/light.html#meross_iot.controller.mixins.light.LightMixin.async_set_light_color">async_set_light_color() (meross_iot.controller.mixins.light.LightMixin method)</a>
 </li>
       <li><a href="api-reference/controller/subdevice/valve.html#meross_iot.controller.known.subdevice.Mts100v3Valve.async_set_preset_temperature">async_set_preset_temperature() (meross_iot.controller.known.subdevice.Mts100v3Valve method)</a>
@@ -226,9 +244,33 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-reference/controller/device/channel.html#meross_iot.controller.device.ChannelInfo">ChannelInfo (class in meross_iot.controller.device)</a>
 </li>
+      <li><a href="api-reference/controller/device/base.html#meross_iot.controller.device.BaseDevice.channels">channels() (meross_iot.controller.device.BaseDevice property)</a>
+</li>
+      <li><a href="api-reference/http.html#meross_iot.http_api.MerossHttpClient.cloud_credentials">cloud_credentials() (meross_iot.http_api.MerossHttpClient property)</a>
+</li>
+      <li><a href="api-reference/http.html#meross_iot.http_api.ErrorCodes.CODE_BAD_PASSWORD_FORMAT">CODE_BAD_PASSWORD_FORMAT (meross_iot.http_api.ErrorCodes attribute)</a>
+</li>
+      <li><a href="api-reference/http.html#meross_iot.http_api.ErrorCodes.CODE_DISABLED_OR_DELETED_ACCOUNT">CODE_DISABLED_OR_DELETED_ACCOUNT (meross_iot.http_api.ErrorCodes attribute)</a>
+</li>
+      <li><a href="api-reference/http.html#meross_iot.http_api.ErrorCodes.CODE_INVALID_EMAIL">CODE_INVALID_EMAIL (meross_iot.http_api.ErrorCodes attribute)</a>
+</li>
+      <li><a href="api-reference/http.html#meross_iot.http_api.ErrorCodes.CODE_MISSING_PASSWORD">CODE_MISSING_PASSWORD (meross_iot.http_api.ErrorCodes attribute)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api-reference/controller/device/base.html#meross_iot.controller.device.BaseDevice.channels">channels() (meross_iot.controller.device.BaseDevice property)</a>
+      <li><a href="api-reference/http.html#meross_iot.http_api.ErrorCodes.CODE_NO_ERROR">CODE_NO_ERROR (meross_iot.http_api.ErrorCodes attribute)</a>
+</li>
+      <li><a href="api-reference/http.html#meross_iot.http_api.ErrorCodes.CODE_TOKEN_EXPIRED">CODE_TOKEN_EXPIRED (meross_iot.http_api.ErrorCodes attribute)</a>
+</li>
+      <li><a href="api-reference/http.html#meross_iot.http_api.ErrorCodes.CODE_TOKEN_INVALID">CODE_TOKEN_INVALID (meross_iot.http_api.ErrorCodes attribute)</a>
+</li>
+      <li><a href="api-reference/http.html#meross_iot.http_api.ErrorCodes.CODE_TOO_MANY_TOKENS">CODE_TOO_MANY_TOKENS (meross_iot.http_api.ErrorCodes attribute)</a>
+</li>
+      <li><a href="api-reference/http.html#meross_iot.http_api.ErrorCodes.CODE_UNEXISTING_ACCOUNT">CODE_UNEXISTING_ACCOUNT (meross_iot.http_api.ErrorCodes attribute)</a>
+</li>
+      <li><a href="api-reference/http.html#meross_iot.http_api.ErrorCodes.CODE_WRONG_CREDENTIALS">CODE_WRONG_CREDENTIALS (meross_iot.http_api.ErrorCodes attribute)</a>
+</li>
+      <li><a href="api-reference/http.html#meross_iot.http_api.ErrorCodes.CODE_WRONG_EMAIL">CODE_WRONG_EMAIL (meross_iot.http_api.ErrorCodes attribute)</a>
 </li>
       <li><a href="api-reference/controller/mixins/consumption.html#meross_iot.controller.mixins.consumption.ConsumptionXMixin">ConsumptionXMixin (class in meross_iot.controller.mixins.consumption)</a>
 </li>
@@ -241,10 +283,18 @@
       <li><a href="api-reference/controller/mixins/electricity.html#meross_iot.controller.mixins.electricity.ElectricityMixin">ElectricityMixin (class in meross_iot.controller.mixins.electricity)</a>
 </li>
   </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api-reference/http.html#meross_iot.http_api.ErrorCodes">ErrorCodes (class in meross_iot.http_api)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api-reference/manager.html#meross_iot.manager.MerossManager.find_devices">find_devices() (meross_iot.manager.MerossManager method)</a>, <a href="quick-start.html#meross_iot.manager.MerossManager.find_devices">[1]</a>
+</li>
+  </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-reference/controller/device/base.html#meross_iot.controller.device.BaseDevice.firmware_version">firmware_version() (meross_iot.controller.device.BaseDevice property)</a>
 </li>
@@ -348,10 +398,18 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-reference/controller/subdevice/sensor.html#meross_iot.controller.known.subdevice.Ms100Sensor.max_supported_temperature">max_supported_temperature() (meross_iot.controller.known.subdevice.Ms100Sensor property)</a>
 </li>
-      <li><a href="api-reference/controller/subdevice/sensor.html#meross_iot.controller.known.subdevice.Ms100Sensor.min_supported_temperature">min_supported_temperature() (meross_iot.controller.known.subdevice.Ms100Sensor property)</a>
+      <li><a href="api-reference/http.html#module-meross_iot.http_api">meross_iot.http_api (module)</a>
+</li>
+      <li><a href="api-reference/manager.html#module-meross_iot.manager">meross_iot.manager (module)</a>
+</li>
+      <li><a href="api-reference/http.html#meross_iot.http_api.MerossHttpClient">MerossHttpClient (class in meross_iot.http_api)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api-reference/manager.html#meross_iot.manager.MerossManager">MerossManager (class in meross_iot.manager)</a>
+</li>
+      <li><a href="api-reference/controller/subdevice/sensor.html#meross_iot.controller.known.subdevice.Ms100Sensor.min_supported_temperature">min_supported_temperature() (meross_iot.controller.known.subdevice.Ms100Sensor property)</a>
+</li>
       <li><a href="api-reference/controller/subdevice/sensor.html#meross_iot.controller.known.subdevice.Ms100Sensor">Ms100Sensor (class in meross_iot.controller.known.subdevice)</a>
 </li>
       <li><a href="api-reference/controller/subdevice/valve.html#meross_iot.controller.known.subdevice.Mts100v3Valve">Mts100v3Valve (class in meross_iot.controller.known.subdevice)</a>
@@ -383,7 +441,11 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-reference/controller/device/base.html#meross_iot.controller.device.BaseDevice.register_push_notification_handler_coroutine">register_push_notification_handler_coroutine() (meross_iot.controller.device.BaseDevice method)</a>
+
+      <ul>
+        <li><a href="api-reference/manager.html#meross_iot.manager.MerossManager.register_push_notification_handler_coroutine">(meross_iot.manager.MerossManager method)</a>
 </li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -419,7 +481,11 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-reference/controller/device/base.html#meross_iot.controller.device.BaseDevice.unregister_push_notification_handler_coroutine">unregister_push_notification_handler_coroutine() (meross_iot.controller.device.BaseDevice method)</a>
+
+      <ul>
+        <li><a href="api-reference/manager.html#meross_iot.manager.MerossManager.unregister_push_notification_handler_coroutine">(meross_iot.manager.MerossManager method)</a>
 </li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-reference/controller/device/base.html#meross_iot.controller.device.BaseDevice.uuid">uuid() (meross_iot.controller.device.BaseDevice property)</a>

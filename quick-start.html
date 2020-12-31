@@ -263,6 +263,39 @@ then you can invoke the <code class="code docutils literal notranslate"><span cl
 <code class="code docutils literal notranslate"><span class="pre">find_device()</span></code> which allows you to list all the devices that have been discovered by the manager.</p>
 <p>In case you want to search for specific devices, you can pass some filtering argument to this method.
 Have a look at the following method signature for more details.</p>
+<dl class="method">
+<dt id="meross_iot.manager.MerossManager.find_devices">
+<code class="sig-prename descclassname">MerossManager.</code><code class="sig-name descname">find_devices</code><span class="sig-paren">(</span><em class="sig-param">device_uuids: Optional[Iterable[str]] = None</em>, <em class="sig-param">internal_ids: Optional[Iterable[str]] = None</em>, <em class="sig-param">device_type: Optional[str] = None</em>, <em class="sig-param">device_class: Optional[type] = None</em>, <em class="sig-param">device_name: Optional[str] = None</em>, <em class="sig-param">online_status: Optional[meross_iot.model.enums.OnlineStatus] = None</em><span class="sig-paren">)</span> &#x2192; List[T]<a class="headerlink" href="#meross_iot.manager.MerossManager.find_devices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lists devices that have been discovered via this manager. When invoked with no arguments,
+it returns the whole list of registered devices. When one or more filter arguments are specified,
+it returns the list of devices that satisfy all the filters (consider multiple filters as in logical AND).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>device_uuids</strong> – List of Meross native device UUIDs. When specified, only devices that have a native UUID
+contained in this list are returned.</p></li>
+<li><p><strong>internal_ids</strong> – Iterable List of MerossIot device ids. When specified, only devices that have a
+derived-ids contained in this list are returned.</p></li>
+<li><p><strong>device_type</strong> – Device type string as reported by meross app (e.g. “mss310” or “msl120”). Note that this
+field is case sensitive.</p></li>
+<li><p><strong>device_class</strong> – Filter based on the resulting device class. You can filter also for capability Mixins,
+such as <code class="code docutils literal notranslate"><span class="pre">meross_iot.controller.mixins.toggle.ToggleXMixin</span></code> (returns all the devices supporting
+ToggleX capability) or <code class="code docutils literal notranslate"><span class="pre">meross_iot.controller.mixins.light.LightMixin</span></code>
+(returns all the device that supports light control).
+You can also identify all the HUB devices by specifying <code class="code docutils literal notranslate"><span class="pre">meross_iot.controller.device.HubDevice</span></code>,
+Sensors as <code class="code docutils literal notranslate"><span class="pre">meross_iot.controller.subdevice.Ms100Sensor</span></code> and Valves as
+Sensors as <code class="code docutils literal notranslate"><span class="pre">meross_iot.controller.subdevice.Mts100v3Valve</span></code>.</p></li>
+<li><p><strong>device_name</strong> – Filter the devices based on their assigned name (case sensitive)</p></li>
+<li><p><strong>online_status</strong> – Filter the devices based on their <code class="code docutils literal notranslate"><span class="pre">meross_iot.model.enums.OnlineStatus</span></code>
+as reported by the HTTP api or byt the relative hub (when dealing with subdevices).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The list of devices that match the provided filters, if any.</p>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 <div class="section" id="controlling-switches">
 <h2>Controlling switches<a class="headerlink" href="#controlling-switches" title="Permalink to this headline">¶</a></h2>
