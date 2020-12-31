@@ -1,1 +1,9 @@
 sphinx_rtd_theme
+paho-mqtt>=1.5.0
+requests>=2.19.1
+retrying>=1.3.3
+coverage==4.5.4
+aiohttp[speedups]>=3.6.1
+pytest-aiohttp
+proxy.py
+pysocks
