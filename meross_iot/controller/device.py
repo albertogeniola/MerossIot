@@ -63,7 +63,7 @@ class BaseDevice(object):
         delivered to this device or when the device state is changed.
         This allows the developer to "react" to notifications state change due to other users operating the device.
         :param coro: coroutine-function to invoke when the state changes.
-                     Its signature must be (namespace: Namespace, data: dict, device_internal_id: str)
+        Its signature must be (namespace: Namespace, data: dict, device_internal_id: str)
         :return:
         """
         if not asyncio.iscoroutinefunction(coro):
@@ -77,7 +77,7 @@ class BaseDevice(object):
         """
         Unregisters the event handler
         :param coro: coroutine-function: a function that, when invoked, returns a Coroutine object that can be awaited.
-                     This coroutine function should have been previously registered
+        This coroutine function should have been previously registered
         :return:
         """
         if coro in self._push_coros:
