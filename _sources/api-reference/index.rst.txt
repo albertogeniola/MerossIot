@@ -7,6 +7,7 @@ API Reference
 
    http
    manager
+   creds
    controller/device/base
    controller/device/generic
    controller/device/hub
