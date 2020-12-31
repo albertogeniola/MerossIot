@@ -198,18 +198,16 @@ you create a manager, you shoul call <a class="reference internal" href="#meross
 status.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>meross_device_uuid</strong> – Meross UUID of the device that the user wants to discover (is already known). This parameter
-restricts the discovery only to that particular device. When None, all the devices
-reported by the HTTP api will be discovered.</p>
+<dd class="field-odd"><p><strong>meross_device_uuid</strong> – Meross UUID of the device that the user wants to discover (is already known).</p>
 </dd>
 </dl>
-<dl class="simple">
-<dt>:param update_subdevice_status When True, tells the manager to retrieve the HUB status in order to update</dt><dd><p>hub-subdevice online status, which would be UNKNOWN if not explicitly retrieved.</p>
-</dd>
-</dl>
+<p>This parameter restricts the discovery only to that particular device. When None, all the devices
+reported by the HTTP api will be discovered.
+:param update_subdevice_status: When True, tells the manager to retrieve the HUB status in order to update
+hub-subdevice online status, which would be UNKNOWN if not explicitly retrieved.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p></p>
+<dd class="field-odd"><p>A list of discovered device, which implement <cite>BaseDevice</cite></p>
 </dd>
 </dl>
 </dd></dl>
