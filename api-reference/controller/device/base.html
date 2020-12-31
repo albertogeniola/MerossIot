@@ -259,15 +259,9 @@ the Meross ID plus some prefix/suffix.
 <dd><p>Registers a coroutine so that it gets invoked whenever a push notification is
 delivered to this device or when the device state is changed.
 This allows the developer to “react” to notifications state change due to other users operating the device.
-:param coro: coroutine-function to invoke when the state changes.</p>
-<blockquote>
-<div><p>Its signature must be (namespace: Namespace, data: dict, device_internal_id: str)</p>
-</div></blockquote>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p></p>
-</dd>
-</dl>
+:param coro: coroutine-function to invoke when the state changes.
+Its signature must be (namespace: Namespace, data: dict, device_internal_id: str)
+:return:</p>
 </dd></dl>
 
 <dl class="method">
@@ -281,15 +275,9 @@ This allows the developer to “react” to notifications state change due to ot
 <dt id="meross_iot.controller.device.BaseDevice.unregister_push_notification_handler_coroutine">
 <code class="sig-name descname">unregister_push_notification_handler_coroutine</code><span class="sig-paren">(</span><em class="sig-param">coro: Callable[[meross_iot.model.enums.Namespace, dict], Awaitable]</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.device.BaseDevice.unregister_push_notification_handler_coroutine" title="Permalink to this definition">¶</a></dt>
 <dd><p>Unregisters the event handler
-:param coro: coroutine-function: a function that, when invoked, returns a Coroutine object that can be awaited.</p>
-<blockquote>
-<div><p>This coroutine function should have been previously registered</p>
-</div></blockquote>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p></p>
-</dd>
-</dl>
+:param coro: coroutine-function: a function that, when invoked, returns a Coroutine object that can be awaited.
+This coroutine function should have been previously registered
+:return:</p>
 </dd></dl>
 
 <dl class="method">
