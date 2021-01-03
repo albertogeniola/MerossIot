@@ -5,7 +5,7 @@ from meross_iot.controller.device import BaseDevice, HubDevice, GenericSubDevice
 from meross_iot.controller.known.bulbs import MSL120, MSL100
 from meross_iot.controller.known.humidifiers import MSXH0
 from meross_iot.controller.known.openers import MSG100
-from meross_iot.controller.known.timers import MRS100
+from meross_iot.controller.known.shutters import MRS100
 from meross_iot.controller.known.plugs import MSS110, MSS210, MSS310, MSS620, MSS710
 from meross_iot.controller.known.strips import MSS425E, MSS420F, MSS425F, MSS530
 from meross_iot.controller.known.subdevice import Mts100v3Valve, Ms100Sensor

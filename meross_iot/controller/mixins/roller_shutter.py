@@ -115,9 +115,10 @@ class RollerShutterTimerMixin:
                                     payload=payload,
                                     skip_rate_limits=skip_rate_limits,
                                     drop_on_overquota=drop_on_overquota)
-        # Assume the command was ok, so immediately update the internal state
-        #self._roller_shutter_state_by_channel[channel] = state
-        #self._roller_shutter_position_by_channel[channel] = position
+        # Respect to other devices, we don't assume the command was immediately successful as the
+        # state/position change might take some time to take place.
+        # self._roller_shutter_state_by_channel[channel] = state
+        # self._roller_shutter_position_by_channel[channel] = position
 
     def get_status(self, channel: int = 0, *args, **kwargs) -> Optional[int]:
         """
