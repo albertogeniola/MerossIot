@@ -5,12 +5,14 @@ from meross_iot.controller.device import BaseDevice, HubDevice, GenericSubDevice
 from meross_iot.controller.known.bulbs import MSL120, MSL100
 from meross_iot.controller.known.humidifiers import MSXH0
 from meross_iot.controller.known.openers import MSG100
+from meross_iot.controller.known.timers import MRS100
 from meross_iot.controller.known.plugs import MSS110, MSS210, MSS310, MSS620, MSS710
 from meross_iot.controller.known.strips import MSS425E, MSS420F, MSS425F, MSS530
 from meross_iot.controller.known.subdevice import Mts100v3Valve, Ms100Sensor
 from meross_iot.controller.mixins.consumption import ConsumptionXMixin, ConsumptionMixin
 from meross_iot.controller.mixins.electricity import ElectricityMixin
 from meross_iot.controller.mixins.garage import GarageOpenerMixin
+from meross_iot.controller.mixins.roller_shutter import RollerShutterTimerMixin
 from meross_iot.controller.mixins.hub import HubMts100Mixin, HubMixn, HubMs100Mixin
 from meross_iot.controller.mixins.light import LightMixin
 from meross_iot.controller.mixins.spray import SprayMixin
@@ -28,6 +30,7 @@ _KNOWN_DEV_TYPES_CLASSES = {
     "msl100": MSL100,
     "msxh0": MSXH0,
     "msg100": MSG100,
+    "mrs100": MRS100,
     "mss110": MSS110,
     "mss210": MSS210,
     "mss310": MSS310,
@@ -55,6 +58,9 @@ _ABILITY_MATRIX = {
 
     # Garage opener
     Namespace.GARAGE_DOOR_STATE.value: GarageOpenerMixin,
+
+    # Roller shutter timer
+    Namespace.ROLLER_SHUTTER_STATE.value: RollerShutterTimerMixin,
 
     # Spray opener
     Namespace.CONTROL_SPRAY.value: SprayMixin,
