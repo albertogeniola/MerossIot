@@ -263,9 +263,9 @@ where the plug should connect to. Once obtained, the app builds up the message a
 At this point, the plug reboots itself and attempts to connect to the Wifi network. If successful, it tries to connect
 to the MQTT broker (the one that has been configured in the first POST message), using the following credentials.</p>
 <blockquote>
-<div><p>username: &lt;macaddress&gt;
-password: &lt;userid&gt;_**MD5(<strong>&lt;macaddress&gt;&lt;key&gt;</strong>)**
-clientid: fmware:&lt;deviceuuid&gt;_&lt;?&gt;</p>
+<div><p>username: &lt;macaddress&gt;</p>
+<p>password: &lt;userid&gt;_**MD5(<strong>&lt;macaddress&gt;&lt;key&gt;</strong>)**</p>
+<p>clientid: fmware:&lt;deviceuuid&gt;_&lt;?&gt;</p>
 </div></blockquote>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -273,11 +273,8 @@ clientid: fmware:&lt;deviceuuid&gt;_&lt;?&gt;</p>
 numerical userId, followed by the underscore digit, followed by the md5 hex digest (in lower case) of the
 concatenated string &lt;mac-address&gt; + &lt;key&gt;, where the key and the userId have been retrieved by the APP at login
 time via HTTP API. The client-id is the concatenation of the constant “fmware:” followed by the device uuid
-(lowercase), an underscore and another (unknown) string.</p>
-</div>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>Note that che clientid must be correctly valued for the connection to succeed. However, the &lt;?&gt; portion of the
+(lowercase), an underscore and another (unknown) string.
+Note that che clientid must be correctly valued for the connection to succeed. However, the &lt;?&gt; portion of the
 string can be anything or even omitted.</p>
 </div>
 <p>The plug assumes that the broker uses TLS secured connection, so it expects the broker to use SSL. However it seems

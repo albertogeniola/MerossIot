@@ -99,7 +99,9 @@ At this point, the plug reboots itself and attempts to connect to the Wifi netwo
 to the MQTT broker (the one that has been configured in the first POST message), using the following credentials.
 
     username: <macaddress>
+
     password: <userid>_**MD5(**<macaddress><key>**)**
+
     clientid: fmware:<deviceuuid>_<?>
 
 .. note::
@@ -108,8 +110,6 @@ to the MQTT broker (the one that has been configured in the first POST message),
    concatenated string <mac-address> + <key>, where the key and the userId have been retrieved by the APP at login
    time via HTTP API. The client-id is the concatenation of the constant "fmware:" followed by the device uuid
    (lowercase), an underscore and another (unknown) string.
-
-.. warning::
    Note that che clientid must be correctly valued for the connection to succeed. However, the <?> portion of the
    string can be anything or even omitted.
 
