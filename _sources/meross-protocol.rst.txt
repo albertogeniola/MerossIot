@@ -100,7 +100,7 @@ to the MQTT broker (the one that has been configured in the first POST message),
 
     username: <macaddress>
 
-    password: <userid>_**MD5**(<macaddress><key>)
+    password: <userid>_MD5(<macaddress><key>)
 
     clientid: fmware:<deviceuuid>_<?>
 
