@@ -3,9 +3,9 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>Meross Protocol Inspection &mdash; MerossIot Library  documentation</title>
   
@@ -16,7 +16,10 @@
 
   
   
+
   
+  
+
   
 
   
@@ -54,7 +57,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home" alt="Documentation Home"> MerossIot Library
+            <a href="index.html" class="icon icon-home"> MerossIot Library
           
 
           
@@ -139,6 +142,8 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
@@ -150,7 +155,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="_sources/meross-protocol.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -258,15 +263,22 @@ where the plug should connect to. Once obtained, the app builds up the message a
 At this point, the plug reboots itself and attempts to connect to the Wifi network. If successful, it tries to connect
 to the MQTT broker (the one that has been configured in the first POST message), using the following credentials.</p>
 <blockquote>
-<div><p>username: &lt;mac-address&gt;</p>
-<p>password: &lt;userId&gt;_md5(&lt;mac-address&gt;&lt;key&gt;)</p>
+<div><p>username: &lt;macaddress&gt;
+password: &lt;userid&gt;_**MD5(<strong>&lt;macaddress&gt;&lt;key&gt;</strong>)**
+clientid: fmware:&lt;deviceuuid&gt;_&lt;?&gt;</p>
 </div></blockquote>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The mac address should be in lower case, following the form XX:XX:XX:XX:XX:XX. The password is calculated as the
+<p>The mac address should be in lower case, following the form xx:xx:xx:xx:xx:xx. The password is calculated as the
 numerical userId, followed by the underscore digit, followed by the md5 hex digest (in lower case) of the
 concatenated string &lt;mac-address&gt; + &lt;key&gt;, where the key and the userId have been retrieved by the APP at login
-time via HTTP API.</p>
+time via HTTP API. The client-id is the concatenation of the constant “fmware:” followed by the device uuid
+(lowercase), an underscore and another (unknown) string.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Note that che clientid must be correctly valued for the connection to succeed. However, the &lt;?&gt; portion of the
+string can be anything or even omitted.</p>
 </div>
 <p>The plug assumes that the broker uses TLS secured connection, so it expects the broker to use SSL. However it seems
 that the plug does not perform any kind of validation of the server certificate. The author was able to make a MSS210
@@ -327,37 +339,29 @@ In general, the Meross App subscribes to this topic in order to update its state
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="api-reference/index.html" class="btn btn-neutral float-right" title="API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="advanced-topics.html" class="btn btn-neutral float-left" title="Advanced topics" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="api-reference/index.html" class="btn btn-neutral float-right" title="API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="advanced-topics.html" class="btn btn-neutral float-left" title="Advanced topics" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        
-        &copy; Copyright 2020, Alberto Geniola
+        &#169; Copyright 2020, Alberto Geniola.
 
     </p>
   </div>
     
     
     
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     
     provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -383,6 +387,7 @@ In general, the Meross App subscribes to this topic in order to update its state
     })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
 
     ga('create', 'UA-10387182-6', 'auto');
+    
     ga('send', 'pageview');
     </script>
 
