@@ -35,7 +35,6 @@ Table Of Contents
    installation
    quick-start
    common-gotchas
-   meross-arch
    advanced-topics
    meross-protocol
    api-reference/index

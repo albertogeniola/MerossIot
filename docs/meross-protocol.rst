@@ -98,15 +98,20 @@ where the plug should connect to. Once obtained, the app builds up the message a
 At this point, the plug reboots itself and attempts to connect to the Wifi network. If successful, it tries to connect
 to the MQTT broker (the one that has been configured in the first POST message), using the following credentials.
 
-    username: <mac-address>
+    username: <macaddress>
 
-    password: <userId>_md5(<mac-address><key>)
+    password: <userid>_MD5(<macaddress><key>)
+
+    clientid: fmware:<deviceuuid>_<?>
 
 .. note::
-   The mac address should be in lower case, following the form XX:XX:XX:XX:XX:XX. The password is calculated as the
+   The mac address should be in lower case, following the form xx:xx:xx:xx:xx:xx. The password is calculated as the
    numerical userId, followed by the underscore digit, followed by the md5 hex digest (in lower case) of the
    concatenated string <mac-address> + <key>, where the key and the userId have been retrieved by the APP at login
-   time via HTTP API.
+   time via HTTP API. The client-id is the concatenation of the constant "fmware:" followed by the device uuid
+   (lowercase), an underscore and another (unknown) string.
+   Note that che clientid must be correctly valued for the connection to succeed. However, the <?> portion of the
+   string can be anything or even omitted.
 
 The plug assumes that the broker uses TLS secured connection, so it expects the broker to use SSL. However it seems
 that the plug does not perform any kind of validation of the server certificate. The author was able to make a MSS210

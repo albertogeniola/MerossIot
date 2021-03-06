@@ -25,7 +25,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```bash
-pip install meross_iot==0.4.1.1rc1
+pip install meross_iot==0.4.1.0rc8
 ```
 
 ## Usage & Full Documentation
@@ -175,6 +175,12 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
+#### 0.4.1.0rc8
+- Implemented first roller_shutter suport (merged #160), thanks to @adrigonzalvez 
+
+<details>
+    <summary>Older</summary>
+
 #### 0.4.1.0rc7
 - Implemented exponential backoff for api-rate limiter
 - Fixed memory leakage that occurred for long-lived sessions of the MerossManager 
@@ -188,9 +194,6 @@ Anyways, feel free to contribute via donations!
 - Addressed problems with online events not being propagated correctly in some edge cases
 - Fixed some known-cached types that were missing SystemOnline and SystemAll mixins 
 - Removed warning logs from LightMixin when checking supported modes
-
-<details>
-    <summary>Older</summary>
 
 #### 0.4.1.1rc2
 - Merged #150 (Added MSS620 support)

@@ -4,6 +4,9 @@ from typing import Union
 
 
 class MerossCloudCreds(object):
+    """
+    Utility class that holds Meross Cloud credentials for a given user.
+    """
     def __init__(self, token: str, key: str, user_id: str, user_email: str, issued_on: Union[datetime, str]):
         self.token = token
         self.key = key
@@ -16,6 +19,10 @@ class MerossCloudCreds(object):
             self.issued_on = datetime.fromisoformat(issued_on)
 
     def to_json(self) -> str:
+        """
+        Serializes the current object to a json string
+        :return:
+        """
         return json.dumps({
             "token": self.token,
             "key": self.key,
@@ -26,6 +33,11 @@ class MerossCloudCreds(object):
 
     @classmethod
     def from_json(cls, json_string: str):
+        """
+        Builds a MerossCloudCreds instance from a previously serialized json string
+        :param json_string:
+        :return:
+        """
         data = json.loads(json_string)
         return MerossCloudCreds(**data)
 

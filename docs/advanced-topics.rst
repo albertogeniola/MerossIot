@@ -38,6 +38,7 @@ It is possible to control the logging verbosity by modifying the severity of mer
 in the following example.
 
 .. code-block:: python
+
     import asyncio
     import os
     import logging

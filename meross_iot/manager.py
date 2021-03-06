@@ -216,13 +216,13 @@ class MerossManager(object):
         Fetch devices and online status from HTTP API. This method also notifies/updates local device online/offline
         status.
 
-        :param meross_device_uuid: Meross UUID of the device that the user wants to discover (is already known). This parameter
-                            restricts the discovery only to that particular device. When None, all the devices
-                            reported by the HTTP api will be discovered.
-        :param update_subdevice_status When True, tells the manager to retrieve the HUB status in order to update
-               hub-subdevice online status, which would be UNKNOWN if not explicitly retrieved.
+        :param meross_device_uuid: Meross UUID of the device that the user wants to discover (is already known).
+        This parameter restricts the discovery only to that particular device. When None, all the devices
+        reported by the HTTP api will be discovered.
+        :param update_subdevice_status: When True, tells the manager to retrieve the HUB status in order to update
+        hub-subdevice online status, which would be UNKNOWN if not explicitly retrieved.
 
-        :return:
+        :return: A list of discovered device, which implement `BaseDevice`
         """
         _LOGGER.info(f"\n\n------- Triggering HTTP discovery, filter_device: {meross_device_uuid} -------")
         # List http devices

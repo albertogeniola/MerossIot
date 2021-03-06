@@ -35,6 +35,9 @@ _LOGOUT_URL = f"{_MEROSS_URL}/v1/Profile/logout"
 
 
 class ErrorCodes(Enum):
+    """
+    Status codes returned by the Meross HTTP APIs
+    """
 
     CODE_NO_ERROR = 0
     """Not an error"""
@@ -96,7 +99,7 @@ class MerossHttpClient(object):
         :param email: Meross account email
         :param password: Meross account password
 
-        :return:
+        :return: an instance of `MerossHttpClient`
         """
         _LOGGER.debug(f"Logging in with email: {email}, password: XXXXX")
         creds = await cls.async_login(email, password)
@@ -126,7 +129,7 @@ class MerossHttpClient(object):
         :param email: Meross account email
         :param password: Meross account password
 
-        :return:
+        :return: a `MerossCloudCreds` object
         """
         data = {"email": email, "password": password}
         response_data = await cls._async_authenticated_post(_LOGIN_URL, params_data=data, mask_params_in_log=True)
@@ -217,7 +220,7 @@ class MerossHttpClient(object):
         """
         Invalidates the credentials stored in this object.
 
-        :return:
+        :return: API response data
         """
         _LOGGER.debug(f"Logging out. Invalidating cached credentials {self._cloud_creds}")
         result = await self._async_authenticated_post(_LOGOUT_URL, {}, cloud_creds=self._cloud_creds)
@@ -231,7 +234,7 @@ class MerossHttpClient(object):
         Class method used to invalidate credentials without logging in with a full MerossHttpClient.
 
         :param creds: `MerossCloudCredentials` as returned by `async_login()` or `async_from_user_password()`
-        :return:
+        :return: API response data
         """
         _LOGGER.debug(f"Logging out. Invalidating cached credentials {creds}")
         result = await cls._async_authenticated_post(_LOGOUT_URL, {}, cloud_creds=creds)
@@ -255,7 +258,7 @@ class MerossHttpClient(object):
         """
         Asks to the HTTP api to list the Meross device belonging to the given user account.
 
-        :return:
+        :return: a list of `HttpDeviceInfo`
         """
         result = await self._async_authenticated_post(_DEV_LIST, {}, cloud_creds=self._cloud_creds)
         return [HttpDeviceInfo.from_dict(x) for x in result]
@@ -266,7 +269,7 @@ class MerossHttpClient(object):
 
         :param hub_id: Meross native UUID of the HUB
 
-        :return:
+        :return: a list of `HttpSubdeviceInfo`
         """
         result = await self._async_authenticated_post(_HUB_DUBDEV_LIST, {"uuid": hub_id}, cloud_creds=self._cloud_creds)
         return [HttpSubdeviceInfo.from_dict(x) for x in result]

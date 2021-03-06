@@ -2,7 +2,7 @@ name: Build Test and Release
 
 on:
   push:
-    paths-ignore: [docs/**, README.md]
+    paths-ignore: [docs/**, README.md, examples/**]
     branches: [ 0.4.X.X ]
   pull_request:
     branches: [ 0.4.X.X ]
