@@ -145,11 +145,11 @@ From the image above, we can discriminate 4 different topics:
     Specific to every Meross appliance (as the *device_uuid* portion of the tropic is unique for every hardware device).
     It is the topic where the appliance publishes events (push notifications).
 
-- */appliance/<user_id>/subscribe*
+- */app/<user_id>/subscribe*
     Specific for user_id, it is the topic where push notifications are published.
     In general, the Meross App subscribes to this topic in order to update its state as events happen on the physical device.
 
-- */appliance/<user_id>-<app_id>/publish*
+- */app/<user_id>-<app_id>/subscribe*
     It is the topic to which the Meross App subscribes. It is used by the app to receive the response to commands sent to the appliance.
 
 Flow: App commands
