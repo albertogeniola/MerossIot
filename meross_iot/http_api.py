@@ -13,6 +13,7 @@ from typing import Optional, List
 
 from aiohttp import ClientSession
 
+from meross_iot.model.constants import DEFAULT_MEROSS_HTTP_API
 from meross_iot.model.credentials import MerossCloudCreds
 # Appears to be used as a part of the signature algorithm as constant "salt" (kinda useless)
 from meross_iot.model.http.device import HttpDeviceInfo
@@ -26,12 +27,11 @@ _LOGGER = logging.getLogger(__name__)
 
 
 _SECRET = "23x17ahWarFH6w29"
-_MEROSS_URL = "https://iot.meross.com"
-_LOGIN_URL = f"{_MEROSS_URL}/v1/Auth/Login"
-_LOG_URL = f"{_MEROSS_URL}/v1/log/user"
-_DEV_LIST = f"{_MEROSS_URL}/v1/Device/devList"
-_HUB_DUBDEV_LIST = f"{_MEROSS_URL}/v1/Hub/getSubDevices"
-_LOGOUT_URL = f"{_MEROSS_URL}/v1/Profile/logout"
+_LOGIN_URL = "%s/v1/Auth/Login"
+_LOG_URL = "%s/v1/log/user"
+_DEV_LIST = "%s/v1/Device/devList"
+_HUB_DUBDEV_LIST = "%s/v1/Hub/getSubDevices"
+_LOGOUT_URL = "%s/v1/Profile/logout"
 
 
 class ErrorCodes(Enum):
@@ -79,8 +79,9 @@ class MerossHttpClient(object):
     This class simplifies the usage of the Meross HTTP API providing login, logout and device listing API.
     """
 
-    def __init__(self, cloud_credentials: MerossCloudCreds):
+    def __init__(self, cloud_credentials: MerossCloudCreds, api_base_url: str = DEFAULT_MEROSS_HTTP_API):
         self._cloud_creds = cloud_credentials
+        self.api_url = api_base_url
 
     @property
     def cloud_credentials(self) -> MerossCloudCreds:
@@ -91,32 +92,33 @@ class MerossHttpClient(object):
         return self._cloud_creds
 
     @classmethod
-    async def async_from_user_password(cls, email: str, password: str) -> MerossHttpClient:
+    async def async_from_user_password(cls, email: str, password: str, api_base_url: str = DEFAULT_MEROSS_HTTP_API) -> MerossHttpClient:
         """
         Builds a MerossHttpClient using username/password combination.
         In any case, the login will generate a token, which might expire at any time.
 
         :param email: Meross account email
         :param password: Meross account password
+        :param api_base_url: Meross API base URL
 
         :return: an instance of `MerossHttpClient`
         """
         _LOGGER.debug(f"Logging in with email: {email}, password: XXXXX")
-        creds = await cls.async_login(email, password)
+        creds = await cls.async_login(email=email, password=password, api_base_url=api_base_url)
         _LOGGER.debug(f"Login successful!")
-        return MerossHttpClient(cloud_credentials=creds)
+        return MerossHttpClient(cloud_credentials=creds, api_base_url=api_base_url)
 
     @classmethod
-    async def async_from_cloud_creds(cls, creds: MerossCloudCreds) -> MerossHttpClient:
+    async def async_from_cloud_creds(cls, creds: MerossCloudCreds, api_base_url: str = DEFAULT_MEROSS_HTTP_API) -> MerossHttpClient:
         # Use _log method to verify the credentials
-        verify_creds = await cls._async_log(creds=creds)
-        return MerossHttpClient(cloud_credentials=creds)
+        verify_creds = await cls._async_log(creds=creds, api_base_url=api_base_url)
+        return MerossHttpClient(cloud_credentials=creds, api_base_url=api_base_url)
 
     @classmethod
-    async def async_login(cls, email: str,
+    async def async_login(self, email: str,
                           password: str,
-                          set_env_var: bool = False,
                           creds_env_var_name: str = '__MEROSS_CREDS',
+                          api_base_url: str = DEFAULT_MEROSS_HTTP_API,
                           *args, **kwargs) -> MerossCloudCreds:
         """
         Performs the login against the Meross HTTP endpoint.
@@ -128,11 +130,15 @@ class MerossHttpClient(object):
 
         :param email: Meross account email
         :param password: Meross account password
+        :param creds_env_var_name: If set, makes thi method store the obtained login-credentials in the specified env variable.
+        indicate which env variables stores such credentials
+        :param api_base_url: Meross API base url
 
         :return: a `MerossCloudCreds` object
         """
         data = {"email": email, "password": password}
-        response_data = await cls._async_authenticated_post(_LOGIN_URL, params_data=data, mask_params_in_log=True)
+        url = _LOGIN_URL % api_base_url
+        response_data = await MerossHttpClient._async_authenticated_post(url, params_data=data, mask_params_in_log=True)
         creds = MerossCloudCreds(
             token=response_data["token"],
             key=response_data["key"],
@@ -140,7 +146,7 @@ class MerossHttpClient(object):
             user_email=response_data["email"],
             issued_on=datetime.utcnow()
         )
-        if set_env_var:
+        if creds_env_var_name is not None:
             os.environ[creds_env_var_name] = base64.b64encode(creds.to_json().encode("utf8")).decode("utf8")
         return creds
 
@@ -153,11 +159,11 @@ class MerossHttpClient(object):
                                         ) -> dict:
         nonce = _generate_nonce(16)
         timestamp_millis = int(round(time.time() * 1000))
-        login_params = _encode_params(params_data)
+        encoded_params = _encode_params(params_data)
 
         # Generate the md5-hash (called signature)
         m = hashlib.md5()
-        datatosign = '%s%s%s%s' % (_SECRET, timestamp_millis, nonce, login_params)
+        datatosign = '%s%s%s%s' % (_SECRET, timestamp_millis, nonce, encoded_params)
         m.update(datatosign.encode("utf8"))
         md5hash = m.hexdigest()
 
@@ -170,7 +176,7 @@ class MerossHttpClient(object):
         }
 
         payload = {
-            'params': login_params,
+            'params': encoded_params,
             'sign': md5hash,
             'timestamp': timestamp_millis,
             'nonce': nonce
@@ -181,13 +187,17 @@ class MerossHttpClient(object):
         if 'Authorization' in headers_with_masked_authrorization:
             headers_with_masked_authrorization['Authorization'] = 'XXXX'
 
+        if not url.lower().startswith("http://") and not url.lower().startswith("https://"):
+            _LOGGER.warning("Missing HTTP/HTTPS schema from Base API url. Assuming it's HTTPS://...")
+            url = f"https://{url}"
+
         _LOGGER.debug(f"Performing HTTP request against {url}, headers: {headers}, post data: {payload}")
         async with ClientSession() as session:
             async with session.post(url, data=payload, headers=headers) as response:
                 _LOGGER.debug(f"Response Status Code: {response.status}")
                 # Check if that is ok.
                 if response.status != 200:
-                    raise AuthenticatedPostException("Failed request to API. Response code: %d" % str(response.status))
+                    raise AuthenticatedPostException("Failed request to API. Response code: %s" % str(response.status))
 
                 # Save returned value
                 jsondata = await response.json()
@@ -216,32 +226,39 @@ class MerossHttpClient(object):
                                       f"Failed request to API. Response was: {jsondata}")
                         raise HttpApiError(error)
 
-    async def async_logout(self):
+    async def async_logout(self,
+                           *args,
+                           **kwargs):
         """
         Invalidates the credentials stored in this object.
 
         :return: API response data
         """
         _LOGGER.debug(f"Logging out. Invalidating cached credentials {self._cloud_creds}")
-        result = await self._async_authenticated_post(_LOGOUT_URL, {}, cloud_creds=self._cloud_creds)
+        url = _LOGOUT_URL % self.api_url
+        result = await self._async_authenticated_post(url, {}, cloud_creds=self._cloud_creds)
         self._cloud_creds = None
         _LOGGER.info("Logout succeeded.")
         return result
 
-    @classmethod
-    async def async_invalidate_credentials(cls, creds: MerossCloudCreds):
+    async def async_invalidate_credentials(self, creds: MerossCloudCreds):
         """
         Class method used to invalidate credentials without logging in with a full MerossHttpClient.
 
         :param creds: `MerossCloudCredentials` as returned by `async_login()` or `async_from_user_password()`
         :return: API response data
         """
+        url = _LOGOUT_URL % self.api_url
         _LOGGER.debug(f"Logging out. Invalidating cached credentials {creds}")
-        result = await cls._async_authenticated_post(_LOGOUT_URL, {}, cloud_creds=creds)
+        result = await MerossHttpClient._async_authenticated_post(url, {}, cloud_creds=creds)
         return result
 
     @classmethod
-    async def _async_log(cls, creds: MerossCloudCreds) -> dict:
+    async def _async_log(cls,
+                         creds: MerossCloudCreds,
+                         api_base_url: str = DEFAULT_MEROSS_HTTP_API,
+                         *args,
+                         **kwargs) -> dict:
         """
         Executes the LOG HTTP api. So far, it's still unknown whether this is needed and what it does.
         Most probably it logs the device specification to the remote endpoint for stats.
@@ -252,18 +269,25 @@ class MerossHttpClient(object):
         #  emulating an Android 6 device.
         data = {'extra': {}, 'model': 'Android,Android SDK built for x86_64', 'system': 'Android',
                 'uuid': '493dd9174941ed58waitForOpenWifi', 'vendor': 'Meross', 'version': '6.0'}
-        return await cls._async_authenticated_post(_LOG_URL, params_data=data, cloud_creds=creds)
+        url = _LOG_URL % api_base_url
+        return await cls._async_authenticated_post(url, params_data=data, cloud_creds=creds)
 
-    async def async_list_devices(self) -> List[HttpDeviceInfo]:
+    async def async_list_devices(self,
+                                 *args,
+                                 **kwargs) -> List[HttpDeviceInfo]:
         """
         Asks to the HTTP api to list the Meross device belonging to the given user account.
 
         :return: a list of `HttpDeviceInfo`
         """
-        result = await self._async_authenticated_post(_DEV_LIST, {}, cloud_creds=self._cloud_creds)
+        url = _DEV_LIST % self.api_url
+        result = await self._async_authenticated_post(url, {}, cloud_creds=self._cloud_creds)
         return [HttpDeviceInfo.from_dict(x) for x in result]
 
-    async def async_list_hub_subdevices(self, hub_id: str) -> List[HttpSubdeviceInfo]:
+    async def async_list_hub_subdevices(self,
+                                        hub_id: str,
+                                        *args,
+                                        **kwargs) -> List[HttpSubdeviceInfo]:
         """
         Returns the sub-devices associated to the given hub.
 
@@ -271,7 +295,8 @@ class MerossHttpClient(object):
 
         :return: a list of `HttpSubdeviceInfo`
         """
-        result = await self._async_authenticated_post(_HUB_DUBDEV_LIST, {"uuid": hub_id}, cloud_creds=self._cloud_creds)
+        url = _HUB_DUBDEV_LIST % self.api_url
+        result = await self._async_authenticated_post(url, {"uuid": hub_id}, cloud_creds=self._cloud_creds)
         return [HttpSubdeviceInfo.from_dict(x) for x in result]
 
 
