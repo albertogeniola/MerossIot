@@ -1,4 +1,5 @@
 import logging
+
 from meross_iot.model.enums import Namespace, OnlineStatus
 
 _LOGGER = logging.getLogger(__name__)
@@ -6,7 +7,6 @@ _LOGGER = logging.getLogger(__name__)
 
 class SystemAllMixin(object):
     _execute_command: callable
-    _abilities_spec: dict
     #async_handle_update: Callable[[Namespace, dict], Awaitable]
 
     def __init__(self, device_uuid: str,
@@ -14,18 +14,21 @@ class SystemAllMixin(object):
                  **kwargs):
         super().__init__(device_uuid=device_uuid, manager=manager, **kwargs)
 
-    async def async_update(self, *args, **kwargs) -> None:
+    async def async_update(self, skip_rate_limits: bool = False, drop_on_overquota: bool = True, *args, **kwargs) -> None:
         # Call the super implementation
-        await super().async_update(*args, **kwargs)
+        await super().async_update(skip_rate_limits=skip_rate_limits, drop_on_overquota=drop_on_overquota, *args, **kwargs)
 
-        result = await self._execute_command(method="GET", namespace=Namespace.SYSTEM_ALL, payload={})
+        result = await self._execute_command(method="GET",
+                                             namespace=Namespace.SYSTEM_ALL,
+                                             payload={},
+                                             skip_rate_limits=skip_rate_limits,
+                                             drop_on_overquota=drop_on_overquota)
 
         # Once we have the response, update all the mixin which are interested
         await self.async_handle_update(namespace=Namespace.SYSTEM_ALL, data=result)
 
 
 class SystemOnlineMixin(object):
-    _abilities_spec: dict
     _online: OnlineStatus
     #async_handle_update: Callable[[Namespace, dict], Awaitable]
 

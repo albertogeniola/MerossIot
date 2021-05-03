@@ -31,6 +31,26 @@ over_limit_delay_seconds        1             Seconds to delay when limit is rea
 over_limit_threshold_percentage 1000          Percentage threshold above which messages are dropped rather than delayed
 =============================== ============= =========================================================================
 
+Logging
+-------
+This library relies on the standard Python's logging module.
+It is possible to control the logging verbosity by modifying the severity of meross_iot log level, as shown
+in the following example.
+
+.. code-block:: python
+
+    import asyncio
+    import os
+    import logging
+    from meross_iot.http_api import MerossHttpClient
+    from meross_iot.manager import MerossManager
+
+
+    meross_root_logger = logging.getLogger("meross_iot")
+    meross_root_logger.setLevel(logging.WARNING)
+
+That code snippet will raise the log-level to WARNING, so DEBUG and INFO messages are not logged any longer.
+
 Sniff device data
 -----------------
 

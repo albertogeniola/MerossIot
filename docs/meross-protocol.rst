@@ -98,15 +98,20 @@ where the plug should connect to. Once obtained, the app builds up the message a
 At this point, the plug reboots itself and attempts to connect to the Wifi network. If successful, it tries to connect
 to the MQTT broker (the one that has been configured in the first POST message), using the following credentials.
 
-    username: <mac-address>
+    username: <macaddress>
 
-    password: <userId>_md5(<mac-address><key>)
+    password: <userid>_MD5(<macaddress><key>)
+
+    clientid: fmware:<deviceuuid>_<?>
 
 .. note::
-   The mac address should be in lower case, following the form XX:XX:XX:XX:XX:XX. The password is calculated as the
+   The mac address should be in lower case, following the form xx:xx:xx:xx:xx:xx. The password is calculated as the
    numerical userId, followed by the underscore digit, followed by the md5 hex digest (in lower case) of the
    concatenated string <mac-address> + <key>, where the key and the userId have been retrieved by the APP at login
-   time via HTTP API.
+   time via HTTP API. The client-id is the concatenation of the constant "fmware:" followed by the device uuid
+   (lowercase), an underscore and another (unknown) string.
+   Note that che clientid must be correctly valued for the connection to succeed. However, the <?> portion of the
+   string can be anything or even omitted.
 
 The plug assumes that the broker uses TLS secured connection, so it expects the broker to use SSL. However it seems
 that the plug does not perform any kind of validation of the server certificate. The author was able to make a MSS210
@@ -119,3 +124,44 @@ MQTT broker where the device is connecting to.
    This is another important flaw. A simple DNS spoofing attack may de-route the device client to connect against
    a malicious mqtt server.
 
+
+Meross MQTT architecture
+------------------------
+
+Most of the communication between the Meross App and the devices happens via a MQTT broker that Meross hosts (at the time of writing) on AWS cloud.
+By inspecting the network traffic among the Meross App, the MQTT broker and the Meross devices, we identify the following **topics**.
+
+.. image:: images/mqtt-subscriptions.png
+   :width: 800
+   :alt: Meross MQTT topics
+
+From the image above, we can discriminate 4 different topics:
+
+- */appliance/<device_uuid>/subscribe*
+    Specific to every Meross appliance (as the *device_uuid* portion of the tropic is unique for every hardware device).
+    It represents the topic from where the appliance pulls commands to be executed.
+
+- */appliance/<device_uuid>/publish*
+    Specific to every Meross appliance (as the *device_uuid* portion of the tropic is unique for every hardware device).
+    It is the topic where the appliance publishes events (push notifications).
+
+- */app/<user_id>/subscribe*
+    Specific for user_id, it is the topic where push notifications are published.
+    In general, the Meross App subscribes to this topic in order to update its state as events happen on the physical device.
+
+- */app/<user_id>-<app_id>/subscribe*
+    It is the topic to which the Meross App subscribes. It is used by the app to receive the response to commands sent to the appliance.
+
+Flow: App commands
+------------------
+
+.. image:: images/mqtt-app-command-flow.png
+   :width: 800
+   :alt: App command flow
+
+Flow: Push notifications
+------------------------
+
+.. image:: images/mqtt-device-event-flow.png
+   :width: 800
+   :alt: Device event flow

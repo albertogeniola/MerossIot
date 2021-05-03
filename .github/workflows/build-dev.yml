@@ -6,8 +6,11 @@ on:
     branches: [ development-0.4.X.X ]
 
 jobs:
+  # ------------------------------
+  # Builds the code
+  # ------------------------------
   build:
-    name: Build on node ${{matrix.python_version}}
+    name: Build on node Python ${{matrix.python_version}}
     outputs: 
       tag: ${{steps.tag.outputs.tag}}
     runs-on: ubuntu-latest
@@ -34,6 +37,11 @@ jobs:
         TAG=$(cat $GITHUB_WORKSPACE/.version)$GITHUB_RUN_NUMBER
         echo "Tag: $TAG"
         echo "::set-output name=tag::$TAG"
+
+
+  # ------------------------------
+  # Turn on ENV
+  # ------------------------------
   turn-on-env:
     name: Turn on test environment
     runs-on: ubuntu-latest
@@ -42,14 +50,14 @@ jobs:
       TPLINK_PASS: ${{ secrets.TPLINK_PASS }}
     steps:
       - name: Setup Node.js environment
-        uses: actions/setup-node@v1.4.2
+        uses: actions/setup-node@v2-beta
         with:
           node-version: 11.x
       - uses: actions/checkout@v2
       - name: Install npm dependencies
         run: |
           pushd ext-res/tests
-          npm install 
+          npm install
           popd
       - name: Powering on the dev-environment
         run: |
@@ -87,7 +95,11 @@ jobs:
         MEROSS_EMAIL: ${{ secrets.MEROSS_EMAIL }}
         MEROSS_PASSWORD: ${{ secrets.MEROSS_PASSWORD }}
       run: |
+        pip install .
+        # Set credentials into memory
+        meross_api_cli auth login --email $MEROSS_EMAIL --password "$MEROSS_PASSWORD"
         pytest tests --doctest-modules --junitxml=junit/test-results.xml --cov=. --cov-report=xml --cov-report=html --html=junit/test-results.html --self-contained-html
+        meross_api_cli auth logout
     - name: Upload pytest test results
       uses: actions/upload-artifact@v2
       with:
@@ -116,14 +128,14 @@ jobs:
       TPLINK_PASS: ${{ secrets.TPLINK_PASS }}
     steps:
       - name: Setup Node.js environment
-        uses: actions/setup-node@v1.4.2
+        uses: actions/setup-node@v2-beta
         with:
           node-version: 11.x
       - uses: actions/checkout@v2
       - name: Install npm dependencies
         run: |
           pushd ext-res/tests
-          npm install 
+          npm install
           popd
       - name: Powering on the dev-environment
         run: |
@@ -131,20 +143,30 @@ jobs:
           node ./switch.js --dev MEROSS_LAB --toggle=off
           popd
     if: ${{ always() }}
-#
-#  pre-release:
-#    name: Pre-Release on GitHub
-#    runs-on: ubuntu-latest
-#    needs: [build, test]
-#    steps:
-#    - name: Create a Release
-#      uses: actions/create-release@v1
-#      env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#      with:
-#        # The name of the tag. This should come from the webhook payload, `github.GITHUB_REF` when a user pushes a new tag
-#        tag_name: ${{needs.build.outputs.tag}}
-#        # The name of the release. For example, `Release v1.0.1`
-#        release_name: Development release ${{github.RUN_NUMBER}}
-#        # `true` to identify the release as a prerelease. `false` to identify the release as a full release. Default: `false`
-#        prerelease: true
+
+  # ------------------------------
+  # Pre-Release on DEV
+  # ------------------------------
+  pre-release:
+    name: Pre-Release on GitHub
+    runs-on: ubuntu-latest
+    needs: [build, test]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Calculate Version
+      id: tag
+      run: |
+        TAG=$(cat $GITHUB_WORKSPACE/.version)
+        echo "Tag: $TAG"
+        echo "::set-env name=tag::$TAG"
+    - name: Create a Release
+      uses: actions/create-release@v1
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        # The name of the tag. This should come from the webhook payload, `github.GITHUB_REF` when a user pushes a new tag
+        tag_name: ${{env.tag}}-${{github.RUN_NUMBER}}
+        # The name of the release. For example, `Release v1.0.1`
+        release_name: Development release ${{env.tag}}-${{github.RUN_NUMBER}}
+        # `true` to identify the release as a prerelease. `false` to identify the release as a full release. Default: `false`
+        prerelease: true

@@ -1,23 +1,22 @@
 import os
 from uuid import uuid4
-
 from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
 from meross_iot.controller.device import BaseDevice
 from meross_iot.controller.mixins.toggle import ToggleXMixin
-from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
 from meross_iot.model.enums import OnlineStatus, Namespace
 from meross_iot.model.exception import CommandTimeoutError
-
-EMAIL = os.environ.get('MEROSS_EMAIL')
-PASSWORD = os.environ.get('MEROSS_PASSWORD')
+from tests import async_get_client
 
 
 if os.name == 'nt':
     import asyncio
+
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+else:
+    import asyncio
 
 
 class TestError(AioHTTPTestCase):
@@ -25,7 +24,9 @@ class TestError(AioHTTPTestCase):
         return web.Application()
 
     async def setUpAsync(self):
-        self.meross_client = await MerossHttpClient.async_from_user_password(email=EMAIL, password=PASSWORD)
+        # Wait some time before next test-burst
+        await asyncio.sleep(10)
+        self.meross_client, self.requires_logout = await async_get_client()
 
         # Look for a device to be used for this test
         self.meross_manager = MerossManager(http_client=self.meross_client)
@@ -73,4 +74,5 @@ class TestError(AioHTTPTestCase):
             await send_invalid_command_to_device(dev=dev)
 
     async def tearDownAsync(self):
-        await self.meross_client.async_logout()
+        if self.requires_logout:
+            await self.meross_client.async_logout()

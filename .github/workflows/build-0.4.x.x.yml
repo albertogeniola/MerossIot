@@ -2,7 +2,7 @@ name: Build Test and Release
 
 on:
   push:
-    paths-ignore: [docs/**, README.md]
+    paths-ignore: [docs/**, README.md, examples/**]
     branches: [ 0.4.X.X ]
   pull_request:
     branches: [ 0.4.X.X ]
@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python_version: ['3.7', '3.8']
+        python_version: ['3.7.x', '3.8.x', '3.9.x']
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
@@ -42,7 +42,7 @@ jobs:
       TPLINK_PASS: ${{ secrets.TPLINK_PASS }}
     steps:
       - name: Setup Node.js environment
-        uses: actions/setup-node@v1.4.2
+        uses: actions/setup-node@v2-beta
         with:
           node-version: 11.x
       - uses: actions/checkout@v2
@@ -62,10 +62,10 @@ jobs:
   # ---------------------------------
   test:
     name: Testing
-    runs-on: ubuntu-latest
+    runs-on: webking-ws
     strategy:
       matrix:
-        python_version: ['3.7', '3.8']
+        python_version: ['3.7', '3.8', '3.9']
       max-parallel: 1
     needs: [build, turn-on-env]
     steps:
@@ -91,7 +91,11 @@ jobs:
         MEROSS_EMAIL: ${{ secrets.MEROSS_EMAIL }}
         MEROSS_PASSWORD: ${{ secrets.MEROSS_PASSWORD }}
       run: |
-        pytest tests --doctest-modules --junitxml=junit/test-results.xml --cov=. --cov-report=xml --cov-report=html --html=junit/test-results.html --self-contained-html
+        pip install .
+        # Set credentials into memory
+        TOKEN=$(meross_api_cli auth login --email $MEROSS_EMAIL --password "$MEROSS_PASSWORD" | base64 -w0)
+        __MEROSS_CREDS=$TOKEN pytest tests --doctest-modules --junitxml=junit/test-results.xml --cov=. --cov-report=xml --cov-report=html --html=junit/test-results.html --self-contained-html
+        __MEROSS_CREDS=$TOKEN meross_api_cli auth logout
     - name: Upload pytest test results
       uses: actions/upload-artifact@v2
       with:
@@ -120,7 +124,7 @@ jobs:
       TPLINK_PASS: ${{ secrets.TPLINK_PASS }}
     steps:
       - name: Setup Node.js environment
-        uses: actions/setup-node@v1.4.2
+        uses: actions/setup-node@v2-beta
         with:
           node-version: 11.x
       - uses: actions/checkout@v2
@@ -158,6 +162,8 @@ jobs:
         run: python setup.py sdist bdist_wheel --universal
       - name: Calculate Version
         id: tag
+        env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
         run: |
           TAG=$(cat $GITHUB_WORKSPACE/.version)
           echo "Tag: $TAG"

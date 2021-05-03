@@ -31,13 +31,14 @@ async def main():
         await dev.async_update()
 
         # Access read cached data
-        on_off = dev.is_on
+        on_off = dev.is_on()
+
         # Turn on the device if it's not on
         if not on_off:
             print(f"Device {dev.name} is off, turning it on...")
             await dev.async_turn_on()
 
-        temp = dev.ambient_temperature
+        temp = await dev.async_get_temperature()
         print(f"Current ambient temperature = {temp} °C, "
               f"Target Temperature = {dev.target_temperature}, "
               f"mode = {dev.mode},"
@@ -57,3 +58,4 @@ if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main())
     loop.close()
+

@@ -106,11 +106,11 @@ For reading data from the MS100 temperature and humidity sensor, you can rely on
 .. literalinclude:: ../examples/sensor.py
    :linenos:
    :caption: Reading from sensor
-   :name: smart-valve
+   :name: sensor
    :language: python
 
 More details on the specific methods offered by the Ms100 sensor device are documented
-within the :doc:`Ms100Sensor class <api-reference/controller/subdevice/sensor`.
+within the :doc:`Ms100Sensor class <api-reference/controller/subdevice/sensor>`.
 
 Controlling Thermostat
 ----------------------

@@ -57,13 +57,20 @@ class Namespace(Enum):
     CONTROL_TOGGLE = 'Appliance.Control.Toggle'
     CONTROL_TOGGLEX = 'Appliance.Control.ToggleX'
     CONTROL_ELECTRICITY = 'Appliance.Control.Electricity'
+    CONTROL_CONSUMPTION = 'Appliance.Control.Consumption'
     CONTROL_CONSUMPTIONX = 'Appliance.Control.ConsumptionX'
+
 
     # Bulbs-only abilities
     CONTROL_LIGHT = 'Appliance.Control.Light'
 
     # Garage opener abilities
     GARAGE_DOOR_STATE = 'Appliance.GarageDoor.State'
+
+    # Roller shutter timer
+    ROLLER_SHUTTER_STATE = 'Appliance.RollerShutter.State'
+    ROLLER_SHUTTER_POSITION = 'Appliance.RollerShutter.Position'
+    ROLLER_SHUTTER_CONFIG = 'Appliance.RollerShutter.Config'
 
     # Humidifier
     CONTROL_SPRAY = 'Appliance.Control.Spray'

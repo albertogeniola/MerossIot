@@ -2,27 +2,55 @@ import logging
 from typing import Optional
 
 from meross_iot.controller.device import BaseDevice, HubDevice, GenericSubDevice
-from meross_iot.controller.mixins.consumption import ConsumptionXMixin
+from meross_iot.controller.known.bulbs import MSL120, MSL100
+from meross_iot.controller.known.humidifiers import MSXH0
+from meross_iot.controller.known.openers import MSG100
+from meross_iot.controller.known.shutters import MRS100
+from meross_iot.controller.known.plugs import MSS110, MSS210, MSS310, MSS620, MSS710
+from meross_iot.controller.known.strips import MSS425E, MSS420F, MSS425F, MSS530
+from meross_iot.controller.known.subdevice import Mts100v3Valve, Ms100Sensor
+from meross_iot.controller.mixins.consumption import ConsumptionXMixin, ConsumptionMixin
 from meross_iot.controller.mixins.electricity import ElectricityMixin
 from meross_iot.controller.mixins.garage import GarageOpenerMixin
+from meross_iot.controller.mixins.roller_shutter import RollerShutterTimerMixin
 from meross_iot.controller.mixins.hub import HubMts100Mixin, HubMixn, HubMs100Mixin
 from meross_iot.controller.mixins.light import LightMixin
 from meross_iot.controller.mixins.spray import SprayMixin
 from meross_iot.controller.mixins.system import SystemAllMixin, SystemOnlineMixin
 from meross_iot.controller.mixins.toggle import ToggleXMixin, ToggleMixin
-from meross_iot.controller.subdevice import Mts100v3Valve, Ms100Sensor
 from meross_iot.model.enums import Namespace
+from meross_iot.model.exception import UnknownDeviceType
 from meross_iot.model.http.device import HttpDeviceInfo
 from meross_iot.model.http.subdevice import HttpSubdeviceInfo
 
 _LOGGER = logging.getLogger(__name__)
 
-# TODO: implement logic to "selectively discard overlapping capabilities"
+_KNOWN_DEV_TYPES_CLASSES = {
+    "msl120": MSL120,
+    "msl100": MSL100,
+    "msxh0": MSXH0,
+    "msg100": MSG100,
+    "mrs100": MRS100,
+    "mss110": MSS110,
+    "mss210": MSS210,
+    "mss310": MSS310,
+    "mss620": MSS620,
+    "mss710": MSS710,
+    "msh300": HubDevice,
+    "mss425e": MSS425E,
+    "mss420f": MSS420F,
+    "mss425f": MSS425F,
+    "mss530": MSS530,
+    "mts100v3": Mts100v3Valve,
+    "ms100": Ms100Sensor
+}
+
 _ABILITY_MATRIX = {
     # Power plugs abilities
     Namespace.CONTROL_TOGGLEX.value: ToggleXMixin,
     Namespace.CONTROL_TOGGLE.value: ToggleMixin,
     Namespace.CONTROL_CONSUMPTIONX.value: ConsumptionXMixin,
+    Namespace.CONTROL_CONSUMPTION.value: ConsumptionMixin,
     Namespace.CONTROL_ELECTRICITY.value: ElectricityMixin,
 
     # Light abilities
@@ -30,6 +58,9 @@ _ABILITY_MATRIX = {
 
     # Garage opener
     Namespace.GARAGE_DOOR_STATE.value: GarageOpenerMixin,
+
+    # Roller shutter timer
+    Namespace.ROLLER_SHUTTER_STATE.value: RollerShutterTimerMixin,
 
     # Spray opener
     Namespace.CONTROL_SPRAY.value: SprayMixin,
@@ -122,10 +153,13 @@ def _build_cached_type(type_string: str, device_abilities: dict, base_class: typ
     return m
 
 
-def build_meross_device(http_device_info: HttpDeviceInfo, device_abilities: dict, manager) -> BaseDevice:
+def build_meross_device_from_abilities(http_device_info: HttpDeviceInfo,
+                                       device_abilities: dict,
+                                       manager) -> BaseDevice:
     """
     Builds a managed meross device object given the specs reported by HTTP api and the abilities reported by the device
     itself.
+
     :param http_device_info:
     :param device_abilities:
     :param manager:
@@ -170,6 +204,30 @@ def build_meross_device(http_device_info: HttpDeviceInfo, device_abilities: dict
 
     component = cached_type(device_uuid=http_device_info.uuid, manager=manager, **http_device_info.to_dict())
     return component
+
+
+def build_meross_device_from_known_types(http_device_info: HttpDeviceInfo,
+                                        manager) -> BaseDevice:
+    """
+    Builds a managed meross device object by guess its relative class based on the device type string.
+    Note that this method is capable of building managed device wrappers only if the device type is
+    reported within the _KNOWN_DEV_TYPES_CLASSES. If your device type is not known yet, you should rely on
+    `build_meross_device_from_abilities()` instead.
+
+    :param http_device_info:
+    :param manager:
+    :return:
+    """
+    _LOGGER.debug(f"Building managed device for {http_device_info.dev_name} ({http_device_info.uuid}) "
+                  f"from static known types ")
+    dev_type = http_device_info.device_type.lower()
+    target_clazz = _KNOWN_DEV_TYPES_CLASSES.get(dev_type)
+
+    if target_clazz is None:
+        _LOGGER.error("Could not find any known device class for device type (%s).", http_device_info.device_type)
+        raise UnknownDeviceType()
+
+    return target_clazz(device_uuid=http_device_info.uuid, manager=manager, **http_device_info.to_dict())
 
 
 def build_meross_subdevice(http_subdevice_info: HttpSubdeviceInfo, hub_uuid: str, hub_reported_abilities: dict,
