@@ -577,7 +577,7 @@ class MerossManager(object):
 
         :param destination_device_uuid:
         :param method: Can be GET/SET
-        :param namespace: Command namspace
+        :param namespace: Command namespace
         :param payload: A dict containing the payload to be sent
         :param timeout: Maximum time interval in seconds to wait for the command-answer
         :param skip_rate_limiting_check: When True, no API rate limit is performed for executing the command
