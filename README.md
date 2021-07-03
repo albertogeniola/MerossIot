@@ -25,7 +25,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```bash
-pip install meross_iot==0.4.1.1
+pip install meross_iot==0.4.1.1rc2
 ```
 
 ## Usage & Full Documentation
@@ -175,8 +175,11 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
+#### 0.4.1.1rc2
+- Added custom API URL endpoint
+
 #### 0.4.1.0rc8
-- Implemented first roller_shutter suport (merged #160), thanks to @adrigonzalvez 
+- Implemented first roller_shutter support (merged #160), thanks to @adrigonzalvez 
 
 <details>
     <summary>Older</summary>
