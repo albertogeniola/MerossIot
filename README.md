@@ -200,6 +200,7 @@ Anyways, feel free to contribute via donations!
 
 #### 0.4.1.1rc2
 - Merged #150 (Added MSS620 support)
+- Added ErrorCode 1022
 
 #### 0.4.0.6
 - Added device internal id parameter to async event handlers    
