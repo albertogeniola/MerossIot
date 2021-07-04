@@ -177,13 +177,14 @@ Anyways, feel free to contribute via donations!
 ## Changelog
 #### 0.4.1.1rc2
 - Added custom API URL endpoint
-
-#### 0.4.1.0rc8
-- Implemented first roller_shutter support (merged #160), thanks to @adrigonzalvez 
+- Merged #150 (Added MSS620 support)
+- Added ErrorCode 1022
 
 <details>
     <summary>Older</summary>
 
+#### 0.4.1.0rc8
+- Implemented first roller_shutter support (merged #160), thanks to @adrigonzalvez 
 #### 0.4.1.0rc7
 - Implemented exponential backoff for api-rate limiter
 - Fixed memory leakage that occurred for long-lived sessions of the MerossManager 
@@ -197,11 +198,6 @@ Anyways, feel free to contribute via donations!
 - Addressed problems with online events not being propagated correctly in some edge cases
 - Fixed some known-cached types that were missing SystemOnline and SystemAll mixins 
 - Removed warning logs from LightMixin when checking supported modes
-
-#### 0.4.1.1rc2
-- Merged #150 (Added MSS620 support)
-- Added ErrorCode 1022
-
 #### 0.4.0.6
 - Added device internal id parameter to async event handlers    
 #### 0.4.0.5
@@ -219,7 +215,6 @@ Anyways, feel free to contribute via donations!
 - Extended API error codes
 - Updated paho-mqtt dependency to v1.5.0 
 - Fixed errors caused in tests when running on windows system / Python 3.8
-
 #### 0.4.0.0
 Complete re-engineerization of the library.
 
