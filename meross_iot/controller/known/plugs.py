@@ -1,4 +1,5 @@
 from meross_iot.controller.device import BaseDevice
+from meross_iot.controller.mixins.consumption import ConsumptionXMixin
 from meross_iot.controller.mixins.electricity import ElectricityMixin
 from meross_iot.controller.mixins.system import SystemOnlineMixin, SystemAllMixin
 from meross_iot.controller.mixins.toggle import ToggleMixin, ToggleXMixin
@@ -28,7 +29,7 @@ class MSS210(SystemAllMixin, SystemOnlineMixin, ToggleXMixin, BaseDevice):
                          **kwargs)
 
 
-class MSS310(SystemAllMixin, SystemOnlineMixin, ElectricityMixin, ToggleXMixin, BaseDevice):
+class MSS310(SystemAllMixin, SystemOnlineMixin, ConsumptionXMixin, ElectricityMixin, ToggleXMixin, BaseDevice):
     """
     MSS310 device with electricity/power consumption reading
     """

@@ -1,8 +1,10 @@
 import os
+from datetime import timedelta
 from typing import List
 
 from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
+from meross_iot.utilities.limiter import RateLimitChecker
 
 from meross_iot.controller.mixins.electricity import ElectricityMixin
 from meross_iot.manager import MerossManager
@@ -17,6 +19,9 @@ else:
     import asyncio
 
 
+BURST_RATE = 5
+
+
 class TestLimits(AioHTTPTestCase):
     test_sensors: List[ElectricityMixin]
 
@@ -29,7 +34,8 @@ class TestLimits(AioHTTPTestCase):
         self.meross_client, self.requires_logout = await async_get_client()
 
         # Look for a device to be used for this test
-        manager = MerossManager(http_client=self.meross_client, max_requests_per_second=2)
+        rate_limiter = RateLimitChecker(global_time_window=timedelta(seconds=1), global_burst_rate=BURST_RATE, device_max_command_queue=BURST_RATE)
+        manager = MerossManager(http_client=self.meross_client, rate_limiter=rate_limiter)
         await manager.async_init()
         devices = await manager.async_device_discovery()
 
@@ -46,7 +52,7 @@ class TestLimits(AioHTTPTestCase):
         if len(self.test_sensors) < 1:
             self.skipTest("No device found for this test")
 
-        await self._perform_requests(sensor=self.test_sensors[0], n_requests=4)
+        await self._perform_requests(sensor=self.test_sensors[0], n_requests=BURST_RATE-1)
 
     @unittest_run_loop
     async def test_unsustainable_rate(self):

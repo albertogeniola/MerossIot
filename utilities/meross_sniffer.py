@@ -36,7 +36,7 @@ r.setLevel(logging.DEBUG)
 
 
 class DeviceSniffer(object):
-    def __init__(self, user_id, hashed_password, target_device_uuid, ca_cert=None, domain="iot.meross.com", port=2001):
+    def __init__(self, user_id, hashed_password, target_device_uuid, ca_cert=None, mqtt_host="iot.meross.com", mqtt_port=2001):
         self.connect_event = Event()
         self.subscribe_event = Event()
         self.user_id = user_id
@@ -45,8 +45,8 @@ class DeviceSniffer(object):
         self.client_response_topic = None
         self.user_topic = None
 
-        self.domain = domain
-        self.port = port
+        self.mqtt_domain = mqtt_host
+        self.mqtt_port = mqtt_port
         self.target_device_uuid = target_device_uuid
 
         # Generate random app and client id
@@ -83,7 +83,7 @@ class DeviceSniffer(object):
         :return:
         """
         l.debug("Initializing the MQTT connection...")
-        self._mqtt_client.connect(self.domain, self.port, keepalive=30)
+        self._mqtt_client.connect(self.mqtt_domain, self.mqtt_port, keepalive=30)
 
         # Starts a new thread that handles mqtt protocol and calls us back via callbacks
         l.debug("(Re)Starting the MQTT loop.")
@@ -193,7 +193,7 @@ async def _main():
         hashed_password,
         selected_device.uuid,
         ca_cert=None,
-        domain=selected_device.domain or "iot.meross.com"
+        mqtt_host=selected_device.domain or "iot.meross.com"
     )
 
     print("Starting the sniffer...")

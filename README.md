@@ -175,10 +175,11 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
-#### 0.4.1.1rc2
+#### 0.4.2.0rc1
 - Added custom API URL endpoint
 - Merged #150 (Added MSS620 support)
 - Added ErrorCode 1022
+- Renamed MerossManager domain and port parameters
 
 <details>
     <summary>Older</summary>

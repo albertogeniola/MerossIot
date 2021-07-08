@@ -2,8 +2,10 @@ from abc import ABC, abstractmethod
 from datetime import timedelta
 from enum import Enum
 from time import time
-
+import logging
 from typing import Dict, Tuple
+
+_LIMITER = logging.getLogger("meross_iot.manager.apilimiter")
 
 
 class BackoffLogic(ABC):
@@ -139,26 +141,43 @@ class RateLimitResultStrategy(Enum):
 
 
 class RateLimitChecker(object):
+    """
+    Helper class the implements API call limiter.
+    This class takes track of API limits per device uuid and at global level (i.e. regardless of the device-uuid).
+    """
     def __init__(self,
-                 global_burst_rate=2,
-                 global_time_window=timedelta(seconds=1),
-                 global_tokens_per_interval=2,
-                 device_burst_rate=1,
-                 device_time_window=timedelta(seconds=1),
-                 device_tokens_per_interval=1):
+                 global_burst_rate: int = 6,
+                 global_time_window: timedelta = timedelta(seconds=1),
+                 global_tokens_per_interval: int = 2,
+                 device_burst_rate: int = 1,
+                 device_time_window: timedelta = timedelta(seconds=1),
+                 device_tokens_per_interval: int = 1,
+                 device_max_command_queue: int = 5):
+        """
+        Constructor
+        :param global_burst_rate: Global burst rate, max number of commands that can be executed within the global_time_window
+        :param global_time_window: Time window in seconds that is used to aggregate the API counting
+        :param global_tokens_per_interval: Number of calls allowed within the time interval at run time (globally)
+        :param device_burst_rate: Per device burst rate, max number of commands that can be executed on a specific device within he device_time_window
+        :param device_time_window: Time window in seconds that is used to aggregate the API counting for a given device
+        :param device_tokens_per_interval: Number of calls allowed within the time interval at run time (per device)
+        :param device_max_command_queue: Maximum number of commands that can be delayed for a given device, after which commands are dropped
+        """
         # Global limiter configuration
         self._global_limiter = TokenBucketRateLimiterWithBackoff(window_interval=global_time_window,
                                                                  tokens_per_interval=global_tokens_per_interval,
                                                                  max_burst_size=global_burst_rate,
                                                                  backoff_logic=ExponentialBackoff(
                                                                      start_backoff_seconds=0.5,
-                                                                     max_backoff_seconds=60
+                                                                     max_backoff_seconds=10
                                                                  ))
         # Device limiters
         self._devices_limiters = {}
         self._device_burst_rate = device_burst_rate
         self._device_time_window = device_time_window
         self._device_tokens_per_interval = device_tokens_per_interval
+        self._max_command_queue = device_max_command_queue
+        self._current_command_queue_size = {}
 
     @property
     def global_rate_limiter(self) -> TokenBucketRateLimiterWithBackoff:
@@ -168,7 +187,41 @@ class RateLimitChecker(object):
     def device_limiters(self) -> Dict[str, TokenBucketRateLimiterWithBackoff]:
         return self._devices_limiters
 
-    def check_limits(self, device_uuid) -> Tuple[RateLimitResult, float, float]:
+    def check_limits(self, device_uuid: str) -> Tuple[RateLimitResultStrategy, float]:
+        """
+        Checks the API limit against the configured thresholds
+        :param device_uuid: Device for which API call is being called
+        :return:
+        """
+        result, wait_time, overlimit = self._check_limits_internal(device_uuid=device_uuid)
+        device_command_queue_size = self._current_command_queue_size[device_uuid]
+
+        if result == RateLimitResult.NotLimited:
+            self._dec_command_queue(device_uuid=device_uuid)
+            return RateLimitResultStrategy.PerformCall, 0
+        elif device_command_queue_size < self._max_command_queue:
+            _LIMITER.warning("Api call delayed by %f seconds. Device %s queue size: %d/%d",
+                             device_uuid,
+                             wait_time,
+                             device_command_queue_size,
+                             self._max_command_queue)
+            self._inc_command_queue(device_uuid=device_uuid)
+            return RateLimitResultStrategy.DelayCall, wait_time
+        else:
+            _LIMITER.error("Api call dropped. Device %s queue size: %d/%d",
+                           device_uuid,
+                           device_command_queue_size,
+                           self._max_command_queue)
+            return RateLimitResultStrategy.DropCall, 0
+
+    def _dec_command_queue(self, device_uuid: str):
+        if self._current_command_queue_size[device_uuid] > 0:
+            self._current_command_queue_size[device_uuid] -= 1
+
+    def _inc_command_queue(self, device_uuid: str):
+        self._current_command_queue_size[device_uuid] += 1
+
+    def _check_limits_internal(self, device_uuid: str) -> Tuple[RateLimitResult, float, float]:
         """
         Check is the call can be performed against the preconfigured limits and returns the possible limit that was
         hit, the time to wait before performing again the call and the current over-quota percentage.
@@ -182,6 +235,7 @@ class RateLimitChecker(object):
                 tokens_per_interval=self._device_tokens_per_interval,
                 max_burst_size=self._device_burst_rate,
                 backoff_logic=ExponentialBackoff(start_backoff_seconds=0.5, max_backoff_seconds=30))
+            self._current_command_queue_size[device_uuid] = 0
         device_limiter = self._devices_limiters[device_uuid]
         limit_hit, wait_time = device_limiter.check_limit_reached()
         if limit_hit:

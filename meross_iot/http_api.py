@@ -191,11 +191,16 @@ class MerossHttpClient(object):
         # Perform the request.
         headers_with_masked_authrorization = headers.copy()
         if 'Authorization' in headers_with_masked_authrorization:
-            headers_with_masked_authrorization['Authorization'] = 'XXXX'
+            headers_with_masked_authrorization['Authorization'] = 'XXXX-MASKED-XXXX'
 
         if not url.lower().startswith("http://") and not url.lower().startswith("https://"):
             _LOGGER.warning("Missing HTTP/HTTPS schema from Base API url. Assuming it's HTTPS://...")
             url = f"https://{url}"
+
+        log_payload = payload
+        if mask_params_in_log:
+            log_payload = payload.copy()
+            log_payload['params'] = 'XXXX-MASKED-XXXX'
 
         _LOGGER.debug(f"Performing HTTP request against {url}, headers: {headers}, post data: {payload}")
         async with ClientSession() as session:
