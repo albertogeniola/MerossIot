@@ -6,7 +6,7 @@ import time
 from datetime import datetime
 from typing import List, Union, Optional, Iterable, Callable, Awaitable, Dict
 
-from meross_iot.model.constants import DEFAULT_MQTT_PORT
+from meross_iot.model.constants import DEFAULT_MQTT_PORT, DEFAULT_MQTT_HOST
 from meross_iot.model.enums import OnlineStatus, Namespace
 from meross_iot.model.http.device import HttpDeviceInfo
 from meross_iot.model.plugin.hub import BatteryInfo
@@ -45,7 +45,7 @@ class BaseDevice(object):
         elif reserved_domain is not None:
             self._mqtt_host = reserved_domain
         else:
-            raise RuntimeError("Invalid mqtt domain specified")
+            _LOGGER.warning("No MQTT DOMAIN specified in args, assuming default value %s", DEFAULT_MQTT_HOST)
 
         port = kwargs.get("port")
         second_port = kwargs.get("secondPort")
@@ -326,17 +326,19 @@ class GenericSubDevice(BaseDevice):
     _UPDATE_ALL_NAMESPACE = None
 
     def __init__(self, hubdevice_uuid: str, subdevice_id: str, manager, **kwargs):
-        super().__init__(hubdevice_uuid, manager, **kwargs)
+        hubs = manager.find_devices(device_uuids=(hubdevice_uuid,))  # type: List[HubDevice]
+        if len(hubs) < 1:
+            raise ValueError("Specified hub device is not present")
+        hub = hubs[0]
+        super().__init__(device_uuid=hubdevice_uuid, manager=manager, domain=hub.mqtt_host, port=hub.mqtt_port,
+                         **kwargs)
         self._subdevice_id = subdevice_id
         self._type = kwargs.get('subDeviceType')
         self._name = kwargs.get('subDeviceName')
         self._onoff = None
         self._mode = None
         self._temperature = None
-        hub = manager.find_devices(device_uuids=(hubdevice_uuid,))
-        if len(hub) < 1:
-            raise ValueError("Specified hub device is not present")
-        self._hub = hub[0]
+        self._hub = hub
 
     async def _execute_command(self,
                                method: str,

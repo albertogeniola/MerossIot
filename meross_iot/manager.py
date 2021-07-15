@@ -284,7 +284,6 @@ class MerossManager(object):
 
         _LOGGER.debug("Stop flag raised, ending loop")
 
-
     async def async_device_discovery(
             self, update_subdevice_status: bool = True, meross_device_uuid: str = None
     ) -> Iterable[BaseDevice]:

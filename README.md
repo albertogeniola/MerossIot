@@ -65,10 +65,12 @@ async def main():
         # Note that channel argument is optional for MSS310 as they only have one channel
         dev = plugs[0]
         
-        # The first time we play with a device, we must update its status
+        # The first time we play with a device, we must update its status.
+        # This ensures the device state is fetched and ligned before we start
+        # issuing commands to it.
         await dev.async_update()
         
-        # We can now start playing with that
+        # We can now start playing!
         print(f"Turning on {dev.name}...")
         await dev.async_turn_on(channel=0)
         print("Waiting a bit before turing it off")
@@ -82,7 +84,8 @@ async def main():
 
 if __name__ == '__main__':
     # On Windows + Python 3.8, you should uncomment the following
-    # asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    if os.name == 'nt':
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main())
     loop.close()
@@ -176,6 +179,8 @@ Anyways, feel free to contribute via donations!
 
 ## Changelog
 #### 0.4.2.0rc1
+- Refactored MerossManager avoiding usage of multiple threads
+- Implemented multiple mqtt connections to different servers
 - Added custom API URL endpoint
 - Merged #150 (Added MSS620 support)
 - Added ErrorCode 1022
