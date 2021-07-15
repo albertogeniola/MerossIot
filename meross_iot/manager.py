@@ -273,7 +273,8 @@ class MerossManager(object):
         _LOGGER.info("Starting Manager Looper")
         processed_loops = 0
         while not self.__stop_requested:
-            for key, client in self._mqtt_clients.items():  # type: mqtt.Client
+            # Loop over a copy of the dictionary to prevent dictionary changes while running
+            for key, client in {k: v for k, v in self._mqtt_clients.items() if v}.items():
                 # Process 100ms every loop
                 await self._loop.run_in_executor(None, client.loop, 0.1)
                 processed_loops += 1
@@ -784,11 +785,6 @@ class MerossManager(object):
                                        skip_rate_limiting_check: bool = False,
                                        drop_on_overquota: bool = True, ):
         # TODO: Document this method
-
-        # Only proceed if we are connected to the remote endpoint
-        #if not client.is_connected():
-        #    raise UnconnectedError()
-
         # Check rate limits
         if not skip_rate_limiting_check:
             rate_limiting_action, time_to_wait = self._api_rate_limit_checks(
