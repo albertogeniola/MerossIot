@@ -201,8 +201,8 @@ class RateLimitChecker(object):
             return RateLimitResultStrategy.PerformCall, 0
         elif device_command_queue_size < self._max_command_queue:
             _LIMITER.warning("Api call delayed by %f seconds. Device %s queue size: %d/%d",
-                             device_uuid,
                              wait_time,
+                             device_uuid,
                              device_command_queue_size,
                              self._max_command_queue)
             self._inc_command_queue(device_uuid=device_uuid)
