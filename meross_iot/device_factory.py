@@ -207,7 +207,7 @@ def build_meross_device_from_abilities(http_device_info: HttpDeviceInfo,
 
 
 def build_meross_device_from_known_types(http_device_info: HttpDeviceInfo,
-                                        manager) -> BaseDevice:
+                                         manager) -> BaseDevice:
     """
     Builds a managed meross device object by guess its relative class based on the device type string.
     Note that this method is capable of building managed device wrappers only if the device type is
