@@ -70,6 +70,7 @@ class TestValve(AioHTTPTestCase):
     async def test_mode(self):
         if len(self.test_devices) < 1:
             self.skipTest("No valve device has been found to run this test.")
+            return
 
         dev = self.test_devices[0]
         await dev.async_update()
