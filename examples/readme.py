@@ -9,6 +9,9 @@ PASSWORD = os.environ.get('MEROSS_PASSWORD') or "YOUR_MEROSS_CLOUD_PASSWORD"
 
 
 async def main():
+    # Configure the desired log-level
+    log
+
     # Setup the HTTP client API from user-password
     http_api_client = await MerossHttpClient.async_from_user_password(email=EMAIL, password=PASSWORD)
 
@@ -30,8 +33,8 @@ async def main():
     await http_api_client.async_logout()
 
 if __name__ == '__main__':
-    # On Windows + Python 3.8, you should uncomment the following
-    # asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    if os.name == 'nt':
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main())
     loop.close()

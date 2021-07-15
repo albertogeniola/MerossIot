@@ -20,12 +20,13 @@ from meross_iot.device_factory import (
     build_meross_device_from_known_types,
 )
 from meross_iot.http_api import MerossHttpClient
+from meross_iot.model.constants import DEFAULT_MQTT_PORT
 from meross_iot.model.enums import Namespace, OnlineStatus
 from meross_iot.model.exception import (
     CommandTimeoutError,
     CommandError,
     RateLimitExceeded,
-    UnknownDeviceType,
+    UnknownDeviceType, MqttError,
 )
 from meross_iot.model.exception import UnconnectedError
 from meross_iot.model.http.device import HttpDeviceInfo
@@ -53,10 +54,13 @@ logging.basicConfig(
 )
 _LOGGER = logging.getLogger(__name__)
 
-
 _CONNECTION_DROP_UPDATE_SCHEDULE_INTERVAL = 2
 
 T = TypeVar("T", bound=BaseDevice)  # Declare type variable
+
+
+def _mqtt_key_from_domain_port(domain: str, port: int) -> str:
+    return f"{domain}:{port}"
 
 
 class MerossManager(object):
@@ -67,17 +71,15 @@ class MerossManager(object):
     """
 
     def __init__(
-        self,
-        http_client: MerossHttpClient,
-        auto_reconnect: Optional[bool] = True,
-        mqtt_host: Optional[str] = "iot.meross.com",
-        mqtt_port: Optional[int] = 2001,
-        mqtt_skip_cert_validation: bool = False,
-        ca_cert: Optional[str] = None,
-        rate_limiter: Optional[RateLimitChecker] = None,
-        loop: Optional[AbstractEventLoop] = None,
-        *args,
-        **kwords,
+            self,
+            http_client: MerossHttpClient,
+            auto_reconnect: Optional[bool] = True,
+            mqtt_skip_cert_validation: bool = False,
+            ca_cert: Optional[str] = None,
+            rate_limiter: Optional[RateLimitChecker] = None,
+            loop: Optional[AbstractEventLoop] = None,
+            *args,
+            **kwords,
     ) -> None:
         """
         Constructor
@@ -85,8 +87,6 @@ class MerossManager(object):
                             (for device discovery, etc)
         :param auto_reconnect: (Optional) When True, the mqtt client will automatically reconnect when the connection
                                drops. Defaults to True.
-        :param mqtt_host: (Optional) MQTT hostname where to connect to, defaults to iot.meross.com
-        :param mqtt_port: (Optional) MQTT port, defaults to 2001
         :param mqtt_skip_cert_validation: (Optional) When set the Manager will accept unverified SSL/TLS certificates
                                           from the remote MQTT server. Defaults to False.
         :param ca_cert: (Optional) Path to the PEM certificate to trust (Intermediate/CA)
@@ -97,61 +97,82 @@ class MerossManager(object):
         """
 
         # Store local attributes
-        self.__initialized = False
+        self.__started = False
+        self.__stop_requested = False
         self._http_client = http_client
         self._cloud_creds = self._http_client.cloud_credentials
         self._auto_reconnect = auto_reconnect
-        self._mqtt_host = mqtt_host
-        self._mqtt_port = mqtt_port
         self._ca_cert = ca_cert
         self._app_id, self._client_id = generate_client_and_app_id()
         self._pending_messages_futures = {}
         self._device_registry = DeviceRegistry()
         self._push_coros = []
-
-        # Setup mqtt client
-        self._mqtt_client = mqtt.Client(client_id=self._client_id, protocol=mqtt.MQTTv311)
-        mqtt_password = generate_mqtt_password(user_id=self._cloud_creds.user_id, key=self._cloud_creds.key)
-        self._mqtt_client.username_pw_set(username=self._cloud_creds.user_id, password=mqtt_password)
-
-        # Certificate validation setup
-        if mqtt_skip_cert_validation:
-            self._mqtt_client.tls_set(
-                ca_certs=self._ca_cert,
-                certfile=None,
-                keyfile=None,
-                cert_reqs=ssl.CERT_NONE,
-                tls_version=ssl.PROTOCOL_TLS,
-                ciphers=None,
-            )
-            self._mqtt_client.tls_insecure_set(True)
-        else:
-            self._mqtt_client.tls_set(
-                ca_certs=self._ca_cert,
-                certfile=None,
-                keyfile=None,
-                cert_reqs=ssl.CERT_REQUIRED,
-                tls_version=ssl.PROTOCOL_TLS,
-                ciphers=None,
-            )
-            self._mqtt_client.tls_insecure_set(False)
-
-        # Setup Callbacks
-        self._mqtt_client.on_connect = self._on_connect
-        self._mqtt_client.on_message = self._on_message
-        self._mqtt_client.on_disconnect = self._on_disconnect
-        self._mqtt_client.on_subscribe = self._on_subscribe
+        self._mqtt_skip_validation = mqtt_skip_cert_validation
+        self._mqtt_clients = {}
+        self._mqtt_connected_and_subscribed = {}
 
         # Setup synchronization primitives
+        self._mqtt_looper_task = None
         self._loop = asyncio.get_event_loop() if loop is None else loop
-        self._mqtt_connected_and_subscribed = asyncio.Event(loop=self._loop)
 
-        # Prepare MQTT topic names
+        # Prepare MQTT info
+        self._mqtt_password = generate_mqtt_password(user_id=self._cloud_creds.user_id, key=self._cloud_creds.key)
         self._client_response_topic = build_client_response_topic(
             user_id=self._cloud_creds.user_id, app_id=self._app_id
         )
         self._user_topic = build_client_user_topic(user_id=self._cloud_creds.user_id)
         self._limiter = rate_limiter
+
+    async def _async_get_create_mqtt_client(self, domain: str, port: int) -> mqtt.Client:
+        """
+        Retrieves the mqtt_client for the given domain/port combination.
+        If not existing, a new one is created
+        """
+        dict_key = _mqtt_key_from_domain_port(domain=domain, port=port)
+        client = self._mqtt_clients.get(dict_key)
+        if client is not None:
+            _LOGGER.debug("MQTT Client for %s already available.", dict_key)
+        else:
+            _LOGGER.info("Allocating new mqtt client for %s...", dict_key)
+            client = self._new_mqtt_client()
+            client.user_data_set(dict_key)
+            self._mqtt_clients[dict_key] = client
+
+        if not client.is_connected():
+            # TODO: make sure event automatically resets
+            conn_evt = self._mqtt_connected_and_subscribed.get(dict_key)  # type: asyncio.Event
+            if conn_evt is None:
+                conn_evt = asyncio.Event(loop=self._loop)
+                client.connect(host=domain, port=port, keepalive=30)
+                self._mqtt_connected_and_subscribed[dict_key] = conn_evt
+
+            await conn_evt.wait()
+
+        return client
+
+    def _new_mqtt_client(self) -> mqtt.Client:
+        # Setup mqtt client
+        client = mqtt.Client(client_id=self._client_id, protocol=mqtt.MQTTv311)
+        client.username_pw_set(username=self._cloud_creds.user_id, password=self._mqtt_password)
+
+        # Certificate validation setup
+        client.tls_set(
+            ca_certs=self._ca_cert,
+            certfile=None,
+            keyfile=None,
+            cert_reqs=ssl.CERT_NONE if self._mqtt_skip_validation else ssl.CERT_REQUIRED,
+            tls_version=ssl.PROTOCOL_TLS,
+            ciphers=None,
+        )
+        client.tls_insecure_set(self._mqtt_skip_validation)
+
+        # Setup Callbacks
+        client.on_connect = self._on_connect
+        client.on_message = self._on_message
+        client.on_disconnect = self._on_disconnect
+        client.on_subscribe = self._on_subscribe
+
+        return client
 
     @property
     def limiter(self) -> RateLimitChecker:
@@ -162,7 +183,7 @@ class MerossManager(object):
         self._limiter = limiter
 
     def register_push_notification_handler_coroutine(
-        self, coro: Callable[[GenericPushNotification, List[BaseDevice]], Awaitable]
+            self, coro: Callable[[GenericPushNotification, List[BaseDevice]], Awaitable]
     ) -> None:
         """
         Registers a coroutine so that it gets invoked whenever a push notification is received from the Meross
@@ -180,7 +201,7 @@ class MerossManager(object):
         self._push_coros.append(coro)
 
     def unregister_push_notification_handler_coroutine(
-        self, coro: Callable[[GenericPushNotification, List[BaseDevice]], Awaitable]
+            self, coro: Callable[[GenericPushNotification, List[BaseDevice]], Awaitable]
     ) -> None:
         """
         Unregisters the event handler
@@ -196,20 +217,21 @@ class MerossManager(object):
             )
 
     def close(self):
-        _LOGGER.info("Disconnecting from mqtt")
-        self._mqtt_client.disconnect()
-        _LOGGER.debug("Stopping the MQTT looper.")
-        self._mqtt_client.loop_stop(True)
-        _LOGGER.info("MQTT Client has fully disconnected.")
+        if self.__stop_requested:
+            _LOGGER.warning("Manager already stopping/stopped")
+            return
+
+        _LOGGER.info("Manager stop requested.")
+        self.__stop_requested = True
 
     def find_devices(
-        self,
-        device_uuids: Optional[Iterable[str]] = None,
-        internal_ids: Optional[Iterable[str]] = None,
-        device_type: Optional[str] = None,
-        device_class: Optional[type] = None,
-        device_name: Optional[str] = None,
-        online_status: Optional[OnlineStatus] = None,
+            self,
+            device_uuids: Optional[Iterable[str]] = None,
+            internal_ids: Optional[Iterable[str]] = None,
+            device_type: Optional[str] = None,
+            device_class: Optional[type] = None,
+            device_name: Optional[str] = None,
+            online_status: Optional[OnlineStatus] = None,
     ) -> List[T]:
         """
         Lists devices that have been discovered via this manager. When invoked with no arguments,
@@ -244,33 +266,27 @@ class MerossManager(object):
             online_status=online_status,
         )
 
-    async def async_init(self) -> None:
+    async def _async_loop(self) -> None:
         """
-        Connects to the remote MQTT broker and subscribes to the relevant topics. This method should be
-        invoked only once before using any other method of this class.
-        :return:
+        Looper logic
         """
-        if self.__initialized:
-            raise RuntimeError("Manager was already initialized.")
+        _LOGGER.info("Starting Manager Looper")
+        processed_loops = 0
+        while not self.__stop_requested:
+            for key, client in self._mqtt_clients.items():  # type: mqtt.Client
+                # Process 100ms every loop
+                await self._loop.run_in_executor(None, client.loop, 0.1)
+                processed_loops += 1
 
-        _LOGGER.info("Initializing the MQTT connection...")
-        self._mqtt_client.connect(
-            host=self._mqtt_host, port=self._mqtt_port, keepalive=30
-        )
+            # In case there is nothing to do, wait a bit
+            if processed_loops < 1:
+                await asyncio.sleep(.1)
 
-        # Starts a new thread that handles mqtt protocol and calls us back via callbacks
-        _LOGGER.debug("Starting the MQTT looper.")
-        self._mqtt_client.loop_start()
+        _LOGGER.debug("Stop flag raised, ending loop")
 
-        # Wait until the client connects and subscribes to the broken
-        await self._mqtt_connected_and_subscribed.wait()
-        self._mqtt_connected_and_subscribed.clear()
-        _LOGGER.debug("Connected and subscribed to relevant topics")
-
-        self.__initialized = True
 
     async def async_device_discovery(
-        self, update_subdevice_status: bool = True, meross_device_uuid: str = None
+            self, update_subdevice_status: bool = True, meross_device_uuid: str = None
     ) -> Iterable[BaseDevice]:
         """
         Fetch devices and online status from HTTP API. This method also notifies/updates local device online/offline
@@ -367,10 +383,10 @@ class MerossManager(object):
         return res
 
     async def _async_enroll_new_http_subdev(
-        self,
-        subdevice_info: HttpSubdeviceInfo,
-        hub: HubDevice,
-        hub_reported_abilities: dict,
+            self,
+            subdevice_info: HttpSubdeviceInfo,
+            hub: HubDevice,
+            hub_reported_abilities: dict,
     ) -> Optional[GenericSubDevice]:
         subdevice = build_meross_subdevice(
             http_subdevice_info=subdevice_info,
@@ -388,8 +404,23 @@ class MerossManager(object):
         self._device_registry.enroll_device(subdevice)
         return subdevice
 
+    async def async_init(self):
+        """
+        Starts the looper logic
+        """
+        if self.__started:
+            raise RuntimeError("Async started was already called")
+        if self.__stop_requested:
+            raise RuntimeError("This managed has been marked for stop and is still stopping")
+
+        def reset_started_flag(_fut):
+            self.__started = False
+
+        _LOGGER.info("Starting looper task")
+        self._mqtt_looper_task = self._loop.create_task(self._async_loop()).add_done_callback(reset_started_flag)
+
     async def _async_enroll_new_http_dev(
-        self, device_info: HttpDeviceInfo
+            self, device_info: HttpDeviceInfo
     ) -> Optional[BaseDevice]:
         # If the device is online, try to query the device for its abilities.
         device = None
@@ -401,6 +432,8 @@ class MerossManager(object):
                     method="GET",
                     namespace=Namespace.SYSTEM_ABILITY,
                     payload={},
+                    mqtt_hostname=device_info.domain,
+                    mqtt_port=DEFAULT_MQTT_PORT
                 )
                 abilities = res_abilities.get("ability")
             except CommandTimeoutError:
@@ -445,27 +478,26 @@ class MerossManager(object):
             [(self._user_topic, 0), (self._client_response_topic, 0)], qos=1
         )
 
-    def _on_disconnect(self, client, userdata, rc):
+    def _on_disconnect(self, client: mqtt.Client, userdata, rc):
         # NOTE! This method is called by the paho-mqtt thread, thus any invocation to the
         # asyncio platform must be scheduled via `self._loop.call_soon_threadsafe()` method.
 
         _LOGGER.info("Disconnection detected. Reason: %s" % str(rc))
 
-        # If the client disconnected explicitly, the mqtt library handles thred stop autonomously
         if rc == mqtt.MQTT_ERR_SUCCESS:
             pass
         else:
             # Otherwise, if the disconnection was not intentional, we probably had a connection drop.
             # In this case, we only stop the loop thread if auto_reconnect is not set. In fact, the loop will
             # handle reconnection autonomously on connection drops.
-            if not self._auto_reconnect:
-                _LOGGER.info("Stopping mqtt loop on connection drop")
-                client.loop_stop(True)
+            if self._auto_reconnect:
+                _LOGGER.info("Reconnecting (auto_reconnect flag has been set)")
+                client.reconnect()
             else:
-                _LOGGER.warning(
-                    "Client has been disconnected, however auto_reconnect flag is set. "
-                    "Won't stop the looping thread, as it will retry to connect."
+                _LOGGER.info(
+                    "No reconnection will be attempted as auto_reconnect flag was not set"
                 )
+                del self._mqtt_connected_and_subscribed[userdata]
 
         # When a disconnection occurs, we need to set "unavailable" status.
         asyncio.run_coroutine_threadsafe(
@@ -477,12 +509,12 @@ class MerossManager(object):
         # asyncio platform must be scheduled via `self._loop.call_soon_threadsafe()` method.
         _LOGGER.debug("Unsubscribed from topics")
 
-    def _on_subscribe(self, client, userdata, mid, granted_qos):
+    def _on_subscribe(self, client: mqtt.Client, userdata, mid, granted_qos):
         # NOTE! This method is called by the paho-mqtt thread, thus any invocation to the
         # asyncio platform must be scheduled via `self._loop.call_soon_threadsafe()` method.
         _LOGGER.debug("Successfully subscribed to topics.")
-
-        self._loop.call_soon_threadsafe(self._mqtt_connected_and_subscribed.set)
+        sub_event = self._mqtt_connected_and_subscribed.get(userdata)
+        self._loop.call_soon_threadsafe(sub_event.set)
 
         # When subscribing again on the mqtt, trigger an update for all the devices that are currently registered.
         # To avoid flooding, schedule updates every 2s intervals.
@@ -540,7 +572,7 @@ class MerossManager(object):
         # Check case 2: COMMAND_ACKS. In this case, we don't check the source topic address, as we trust it's
         # originated by a device on this network that we contacted previously.
         if destination_topic == build_client_response_topic(
-            self._cloud_creds.user_id, self._app_id
+                self._cloud_creds.user_id, self._app_id
         ) and message_method in ["SETACK", "GETACK", "ERROR"]:
             _LOGGER.debug("This message is an ACK to a command this client has send.")
 
@@ -566,8 +598,8 @@ class MerossManager(object):
         # Check case 3: PUSH notification.
         # Again, here we don't check the source topic, we trust that's legitimate.
         elif (
-            destination_topic == build_client_user_topic(self._cloud_creds.user_id)
-            and message_method == "PUSH"
+                destination_topic == build_client_user_topic(self._cloud_creds.user_id)
+                and message_method == "PUSH"
         ):
             namespace = header.get("namespace")
             payload = message.get("payload")
@@ -598,7 +630,7 @@ class MerossManager(object):
             )
 
     async def _async_dispatch_push_notification(
-        self, push_notification: GenericPushNotification
+            self, push_notification: GenericPushNotification
     ) -> bool:
         handled = False
         # Lookup the originating device and deliver the push notification to that one.
@@ -620,11 +652,11 @@ class MerossManager(object):
             for dev in target_devs:
                 try:
                     handled = (
-                        await dev.async_handle_push_notification(
-                            namespace=push_notification.namespace,
-                            data=push_notification.raw_data,
-                        )
-                        or handled
+                            await dev.async_handle_push_notification(
+                                namespace=push_notification.namespace,
+                                data=push_notification.raw_data,
+                            )
+                            or handled
                     )
                 except Exception as e:
                     _LOGGER.exception(
@@ -641,7 +673,7 @@ class MerossManager(object):
         return handled
 
     async def _async_handle_push_notification_post_dispatching(
-        self, push_notification: GenericPushNotification
+            self, push_notification: GenericPushNotification
     ) -> bool:
         if isinstance(push_notification, UnbindPushNotification):
             _LOGGER.info(
@@ -659,7 +691,7 @@ class MerossManager(object):
         return False
 
     async def _handle_and_dispatch_push_notification(
-        self, push_notification: GenericPushNotification
+            self, push_notification: GenericPushNotification
     ) -> None:
         """
         This method runs within the event loop and is responsible for handling and dispatching push notifications
@@ -706,18 +738,22 @@ class MerossManager(object):
             return self._limiter.check_limits(device_uuid=destination_device_uuid)
 
     async def async_execute_cmd(
-        self,
-        destination_device_uuid: str,
-        method: str,
-        namespace: Namespace,
-        payload: dict,
-        timeout: float = 5.0,
-        skip_rate_limiting_check: bool = False,
-        drop_on_overquota: bool = True,
+            self,
+            mqtt_hostname: str,
+            mqtt_port: int,
+            destination_device_uuid: str,
+            method: str,
+            namespace: Namespace,
+            payload: dict,
+            timeout: float = 10.0,
+            skip_rate_limiting_check: bool = False,
+            drop_on_overquota: bool = True,
     ):
         """
         This method sends a command to the MQTT Meross broker.
 
+        :param mqtt_hostname: the mqtt broker hostname
+        :param mqtt_port: the mqtt broker port
         :param destination_device_uuid:
         :param method: Can be GET/SET
         :param namespace: Command namespace
@@ -728,12 +764,31 @@ class MerossManager(object):
                                   If set to False, those calls will not be dropped, but delayed accordingly.
         :return:
         """
+        # Retrieve the mqtt client for the given domain:port broker
+        client = await self._async_get_create_mqtt_client(domain=mqtt_hostname, port=mqtt_port)
+        return await self.async_execute_cmd_client(client=client,
+                                                   destination_device_uuid=destination_device_uuid,
+                                                   method=method,
+                                                   namespace=namespace,
+                                                   payload=payload,
+                                                   timeout=timeout,
+                                                   skip_rate_limiting_check=skip_rate_limiting_check,
+                                                   drop_on_overquota=drop_on_overquota)
+
+    async def async_execute_cmd_client(self,
+                                       client: mqtt.Client,
+                                       destination_device_uuid: str,
+                                       method: str,
+                                       namespace: Namespace,
+                                       payload: dict,
+                                       timeout: float = 10.0,
+                                       skip_rate_limiting_check: bool = False,
+                                       drop_on_overquota: bool = True, ):
+        # TODO: Document this method
+
         # Only proceed if we are connected to the remote endpoint
-        if not self._mqtt_client.is_connected():
-            _LOGGER.error(
-                "The MQTT client is not connected to the remote broker. Have you called async_init()?"
-            )
-            raise UnconnectedError()
+        #if not client.is_connected():
+        #    raise UnconnectedError()
 
         # Check rate limits
         if not skip_rate_limiting_check:
@@ -743,12 +798,13 @@ class MerossManager(object):
             if rate_limiting_action == RateLimitResultStrategy.PerformCall:
                 pass
             elif (
-                rate_limiting_action == RateLimitResultStrategy.DelayCall
-                or rate_limiting_action == RateLimitResultStrategy.DropCall
-                and not drop_on_overquota
+                    rate_limiting_action == RateLimitResultStrategy.DelayCall
+                    or rate_limiting_action == RateLimitResultStrategy.DropCall
+                    and not drop_on_overquota
             ):
                 await asyncio.sleep(delay=time_to_wait, loop=self._loop)
-                return await self.async_execute_cmd(
+                return await self.async_execute_cmd_client(
+                    client=client,
                     destination_device_uuid=destination_device_uuid,
                     method=method,
                     namespace=namespace,
@@ -769,6 +825,7 @@ class MerossManager(object):
         self._pending_messages_futures[message_id] = fut
 
         response = await self._async_send_and_wait_ack(
+            client=client,
             future=fut,
             target_device_uuid=destination_device_uuid,
             message=message,
@@ -777,10 +834,10 @@ class MerossManager(object):
         return response.get("payload")
 
     async def _async_send_and_wait_ack(
-        self, future: Future, target_device_uuid: str, message: dict, timeout: float
+            self, client: mqtt.Client, future: Future, target_device_uuid: str, message: bytes, timeout: float
     ):
-        md = self._mqtt_client.publish(
-            topic=build_device_request_topic(target_device_uuid), payload=message, qos=1
+        message_info = client.publish(
+            topic=build_device_request_topic(target_device_uuid), payload=message
         )
         try:
             return await asyncio.wait_for(future, timeout, loop=self._loop)
@@ -835,8 +892,7 @@ class MerossManager(object):
                 "namespace": namespace.value,  # Example: "Appliance.System.All",
                 "payloadVersion": 1,
                 "sign": signature,  # Example: "b4236ac6fb399e70c3d61e98fcb68b74",
-                "timestamp": timestamp,
-                "triggerSrc": "Android",
+                "timestamp": timestamp
             },
             "payload": payload,
         }
@@ -892,13 +948,13 @@ class DeviceRegistry(object):
             return None
 
     def find_all_by(
-        self,
-        device_uuids: Optional[Iterable[str]] = None,
-        internal_ids: Optional[Iterable[str]] = None,
-        device_type: Optional[str] = None,
-        device_class: Optional[T] = None,
-        device_name: Optional[str] = None,
-        online_status: Optional[OnlineStatus] = None,
+            self,
+            device_uuids: Optional[Iterable[str]] = None,
+            internal_ids: Optional[Iterable[str]] = None,
+            device_type: Optional[str] = None,
+            device_class: Optional[T] = None,
+            device_name: Optional[str] = None,
+            online_status: Optional[OnlineStatus] = None,
     ) -> List[BaseDevice]:
 
         # Look by Interonnal UUIDs

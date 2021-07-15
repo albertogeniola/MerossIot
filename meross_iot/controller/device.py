@@ -6,6 +6,7 @@ import time
 from datetime import datetime
 from typing import List, Union, Optional, Iterable, Callable, Awaitable, Dict
 
+from meross_iot.model.constants import DEFAULT_MQTT_PORT
 from meross_iot.model.enums import OnlineStatus, Namespace
 from meross_iot.model.http.device import HttpDeviceInfo
 from meross_iot.model.plugin.hub import BatteryInfo
@@ -34,6 +35,29 @@ class BaseDevice(object):
         self._hwversion = kwargs.get('hdwareVersion')
         self._online = OnlineStatus(kwargs.get('onlineStatus', -1))
 
+        # Domain and port
+        domain = kwargs.get('domain')
+        reserved_domain = kwargs.get('reservedDomain')
+
+        # Prefer domain over reserved domain
+        if domain is not None:
+            self._mqtt_host = domain
+        elif reserved_domain is not None:
+            self._mqtt_host = reserved_domain
+        else:
+            raise RuntimeError("Invalid mqtt domain specified")
+
+        port = kwargs.get("port")
+        second_port = kwargs.get("secondPort")
+
+        if port is not None:
+            self._mqtt_port = port
+        elif second_port is not None:
+            self._mqtt_port = second_port
+        else:
+            _LOGGER.info("No MQTT PORT specified in args, assuming default value %d", DEFAULT_MQTT_PORT)
+            self._mqtt_port = DEFAULT_MQTT_PORT
+
         if hasattr(self, "_abilities_spec"):
             self._abilities = self._abilities_spec
         else:
@@ -41,6 +65,14 @@ class BaseDevice(object):
         self._push_coros = []
         self._last_full_update_ts = None
     # TODO: register sync_event_handler?
+
+    @property
+    def mqtt_host(self):
+        return self._mqtt_host
+
+    @property
+    def mqtt_port(self):
+        return self._mqtt_port
 
     @property
     def abilities(self):
@@ -230,7 +262,9 @@ class BaseDevice(object):
                                                      payload=payload,
                                                      timeout=timeout,
                                                      skip_rate_limiting_check=skip_rate_limits,
-                                                     drop_on_overquota=drop_on_overquota)
+                                                     drop_on_overquota=drop_on_overquota,
+                                                     mqtt_hostname=self.mqtt_host,
+                                                     mqtt_port=self.mqtt_port)
 
     def __repr__(self):
         basic_info = f"{self.name} ({self.type}, HW {self.hardware_version}, FW {self.firmware_version}, class: {self.__class__.__name__})"

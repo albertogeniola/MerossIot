@@ -217,11 +217,16 @@ async def _main():
         response_all = await manager.async_execute_cmd(destination_device_uuid=selected_device.uuid,
                                                        method="GET",
                                                        namespace=Namespace.SYSTEM_ALL,
-                                                       payload={})
+                                                       payload={},
+                                                       mqtt_hostname=selected_device.mqtt_host,
+                                                       mqtt_port=selected_device.mqtt_port)
         response_abilities = await manager.async_execute_cmd(destination_device_uuid=selected_device.uuid,
                                                              method="GET",
                                                              namespace=Namespace.SYSTEM_ABILITY,
-                                                             payload={})
+                                                             payload={},
+                                                             mqtt_hostname=selected_device.mqtt_host,
+                                                             mqtt_port=selected_device.mqtt_port
+                                                             )
 
         l.info(f"Sysdata for {selected_device.dev_name} ({selected_device.uuid}): {response_all}")
         l.info(f"Abilities for {selected_device.dev_name} ({selected_device.uuid}): {response_abilities}")

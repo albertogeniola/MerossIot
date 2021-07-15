@@ -67,8 +67,8 @@ async def main():
     await http_api_client.async_logout()
 
 if __name__ == '__main__':
-    # On Windows + Python 3.8, you should uncomment the following
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    if os.name == 'nt':
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main())
     loop.close()

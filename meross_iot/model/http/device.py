@@ -2,6 +2,7 @@ import logging
 from datetime import datetime
 from typing import Union, List
 
+from meross_iot.model.constants import DEFAULT_MQTT_HOST, DEFAULT_MQTT_PORT
 from meross_iot.model.enums import OnlineStatus
 from meross_iot.model.shared import BaseDictPayload
 import json
@@ -61,6 +62,18 @@ class HttpDeviceInfo(BaseDictPayload):
         self.skill_number = skill_number
         self.domain = domain
         self.reserved_domain = reserved_domain
+
+    @property
+    def mqtt_host(self):
+        if self.domain is not None:
+            return self.domain
+        if self.reserved_domain is not None:
+            return self.reserved_domain
+        return DEFAULT_MQTT_HOST
+
+    @property
+    def mqtt_port(self):
+        return DEFAULT_MQTT_PORT
 
     def __repr__(self):
         return json.dumps(self.__dict__, default=lambda x: x.isoformat() if isinstance(x,datetime) else x.name if(isinstance(x,OnlineStatus)) else "NOT-SERIALIZABLE")

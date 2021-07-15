@@ -6,6 +6,7 @@ from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 from meross_iot.controller.device import BaseDevice
 from meross_iot.controller.mixins.toggle import ToggleXMixin
 from meross_iot.manager import MerossManager
+from meross_iot.model.constants import DEFAULT_MQTT_HOST, DEFAULT_MQTT_PORT
 from meross_iot.model.enums import OnlineStatus, Namespace
 from meross_iot.model.exception import CommandTimeoutError
 from tests import async_get_client
@@ -37,8 +38,12 @@ class TestError(AioHTTPTestCase):
     async def test_invalid_target_device(self):
         async def send_command_to_unknown_device():
             random_uuid = uuid4()
-            return await self.meross_manager.async_execute_cmd(destination_device_uuid=str(random_uuid), method='GET',
-                                                               namespace=Namespace.SYSTEM_ALL, payload={})
+            return await self.meross_manager.async_execute_cmd(destination_device_uuid=str(random_uuid),
+                                                               method='GET',
+                                                               namespace=Namespace.SYSTEM_ALL,
+                                                               payload={},
+                                                               mqtt_hostname=DEFAULT_MQTT_HOST,
+                                                               mqtt_port=DEFAULT_MQTT_PORT)
 
         with self.assertRaises(CommandTimeoutError):
             await send_command_to_unknown_device()
@@ -51,8 +56,12 @@ class TestError(AioHTTPTestCase):
         dev = devs[0]
 
         async def send_invalid_command_to_device(dev: BaseDevice):
-            res = await self.meross_manager.async_execute_cmd(destination_device_uuid=dev.uuid, method='GET',
-                                                              namespace=Namespace.HUB_MTS100_MODE, payload={})
+            res = await self.meross_manager.async_execute_cmd(destination_device_uuid=dev.uuid,
+                                                              method='GET',
+                                                              namespace=Namespace.HUB_MTS100_MODE,
+                                                              payload={},
+                                                              mqtt_hostname=dev.mqtt_host,
+                                                              mqtt_port=dev.mqtt_port)
             return res
 
         with self.assertRaises(CommandTimeoutError):
@@ -66,9 +75,12 @@ class TestError(AioHTTPTestCase):
         dev = devs[0]
 
         async def send_invalid_command_to_device(dev: BaseDevice):
-            return await self.meross_manager.async_execute_cmd(destination_device_uuid=dev.uuid, method='SET',
+            return await self.meross_manager.async_execute_cmd(destination_device_uuid=dev.uuid,
+                                                               method='SET',
                                                                namespace=Namespace.HUB_MTS100_MODE,
-                                                               payload={'temperature': 'bar'})
+                                                               payload={'temperature': 'bar'},
+                                                               mqtt_hostname=dev.mqtt_host,
+                                                               mqtt_port=dev.mqtt_port)
 
         with self.assertRaises(CommandTimeoutError):
             await send_invalid_command_to_device(dev=dev)
