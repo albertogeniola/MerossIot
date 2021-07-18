@@ -185,6 +185,9 @@ Anyways, feel free to contribute via donations!
 - Merged #150 (Added MSS620 support)
 - Added ErrorCode 1022
 - Renamed MerossManager domain and port parameters
+- Improved disconnection/reconnection event handling
+- OnlineEvent is now being re-issued after client disconnection/reconnection
+- Implemented disconnect/reconnect automatic test
 
 <details>
     <summary>Older</summary>
