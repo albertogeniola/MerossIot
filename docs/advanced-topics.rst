@@ -1,6 +1,48 @@
 Advanced topics
 ===============
 
+Push notification handling
+--------------------------
+
+The current library allows a developer to catch and react to events that occur on a specific device.
+The :code:`BaseDevice` class exposes the :code:`register_push_notification_handler_coroutine()` method, which
+allows to register an async coroutine to be executed when an push notification is received for that device.
+The registered coroutine signature must match the following signature:
+
+.. code-block:: python
+
+    # ... OMISSIS ...
+    async def coro_name(namespace: Namespace, data: dict, device_internal_id: str):
+        # TODO: do something with event data
+        pass
+
+The push notification handler can be de-registered via the :code:`unregister_push_notification_handler_coroutine()`
+method, which takes as input the coroutine to unregister.
+
+Similarly, it is possible to intercept all the push notifications received for all the devices, by registering a push
+notification coroutine handler to the :code:`MerossManager` instance. This can be done using the
+:code:`register_push_notification_handler_coroutine()` method and passing a coroutine definition that matches the
+following signature:
+
+.. code-block:: python
+
+    # ... OMISSIS ...
+    async def evt_coro(namespace: Namespace, data: dict, device_internal_id: str, *args, **kwargs):
+        # TODO: do something with event data
+        pass
+
+
+.. warning::
+   Failure to comply with the given signature will prevent the event handler from executing.
+   Be sure to stick with the exact method signature.
+
+Again, it is possible to de-register such push notification handlers by invoking the
+:code:`unregister_push_notification_handler_coroutine()` and passing the coroutine to unregister
+
+.. note::
+   For long-running and deamon like scripts, you should limit the number of registered push notificaiton handlers
+   and you should unregister when they are no more needed.
+
 Managing rate limits
 --------------------
 

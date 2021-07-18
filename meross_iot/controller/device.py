@@ -89,7 +89,7 @@ class BaseDevice(object):
                           "before accessing its state. Failure to do so may result in inconsistent state.")
         return update_done
 
-    def register_push_notification_handler_coroutine(self, coro: Callable[[Namespace, dict], Awaitable]) -> None:
+    def register_push_notification_handler_coroutine(self, coro: Callable[[Namespace, dict, str], Awaitable]) -> None:
         """
         Registers a coroutine so that it gets invoked whenever a push notification is
         delivered to this device or when the device state is changed.
@@ -105,7 +105,7 @@ class BaseDevice(object):
             return
         self._push_coros.append(coro)
 
-    def unregister_push_notification_handler_coroutine(self, coro: Callable[[Namespace, dict], Awaitable]) -> None:
+    def unregister_push_notification_handler_coroutine(self, coro: Callable[[Namespace, dict, str], Awaitable]) -> None:
         """
         Unregisters the event handler
         :param coro: coroutine-function: a function that, when invoked, returns a Coroutine object that can be awaited.
