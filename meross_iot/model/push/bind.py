@@ -4,17 +4,20 @@ from meross_iot.model.push.generic import GenericPushNotification
 
 
 class BindPushNotification(GenericPushNotification):
-    def __init__(self, hwinfo: HardwareInfo, fwinfo: FirmwareInfo, time: TimeInfo, originating_device_uuid: str, raw_data: dict):
-        super().__init__(namespace=Namespace.CONTROL_BIND, originating_device_uuid=originating_device_uuid, raw_data=raw_data)
-        self.hwinfo = hwinfo
-        self.fwinfo = fwinfo
-        self.time = time
+    def __init__(self, originating_device_uuid: str, raw_data: dict):
+        super().__init__(namespace=Namespace.CONTROL_BIND,
+                         originating_device_uuid=originating_device_uuid,
+                         raw_data=raw_data)
 
-    @classmethod
-    def from_dict(cls, data: dict, originating_device_uuid: str):
-        bind_data = data.get("bind")
-        time = TimeInfo.from_dict(bind_data.get("time"))
-        hardware = HardwareInfo.from_dict(bind_data.get("hardware"))
-        firmware = HardwareInfo.from_dict(bind_data.get("hardware"))
-        return BindPushNotification(hwinfo=hardware, fwinfo=firmware, time=time,
-                                    originating_device_uuid=originating_device_uuid, raw_data=data)
+    @property
+    def time(self) -> TimeInfo:
+        return TimeInfo.from_dict(self.raw_data.get("bind").get("time"))
+
+    @property
+    def hwinfo(self) -> HardwareInfo:
+        return TimeInfo.from_dict(self.raw_data.get("bind").get("hardware"))
+
+    @property
+    def fwinfo(self) -> FirmwareInfo:
+        return TimeInfo.from_dict(self.raw_data.get("bind").get("firmware"))
+

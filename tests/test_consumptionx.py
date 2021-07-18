@@ -39,7 +39,6 @@ class TestConsumptionX(AioHTTPTestCase):
     async def test_consumptionx_local_state(self):
         if self.test_device is None:
             self.skipTest("No ConsumptionX device has been found to run this test on.")
-            return
 
         r = await self.test_device.async_get_daily_power_consumption()
         self.assertGreater(len(r), 1)

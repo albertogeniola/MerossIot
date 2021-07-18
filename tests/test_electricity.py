@@ -40,7 +40,6 @@ class TestElectricity(AioHTTPTestCase):
     async def test_get_metrics_state(self):
         if self.test_device is None:
             self.skipTest("No ConsumptionX device has been found to run this test on.")
-            return
 
         r = await self.test_device.async_get_instant_metrics()
         self.assertIsInstance(r, PowerInfo)

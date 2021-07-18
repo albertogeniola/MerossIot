@@ -39,7 +39,6 @@ class TestPushNotificationHandler(AioHTTPTestCase):
     async def test_dev_push_notification(self):
         if self.test_device is None:
             self.skipTest("No ToggleX device has been found to run this test on.")
-            return
 
         # Set the toggle device to ON state
         await self.test_device.async_turn_on()

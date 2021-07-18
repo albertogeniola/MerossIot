@@ -40,7 +40,6 @@ class TestToggleX(AioHTTPTestCase):
     async def test_toggle_local_state(self):
         if self.test_device is None:
             self.skipTest("No ToggleX device has been found to run this test on.")
-            return
 
         # Turn off device to start from a clean state
         r = await self.test_device.async_turn_off()
@@ -61,7 +60,6 @@ class TestToggleX(AioHTTPTestCase):
         multi_channel_devices = list(filter(lambda d: len(d.channels) > 1, devices))
         if len(multi_channel_devices) < 1:
             self.skipTest("Could not find any online device supporting more than 1 channel")
-            return
 
         # Toggle non master switches
         d = multi_channel_devices[0]
@@ -81,7 +79,6 @@ class TestToggleX(AioHTTPTestCase):
         multi_channel_devices = list(filter(lambda d: len(d.channels) > 1, devices))
         if len(multi_channel_devices) < 1:
             self.skipTest("Could not find any online device supporting more than 1 channel")
-            return
 
         # Turn on non-master switches
         d = multi_channel_devices[0]
@@ -122,7 +119,6 @@ class TestToggleX(AioHTTPTestCase):
 
         if usb_dev is None:
             self.skipTest("Could not find any device with an usb channel")
-            return
 
         # Turn the channel off
         await usb_dev.async_turn_off(channel=usb_channel.index)
@@ -135,7 +131,6 @@ class TestToggleX(AioHTTPTestCase):
     async def test_toggle_push_notification(self):
         if self.test_device is None:
             self.skipTest("No ToggleX device has been found to run this test on.")
-            return
 
         # Create a new manager
         new_meross_client, requires_logout = await async_get_client()

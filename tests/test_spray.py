@@ -35,7 +35,6 @@ class TestSpray(AioHTTPTestCase):
         if len(self.test_devices) < 1:
             self.skipTest("Could not find any SprayMixin within the given set of devices. "
                           "The test will be skipped")
-            return
 
         dev = self.test_devices[0]
         await dev.async_set_mode(mode=SprayMode.CONTINUOUS)

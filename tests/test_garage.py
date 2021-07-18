@@ -36,7 +36,6 @@ class TestGarageOpener(AioHTTPTestCase):
         if len(self.garage_devices) < 1:
             self.skipTest("Could not find any Garage Opener within the given set of devices. "
                           "The test will be skipped")
-            return
 
         garage = self.garage_devices[0]
 

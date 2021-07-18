@@ -35,7 +35,6 @@ class TestHub(AioHTTPTestCase):
     async def test_update(self):
         if len(self.test_devices) < 1:
             self.skipTest("No HUB device has been found to run this test.")
-            return
 
         dev = self.test_devices[0]
         await dev.async_update()

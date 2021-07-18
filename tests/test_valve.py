@@ -38,7 +38,6 @@ class TestValve(AioHTTPTestCase):
     async def test_ambient_temperature(self):
         if len(self.test_devices) < 1:
             self.skipTest("No valve device has been found to run this test.")
-            return
 
         for dev in self.test_devices:
             res = await dev.async_update()
@@ -49,7 +48,6 @@ class TestValve(AioHTTPTestCase):
     async def test_presets(self):
         if len(self.test_devices) < 1:
             self.skipTest("No valve device has been found to run this test.")
-            return
 
         for dev in self.test_devices:
             res = await dev.async_update()
@@ -70,7 +68,6 @@ class TestValve(AioHTTPTestCase):
     async def test_mode(self):
         if len(self.test_devices) < 1:
             self.skipTest("No valve device has been found to run this test.")
-            return
 
         dev = self.test_devices[0]
         await dev.async_update()
@@ -88,7 +85,6 @@ class TestValve(AioHTTPTestCase):
     async def test_onoff(self):
         if len(self.test_devices) < 1:
             self.skipTest("No valve device has been found to run this test.")
-            return
 
         for dev in self.test_devices:
             res = await dev.async_update()
@@ -104,7 +100,7 @@ class TestValve(AioHTTPTestCase):
     async def test_battery(self):
         if len(self.test_devices) < 1:
             self.skipTest("No valve device has been found to run this test.")
-            return
+
         dev = self.test_devices[0]
         await dev.async_update()
         res = await dev.async_get_battery_life()
@@ -116,7 +112,6 @@ class TestValve(AioHTTPTestCase):
     async def test_push_notification(self):
         if len(self.test_devices) < 1:
             self.skipTest("No valve device has been found to run this test.")
-            return
 
         dev1 = self.test_devices[0]
 

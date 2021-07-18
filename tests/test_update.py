@@ -38,7 +38,6 @@ class TestUpdate(AioHTTPTestCase):
     async def test_update(self):
         if len(self.test_devices) < 1:
             self.skipTest("No device has been found to run this test UPDATE ALL on it.")
-            return
 
         # Turn off device to start from a clean state
         for d in self.test_devices:

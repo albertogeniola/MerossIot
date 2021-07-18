@@ -26,13 +26,13 @@ from meross_iot.model.exception import (
     CommandTimeoutError,
     CommandError,
     RateLimitExceeded,
-    UnknownDeviceType, MqttError,
+    UnknownDeviceType
 )
-from meross_iot.model.exception import UnconnectedError
 from meross_iot.model.http.device import HttpDeviceInfo
 from meross_iot.model.http.subdevice import HttpSubdeviceInfo
 from meross_iot.model.push.factory import parse_push_notification
 from meross_iot.model.push.generic import GenericPushNotification
+from meross_iot.model.push.online import OnlinePushNotification
 from meross_iot.model.push.unbind import UnbindPushNotification
 from meross_iot.utilities.limiter import (
     RateLimitChecker,
@@ -111,6 +111,12 @@ class MerossManager(object):
         self._mqtt_clients = {}
         self._mqtt_connected_and_subscribed = {}
 
+        # Default proxy setup
+        self._enable_proxy = False
+        self._proxy_type = None
+        self._proxy_addr = None
+        self._proxy_port = None
+
         # Setup synchronization primitives
         self._mqtt_looper_task = None
         self._loop = asyncio.get_event_loop() if loop is None else loop
@@ -136,10 +142,12 @@ class MerossManager(object):
             _LOGGER.info("Allocating new mqtt client for %s...", dict_key)
             client = self._new_mqtt_client()
             client.user_data_set(dict_key)
+            if self._enable_proxy:
+                _LOGGER.info("Proxy configuration set for newly created client")
+                client.proxy_set(proxy_type=self._proxy_type, proxy_addr=self._proxy_addr, proxy_port=self._proxy_port)
             self._mqtt_clients[dict_key] = client
 
         if not client.is_connected():
-            # TODO: make sure event automatically resets
             conn_evt = self._mqtt_connected_and_subscribed.get(dict_key)  # type: asyncio.Event
             if conn_evt is None:
                 conn_evt = asyncio.Event(loop=self._loop)
@@ -475,13 +483,12 @@ class MerossManager(object):
         # Subscribe to the relevant topics
         _LOGGER.debug("Subscribing to topics...")
         client.subscribe(
-            [(self._user_topic, 0), (self._client_response_topic, 0)], qos=1
+            [(self._user_topic, 1), (self._client_response_topic, 1)]
         )
 
     def _on_disconnect(self, client: mqtt.Client, userdata, rc):
         # NOTE! This method is called by the paho-mqtt thread, thus any invocation to the
         # asyncio platform must be scheduled via `self._loop.call_soon_threadsafe()` method.
-
         _LOGGER.info("Disconnection detected. Reason: %s" % str(rc))
 
         if rc == mqtt.MQTT_ERR_SUCCESS:
@@ -494,9 +501,7 @@ class MerossManager(object):
                 _LOGGER.info("Reconnecting (auto_reconnect flag has been set)")
                 client.reconnect()
             else:
-                _LOGGER.info(
-                    "No reconnection will be attempted as auto_reconnect flag was not set"
-                )
+                _LOGGER.info("No reconnection will be attempted as auto_reconnect flag was not set")
                 del self._mqtt_connected_and_subscribed[userdata]
 
         # When a disconnection occurs, we need to set "unavailable" status.
@@ -516,15 +521,24 @@ class MerossManager(object):
         sub_event = self._mqtt_connected_and_subscribed.get(userdata)
         self._loop.call_soon_threadsafe(sub_event.set)
 
-        # When subscribing again on the mqtt, trigger an update for all the devices that are currently registered.
+        # When the connection happens after a disconnection (i.e. it is a re-connection)
+        # we need to trigger Online Events for devices which where offline before.
+        # Also, we want to update entirely the device status
         # To avoid flooding, schedule updates every 2s intervals.
         _LOGGER.info(
             "Subscribed to topics, scheduling state update for already known devices."
         )
+
+        async def update_and_trigger_online_event(dev: BaseDevice):
+            prev_status = dev.online_status
+            await dev.async_update(drop_on_overquota=False)
+            if dev.online_status != prev_status:
+                await dev.async_handle_push_notification(namespace=Namespace.SYSTEM_ONLINE, data={'online': {'status': dev.online_status.value}})
+
         i = 0
         for d in self.find_devices():
             _schedule_later(
-                coroutine=d.async_update(drop_on_overquota=False),
+                coroutine=update_and_trigger_online_event(d),
                 start_delay=i,
                 loop=self._loop,
             )
@@ -845,10 +859,8 @@ class MerossManager(object):
 
     async def _notify_connection_drop(self):
         for d in self._device_registry.find_all_by():
-            payload = {"online": {"status": OnlineStatus.UNKNOWN.value}}
-            await d.async_handle_push_notification(
-                namespace=Namespace.SYSTEM_ONLINE, data=payload
-            )
+            pushn = OnlinePushNotification(originating_device_uuid=d.uuid, raw_data={'online': {'status': -1}})
+            await self._handle_and_dispatch_push_notification(pushn)
 
     def _build_mqtt_message(self, method: str, namespace: Namespace, payload: dict):
         """
@@ -893,6 +905,17 @@ class MerossManager(object):
         }
         strdata = json.dumps(data)
         return strdata.encode("utf-8"), messageId
+
+    def set_proxy(self, proxy_type, proxy_addr, proxy_port):
+        self._enable_proxy = True
+        self._proxy_type = proxy_type
+        self._proxy_addr = proxy_addr
+        self._proxy_port = proxy_port
+
+        for k, client in self._mqtt_clients.items():
+            _LOGGER.info("Setting proxy configuration for client %s...", k)
+            client.proxy_set(proxy_type=self._proxy_type, proxy_addr=self._proxy_addr, proxy_port=self._proxy_port)
+            client.reconnect()
 
 
 class DeviceRegistry(object):

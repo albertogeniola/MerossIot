@@ -41,7 +41,6 @@ class TestToggle(AioHTTPTestCase):
     async def test_toggle_local_state(self):
         if self.test_device is None:
             self.skipTest("No ToggleX device has been found to run this test on.")
-            return
 
         # Turn off device to start from a clean state
         r = await self.test_device.async_turn_off()
@@ -61,7 +60,6 @@ class TestToggle(AioHTTPTestCase):
     async def test_toggle_push_notification(self):
         if self.test_device is None:
             self.skipTest("No ToggleX device has been found to run this test on.")
-            return
 
         # Create a new manager
         new_meross_client, requires_logout = await async_get_client()

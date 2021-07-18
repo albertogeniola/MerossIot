@@ -89,7 +89,7 @@ class BaseDevice(object):
                           "before accessing its state. Failure to do so may result in inconsistent state.")
         return update_done
 
-    def register_push_notification_handler_coroutine(self, coro: Callable[[Namespace, dict, str], Awaitable]) -> None:
+    def register_push_notification_handler_coroutine(self, coro: Callable[[Namespace, dict], Awaitable]) -> None:
         """
         Registers a coroutine so that it gets invoked whenever a push notification is
         delivered to this device or when the device state is changed.

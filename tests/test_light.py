@@ -44,7 +44,6 @@ class TestLight(AioHTTPTestCase):
         if len(rgb_capable) < 1:
             self.skipTest("Could not find any RGB-capable LightMixin within the given set of devices. "
                           "The test will be skipped")
-            return
 
         for light in rgb_capable:
             await light.async_update()
@@ -66,7 +65,6 @@ class TestLight(AioHTTPTestCase):
         if len(rgb_capable) < 1:
             self.skipTest("Could not find any RGB-capable LightMixin within the given set of devices. "
                           "The test will be skipped")
-            return
 
         light = rgb_capable[0]
 

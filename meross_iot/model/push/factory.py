@@ -4,9 +4,16 @@ from typing import Optional, Union
 from meross_iot.model.enums import Namespace, get_or_parse_namespace
 from meross_iot.model.push.bind import BindPushNotification
 from meross_iot.model.push.generic import GenericPushNotification
+from meross_iot.model.push.online import OnlinePushNotification
 from meross_iot.model.push.unbind import UnbindPushNotification
 
 _LOGGER = logging.getLogger(__name__)
+
+_PUSH_NOTIFICATION_BINDING = {
+    Namespace.CONTROL_BIND: BindPushNotification,
+    Namespace.CONTROL_UNBIND: UnbindPushNotification,
+    Namespace.SYSTEM_ONLINE: OnlinePushNotification
+}
 
 
 def parse_push_notification(namespace: Union[str, Namespace],
@@ -27,14 +34,13 @@ def parse_push_notification(namespace: Union[str, Namespace],
     # Parse the namespace
     try:
         parsed_namespace = get_or_parse_namespace(namespace)
+        push_notification_class = _PUSH_NOTIFICATION_BINDING.get(parsed_namespace)  # type: type
+        if push_notification_class is None:
+            return GenericPushNotification(namespace=parsed_namespace, originating_device_uuid=originating_device_uuid,
+                                           raw_data=message_payload)
+        else:
+            return push_notification_class(raw_data=message_payload,
+                                           originating_device_uuid=originating_device_uuid)
 
-        if parsed_namespace == Namespace.CONTROL_BIND:
-            return BindPushNotification.from_dict(data=message_payload,
-                                                  originating_device_uuid=originating_device_uuid)
-        elif parsed_namespace == Namespace.CONTROL_UNBIND:
-            return UnbindPushNotification.from_dict(data=message_payload,
-                                                    originating_device_uuid=originating_device_uuid)
-        return GenericPushNotification(namespace=parsed_namespace, originating_device_uuid=originating_device_uuid,
-                                       raw_data=message_payload)
     except ValueError:
         return None
