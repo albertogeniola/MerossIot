@@ -25,7 +25,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```bash
-pip install meross_iot==0.4.1.1rc2
+pip install meross_iot==0.4.2.0
 ```
 
 ## Usage & Full Documentation
@@ -64,13 +64,11 @@ async def main():
         # Turn it on channel 0
         # Note that channel argument is optional for MSS310 as they only have one channel
         dev = plugs[0]
-        
-        # The first time we play with a device, we must update its status.
-        # This ensures the device state is fetched and ligned before we start
-        # issuing commands to it.
+
+        # The first time we play with a device, we must update its status
         await dev.async_update()
-        
-        # We can now start playing!
+
+        # We can now start playing with that
         print(f"Turning on {dev.name}...")
         await dev.async_turn_on(channel=0)
         print("Waiting a bit before turing it off")
@@ -82,8 +80,10 @@ async def main():
     manager.close()
     await http_api_client.async_logout()
 
+
 if __name__ == '__main__':
-    # On Windows + Python 3.8, you should uncomment the following
+    # Windows and python 3.8 requires to set up a specific event_loop_policy.
+    #  On Linux and MacOSX this is not necessary.
     if os.name == 'nt':
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     loop = asyncio.get_event_loop()
@@ -178,7 +178,7 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
-#### 0.4.2.0rc1
+#### 0.4.2.0
 - Refactored MerossManager avoiding usage of multiple threads
 - Implemented multiple mqtt connections to different servers
 - Added custom API URL endpoint

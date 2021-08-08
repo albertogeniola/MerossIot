@@ -44,6 +44,8 @@ async def main():
 
 
 if __name__ == '__main__':
+    # Windows and python 3.8 requires to set up a specific event_loop_policy.
+    #  On Linux and MacOSX this is not necessary.
     if os.name == 'nt':
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     loop = asyncio.get_event_loop()
