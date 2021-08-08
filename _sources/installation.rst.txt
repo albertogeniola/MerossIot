@@ -1,7 +1,7 @@
 Installation
 ============
 
-This library works only with **Python 3.6+**.
+This library works only with **Python 3.7+** and above.
 Make sure you have Python and pipy installed.
 
 You can install the latest MerossIot library with the following command.

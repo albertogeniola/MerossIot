@@ -1,35 +1,76 @@
 Advanced topics
 ===============
 
+Push notification handling
+--------------------------
+
+The current library allows a developer to catch and react to events that occur on a specific device.
+The :code:`BaseDevice` class exposes the :code:`register_push_notification_handler_coroutine()` method, which
+allows to register an async coroutine to be executed when an push notification is received for that device.
+The registered coroutine signature must match the following signature:
+
+.. code-block:: python
+
+    # ... OMISSIS ...
+    async def coro_name(namespace: Namespace, data: dict, device_internal_id: str):
+        # TODO: do something with event data
+        pass
+
+The push notification handler can be de-registered via the :code:`unregister_push_notification_handler_coroutine()`
+method, which takes as input the coroutine to unregister.
+
+Similarly, it is possible to intercept all the push notifications received for all the devices, by registering a push
+notification coroutine handler to the :code:`MerossManager` instance. This can be done using the
+:code:`register_push_notification_handler_coroutine()` method and passing a coroutine definition that matches the
+following signature:
+
+.. code-block:: python
+
+    # ... OMISSIS ...
+    async def evt_coro(namespace: Namespace, data: dict, device_internal_id: str, *args, **kwargs):
+        # TODO: do something with event data
+        pass
+
+
+.. warning::
+   Failure to comply with the given signature will prevent the event handler from executing.
+   Be sure to stick with the exact method signature.
+
+Again, it is possible to de-register such push notification handlers by invoking the
+:code:`unregister_push_notification_handler_coroutine()` and passing the coroutine to unregister
+
+.. note::
+   For long-running and deamon like scripts, you should limit the number of registered push notificaiton handlers
+   and you should unregister when they are no more needed.
+
 Managing rate limits
 --------------------
 
-Starting from version 0.4.0.4, the `MerossManager` object limits the MQTT messages sent to the Meross cloud,
-in order to prevent ban from Meross security team when flooding the remote MQTT broker.
+The latest version of MerossManager does not implement any mqtt rate limiting out-of-the-box, but allows the
+developer to control how mqtt calls are issued to the Meross broker. To do so, simply set the value of the
+`rate_limiter` property of the `MerossManager` object. You can use the `RateLimitChecker` helper class
+as shown below.
+
+.. code-block:: python
+
+    # ... OMISSIS ...
+    # Look for a device to be used for this test
+    meross_client = await MerossHttpClient.async_from_user_password(email=EMAIL, password=PASSWORD, **opt_params)
+    rate_limiter = RateLimitChecker(global_time_window=timedelta(seconds=1), global_burst_rate=BURST_RATE, device_max_command_queue=BURST_RATE)
+    manager = MerossManager(http_client=meross_client, rate_limiter=rate_limiter)
 
 The current implementation of rate limits is based on a *global* rate limiter and on a *per device* rate limiter.
-Each command issued by the manager is first checked against the device limits.
-If that limit is not reached yet, then a second check is performed against the global limit.
-If both the checks pass, then the command is issued.
+Both limit checks are based on the `Token bucket policy <https://it.wikipedia.org/wiki/Token_bucket>`_ and
+the developer can set them up when building the `MerossManager` object.
 
-In case any of the two limits is reached, the Manager can proceed in two ways.
-If the *limit_hits/burst_rate* is **below** the `over_limit_threshold_percentage`, then the message is simply delayed of over_limit_delay_seconds.
-If the *limit_hits/burst_rate* is **above** the `over_limit_threshold_percentage`, then the message is droped and `RateLimitExceeded` is raised.
+Each command issued by the manager is first checked against the per-device rate limiter.
+If that limit is not reached hit, then a second check is performed against the global rate limiter.
+If both the checks pass, then the command is issued to the broker.
 
-Both limit checks are based on the `Token bucket policy <https://it.wikipedia.org/wiki/Token_bucket>`_ and the developer can set them up when building the `MerossManager` object.
-In fact, the `MerossManager` supports the following parameters:
-
-=============================== ============= =========================================================================
-Parameter                       Default value Description
-------------------------------- ------------- -------------------------------------------------------------------------
-burst_requests_per_second_limit 4             Maximum number of requests that can be served in a-second burst
-------------------------------- ------------- -------------------------------------------------------------------------
-requests_per_second_limit       1             Number of new tokens per second
-------------------------------- ------------- -------------------------------------------------------------------------
-over_limit_delay_seconds        1             Seconds to delay when limit is reached
-------------------------------- ------------- -------------------------------------------------------------------------
-over_limit_threshold_percentage 1000          Percentage threshold above which messages are dropped rather than delayed
-=============================== ============= =========================================================================
+In case any of the two limits is hit, the Manager will reschedule the command (retrying) with an exponential backoff
+strategy. The command is retried (delayed) until the number of retries exceeds the device_max_command_queue
+parameter value. When this happens, the current call and the future calls are dropped, until new tokens are added
+to the bucket.
 
 Logging
 -------

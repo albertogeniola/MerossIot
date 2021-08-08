@@ -180,9 +180,10 @@ how asyncio works and how <a class="reference external" href="https://realpython
 <p>This library was built by looking at the traffic network between Meross App and the Meross
 backends, such as HTTP api and MQTT broker. Meross did not provide any official documentation and
 you should consider this library as unofficial and unsupported by Meross.</p>
-<p>For this reason, you should consider this library not for production use as there is no warranty
-that Meross does not change the way it works or explicitly blocks it. So far Meross guys seem happy about that
-but you should know that it might happen.</p>
+<p>For this reason, you should consider this library not suitable for production use as there is no warranty
+that Meross does not change the way it works or explicitly blocks it. In fact, as soon as people started
+using this library, Meross introduced rate limiting features, which could lead to account limitations
+or even ban.</p>
 <p>If you plan to rely on this library for developing 3rd party plugins (eg. building plugins
 for domotic frameworks), please let the developer know about that.</p>
 </div>
@@ -204,6 +205,7 @@ for domotic frameworks), please let the developer know about that.</p>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="common-gotchas.html">Common gotchas</a></li>
 <li class="toctree-l1"><a class="reference internal" href="advanced-topics.html">Advanced topics</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="advanced-topics.html#push-notification-handling">Push notification handling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="advanced-topics.html#managing-rate-limits">Managing rate limits</a></li>
 <li class="toctree-l2"><a class="reference internal" href="advanced-topics.html#logging">Logging</a></li>
 <li class="toctree-l2"><a class="reference internal" href="advanced-topics.html#sniff-device-data">Sniff device data</a></li>

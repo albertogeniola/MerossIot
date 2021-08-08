@@ -165,12 +165,12 @@
             
   <div class="section" id="common-gotchas">
 <h1>Common gotchas<a class="headerlink" href="#common-gotchas" title="Permalink to this headline">¶</a></h1>
-<p>There are a number of common error that you might be experiencing when approaching to this library
-for the first time. In this section, we enumerate the known ones and we’ll keep updating it as new
+<p>There are a number of common errors that you might be experiencing when approaching to this library
+for the first time. In this section, we enumerate the most common ones, and we’ll keep updating it as new
 ones are discovered.</p>
 <dl>
 <dt>RuntimeError: Event loop is closed</dt><dd><p>This error occurs when you are running this library with Python 3.8 on a Windows machine.
-The cause of this error is related to ProactorEventLoop which is used on Python 3.8.
+The cause of this error is related to <code class="code docutils literal notranslate"><span class="pre">ProactorEventLoop</span></code> which is used on Python 3.8.
 To solve that, you can setup asyncio library to use a different event loop implementation, which does not
 cause that error. To do so, add this line on top of your script</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">asyncio</span><span class="o">.</span><span class="n">set_event_loop_policy</span><span class="p">(</span><span class="n">asyncio</span><span class="o">.</span><span class="n">WindowsSelectorEventLoopPolicy</span><span class="p">())</span>

@@ -8,23 +8,28 @@ start working straight forward.
 .. note::
    Immediately getting hands dirty with code is OK for quick demos.
    However, you should really read the entire documentation carefully in order to avoid
-   gotchas. After all, someone has taken the effort of writing some documentation, why
-   would you not read it?
+   gotchas. After all, someone has taken the effort of writing, why would you not read it?
 
 Listing devices
 ---------------
-.. literalinclude:: ../examples/readme.py
+.. literalinclude:: ../examples/list.py
    :linenos:
-   :caption: Listing Meross device
+   :caption: Listing Meross devices
    :name: listing
    :language: python
 
-In order to discover meross devices, you need to setup a :code:`MerossManager`. Once the manager has been created,
-then you can invoke the :code:`async_device_discovery()` method. At that point, you can invoke the
-:code:`find_device()` which allows you to list all the devices that have been discovered by the manager.
+In order to discover meross devices, you need to setup a :code:`MerossManager`. That class is the one in charge
+of handling mqtt and http calls to respective endpoints. It also keeps track of discovered devices and allows you
+to discover new ones.
 
-In case you want to search for specific devices, you can pass some filtering argument to this method.
-Have a look at the following method signature for more details.
+Once the manager has been created and started via :code:`async_init()`, you can look for devices via the the
+:code:`async_device_discovery()` method. This method will query the HTTP API for getting the UUIDs (alongside
+other info) of the Meross devices registered with your account. To see the latest discovered devices cached
+by the :code:`MerossManager` you can use the :code:`find_device()`. You should not invoke
+:code:`async_device_discovery()` too frequently as doing so might trigger some alert/banning from Meross API.
+
+The :code:`find_device()` method supports some filtering arguments to search for specific devices. Have a look at
+the following method signature for more details.
 
 .. automethod:: meross_iot.manager.MerossManager.find_devices
 
@@ -37,10 +42,12 @@ Controlling switches
    :name: toggling
    :language: python
 
-Meross devices that supports toggling and on/off commands implement the
-:code:`meross_iot.controller.mixins.toggle.ToggleXMixin`. This class exposes a number of methods
-to control these devices, such :code:`async_turn_off()` and :code:`async_turn_on()`.
-Refer to the :doc:`ToggleXMixn <api-reference/controller/mixins/toggle>` for a panoramic around the ToggleMixin class.
+Meross devices that supports toggling and on/off commands implement either the
+:code:`meross_iot.controller.mixins.toggle.ToggleMixin` or :code:`meross_iot.controller.mixins.toggle.ToggleXMixin`.
+Both classes expose a number of methods to control these devices, such :code:`async_turn_off()` and
+:code:`async_turn_on()`.
+
+Refer to the :doc:`ToggleXMixn <api-reference/controller/mixins/toggle>` for a panoramic around those.
 
 Controlling bulbs
 -----------------
@@ -58,8 +65,11 @@ RGB color settings, as well as luminance and color temperature. More details on 
 Controlling garage door openers
 -------------------------------
 Meross garage door openers are somehow basic: in most cases they only simulate the
-button-press of the garage door. The door state is instead monitored with a specific sensor
-that must be mounted on the garage door. When you operate the Meross Garage Opener, it sends the
+button-press of the garage door. The door state is instead monitored with a specific sensor, mounted on the
+garage door. Such sensor is not able to tell you the exact state of the garage door. In fact, it only tells you if the
+door is closed or not closed (i.e. empty).
+
+When you operate the Meross Garage Opener, it sends the
 signal to the garage motor, which starts opening/closing. Then, once the door closes, the sensor
 reports "closing state", and the door is marked as closed. However, when opening the door, things
 are quite different: as soon as the motor is operated, the sensor quickly reports "door opened" state
@@ -81,8 +91,8 @@ Have a look at :doc:`here <api-reference/controller/mixins/garage>` for more det
 Reading sensors
 ----------------
 
-Meross devices might be equipped with sensors. Some devices (like temperature and humidity sensor) are in fact
-exclusively readable, configuring themselves as proper sensor devices. Others, as the MSS310, the Thermostat
+Meross devices might be equipped with sensors. Some devices (like temperature and humidity sensor) are readonly,
+configuring themselves as proper sensor devices. Others, as the MSS310, the Thermostat
 valve or the garage openers are instead actuators that offer some data reading capabilities.
 For this reason, there is no "general" sensor mixin class; on the contrary, you should rely on the capabilities
 offered by other mixins.

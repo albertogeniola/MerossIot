@@ -94,6 +94,7 @@
 <li class="toctree-l1"><a class="reference internal" href="quick-start.html">Quick start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="common-gotchas.html">Common gotchas</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Advanced topics</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#push-notification-handling">Push notification handling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#managing-rate-limits">Managing rate limits</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#logging">Logging</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#sniff-device-data">Sniff device data</a></li>
@@ -170,48 +171,66 @@
             
   <div class="section" id="advanced-topics">
 <h1>Advanced topics<a class="headerlink" href="#advanced-topics" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="push-notification-handling">
+<h2>Push notification handling<a class="headerlink" href="#push-notification-handling" title="Permalink to this headline">¶</a></h2>
+<p>The current library allows a developer to catch and react to events that occur on a specific device.
+The <code class="code docutils literal notranslate"><span class="pre">BaseDevice</span></code> class exposes the <code class="code docutils literal notranslate"><span class="pre">register_push_notification_handler_coroutine()</span></code> method, which
+allows to register an async coroutine to be executed when an push notification is received for that device.
+The registered coroutine signature must match the following signature:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># ... OMISSIS ...</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">coro_name</span><span class="p">(</span><span class="n">namespace</span><span class="p">:</span> <span class="n">Namespace</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">device_internal_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="c1"># TODO: do something with event data</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+<p>The push notification handler can be de-registered via the <code class="code docutils literal notranslate"><span class="pre">unregister_push_notification_handler_coroutine()</span></code>
+method, which takes as input the coroutine to unregister.</p>
+<p>Similarly, it is possible to intercept all the push notifications received for all the devices, by registering a push
+notification coroutine handler to the <code class="code docutils literal notranslate"><span class="pre">MerossManager</span></code> instance. This can be done using the
+<code class="code docutils literal notranslate"><span class="pre">register_push_notification_handler_coroutine()</span></code> method and passing a coroutine definition that matches the
+following signature:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># ... OMISSIS ...</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">evt_coro</span><span class="p">(</span><span class="n">namespace</span><span class="p">:</span> <span class="n">Namespace</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">device_internal_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="c1"># TODO: do something with event data</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Failure to comply with the given signature will prevent the event handler from executing.
+Be sure to stick with the exact method signature.</p>
+</div>
+<p>Again, it is possible to de-register such push notification handlers by invoking the
+<code class="code docutils literal notranslate"><span class="pre">unregister_push_notification_handler_coroutine()</span></code> and passing the coroutine to unregister</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For long-running and deamon like scripts, you should limit the number of registered push notificaiton handlers
+and you should unregister when they are no more needed.</p>
+</div>
+</div>
 <div class="section" id="managing-rate-limits">
 <h2>Managing rate limits<a class="headerlink" href="#managing-rate-limits" title="Permalink to this headline">¶</a></h2>
-<p>Starting from version 0.4.0.4, the <cite>MerossManager</cite> object limits the MQTT messages sent to the Meross cloud,
-in order to prevent ban from Meross security team when flooding the remote MQTT broker.</p>
+<p>The latest version of MerossManager does not implement any mqtt rate limiting out-of-the-box, but allows the
+developer to control how mqtt calls are issued to the Meross broker. To do so, simply set the value of the
+<cite>rate_limiter</cite> property of the <cite>MerossManager</cite> object. You can use the <cite>RateLimitChecker</cite> helper class
+as shown below.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># ... OMISSIS ...</span>
+<span class="c1"># Look for a device to be used for this test</span>
+<span class="n">meross_client</span> <span class="o">=</span> <span class="k">await</span> <span class="n">MerossHttpClient</span><span class="o">.</span><span class="n">async_from_user_password</span><span class="p">(</span><span class="n">email</span><span class="o">=</span><span class="n">EMAIL</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="n">PASSWORD</span><span class="p">,</span> <span class="o">**</span><span class="n">opt_params</span><span class="p">)</span>
+<span class="n">rate_limiter</span> <span class="o">=</span> <span class="n">RateLimitChecker</span><span class="p">(</span><span class="n">global_time_window</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">global_burst_rate</span><span class="o">=</span><span class="n">BURST_RATE</span><span class="p">,</span> <span class="n">device_max_command_queue</span><span class="o">=</span><span class="n">BURST_RATE</span><span class="p">)</span>
+<span class="n">manager</span> <span class="o">=</span> <span class="n">MerossManager</span><span class="p">(</span><span class="n">http_client</span><span class="o">=</span><span class="n">meross_client</span><span class="p">,</span> <span class="n">rate_limiter</span><span class="o">=</span><span class="n">rate_limiter</span><span class="p">)</span>
+</pre></div>
+</div>
 <p>The current implementation of rate limits is based on a <em>global</em> rate limiter and on a <em>per device</em> rate limiter.
-Each command issued by the manager is first checked against the device limits.
-If that limit is not reached yet, then a second check is performed against the global limit.
-If both the checks pass, then the command is issued.</p>
-<p>In case any of the two limits is reached, the Manager can proceed in two ways.
-If the <em>limit_hits/burst_rate</em> is <strong>below</strong> the <cite>over_limit_threshold_percentage</cite>, then the message is simply delayed of over_limit_delay_seconds.
-If the <em>limit_hits/burst_rate</em> is <strong>above</strong> the <cite>over_limit_threshold_percentage</cite>, then the message is droped and <cite>RateLimitExceeded</cite> is raised.</p>
-<p>Both limit checks are based on the <a class="reference external" href="https://it.wikipedia.org/wiki/Token_bucket">Token bucket policy</a> and the developer can set them up when building the <cite>MerossManager</cite> object.
-In fact, the <cite>MerossManager</cite> supports the following parameters:</p>
-<table class="docutils align-default">
-<colgroup>
-<col style="width: 26%" />
-<col style="width: 11%" />
-<col style="width: 62%" />
-</colgroup>
-<tbody>
-<tr class="row-odd"><td><p>Parameter</p></td>
-<td><p>Default value</p></td>
-<td><p>Description</p></td>
-</tr>
-<tr class="row-even"><td><p>burst_requests_per_second_limit</p></td>
-<td><p>4</p></td>
-<td><p>Maximum number of requests that can be served in a-second burst</p></td>
-</tr>
-<tr class="row-odd"><td><p>requests_per_second_limit</p></td>
-<td><p>1</p></td>
-<td><p>Number of new tokens per second</p></td>
-</tr>
-<tr class="row-even"><td><p>over_limit_delay_seconds</p></td>
-<td><p>1</p></td>
-<td><p>Seconds to delay when limit is reached</p></td>
-</tr>
-<tr class="row-odd"><td><p>over_limit_threshold_percentage</p></td>
-<td><p>1000</p></td>
-<td><p>Percentage threshold above which messages are dropped rather than delayed</p></td>
-</tr>
-</tbody>
-</table>
+Both limit checks are based on the <a class="reference external" href="https://it.wikipedia.org/wiki/Token_bucket">Token bucket policy</a> and
+the developer can set them up when building the <cite>MerossManager</cite> object.</p>
+<p>Each command issued by the manager is first checked against the per-device rate limiter.
+If that limit is not reached hit, then a second check is performed against the global rate limiter.
+If both the checks pass, then the command is issued to the broker.</p>
+<p>In case any of the two limits is hit, the Manager will reschedule the command (retrying) with an exponential backoff
+strategy. The command is retried (delayed) until the number of retries exceeds the device_max_command_queue
+parameter value. When this happens, the current call and the future calls are dropped, until new tokens are added
+to the bucket.</p>
 </div>
 <div class="section" id="logging">
 <h2>Logging<a class="headerlink" href="#logging" title="Permalink to this headline">¶</a></h2>

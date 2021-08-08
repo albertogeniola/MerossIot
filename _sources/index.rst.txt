@@ -19,9 +19,10 @@ how asyncio works and how `Python leverages async programming`_
     backends, such as HTTP api and MQTT broker. Meross did not provide any official documentation and
     you should consider this library as unofficial and unsupported by Meross.
 
-    For this reason, you should consider this library not for production use as there is no warranty
-    that Meross does not change the way it works or explicitly blocks it. So far Meross guys seem happy about that
-    but you should know that it might happen.
+    For this reason, you should consider this library not suitable for production use as there is no warranty
+    that Meross does not change the way it works or explicitly blocks it. In fact, as soon as people started
+    using this library, Meross introduced rate limiting features, which could lead to account limitations
+    or even ban.
 
     If you plan to rely on this library for developing 3rd party plugins (eg. building plugins
     for domotic frameworks), please let the developer know about that.

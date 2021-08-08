@@ -279,7 +279,7 @@ Its signature must be (namespace: Namespace, data: dict, device_internal_id: str
 
 <dl class="method">
 <dt id="meross_iot.controller.device.BaseDevice.unregister_push_notification_handler_coroutine">
-<code class="sig-name descname">unregister_push_notification_handler_coroutine</code><span class="sig-paren">(</span><em class="sig-param">coro: Callable[[meross_iot.model.enums.Namespace, dict], Awaitable]</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.device.BaseDevice.unregister_push_notification_handler_coroutine" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">unregister_push_notification_handler_coroutine</code><span class="sig-paren">(</span><em class="sig-param">coro: Callable[[meross_iot.model.enums.Namespace, dict, str], Awaitable]</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.device.BaseDevice.unregister_push_notification_handler_coroutine" title="Permalink to this definition">¶</a></dt>
 <dd><p>Unregisters the event handler
 :param coro: coroutine-function: a function that, when invoked, returns a Coroutine object that can be awaited.
 This coroutine function should have been previously registered

@@ -180,13 +180,12 @@ start working straight forward.</p>
 <p class="admonition-title">Note</p>
 <p>Immediately getting hands dirty with code is OK for quick demos.
 However, you should really read the entire documentation carefully in order to avoid
-gotchas. After all, someone has taken the effort of writing some documentation, why
-would you not read it?</p>
+gotchas. After all, someone has taken the effort of writing, why would you not read it?</p>
 </div>
 <div class="section" id="listing-devices">
 <h2>Listing devices<a class="headerlink" href="#listing-devices" title="Permalink to this headline">¶</a></h2>
 <div class="literal-block-wrapper docutils container" id="listing">
-<div class="code-block-caption"><span class="caption-text">Listing Meross device</span><a class="headerlink" href="#listing" title="Permalink to this code">¶</a></div>
+<div class="code-block-caption"><span class="caption-text">Listing Meross devices</span><a class="headerlink" href="#listing" title="Permalink to this code">¶</a></div>
 <div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
  2
  3
@@ -255,19 +254,24 @@ would you not read it?</p>
     <span class="k">await</span> <span class="n">http_api_client</span><span class="o">.</span><span class="n">async_logout</span><span class="p">()</span>
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="c1"># On Windows + Python 3.8, you should uncomment the following</span>
-    <span class="c1"># asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;nt&#39;</span><span class="p">:</span>
+        <span class="n">asyncio</span><span class="o">.</span><span class="n">set_event_loop_policy</span><span class="p">(</span><span class="n">asyncio</span><span class="o">.</span><span class="n">WindowsSelectorEventLoopPolicy</span><span class="p">())</span>
     <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_event_loop</span><span class="p">()</span>
     <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
     <span class="n">loop</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </pre></div>
 </td></tr></table></div>
 </div>
-<p>In order to discover meross devices, you need to setup a <code class="code docutils literal notranslate"><span class="pre">MerossManager</span></code>. Once the manager has been created,
-then you can invoke the <code class="code docutils literal notranslate"><span class="pre">async_device_discovery()</span></code> method. At that point, you can invoke the
-<code class="code docutils literal notranslate"><span class="pre">find_device()</span></code> which allows you to list all the devices that have been discovered by the manager.</p>
-<p>In case you want to search for specific devices, you can pass some filtering argument to this method.
-Have a look at the following method signature for more details.</p>
+<p>In order to discover meross devices, you need to setup a <code class="code docutils literal notranslate"><span class="pre">MerossManager</span></code>. That class is the one in charge
+of handling mqtt and http calls to respective endpoints. It also keeps track of discovered devices and allows you
+to discover new ones.</p>
+<p>Once the manager has been created and started via <code class="code docutils literal notranslate"><span class="pre">async_init()</span></code>, you can look for devices via the the
+<code class="code docutils literal notranslate"><span class="pre">async_device_discovery()</span></code> method. This method will query the HTTP API for getting the UUIDs (alongside
+other info) of the Meross devices registered with your account. To see the latest discovered devices cached
+by the <code class="code docutils literal notranslate"><span class="pre">MerossManager</span></code> you can use the <code class="code docutils literal notranslate"><span class="pre">find_device()</span></code>. You should not invoke
+<code class="code docutils literal notranslate"><span class="pre">async_device_discovery()</span></code> too frequently as doing so might trigger some alert/banning from Meross API.</p>
+<p>The <code class="code docutils literal notranslate"><span class="pre">find_device()</span></code> method supports some filtering arguments to search for specific devices. Have a look at
+the following method signature for more details.</p>
 <dl class="method">
 <dt id="meross_iot.manager.MerossManager.find_devices">
 <code class="sig-prename descclassname">MerossManager.</code><code class="sig-name descname">find_devices</code><span class="sig-paren">(</span><em class="sig-param">device_uuids: Optional[Iterable[str]] = None</em>, <em class="sig-param">internal_ids: Optional[Iterable[str]] = None</em>, <em class="sig-param">device_type: Optional[str] = None</em>, <em class="sig-param">device_class: Optional[type] = None</em>, <em class="sig-param">device_name: Optional[str] = None</em>, <em class="sig-param">online_status: Optional[meross_iot.model.enums.OnlineStatus] = None</em><span class="sig-paren">)</span> &#x2192; List[T]<a class="headerlink" href="#meross_iot.manager.MerossManager.find_devices" title="Permalink to this definition">¶</a></dt>
@@ -357,7 +361,7 @@ as reported by the HTTP api or byt the relative hub (when dealing with subdevice
 49
 50</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">asyncio</span>
 <span class="kn">import</span> <span class="nn">os</span>
-
+<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">meross_iot.http_api</span> <span class="kn">import</span> <span class="n">MerossHttpClient</span>
 <span class="kn">from</span> <span class="nn">meross_iot.manager</span> <span class="kn">import</span> <span class="n">MerossManager</span>
 
@@ -400,18 +404,19 @@ as reported by the HTTP api or byt the relative hub (when dealing with subdevice
     <span class="k">await</span> <span class="n">http_api_client</span><span class="o">.</span><span class="n">async_logout</span><span class="p">()</span>
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="c1"># On Windows + Python 3.8, you should uncomment the following</span>
-    <span class="c1"># asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;nt&#39;</span><span class="p">:</span>
+        <span class="n">asyncio</span><span class="o">.</span><span class="n">set_event_loop_policy</span><span class="p">(</span><span class="n">asyncio</span><span class="o">.</span><span class="n">WindowsSelectorEventLoopPolicy</span><span class="p">())</span>
     <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_event_loop</span><span class="p">()</span>
     <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
     <span class="n">loop</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </pre></div>
 </td></tr></table></div>
 </div>
-<p>Meross devices that supports toggling and on/off commands implement the
-<code class="code docutils literal notranslate"><span class="pre">meross_iot.controller.mixins.toggle.ToggleXMixin</span></code>. This class exposes a number of methods
-to control these devices, such <code class="code docutils literal notranslate"><span class="pre">async_turn_off()</span></code> and <code class="code docutils literal notranslate"><span class="pre">async_turn_on()</span></code>.
-Refer to the <a class="reference internal" href="api-reference/controller/mixins/toggle.html"><span class="doc">ToggleXMixn</span></a> for a panoramic around the ToggleMixin class.</p>
+<p>Meross devices that supports toggling and on/off commands implement either the
+<code class="code docutils literal notranslate"><span class="pre">meross_iot.controller.mixins.toggle.ToggleMixin</span></code> or <code class="code docutils literal notranslate"><span class="pre">meross_iot.controller.mixins.toggle.ToggleXMixin</span></code>.
+Both classes expose a number of methods to control these devices, such <code class="code docutils literal notranslate"><span class="pre">async_turn_off()</span></code> and
+<code class="code docutils literal notranslate"><span class="pre">async_turn_on()</span></code>.</p>
+<p>Refer to the <a class="reference internal" href="api-reference/controller/mixins/toggle.html"><span class="doc">ToggleXMixn</span></a> for a panoramic around those.</p>
 </div>
 <div class="section" id="controlling-bulbs">
 <h2>Controlling bulbs<a class="headerlink" href="#controlling-bulbs" title="Permalink to this headline">¶</a></h2>
@@ -525,8 +530,8 @@ Refer to the <a class="reference internal" href="api-reference/controller/mixins
     <span class="k">await</span> <span class="n">http_api_client</span><span class="o">.</span><span class="n">async_logout</span><span class="p">()</span>
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="c1"># On Windows + Python 3.8, you should uncomment the following</span>
-    <span class="c1"># asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;nt&#39;</span><span class="p">:</span>
+        <span class="n">asyncio</span><span class="o">.</span><span class="n">set_event_loop_policy</span><span class="p">(</span><span class="n">asyncio</span><span class="o">.</span><span class="n">WindowsSelectorEventLoopPolicy</span><span class="p">())</span>
     <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_event_loop</span><span class="p">()</span>
     <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
     <span class="n">loop</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
@@ -540,8 +545,10 @@ RGB color settings, as well as luminance and color temperature. More details on 
 <div class="section" id="controlling-garage-door-openers">
 <h2>Controlling garage door openers<a class="headerlink" href="#controlling-garage-door-openers" title="Permalink to this headline">¶</a></h2>
 <p>Meross garage door openers are somehow basic: in most cases they only simulate the
-button-press of the garage door. The door state is instead monitored with a specific sensor
-that must be mounted on the garage door. When you operate the Meross Garage Opener, it sends the
+button-press of the garage door. The door state is instead monitored with a specific sensor, mounted on the
+garage door. Such sensor is not able to tell you the exact state of the garage door. In fact, it only tells you if the
+door is closed or not closed (i.e. empty).</p>
+<p>When you operate the Meross Garage Opener, it sends the
 signal to the garage motor, which starts opening/closing. Then, once the door closes, the sensor
 reports “closing state”, and the door is marked as closed. However, when opening the door, things
 are quite different: as soon as the motor is operated, the sensor quickly reports “door opened” state
@@ -669,8 +676,8 @@ absolving the author of this library of all responsibility.</p>
     <span class="k">await</span> <span class="n">http_api_client</span><span class="o">.</span><span class="n">async_logout</span><span class="p">()</span>
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="c1"># On Windows + Python 3.8, you should uncomment the following</span>
-    <span class="c1"># asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;nt&#39;</span><span class="p">:</span>
+        <span class="n">asyncio</span><span class="o">.</span><span class="n">set_event_loop_policy</span><span class="p">(</span><span class="n">asyncio</span><span class="o">.</span><span class="n">WindowsSelectorEventLoopPolicy</span><span class="p">())</span>
     <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_event_loop</span><span class="p">()</span>
     <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
     <span class="n">loop</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
@@ -682,8 +689,8 @@ Have a look at <a class="reference internal" href="api-reference/controller/mixi
 </div>
 <div class="section" id="reading-sensors">
 <h2>Reading sensors<a class="headerlink" href="#reading-sensors" title="Permalink to this headline">¶</a></h2>
-<p>Meross devices might be equipped with sensors. Some devices (like temperature and humidity sensor) are in fact
-exclusively readable, configuring themselves as proper sensor devices. Others, as the MSS310, the Thermostat
+<p>Meross devices might be equipped with sensors. Some devices (like temperature and humidity sensor) are readonly,
+configuring themselves as proper sensor devices. Others, as the MSS310, the Thermostat
 valve or the garage openers are instead actuators that offer some data reading capabilities.
 For this reason, there is no “general” sensor mixin class; on the contrary, you should rely on the capabilities
 offered by other mixins.</p>
@@ -778,8 +785,8 @@ MSS310 plug, which implements both the <code class="code docutils literal notran
     <span class="k">await</span> <span class="n">http_api_client</span><span class="o">.</span><span class="n">async_logout</span><span class="p">()</span>
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="c1"># On Windows + Python 3.8, you should uncomment the following</span>
-    <span class="c1"># asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;nt&#39;</span><span class="p">:</span>
+        <span class="n">asyncio</span><span class="o">.</span><span class="n">set_event_loop_policy</span><span class="p">(</span><span class="n">asyncio</span><span class="o">.</span><span class="n">WindowsSelectorEventLoopPolicy</span><span class="p">())</span>
     <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_event_loop</span><span class="p">()</span>
     <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
     <span class="n">loop</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
@@ -880,8 +887,8 @@ available <a class="reference internal" href="api-reference/controller/mixins/el
     <span class="k">await</span> <span class="n">http_api_client</span><span class="o">.</span><span class="n">async_logout</span><span class="p">()</span>
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="c1"># On Windows + Python 3.8, you should uncomment the following</span>
-    <span class="c1"># asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;nt&#39;</span><span class="p">:</span>
+        <span class="n">asyncio</span><span class="o">.</span><span class="n">set_event_loop_policy</span><span class="p">(</span><span class="n">asyncio</span><span class="o">.</span><span class="n">WindowsSelectorEventLoopPolicy</span><span class="p">())</span>
     <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_event_loop</span><span class="p">()</span>
     <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
     <span class="n">loop</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
@@ -1011,8 +1018,8 @@ within the <a class="reference internal" href="api-reference/controller/subdevic
     <span class="k">await</span> <span class="n">http_api_client</span><span class="o">.</span><span class="n">async_logout</span><span class="p">()</span>
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="c1"># On Windows + Python 3.8, you should uncomment the following</span>
-    <span class="c1"># asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;nt&#39;</span><span class="p">:</span>
+        <span class="n">asyncio</span><span class="o">.</span><span class="n">set_event_loop_policy</span><span class="p">(</span><span class="n">asyncio</span><span class="o">.</span><span class="n">WindowsSelectorEventLoopPolicy</span><span class="p">())</span>
     <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_event_loop</span><span class="p">()</span>
     <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
     <span class="n">loop</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
