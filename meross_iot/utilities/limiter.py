@@ -56,6 +56,14 @@ class TokenBucketRateLimiterWithBackoff(object):
         self._current_window_end = time() - self._window_interval_seconds
         self._remaining_tokens = 0
 
+    def update_tokens(self):
+        """
+        Allows a the caller to update the limiter status.
+        This might be useful in certain situations where the caller needs to get the most accurate and
+        updated status of the rate limiter.
+        """
+        return self._add_tokens()
+
     def _add_tokens(self):
         # Calculate the number of tokens that we should add.
         # This is calculated as number of intervals we skipped * tokens_per_interval

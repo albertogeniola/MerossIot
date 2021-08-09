@@ -178,6 +178,13 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
+#### 0.4.2.1
+- Fixed "None error" when calling limiter api
+
+<details>
+    <summary>Older</summary>
+
+
 #### 0.4.2.0
 - Refactored MerossManager avoiding usage of multiple threads
 - Implemented multiple mqtt connections to different servers
@@ -188,10 +195,6 @@ Anyways, feel free to contribute via donations!
 - Improved disconnection/reconnection event handling
 - OnlineEvent is now being re-issued after client disconnection/reconnection
 - Implemented disconnect/reconnect automatic test
-
-<details>
-    <summary>Older</summary>
-
 #### 0.4.1.0rc8
 - Implemented first roller_shutter support (merged #160), thanks to @adrigonzalvez 
 #### 0.4.1.0rc7
