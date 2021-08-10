@@ -1028,6 +1028,4 @@ def _schedule_later(coroutine, start_delay, loop):
         await asyncio.sleep(delay=delay, loop=loop)
         await coro
 
-    asyncio.ensure_future(
-        delayed_execution(coro=coroutine, delay=start_delay, loop=loop), loop=loop
-    )
+    asyncio.run_coroutine_threadsafe(coro=delayed_execution(coro=coroutine, delay=start_delay, loop=loop), loop=loop)
