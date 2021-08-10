@@ -180,6 +180,7 @@ Anyways, feel free to contribute via donations!
 ## Changelog
 #### 0.4.2.1
 - Fixed "None error" when calling limiter api
+- Updated aiohttp dependency to 3.7.4 due to security issues
 
 <details>
     <summary>Older</summary>
