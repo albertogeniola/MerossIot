@@ -3,7 +3,7 @@ name: Development Build
 on:
   push:
     paths-ignore: [docs/**, README.md]
-    branches: [ development-0.4.X.X ]
+    branches: [ "development-0.4.X.X" ]
 
 jobs:
   # ------------------------------
@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python_version: ['3.8']
+        python_version: ['3.8.x']
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2

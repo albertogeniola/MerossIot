@@ -178,14 +178,15 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
-#### 0.4.2.1
-- Fixed "None error" when calling limiter api
-- Updated aiohttp dependency to 3.7.4 due to security issues
+#### 0.4.2.2
+- Fixed asyncio and threading bug in _schedule_later() utility
 
 <details>
     <summary>Older</summary>
 
-
+#### 0.4.2.1
+- Fixed "None error" when calling limiter api
+- Updated aiohttp dependency to 3.7.4 due to security issues
 #### 0.4.2.0
 - Refactored MerossManager avoiding usage of multiple threads
 - Implemented multiple mqtt connections to different servers
