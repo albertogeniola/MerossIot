@@ -26,7 +26,7 @@ class Ms100Sensor(GenericSubDevice):
                                method: str,
                                namespace: Namespace,
                                payload: dict,
-                               timeout: float = 5,
+                               timeout: float = 10,
                                skip_rate_limits: bool = False,
                                drop_on_overquota: bool = True) -> dict:
         raise NotImplementedError("This method should never be called directly for subdevices.")
@@ -151,7 +151,7 @@ class Mts100v3Valve(GenericSubDevice):
                                method: str,
                                namespace: Namespace,
                                payload: dict,
-                               timeout: float = 5,
+                               timeout: float = 10,
                                skip_rate_limits: bool = False,
                                drop_on_overquota: bool = True) -> dict:
         raise NotImplementedError("This method should never be called directly for subdevices.")

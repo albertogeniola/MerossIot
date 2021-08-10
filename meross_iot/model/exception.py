@@ -3,7 +3,10 @@ class UnconnectedError(Exception):
 
 
 class CommandTimeoutError(Exception):
-    pass
+    def __init__(self, message: str, target_device_uuid: str, timeout: float):
+        self.message = message
+        self.target_device_uuid = target_device_uuid
+        self.timeout=timeout
 
 
 class MqttError(Exception):

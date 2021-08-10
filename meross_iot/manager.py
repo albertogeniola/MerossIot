@@ -129,6 +129,13 @@ class MerossManager(object):
         self._user_topic = build_client_user_topic(user_id=self._cloud_creds.user_id)
         self._limiter = rate_limiter
 
+    def _get_client_from_domain_port(self, client: mqtt.Client) -> Tuple[Optional[str], Optional[int]]:
+        for k, v in self._mqtt_clients.items():
+            if v == client:
+                domain, port = k.split(":")
+                return domain, int(port)
+        return None, None
+
     async def _async_get_create_mqtt_client(self, domain: str, port: int) -> mqtt.Client:
         """
         Retrieves the mqtt_client for the given domain/port combination.
@@ -819,6 +826,8 @@ class MerossManager(object):
                     namespace=namespace,
                     payload=payload,
                     timeout=timeout,
+                    skip_rate_limiting_check=skip_rate_limiting_check,
+                    drop_on_overquota=drop_on_overquota
                 )
             elif rate_limiting_action == RateLimitResultStrategy.DropCall:
                 raise RateLimitExceeded()
@@ -838,12 +847,12 @@ class MerossManager(object):
             future=fut,
             target_device_uuid=destination_device_uuid,
             message=message,
-            timeout=timeout,
+            timeout=timeout
         )
         return response.get("payload")
 
     async def _async_send_and_wait_ack(
-            self, client: mqtt.Client, future: Future, target_device_uuid: str, message: bytes, timeout: float
+            self, client: mqtt.Client, future: Future, target_device_uuid: str, message: bytes, timeout: float,
     ):
         message_info = client.publish(
             topic=build_device_request_topic(target_device_uuid), payload=message
@@ -851,11 +860,12 @@ class MerossManager(object):
         try:
             return await asyncio.wait_for(future, timeout, loop=self._loop)
         except TimeoutError as e:
+            domain, port = self._get_client_from_domain_port(client=client)
             _LOGGER.error(
                 f"Timeout occurred while waiting a response for message {message} sent to device uuid "
-                f"{target_device_uuid}. Timeout was: {timeout} seconds."
+                f"{target_device_uuid}. Timeout was: {timeout} seconds. Mqtt Host: {domain}:{port}."
             )
-            raise CommandTimeoutError()
+            raise CommandTimeoutError(message=str(message), target_device_uuid=target_device_uuid, timeout=timeout)
 
     async def _notify_connection_drop(self):
         for d in self._device_registry.find_all_by():
