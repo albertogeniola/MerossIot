@@ -3,7 +3,7 @@ name: Development Build
 on:
   push:
     paths-ignore: [docs/**, README.md]
-    branches: [ development-0.4.X.X ]
+    branches: [ "development-0.4.X.X" ]
 
 jobs:
   # ------------------------------
