@@ -417,6 +417,8 @@ class GenericSubDevice(BaseDevice):
         if filter_accessor is not None:
             # Operate only on relative accessor
             context = data.get(filter_accessor)
+            if context is None:
+                raise ValueError("Could not find accessor %s within data %s. This push notification will be ignored." % (filter_accessor, str(data)))
             for notification in context:
                 if notification.get('id') != self.subdevice_id:
                     _LOGGER.warning("Ignoring notification %s as it does not target "
