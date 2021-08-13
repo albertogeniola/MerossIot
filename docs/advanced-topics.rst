@@ -72,6 +72,20 @@ strategy. The command is retried (delayed) until the number of retries exceeds t
 parameter value. When this happens, the current call and the future calls are dropped, until new tokens are added
 to the bucket.
 
+MQTT Calls Statistics
+--------------------
+
+The `MerossManager` tracks some statistics about MQTT messages sent to the broker, useful to better tune
+the API rate limits. You can access such statistics via `MerossManager.mqtt_call_stats()`, which returns an
+instance of `ApiCounter` class, which exposes convenient methods to retrieve performed calls, delayed ones and
+dropped ones.
+
+At the moment, the ApiCounter keeps track of the latest 1000 mqtt calls performed.
+Statistics are calculated over a timewindow of 1 minute: you can override the timewindow size
+by setting the `time_window` parameter accordingly (pass a `timedelta`).
+
+For more info, please refer to the API reference of `MerossManager` and `ApiCounter` classes.
+
 Logging
 -------
 This library relies on the standard Python's logging module.

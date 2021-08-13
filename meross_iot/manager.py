@@ -193,6 +193,9 @@ class MerossManager(object):
 
     @property
     def mqtt_call_stats(self) -> ApiCounter:
+        """
+        Exposes some MQTT API calls metrics
+        """
         return self._stats_counter
 
     @property
