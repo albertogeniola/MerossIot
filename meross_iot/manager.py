@@ -48,6 +48,7 @@ from meross_iot.utilities.mqtt import (
     device_uuid_from_push_notification,
     build_device_request_topic,
 )
+from meross_iot.utilities.stats import ApiCounter
 
 logging.basicConfig(
     format="%(levelname)s:%(message)s", level=logging.INFO, stream=sys.stdout
@@ -128,6 +129,7 @@ class MerossManager(object):
         )
         self._user_topic = build_client_user_topic(user_id=self._cloud_creds.user_id)
         self._limiter = rate_limiter
+        self._stats_counter = ApiCounter()
 
     def _get_client_from_domain_port(self, client: mqtt.Client) -> Tuple[Optional[str], Optional[int]]:
         for k, v in self._mqtt_clients.items():
@@ -188,6 +190,10 @@ class MerossManager(object):
         client.on_subscribe = self._on_subscribe
 
         return client
+
+    @property
+    def mqtt_call_stats(self) -> ApiCounter:
+        return self._stats_counter
 
     @property
     def limiter(self) -> RateLimitChecker:
@@ -540,7 +546,8 @@ class MerossManager(object):
             prev_status = dev.online_status
             await dev.async_update(drop_on_overquota=False)
             if dev.online_status != prev_status:
-                await dev.async_handle_push_notification(namespace=Namespace.SYSTEM_ONLINE, data={'online': {'status': dev.online_status.value}})
+                await dev.async_handle_push_notification(namespace=Namespace.SYSTEM_ONLINE,
+                                                         data={'online': {'status': dev.online_status.value}})
 
         i = 0
         for d in self.find_devices():
@@ -818,6 +825,9 @@ class MerossManager(object):
                     or rate_limiting_action == RateLimitResultStrategy.DropCall
                     and not drop_on_overquota
             ):
+                self._stats_counter.notify_delayed_call(device_uuid=destination_device_uuid,
+                                                        namespace=namespace.value,
+                                                        method=method)
                 await asyncio.sleep(delay=time_to_wait, loop=self._loop)
                 return await self.async_execute_cmd_client(
                     client=client,
@@ -830,6 +840,9 @@ class MerossManager(object):
                     drop_on_overquota=drop_on_overquota
                 )
             elif rate_limiting_action == RateLimitResultStrategy.DropCall:
+                self._stats_counter.notify_dropped_call(device_uuid=destination_device_uuid,
+                                                        namespace=namespace.value,
+                                                        method=method)
                 raise RateLimitExceeded()
             else:
                 raise ValueError("Unsupported rate-limiting action")
@@ -841,6 +854,10 @@ class MerossManager(object):
         # Create a future and perform the send/waiting to a task
         fut = self._loop.create_future()
         self._pending_messages_futures[message_id] = fut
+
+        self._stats_counter.notify_api_call(device_uuid=destination_device_uuid,
+                                            namespace=namespace.value,
+                                            method=method)
 
         response = await self._async_send_and_wait_ack(
             client=client,
