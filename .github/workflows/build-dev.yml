@@ -94,9 +94,9 @@ jobs:
       run: |
         pip install .
         # Set credentials into memory
-        meross_api_cli auth login --email $MEROSS_EMAIL --password "$MEROSS_PASSWORD"
-        pytest tests --doctest-modules --junitxml=junit/test-results.xml --cov=. --cov-report=xml --cov-report=html --html=junit/test-results.html --self-contained-html
-        meross_api_cli auth logout
+        TOKEN=$(meross_api_cli auth login --email $MEROSS_EMAIL --password "$MEROSS_PASSWORD" | base64 -w0)
+        __MEROSS_CREDS=$TOKEN pytest tests --doctest-modules --junitxml=junit/test-results.xml --cov=. --cov-report=xml --cov-report=html --html=junit/test-results.html --self-contained-html
+        __MEROSS_CREDS=$TOKEN meross_api_cli auth logout
     - name: Upload pytest test results
       uses: actions/upload-artifact@v2
       with:
