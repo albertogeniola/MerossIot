@@ -66,7 +66,7 @@ class ApiStat:
             self._by_method_namespace[method_ns] += 1
 
     @property
-    def total(self) -> int:
+    def total_calls(self) -> int:
         """
         Total number of calls for this device
         """
@@ -81,7 +81,7 @@ class ApiStat:
     def __repr__(self):
         top_calls = sorted(self._by_method_namespace.items(), key=lambda item: item[1], reverse=True)
         details = ", ".join([f"{method}: {calls}" for method, calls in top_calls])
-        return f"{self.total} ({details})"
+        return f"{self.total_calls} ({details})"
 
 
 class ApiStatsResult:
@@ -101,7 +101,7 @@ class ApiStatsResult:
         byuuid.add(sample)
 
     @property
-    def total(self) -> ApiStat:
+    def global_stats(self) -> ApiStat:
         """
         Total number of calls
         """
@@ -120,10 +120,10 @@ class ApiStatsResult:
         return self._by_uuid.items()
 
     def __repr__(self):
-        top_devices = sorted(self._by_uuid.items(), key=lambda item: item[1].total, reverse=True)
+        top_devices = sorted(self._by_uuid.items(), key=lambda item: item[1].global_stats, reverse=True)
         device_rerp = ",\n".join([f"{uuid}: {stats}" for uuid, stats in top_devices])
         return f"--------\n" \
-               f"Global Calls: {self._global.total}\n" \
+               f"Global Calls: {self._global.total_calls}\n" \
                f"{device_rerp}\n" \
                f"--------\n"
 
