@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 
 from meross_iot.model.enums import Namespace
 
@@ -66,7 +67,7 @@ class HubMs100Mixin(object):
                  **kwargs):
         super().__init__(device_uuid=device_uuid, manager=manager, **kwargs)
 
-    async def async_update(self, skip_rate_limits: bool = False, drop_on_overquota: bool = True, *args, **kwargs) -> None:
+    async def async_update(self, skip_rate_limits: bool = False, drop_on_overquota: bool = True, timeout: Optional[float] = None, *args, **kwargs) -> None:
         # Call the super implementation
         await super().async_update(skip_rate_limits=skip_rate_limits, drop_on_overquota=drop_on_overquota, *args, **kwargs)
 
@@ -74,7 +75,8 @@ class HubMs100Mixin(object):
                                              namespace=Namespace.HUB_SENSOR_ALL,
                                              payload={'all': []},
                                              skip_rate_limits=skip_rate_limits,
-                                             drop_on_overquota=drop_on_overquota)
+                                             drop_on_overquota=drop_on_overquota,
+                                             timeout=timeout)
         subdevs_data = result.get('all', [])
         for d in subdevs_data:
             dev_id = d.get('id')
@@ -134,15 +136,16 @@ class HubMts100Mixin(object):
                  **kwargs):
         super().__init__(device_uuid=device_uuid, manager=manager, **kwargs)
 
-    async def async_update(self, skip_rate_limits: bool = False, drop_on_overquota: bool = True, *args, **kwargs) -> None:
+    async def async_update(self, skip_rate_limits: bool = False, drop_on_overquota: bool = True, timeout: Optional[float] = None, *args, **kwargs) -> None:
         # Call the super implementation
-        await super().async_update(skip_rate_limits=skip_rate_limits, drop_on_overquota=drop_on_overquota, *args, **kwargs)
+        await super().async_update(skip_rate_limits=skip_rate_limits, drop_on_overquota=drop_on_overquota, timeout=timeout, *args, **kwargs)
 
         result = await self._execute_command(method="GET",
                                              namespace=Namespace.HUB_MTS100_ALL,
                                              payload={'all': []},
                                              skip_rate_limits=skip_rate_limits,
-                                             drop_on_overquota=drop_on_overquota)
+                                             drop_on_overquota=drop_on_overquota,
+                                             timeout=timeout)
         subdevs_data = result.get('all', [])
         for d in subdevs_data:
             dev_id = d.get('id')

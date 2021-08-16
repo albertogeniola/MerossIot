@@ -108,13 +108,14 @@ class RollerShutterTimerMixin:
         """
         await self._async_operate(position=0, channel=channel, *args, **kwargs)
 
-    async def _async_operate(self, position: int, channel: int = 0, skip_rate_limits: bool = False, drop_on_overquota: bool = True, *args, **kwargs) -> None:
+    async def _async_operate(self, position: int, channel: int = 0, skip_rate_limits: bool = False, drop_on_overquota: bool = True, timeout: Optional[float] = None, *args, **kwargs) -> None:
         payload = {'position': {"position": position, "channel": channel}}
         await self._execute_command(method="SET",
                                     namespace=Namespace.ROLLER_SHUTTER_POSITION,
                                     payload=payload,
                                     skip_rate_limits=skip_rate_limits,
-                                    drop_on_overquota=drop_on_overquota)
+                                    drop_on_overquota=drop_on_overquota,
+                                    timeout=timeout)
         # Respect to other devices, we don't assume the command was immediately successful as the
         # state/position change might take some time to take place.
         # self._roller_shutter_state_by_channel[channel] = state

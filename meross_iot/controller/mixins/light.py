@@ -93,6 +93,7 @@ class LightMixin(object):
                                     temperature: Optional[int] = -1,
                                     skip_rate_limits: bool = False,
                                     drop_on_overquota: bool = True,
+                                    timeout: Optional[float] = None,
                                     *args,
                                     **kwargs) -> None:
         """
@@ -152,7 +153,8 @@ class LightMixin(object):
                                     namespace=Namespace.CONTROL_LIGHT,
                                     payload=payload,
                                     skip_rate_limits=skip_rate_limits,
-                                    drop_on_overquota=drop_on_overquota)
+                                    drop_on_overquota=drop_on_overquota,
+                                    timeout=timeout)
 
         # If the command was ok, immediately update the local state.
         self._update_channel_status(channel, rgb=rgb, luminance=luminance, temperature=temperature)

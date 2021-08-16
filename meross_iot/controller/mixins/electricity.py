@@ -22,7 +22,12 @@ class ElectricityMixin(object):
         # We'll hold a dictionary of lastest samples, one per channel
         self.__channel_cached_samples = {}
 
-    async def async_get_instant_metrics(self, channel=0, skip_rate_limits: bool = False, drop_on_overquota: bool = True, *args, **kwargs) -> PowerInfo:
+    async def async_get_instant_metrics(self,
+                                        channel=0,
+                                        skip_rate_limits: bool = False,
+                                        drop_on_overquota: bool = True,
+                                        timeout: Optional[float] = None,
+                                        *args, **kwargs) -> PowerInfo:
         """
         Polls the device to gather the instant power consumption for this device.
         Please note that current/voltage combination may not be accurate as power is.
@@ -39,7 +44,8 @@ class ElectricityMixin(object):
                                              namespace=Namespace.CONTROL_ELECTRICITY,
                                              payload={'channel': channel},
                                              skip_rate_limits=skip_rate_limits,
-                                             drop_on_overquota=drop_on_overquota)
+                                             drop_on_overquota=drop_on_overquota,
+                                             timeout=timeout)
         data = result.get('electricity')
 
         # For some reason, most of the Meross device report accurate instant power, but inaccurate voltage/current.

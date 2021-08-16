@@ -6,7 +6,7 @@ import time
 from datetime import datetime
 from typing import List, Union, Optional, Iterable, Callable, Awaitable, Dict
 
-from meross_iot.model.constants import DEFAULT_MQTT_PORT, DEFAULT_MQTT_HOST
+from meross_iot.model.constants import DEFAULT_MQTT_PORT, DEFAULT_MQTT_HOST, DEFAULT_COMMAND_TIMEOUT
 from meross_iot.model.enums import OnlineStatus, Namespace
 from meross_iot.model.http.device import HttpDeviceInfo
 from meross_iot.model.plugin.hub import BatteryInfo
@@ -64,7 +64,9 @@ class BaseDevice(object):
             self._abilities = {}
         self._push_coros = []
         self._last_full_update_ts = None
-    # TODO: register sync_event_handler?
+
+        # Set default timeout value for command execution
+        self._timeout = DEFAULT_COMMAND_TIMEOUT
 
     @property
     def mqtt_host(self):
@@ -248,19 +250,34 @@ class BaseDevice(object):
         # TODO: Should we do something here?
         pass
 
+    @property
+    def default_command_timeout(self):
+        return self._timeout
+
+    @default_command_timeout.setter
+    def default_command_timeout(self, val: Union[float, int]):
+        if val is None or val < 0:
+            raise ValueError("Command execution timeout must a positive number")
+        self._timeout = val
+
     async def _execute_command(self,
                                method: str,
                                namespace: Namespace,
                                payload: dict,
-                               timeout: float = 10,
+                               timeout: Optional[float] = None,
                                skip_rate_limits: bool = False,
                                drop_on_overquota: bool = True
                                ) -> dict:
+        if timeout is None:
+            to = self.default_command_timeout
+        else:
+            to = timeout
+
         return await self._manager.async_execute_cmd(destination_device_uuid=self.uuid,
                                                      method=method,
                                                      namespace=namespace,
                                                      payload=payload,
-                                                     timeout=timeout,
+                                                     timeout=to,
                                                      skip_rate_limiting_check=skip_rate_limits,
                                                      drop_on_overquota=drop_on_overquota,
                                                      mqtt_hostname=self.mqtt_host,
@@ -354,8 +371,12 @@ class GenericSubDevice(BaseDevice):
     async def async_update(self,
                            skip_rate_limits: bool = False,
                            drop_on_overquota: bool = True,
+                           timeout: Optional[float] = None,
                            *args,
                            **kwargs) -> None:
+        """
+        Perfoms a full device update of the device attributes.
+        """
         if self._UPDATE_ALL_NAMESPACE is None:
             _LOGGER.error("GenericSubDevice does not implement any GET_ALL namespace. Update won't be performed.")
             pass
@@ -369,7 +390,8 @@ class GenericSubDevice(BaseDevice):
                                                   namespace=self._UPDATE_ALL_NAMESPACE,
                                                   payload={'all': [{'id': self.subdevice_id}]},
                                                   skip_rate_limits=skip_rate_limits,
-                                                  drop_on_overquota=drop_on_overquota)
+                                                  drop_on_overquota=drop_on_overquota,
+                                                  timeout=timeout)
         subdevices_states = result.get('all')
         for subdev_state in subdevices_states:
             subdev_id = subdev_state.get('id')
@@ -382,6 +404,7 @@ class GenericSubDevice(BaseDevice):
     async def async_get_battery_life(self,
                                      skip_rate_limits: bool = False,
                                      drop_on_overquota: bool = True,
+                                     timeout: Optional[float] = None,
                                      *args,
                                      **kwargs) -> BatteryInfo:
         """
@@ -392,7 +415,8 @@ class GenericSubDevice(BaseDevice):
                                                 namespace=Namespace.HUB_BATTERY,
                                                 payload={'battery': [{'id': self.subdevice_id}]},
                                                 skip_rate_limits=skip_rate_limits,
-                                                drop_on_overquota=drop_on_overquota)
+                                                drop_on_overquota=drop_on_overquota,
+                                                timeout=timeout)
         battery_life_perc = data.get('battery', {})[0].get('value')
         timestamp = datetime.utcnow()
         return BatteryInfo(battery_charge=battery_life_perc, sample_ts=timestamp)
