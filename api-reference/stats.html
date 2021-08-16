@@ -1,0 +1,374 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Statistics &mdash; MerossIot Library  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+        <script data-ad-client="ca-pub-9110025741700767" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="BaseDevice" href="controller/device/base.html" />
+    <link rel="prev" title="MerossCloudCredentials" href="creds.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: white" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> MerossIot Library
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick-start.html">Quick start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../common-gotchas.html">Common gotchas</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced-topics.html">Advanced topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../meross-protocol.html">Meross Protocol Inspection</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="http.html">HTTP Client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="manager.html">MerossManager</a></li>
+<li class="toctree-l2"><a class="reference internal" href="creds.html">MerossCloudCredentials</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Statistics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="controller/device/base.html">BaseDevice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="controller/device/generic.html">GenericSubDevice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="controller/device/hub.html">HubDevice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="controller/device/channel.html">ChannelInfo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="controller/device/channel.html">ChannelInfo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/consumption.html">ConsumptionXMixin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/electricity.html">ElectricityMixin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/garage.html">GarageOpenerMixin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/hub.html">HubMixn</a></li>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/hub.html#hubmts100mixin">HubMts100Mixin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/light.html">LightMixin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/spray.html">SprayMixin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/system.html">SystemAllMixin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/system.html#systemonlinemixin">SystemOnlineMixin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/toggle.html">ToggleXMixin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/toggle.html#togglemixin">ToggleMixin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="controller/subdevice/sensor.html">Ms100Sensor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="controller/subdevice/valve.html">Mts100v3Valve</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">MerossIot Library</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html">API Reference</a> &raquo;</li>
+        
+      <li>Statistics</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api-reference/stats.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-meross_iot.utilities.stats">
+<span id="statistics"></span><h1>Statistics<a class="headerlink" href="#module-meross_iot.utilities.stats" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="meross_iot.utilities.stats.ApiCallSample">
+<em class="property">class </em><code class="sig-prename descclassname">meross_iot.utilities.stats.</code><code class="sig-name descname">ApiCallSample</code><span class="sig-paren">(</span><em class="sig-param">device_uuid: str</em>, <em class="sig-param">namespace: str</em>, <em class="sig-param">method: str</em>, <em class="sig-param">timestamp: Optional[float] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.utilities.stats.ApiCallSample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper class to hold a single call to the mqtt broker</p>
+<dl class="method">
+<dt id="meross_iot.utilities.stats.ApiCallSample.device_uuid">
+<em class="property">property </em><code class="sig-name descname">device_uuid</code><a class="headerlink" href="#meross_iot.utilities.stats.ApiCallSample.device_uuid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Target Device UUID for the message</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.utilities.stats.ApiCallSample.method">
+<em class="property">property </em><code class="sig-name descname">method</code><a class="headerlink" href="#meross_iot.utilities.stats.ApiCallSample.method" title="Permalink to this definition">¶</a></dt>
+<dd><p>Target Method for the message</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.utilities.stats.ApiCallSample.namespace">
+<em class="property">property </em><code class="sig-name descname">namespace</code><a class="headerlink" href="#meross_iot.utilities.stats.ApiCallSample.namespace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Target Namespace for the message</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.utilities.stats.ApiCallSample.timestamp">
+<em class="property">property </em><code class="sig-name descname">timestamp</code><a class="headerlink" href="#meross_iot.utilities.stats.ApiCallSample.timestamp" title="Permalink to this definition">¶</a></dt>
+<dd><p>When the record has been registered</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="meross_iot.utilities.stats.ApiCounter">
+<em class="property">class </em><code class="sig-prename descclassname">meross_iot.utilities.stats.</code><code class="sig-name descname">ApiCounter</code><span class="sig-paren">(</span><em class="sig-param">max_samples=1000</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.utilities.stats.ApiCounter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper class to keep track and calculate statistics for sent MQTT message</p>
+<dl class="method">
+<dt id="meross_iot.utilities.stats.ApiCounter.get_api_stats">
+<code class="sig-name descname">get_api_stats</code><span class="sig-paren">(</span><em class="sig-param">time_window: datetime.timedelta = datetime.timedelta(seconds=60)</em><span class="sig-paren">)</span> &#x2192; meross_iot.utilities.stats.ApiStatsResult<a class="headerlink" href="#meross_iot.utilities.stats.ApiCounter.get_api_stats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the statistics of sent MQTT messages to the MQTT broker</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.utilities.stats.ApiCounter.get_delayed_api_stats">
+<code class="sig-name descname">get_delayed_api_stats</code><span class="sig-paren">(</span><em class="sig-param">time_window: datetime.timedelta = datetime.timedelta(seconds=60)</em><span class="sig-paren">)</span> &#x2192; meross_iot.utilities.stats.ApiStatsResult<a class="headerlink" href="#meross_iot.utilities.stats.ApiCounter.get_delayed_api_stats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the statistics of delayed MQTT messages to the MQTT broker</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.utilities.stats.ApiCounter.get_dropped_api_stats">
+<code class="sig-name descname">get_dropped_api_stats</code><span class="sig-paren">(</span><em class="sig-param">time_window: datetime.timedelta = datetime.timedelta(seconds=60)</em><span class="sig-paren">)</span> &#x2192; meross_iot.utilities.stats.ApiStatsResult<a class="headerlink" href="#meross_iot.utilities.stats.ApiCounter.get_dropped_api_stats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the statistics of dropped MQTT messages to the MQTT broker</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.utilities.stats.ApiCounter.notify_api_call">
+<code class="sig-name descname">notify_api_call</code><span class="sig-paren">(</span><em class="sig-param">device_uuid: str</em>, <em class="sig-param">namespace: str</em>, <em class="sig-param">method: str</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.utilities.stats.ApiCounter.notify_api_call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method called internally by the manager itself, whenever a message is sent to the
+MQTT broker.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.utilities.stats.ApiCounter.notify_delayed_call">
+<code class="sig-name descname">notify_delayed_call</code><span class="sig-paren">(</span><em class="sig-param">device_uuid: str</em>, <em class="sig-param">namespace: str</em>, <em class="sig-param">method: str</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.utilities.stats.ApiCounter.notify_delayed_call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method called internally by the manager itself, whenever a message is delayed instead of being sent to the
+MQTT broker.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.utilities.stats.ApiCounter.notify_dropped_call">
+<code class="sig-name descname">notify_dropped_call</code><span class="sig-paren">(</span><em class="sig-param">device_uuid: str</em>, <em class="sig-param">namespace: str</em>, <em class="sig-param">method: str</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.utilities.stats.ApiCounter.notify_dropped_call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method called internally by the manager itself, whenever a message is dropped instead of being sent to the
+MQTT broker.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="meross_iot.utilities.stats.ApiStat">
+<em class="property">class </em><code class="sig-prename descclassname">meross_iot.utilities.stats.</code><code class="sig-name descname">ApiStat</code><a class="headerlink" href="#meross_iot.utilities.stats.ApiStat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper class that handles API stats result for a single device</p>
+<dl class="method">
+<dt id="meross_iot.utilities.stats.ApiStat.by_method_namespace">
+<code class="sig-name descname">by_method_namespace</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; ItemsView[str, int]<a class="headerlink" href="#meross_iot.utilities.stats.ApiStat.by_method_namespace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of calls for this device aggregated by Method/Namespace</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.utilities.stats.ApiStat.total_calls">
+<em class="property">property </em><code class="sig-name descname">total_calls</code><a class="headerlink" href="#meross_iot.utilities.stats.ApiStat.total_calls" title="Permalink to this definition">¶</a></dt>
+<dd><p>Total number of calls for this device</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="meross_iot.utilities.stats.ApiStatsResult">
+<em class="property">class </em><code class="sig-prename descclassname">meross_iot.utilities.stats.</code><code class="sig-name descname">ApiStatsResult</code><a class="headerlink" href="#meross_iot.utilities.stats.ApiStatsResult" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper class that handles API stats result</p>
+<dl class="method">
+<dt id="meross_iot.utilities.stats.ApiStatsResult.device_stats">
+<code class="sig-name descname">device_stats</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; ItemsView[meross_iot.utilities.stats.ApiStat, Any]<a class="headerlink" href="#meross_iot.utilities.stats.ApiStatsResult.device_stats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Statistics aggregated by Device UUID</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.utilities.stats.ApiStatsResult.global_stats">
+<em class="property">property </em><code class="sig-name descname">global_stats</code><a class="headerlink" href="#meross_iot.utilities.stats.ApiStatsResult.global_stats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Total number of calls</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.utilities.stats.ApiStatsResult.stats_by_uuid">
+<code class="sig-name descname">stats_by_uuid</code><span class="sig-paren">(</span><em class="sig-param">device_uuid</em><span class="sig-paren">)</span> &#x2192; Optional[meross_iot.utilities.stats.ApiStat]<a class="headerlink" href="#meross_iot.utilities.stats.ApiStatsResult.stats_by_uuid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the statistics of a specific device UUID</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="controller/device/base.html" class="btn btn-neutral float-right" title="BaseDevice" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="creds.html" class="btn btn-neutral float-left" title="MerossCloudCredentials" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, Alberto Geniola.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    <!-- Theme Analytics -->
+    <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-10387182-6', 'auto');
+    
+    ga('send', 'pageview');
+    </script>
+
+    
+   
+
+</body>
+</html>

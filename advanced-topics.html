@@ -96,6 +96,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Advanced topics</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#push-notification-handling">Push notification handling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#managing-rate-limits">Managing rate limits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mqtt-calls-statistics">MQTT Calls Statistics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#logging">Logging</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#sniff-device-data">Sniff device data</a></li>
 </ul>
@@ -231,6 +232,17 @@ If both the checks pass, then the command is issued to the broker.</p>
 strategy. The command is retried (delayed) until the number of retries exceeds the device_max_command_queue
 parameter value. When this happens, the current call and the future calls are dropped, until new tokens are added
 to the bucket.</p>
+</div>
+<div class="section" id="mqtt-calls-statistics">
+<h2>MQTT Calls Statistics<a class="headerlink" href="#mqtt-calls-statistics" title="Permalink to this headline">¶</a></h2>
+<p>The <cite>MerossManager</cite> tracks some statistics about MQTT messages sent to the broker, useful to better tune
+the API rate limits. You can access such statistics via <cite>MerossManager.mqtt_call_stats()</cite>, which returns an
+instance of <cite>ApiCounter</cite> class, which exposes convenient methods to retrieve performed calls, delayed ones and
+dropped ones.</p>
+<p>At the moment, the ApiCounter keeps track of the latest 1000 mqtt calls performed.
+Statistics are calculated over a timewindow of 1 minute: you can override the timewindow size
+by setting the <cite>time_window</cite> parameter accordingly (pass a <cite>timedelta</cite>).</p>
+<p>For more info, please refer to the API reference of <cite>MerossManager</cite> and <cite>ApiCounter</cite> classes.</p>
 </div>
 <div class="section" id="logging">
 <h2>Logging<a class="headerlink" href="#logging" title="Permalink to this headline">¶</a></h2>

@@ -167,6 +167,7 @@
  <a href="#A"><strong>A</strong></a>
  | <a href="#B"><strong>B</strong></a>
  | <a href="#C"><strong>C</strong></a>
+ | <a href="#D"><strong>D</strong></a>
  | <a href="#E"><strong>E</strong></a>
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
@@ -187,6 +188,14 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-reference/controller/subdevice/valve.html#meross_iot.controller.known.subdevice.Mts100v3Valve.adjust">adjust() (meross_iot.controller.known.subdevice.Mts100v3Valve property)</a>
 </li>
+      <li><a href="api-reference/stats.html#meross_iot.utilities.stats.ApiCallSample">ApiCallSample (class in meross_iot.utilities.stats)</a>
+</li>
+      <li><a href="api-reference/stats.html#meross_iot.utilities.stats.ApiCounter">ApiCounter (class in meross_iot.utilities.stats)</a>
+</li>
+      <li><a href="api-reference/stats.html#meross_iot.utilities.stats.ApiStat">ApiStat (class in meross_iot.utilities.stats)</a>
+</li>
+      <li><a href="api-reference/stats.html#meross_iot.utilities.stats.ApiStatsResult">ApiStatsResult (class in meross_iot.utilities.stats)</a>
+</li>
       <li><a href="api-reference/controller/mixins/garage.html#meross_iot.controller.mixins.garage.GarageOpenerMixin.async_close">async_close() (meross_iot.controller.mixins.garage.GarageOpenerMixin method)</a>
 </li>
       <li><a href="api-reference/manager.html#meross_iot.manager.MerossManager.async_device_discovery">async_device_discovery() (meross_iot.manager.MerossManager method)</a>
@@ -205,12 +214,12 @@
 </li>
       <li><a href="api-reference/controller/subdevice/valve.html#meross_iot.controller.known.subdevice.Mts100v3Valve.async_get_temperature">async_get_temperature() (meross_iot.controller.known.subdevice.Mts100v3Valve method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-reference/manager.html#meross_iot.manager.MerossManager.async_init">async_init() (meross_iot.manager.MerossManager method)</a>
 </li>
       <li><a href="api-reference/http.html#meross_iot.http_api.MerossHttpClient.async_invalidate_credentials">async_invalidate_credentials() (meross_iot.http_api.MerossHttpClient method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-reference/http.html#meross_iot.http_api.MerossHttpClient.async_list_devices">async_list_devices() (meross_iot.http_api.MerossHttpClient method)</a>
 </li>
       <li><a href="api-reference/http.html#meross_iot.http_api.MerossHttpClient.async_list_hub_subdevices">async_list_hub_subdevices() (meross_iot.http_api.MerossHttpClient method)</a>
@@ -244,6 +253,10 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-reference/controller/device/base.html#meross_iot.controller.device.BaseDevice">BaseDevice (class in meross_iot.controller.device)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api-reference/stats.html#meross_iot.utilities.stats.ApiStat.by_method_namespace">by_method_namespace() (meross_iot.utilities.stats.ApiStat method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -290,6 +303,18 @@
   </ul></td>
 </tr></table>
 
+<h2 id="D">D</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api-reference/stats.html#meross_iot.utilities.stats.ApiStatsResult.device_stats">device_stats() (meross_iot.utilities.stats.ApiStatsResult method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api-reference/stats.html#meross_iot.utilities.stats.ApiCallSample.device_uuid">device_uuid() (meross_iot.utilities.stats.ApiCallSample property)</a>
+</li>
+  </ul></td>
+</tr></table>
+
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -323,16 +348,22 @@
 </li>
       <li><a href="api-reference/controller/device/generic.html#meross_iot.controller.device.GenericSubDevice">GenericSubDevice (class in meross_iot.controller.device)</a>
 </li>
+      <li><a href="api-reference/stats.html#meross_iot.utilities.stats.ApiCounter.get_api_stats">get_api_stats() (meross_iot.utilities.stats.ApiCounter method)</a>
+</li>
       <li><a href="api-reference/controller/mixins/light.html#meross_iot.controller.mixins.light.LightMixin.get_color_temperature">get_color_temperature() (meross_iot.controller.mixins.light.LightMixin method)</a>
+</li>
+      <li><a href="api-reference/stats.html#meross_iot.utilities.stats.ApiCounter.get_delayed_api_stats">get_delayed_api_stats() (meross_iot.utilities.stats.ApiCounter method)</a>
+</li>
+      <li><a href="api-reference/stats.html#meross_iot.utilities.stats.ApiCounter.get_dropped_api_stats">get_dropped_api_stats() (meross_iot.utilities.stats.ApiCounter method)</a>
 </li>
       <li><a href="api-reference/controller/mixins/garage.html#meross_iot.controller.mixins.garage.GarageOpenerMixin.get_is_open">get_is_open() (meross_iot.controller.mixins.garage.GarageOpenerMixin method)</a>
 </li>
       <li><a href="api-reference/controller/mixins/electricity.html#meross_iot.controller.mixins.electricity.ElectricityMixin.get_last_sample">get_last_sample() (meross_iot.controller.mixins.electricity.ElectricityMixin method)</a>
 </li>
-      <li><a href="api-reference/controller/mixins/light.html#meross_iot.controller.mixins.light.LightMixin.get_light_is_on">get_light_is_on() (meross_iot.controller.mixins.light.LightMixin method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api-reference/controller/mixins/light.html#meross_iot.controller.mixins.light.LightMixin.get_light_is_on">get_light_is_on() (meross_iot.controller.mixins.light.LightMixin method)</a>
+</li>
       <li><a href="api-reference/controller/mixins/light.html#meross_iot.controller.mixins.light.LightMixin.get_luminance">get_luminance() (meross_iot.controller.mixins.light.LightMixin method)</a>
 </li>
       <li><a href="api-reference/controller/subdevice/valve.html#meross_iot.controller.known.subdevice.Mts100v3Valve.get_preset_temperature">get_preset_temperature() (meross_iot.controller.known.subdevice.Mts100v3Valve method)</a>
@@ -346,6 +377,8 @@
       <li><a href="api-reference/controller/mixins/light.html#meross_iot.controller.mixins.light.LightMixin.get_supports_rgb">get_supports_rgb() (meross_iot.controller.mixins.light.LightMixin method)</a>
 </li>
       <li><a href="api-reference/controller/mixins/light.html#meross_iot.controller.mixins.light.LightMixin.get_supports_temperature">get_supports_temperature() (meross_iot.controller.mixins.light.LightMixin method)</a>
+</li>
+      <li><a href="api-reference/stats.html#meross_iot.utilities.stats.ApiStatsResult.global_stats">global_stats() (meross_iot.utilities.stats.ApiStatsResult property)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -419,6 +452,8 @@
 </li>
       <li><a href="api-reference/creds.html#module-meross_iot.model.credentials">meross_iot.model.credentials (module)</a>
 </li>
+      <li><a href="api-reference/stats.html#module-meross_iot.utilities.stats">meross_iot.utilities.stats (module)</a>
+</li>
       <li><a href="api-reference/creds.html#meross_iot.model.credentials.MerossCloudCreds">MerossCloudCreds (class in meross_iot.model.credentials)</a>
 </li>
   </ul></td>
@@ -427,7 +462,11 @@
 </li>
       <li><a href="api-reference/manager.html#meross_iot.manager.MerossManager">MerossManager (class in meross_iot.manager)</a>
 </li>
+      <li><a href="api-reference/stats.html#meross_iot.utilities.stats.ApiCallSample.method">method() (meross_iot.utilities.stats.ApiCallSample property)</a>
+</li>
       <li><a href="api-reference/controller/subdevice/sensor.html#meross_iot.controller.known.subdevice.Ms100Sensor.min_supported_temperature">min_supported_temperature() (meross_iot.controller.known.subdevice.Ms100Sensor property)</a>
+</li>
+      <li><a href="api-reference/manager.html#meross_iot.manager.MerossManager.mqtt_call_stats">mqtt_call_stats() (meross_iot.manager.MerossManager property)</a>
 </li>
       <li><a href="api-reference/controller/subdevice/sensor.html#meross_iot.controller.known.subdevice.Ms100Sensor">Ms100Sensor (class in meross_iot.controller.known.subdevice)</a>
 </li>
@@ -440,6 +479,16 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-reference/controller/device/base.html#meross_iot.controller.device.BaseDevice.name">name() (meross_iot.controller.device.BaseDevice property)</a>
+</li>
+      <li><a href="api-reference/stats.html#meross_iot.utilities.stats.ApiCallSample.namespace">namespace() (meross_iot.utilities.stats.ApiCallSample property)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api-reference/stats.html#meross_iot.utilities.stats.ApiCounter.notify_api_call">notify_api_call() (meross_iot.utilities.stats.ApiCounter method)</a>
+</li>
+      <li><a href="api-reference/stats.html#meross_iot.utilities.stats.ApiCounter.notify_delayed_call">notify_delayed_call() (meross_iot.utilities.stats.ApiCounter method)</a>
+</li>
+      <li><a href="api-reference/stats.html#meross_iot.utilities.stats.ApiCounter.notify_dropped_call">notify_dropped_call() (meross_iot.utilities.stats.ApiCounter method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -473,6 +522,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-reference/controller/mixins/spray.html#meross_iot.controller.mixins.spray.SprayMixin">SprayMixin (class in meross_iot.controller.mixins.spray)</a>
 </li>
+      <li><a href="api-reference/stats.html#meross_iot.utilities.stats.ApiStatsResult.stats_by_uuid">stats_by_uuid() (meross_iot.utilities.stats.ApiStatsResult method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-reference/controller/mixins/system.html#meross_iot.controller.mixins.system.SystemAllMixin">SystemAllMixin (class in meross_iot.controller.mixins.system)</a>
@@ -485,6 +536,8 @@
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api-reference/stats.html#meross_iot.utilities.stats.ApiCallSample.timestamp">timestamp() (meross_iot.utilities.stats.ApiCallSample property)</a>
+</li>
       <li><a href="api-reference/creds.html#meross_iot.model.credentials.MerossCloudCreds.to_json">to_json() (meross_iot.model.credentials.MerossCloudCreds method)</a>
 </li>
       <li><a href="api-reference/controller/mixins/toggle.html#meross_iot.controller.mixins.toggle.ToggleMixin">ToggleMixin (class in meross_iot.controller.mixins.toggle)</a>
@@ -492,6 +545,8 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-reference/controller/mixins/toggle.html#meross_iot.controller.mixins.toggle.ToggleXMixin">ToggleXMixin (class in meross_iot.controller.mixins.toggle)</a>
+</li>
+      <li><a href="api-reference/stats.html#meross_iot.utilities.stats.ApiStat.total_calls">total_calls() (meross_iot.utilities.stats.ApiStat property)</a>
 </li>
       <li><a href="api-reference/controller/device/base.html#meross_iot.controller.device.BaseDevice.type">type() (meross_iot.controller.device.BaseDevice property)</a>
 </li>

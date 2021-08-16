@@ -8,6 +8,7 @@ API Reference
    http
    manager
    creds
+   stats
    controller/device/base
    controller/device/generic
    controller/device/hub
