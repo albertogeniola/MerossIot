@@ -7,6 +7,7 @@ import string
 import sys
 from asyncio import Future, AbstractEventLoop
 from asyncio import TimeoutError
+from datetime import timedelta
 from hashlib import md5
 from time import time
 from typing import Optional, List, TypeVar, Iterable, Callable, Awaitable, Tuple
@@ -461,9 +462,17 @@ class MerossManager(object):
                 )
                 abilities = res_abilities.get("ability")
             except CommandTimeoutError:
+                time_window = timedelta(minutes=1)
+                calls = self.mqtt_call_stats.get_api_stats(time_window=time_window)
+                delayed = self.mqtt_call_stats.get_delayed_api_stats(time_window=time_window)
+                dropped = self.mqtt_call_stats.get_dropped_api_stats(time_window=time_window)
                 _LOGGER.warning(
                     f"Device {device_info.dev_name} ({device_info.uuid}) is online, but timeout occurred "
-                    f"when fetching its abilities."
+                    f"when fetching its abilities. "
+                    f"Global manager stats (last minute): "
+                    f"Issued -> {calls.global_stats.total_calls}, "
+                    f"Delayed -> {delayed.global_stats.total_calls}, "
+                    f"Dropped -> {dropped.global_stats.total_calls}"
                 )
         if abilities is not None:
             # Build a full-featured device using the given ability set
@@ -881,9 +890,17 @@ class MerossManager(object):
             return await asyncio.wait_for(future, timeout, loop=self._loop)
         except TimeoutError as e:
             domain, port = self._get_client_from_domain_port(client=client)
+            time_window = timedelta(minutes=1)
+            calls = self.mqtt_call_stats.get_api_stats(time_window=time_window)
+            delayed = self.mqtt_call_stats.get_delayed_api_stats(time_window=time_window)
+            dropped = self.mqtt_call_stats.get_dropped_api_stats(time_window=time_window)
             _LOGGER.error(
                 f"Timeout occurred while waiting a response for message {message} sent to device uuid "
                 f"{target_device_uuid}. Timeout was: {timeout} seconds. Mqtt Host: {domain}:{port}."
+                f"Global manager stats (last minute): "
+                f"Issued -> {calls.global_stats.total_calls}, "
+                f"Delayed -> {delayed.global_stats.total_calls}, "
+                f"Dropped -> {dropped.global_stats.total_calls}"
             )
             raise CommandTimeoutError(message=str(message), target_device_uuid=target_device_uuid, timeout=timeout)
 

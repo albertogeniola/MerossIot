@@ -45,6 +45,7 @@ class TestUpdate(AioHTTPTestCase):
                 self.assertIsNone(d.get_rgb_color())
             elif isinstance(d, ToggleXMixin):
                 self.assertIsNone(d.is_on())
+            print(f"Executing update on device {d.name} ({d.type})")
             await d.async_update()
 
             if isinstance(d, LightMixin):
