@@ -217,6 +217,14 @@ switch at index 0.
 </dd></dl>
 
 <dl class="method">
+<dt id="meross_iot.controller.device.BaseDevice.default_command_timeout">
+<em class="property">property </em><code class="sig-name descname">default_command_timeout</code><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.default_command_timeout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represents the default timeout that is applied to command execution against this device.
+Usually, every method allows to override this timeout via an appropriate timeout argument: that argument
+takes precedence over this default.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="meross_iot.controller.device.BaseDevice.firmware_version">
 <em class="property">property </em><code class="sig-name descname">firmware_version</code><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.firmware_version" title="Permalink to this definition">¶</a></dt>
 <dd><p>Device firmware version. When unavailable, ‘unknown’ is returned

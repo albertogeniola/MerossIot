@@ -206,7 +206,7 @@
 
 <dl class="method">
 <dt id="meross_iot.controller.known.subdevice.Mts100v3Valve.async_get_adjust">
-<em class="property">async </em><code class="sig-name descname">async_get_adjust</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; Optional[float]<a class="headerlink" href="#meross_iot.controller.known.subdevice.Mts100v3Valve.async_get_adjust" title="Permalink to this definition">¶</a></dt>
+<em class="property">async </em><code class="sig-name descname">async_get_adjust</code><span class="sig-paren">(</span><em class="sig-param">timeout: Optional[float] = None</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; Optional[float]<a class="headerlink" href="#meross_iot.controller.known.subdevice.Mts100v3Valve.async_get_adjust" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p></p>
@@ -216,7 +216,7 @@
 
 <dl class="method">
 <dt id="meross_iot.controller.known.subdevice.Mts100v3Valve.async_get_temperature">
-<em class="property">async </em><code class="sig-name descname">async_get_temperature</code><span class="sig-paren">(</span><em class="sig-param">skip_rate_limits: bool = False</em>, <em class="sig-param">drop_on_overquota: bool = True</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; Optional[float]<a class="headerlink" href="#meross_iot.controller.known.subdevice.Mts100v3Valve.async_get_temperature" title="Permalink to this definition">¶</a></dt>
+<em class="property">async </em><code class="sig-name descname">async_get_temperature</code><span class="sig-paren">(</span><em class="sig-param">skip_rate_limits: bool = False</em>, <em class="sig-param">drop_on_overquota: bool = True</em>, <em class="sig-param">timeout: Optional[float] = None</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; Optional[float]<a class="headerlink" href="#meross_iot.controller.known.subdevice.Mts100v3Valve.async_get_temperature" title="Permalink to this definition">¶</a></dt>
 <dd><p>Polls the device in order to retrieve the latest temperature info.
 You should not use this method so ofter: instead, rely on <cite>last_sampled_temperature</cite> when a cached
 value is ok.</p>
@@ -229,7 +229,7 @@ value is ok.</p>
 
 <dl class="method">
 <dt id="meross_iot.controller.known.subdevice.Mts100v3Valve.async_set_preset_temperature">
-<em class="property">async </em><code class="sig-name descname">async_set_preset_temperature</code><span class="sig-paren">(</span><em class="sig-param">preset: str</em>, <em class="sig-param">temperature: float</em>, <em class="sig-param">skip_rate_limits: bool = False</em>, <em class="sig-param">drop_on_overquota: bool = True</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.known.subdevice.Mts100v3Valve.async_set_preset_temperature" title="Permalink to this definition">¶</a></dt>
+<em class="property">async </em><code class="sig-name descname">async_set_preset_temperature</code><span class="sig-paren">(</span><em class="sig-param">preset: str</em>, <em class="sig-param">temperature: float</em>, <em class="sig-param">skip_rate_limits: bool = False</em>, <em class="sig-param">drop_on_overquota: bool = True</em>, <em class="sig-param">timeout: Optional[float] = None</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.known.subdevice.Mts100v3Valve.async_set_preset_temperature" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets the preset temperature configuration.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
