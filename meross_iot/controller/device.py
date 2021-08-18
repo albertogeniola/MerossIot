@@ -252,6 +252,11 @@ class BaseDevice(object):
 
     @property
     def default_command_timeout(self):
+        """
+        Represents the default timeout that is applied to command execution against this device.
+        Usually, every method allows to override this timeout via an appropriate timeout argument: that argument
+        takes precedence over this default.
+        """
         return self._timeout
 
     @default_command_timeout.setter
@@ -361,7 +366,7 @@ class GenericSubDevice(BaseDevice):
                                method: str,
                                namespace: Namespace,
                                payload: dict,
-                               timeout: float = 10,
+                               timeout: Optional[float] = None,
                                skip_rate_limits: bool = False,
                                drop_on_overquota: bool = True
                                ) -> dict:
