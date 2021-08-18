@@ -87,7 +87,6 @@ jobs:
         sleep 120
         echo "Waiting done."
     - name: Test with pytest
-      continue-on-error: true
       env:
         MEROSS_EMAIL: ${{ secrets.MEROSS_EMAIL }}
         MEROSS_PASSWORD: ${{ secrets.MEROSS_PASSWORD }}
