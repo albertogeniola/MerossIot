@@ -10,7 +10,7 @@ from asyncio import TimeoutError
 from datetime import timedelta
 from hashlib import md5
 from time import time
-from typing import Optional, List, TypeVar, Iterable, Callable, Awaitable, Tuple
+from typing import Optional, List, TypeVar, Iterable, Callable, Awaitable, Tuple, Union, Any
 
 import paho.mqtt.client as mqtt
 
@@ -37,7 +37,6 @@ from meross_iot.model.push.online import OnlinePushNotification
 from meross_iot.model.push.unbind import UnbindPushNotification
 from meross_iot.utilities.limiter import (
     RateLimitChecker,
-    RateLimitResult,
     RateLimitResultStrategy,
 )
 from meross_iot.utilities.mqtt import (
@@ -254,7 +253,7 @@ class MerossManager(object):
             device_uuids: Optional[Iterable[str]] = None,
             internal_ids: Optional[Iterable[str]] = None,
             device_type: Optional[str] = None,
-            device_class: Optional[type] = None,
+            device_class: Optional[Union[type, Iterable[type]]] = None,
             device_name: Optional[str] = None,
             online_status: Optional[OnlineStatus] = None,
     ) -> List[T]:
@@ -269,13 +268,15 @@ class MerossManager(object):
             derived-ids contained in this list are returned.
         :param device_type: Device type string as reported by meross app (e.g. "mss310" or "msl120"). Note that this
             field is case sensitive.
-        :param device_class: Filter based on the resulting device class. You can filter also for capability Mixins,
-            such as :code:`meross_iot.controller.mixins.toggle.ToggleXMixin` (returns all the devices supporting
-            ToggleX capability) or :code:`meross_iot.controller.mixins.light.LightMixin`
-            (returns all the device that supports light control).
-            You can also identify all the HUB devices by specifying :code:`meross_iot.controller.device.HubDevice`,
-            Sensors as :code:`meross_iot.controller.subdevice.Ms100Sensor` and Valves as
-            Sensors as :code:`meross_iot.controller.subdevice.Mts100v3Valve`.
+        :param device_class: Filter based on the resulting device class or list of classes. When this parameter is
+            a list of types, the filter returns al the devices that matches at least one of the types in the list
+            (logic OR). You can filter also for capability Mixins, such as
+            :code:`meross_iot.controller.mixins.toggle.ToggleXMixin` (returns all the devices supporting ToggleX
+            capability) or :code:`meross_iot.controller.mixins.light.LightMixin`
+            (returns all the device that supports light control). Similarly, you can identify all the HUB devices
+            by specifying :code:`meross_iot.controller.device.HubDevice`, Sensors as
+            :code:`meross_iot.controller.subdevice.Ms100Sensor` and Valves as
+            :code:`meross_iot.controller.subdevice.Mts100v3Valve`.
         :param device_name: Filter the devices based on their assigned name (case sensitive)
         :param online_status: Filter the devices based on their :code:`meross_iot.model.enums.OnlineStatus`
             as reported by the HTTP api or byt the relative hub (when dealing with subdevices).
@@ -556,7 +557,8 @@ class MerossManager(object):
 
         async def update_and_trigger_online_event(dev: BaseDevice):
             prev_status = dev.online_status
-            await dev.async_update(drop_on_overquota=False)
+            if dev.online_status == OnlineStatus.ONLINE:
+                await dev.async_update(drop_on_overquota=False)
             if dev.online_status != prev_status:
                 await dev.async_handle_push_notification(namespace=Namespace.SYSTEM_ONLINE,
                                                          data={'online': {'status': dev.online_status.value}})
@@ -1017,12 +1019,18 @@ class DeviceRegistry(object):
             device_uuids: Optional[Iterable[str]] = None,
             internal_ids: Optional[Iterable[str]] = None,
             device_type: Optional[str] = None,
-            device_class: Optional[T] = None,
+            device_class: Optional[Union[type, Iterable[type]]] = None,
             device_name: Optional[str] = None,
             online_status: Optional[OnlineStatus] = None,
     ) -> List[BaseDevice]:
 
-        # Look by Interonnal UUIDs
+        def filter_by_type(dev: Any):
+            for t in device_class:
+                if isinstance(dev, t):
+                    return True
+            return False
+
+        # Look by Internal UUIDs
         if internal_ids is not None:
             res = filter(
                 lambda d: d.internal_id in internal_ids,
@@ -1038,7 +1046,10 @@ class DeviceRegistry(object):
         if online_status is not None:
             res = filter(lambda d: d.online_status == online_status, res)
         if device_class is not None:
-            res = filter(lambda d: isinstance(d, device_class), res)
+            if isinstance(device_class, type):
+                res = filter(lambda d: isinstance(d, device_class), res)
+            elif isinstance(device_class, Iterable):
+                res = filter(filter_by_type, res)
         if device_name is not None:
             res = filter(lambda d: d.name == device_name, res)
 
