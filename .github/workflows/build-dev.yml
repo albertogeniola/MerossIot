@@ -70,7 +70,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build, turn-on-env]
     outputs:
-      success_rate: 0
+      success_rate: ${{steps.pytest.outputs.success_rate}}
     steps:
     - uses: actions/checkout@v2
     - name: Setup Python 3.9.x
@@ -92,6 +92,7 @@ jobs:
         echo "Waiting done."
     - name: Test with pytest
       continue-on-error: true
+      id: pytest
       env:
         MEROSS_EMAIL: ${{ secrets.MEROSS_EMAIL }}
         MEROSS_PASSWORD: ${{ secrets.MEROSS_PASSWORD }}
