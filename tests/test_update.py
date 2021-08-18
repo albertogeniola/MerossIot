@@ -31,8 +31,9 @@ class TestUpdate(AioHTTPTestCase):
         self.meross_manager = MerossManager(http_client=self.meross_client)
         await self.meross_manager.async_init()
         await self.meross_manager.async_device_discovery()
-        self.test_devices = self.meross_manager.find_devices(device_class=SystemAllMixin,
+        self.test_devices = self.meross_manager.find_devices(device_class=(ToggleXMixin, LightMixin),
                                                              online_status=OnlineStatus.ONLINE)
+        print(f"Test devices: {self.test_devices}")
 
     @unittest_run_loop
     async def test_update(self):
