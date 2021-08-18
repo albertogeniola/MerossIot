@@ -163,7 +163,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     needs: [test, build]
-    if: ${{ jobs.test.outputs.success_rate_python_3_7 > 60 && jobs.test.outputs.success_rate_python_3_8 > 60 jobs.test.outputs.success_rate_python_3_9 > 60}}
+    if: ${{ job.test.outputs.success_rate_python_3_7 > 60 && job.test.outputs.success_rate_python_3_8 > 60 job.test.outputs.success_rate_python_3_9 > 60}}
     steps:
       - name: Setup Python 3.8
         uses: actions/setup-python@v2
