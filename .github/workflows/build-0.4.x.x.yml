@@ -167,7 +167,7 @@ jobs:
         run: |
           TAG=$(cat $GITHUB_WORKSPACE/.version)
           echo "Tag: $TAG"
-          echo "::set-env name=tag::$TAG"
+          echo "tag=$TAG" >> $GITHUB_ENV
       - name: Release on GitHub
         uses: actions/create-release@v1
         env:
