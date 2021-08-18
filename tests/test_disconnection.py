@@ -1,3 +1,4 @@
+import logging
 from multiprocessing import Process
 
 import socks
@@ -15,6 +16,8 @@ import os
 from proxy import proxy
 
 PROXY_PORT = 5001
+_LOGGER = logging.getLogger(__name__)
+
 
 if os.name == 'nt':
     import asyncio
@@ -54,9 +57,12 @@ class TestDisconnection(AioHTTPTestCase):
         # Setup the proxy
         self._proxy = ProxyManager(port=PROXY_PORT)
         self._proxy.start()
+        _LOGGER.info("Proxy started")
 
         # Wait some time before next test-burst
+        _LOGGER.info("Sleeping...")
         await asyncio.sleep(10)
+        _LOGGER.info("Allocating and configuring MerossManager to use the proxy")
         self.meross_client, self.requires_logout = await async_get_client()
         self.meross_client.set_http_proxy(f"http://localhost:{PROXY_PORT}")
 
@@ -64,9 +70,12 @@ class TestDisconnection(AioHTTPTestCase):
         self.meross_manager.set_proxy(proxy_type=socks.HTTP, proxy_addr="localhost", proxy_port=PROXY_PORT)
 
         await self.meross_manager.async_init()
+        _LOGGER.info("Manager started")
+
         await self.meross_manager.async_device_discovery()
         self.test_devices = self.meross_manager.find_devices(device_class=ToggleXMixin,
                                                              online_status=OnlineStatus.ONLINE)
+        _LOGGER.info("Discovery ended. Test devices: %s", self.test_devices)
 
     @unittest_run_loop
     async def test_disconnect(self):
@@ -75,7 +84,9 @@ class TestDisconnection(AioHTTPTestCase):
 
         # Select the first device
         dev = self.test_devices[0]  # type: BaseDevice
+        _LOGGER.info("Selected device %s for disconnection testing", dev)
         await dev.async_update()
+        _LOGGER.info("Device state updated")
 
         # Register a connection reset event handler
         disconnection_event = asyncio.Event()
@@ -85,26 +96,37 @@ class TestDisconnection(AioHTTPTestCase):
             if namespace == Namespace.SYSTEM_ONLINE:
                 status = OnlineStatus(int(data.get('online').get('status')))
                 if not disconnection_event.is_set() and status == OnlineStatus.UNKNOWN:
+                    _LOGGER.info("Disconnection event caught")
                     disconnection_event.set()
                 elif not connection_event.is_set() and status == OnlineStatus.ONLINE:
+                    _LOGGER.info("Connection event caught")
                     connection_event.set()
 
         dev.register_push_notification_handler_coroutine(evt_coro)
+        _LOGGER.info("Stopping proxy")
         self._proxy.stop()
 
         try:
+            _LOGGER.info("Waiting for disconnection event...")
             await asyncio.wait_for(disconnection_event.wait(), 90.0)
         except asyncio.TimeoutError:
             self.fail("Disconnection was not triggered.")
 
+        _LOGGER.info("Disconnection test OK!")
+
         # Ok, disconnection was triggered. Let's now re-enable the proxy and wait for devices coming online again...
+        _LOGGER.info("Starting proxy again to trigger reconnection...")
         self._proxy.start()
+        _LOGGER.info("Proxy started. Waiting a bit.")
         await asyncio.sleep(10)
         # Let's wait for connection to be re-established
         try:
+            _LOGGER.info("Waiting for connection event...")
             await asyncio.wait_for(connection_event.wait(), 90.0)
         except asyncio.TimeoutError:
             self.fail("Connection was not triggered.")
+
+        _LOGGER.info("Reconnection test OK!")
 
     async def tearDownAsync(self):
         if self.requires_logout:

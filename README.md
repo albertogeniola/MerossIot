@@ -184,6 +184,7 @@ Anyways, feel free to contribute via donations!
 - Implemented default command execution property on base-device
 - Added configurable timeout automatic test
 - Implemented device filtering by multiple types
+- Fixed client reconnection not working as expected
 
 <details>
     <summary>Older</summary>

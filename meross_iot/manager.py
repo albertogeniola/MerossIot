@@ -504,13 +504,15 @@ class MerossManager(object):
     def _on_connect(self, client, userdata, rc, other):
         # NOTE! This method is called by the paho-mqtt thread, thus any invocation to the
         # asyncio platform must be scheduled via `self._loop.call_soon_threadsafe()` method.
+        topics = [(self._user_topic, 1), (self._client_response_topic, 1)]
 
         _LOGGER.debug(f"Connected with result code {rc}")
         # Subscribe to the relevant topics
         _LOGGER.debug("Subscribing to topics...")
-        client.subscribe(
-            [(self._user_topic, 1), (self._client_response_topic, 1)]
-        )
+        result, mid = client.subscribe(topics)
+
+        if result != mqtt.MQTT_ERR_SUCCESS:
+            _LOGGER.error("Failed to subscribe to topics %s", str(topics))
 
     def _on_disconnect(self, client: mqtt.Client, userdata, rc):
         # NOTE! This method is called by the paho-mqtt thread, thus any invocation to the
@@ -555,22 +557,47 @@ class MerossManager(object):
             "Subscribed to topics, scheduling state update for already known devices."
         )
 
-        async def update_and_trigger_online_event(dev: BaseDevice):
-            prev_status = dev.online_status
-            if dev.online_status == OnlineStatus.ONLINE:
-                await dev.async_update(drop_on_overquota=False)
-            if dev.online_status != prev_status:
-                await dev.async_handle_push_notification(namespace=Namespace.SYSTEM_ONLINE,
-                                                         data={'online': {'status': dev.online_status.value}})
+        async def _update_devices_after_reconnection():
+            # In case of reconnections, we need to issue a device_discovery via HTTP in order to update
+            # ONLINE state. We also need to manually trigger "ONLINE" events for devices that resulted to be
+            # OFFLINE and went ONLINE while our manager was off-network. To do so, we store into a dict the previous
+            # online state and then issue the update only for devices that changed their state
 
-        i = 0
-        for d in self.find_devices():
-            _schedule_later(
-                coroutine=update_and_trigger_online_event(d),
-                start_delay=i,
-                loop=self._loop,
-            )
-            i += _CONNECTION_DROP_UPDATE_SCHEDULE_INTERVAL
+            # Store the previous connection state for all known devices
+            _prev_online_status = {d.uuid: d.online_status for d in self.find_devices()}
+
+            # Issue a new discovery to update their connection status. Thiss will rely on HTTP api to update it
+            await self.async_device_discovery(update_subdevice_status=True)
+
+            i = 0
+            for d in self.find_devices():
+                old_status = _prev_online_status.get(d.uuid)
+                if old_status is None:
+                    # This is a new device that has been added while we where offline.
+                    _LOGGER.warning("Found a new device %s that has become online while we were offline.", d)
+                    # TODO: do we need to issue a BINDING event manually here?
+                    continue
+                else:
+                    _schedule_later(self._update_and_send_push(dev=d, old_status=old_status), start_delay=i,
+                                    loop=self._loop)
+                    i += 1
+
+        # If a connection drop occurs, we must update the device state in order to be consistent
+        # TODO: Do we need to issue this command only when connection drops occur or also at first connection attempt?
+        asyncio.run_coroutine_threadsafe(coro=_update_devices_after_reconnection(), loop=self._loop)
+
+    async def _update_and_send_push(self, dev: BaseDevice, old_status: OnlineStatus) -> None:
+        if dev.online_status == OnlineStatus.ONLINE:
+            # In case the device was known and is ONLINE, we want to manually update its status
+            _LOGGER.warning("Updating status for device %s", dev)
+            await dev.async_update(skip_rate_limits=True, drop_on_overquota=False)
+
+        # In case the device was known and is not ONLINE, we just send the ONLINE push notification
+        if dev.online_status != old_status:
+            _LOGGER.warning("Device %s changed its online status while manager was offline (was %s, now is %s). "
+                            "Sending event manually.", dev, old_status, dev.online_status)
+            await dev.async_handle_push_notification(namespace=Namespace.SYSTEM_ONLINE,
+                                                     data={'online': {'status': dev.online_status.value}})
 
     def _on_message(self, client, userdata, msg):
         # NOTE! This method is called by the paho-mqtt thread, thus any invocation to the
@@ -1076,4 +1103,6 @@ def _schedule_later(coroutine, start_delay, loop):
         await asyncio.sleep(delay=delay, loop=loop)
         await coro
 
+    _LOGGER.info("scheduling...")
     asyncio.run_coroutine_threadsafe(coro=delayed_execution(coro=coroutine, delay=start_delay, loop=loop), loop=loop)
+    _LOGGER.info("scheduled")
