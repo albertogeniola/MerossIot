@@ -68,12 +68,9 @@ jobs:
         python_version: ['3.7', '3.8', '3.9']
       max-parallel: 1
     outputs:
-      success_rate_python_3_7:
-        description: 'Percentage of test passes with python 3.7'
-      success_rate_python_3_8:
-        description: 'Percentage of test passes with python 3.8'
-      success_rate_python_3_9:
-        description: 'Percentage of test passes with python 3.9'
+      success_rate_python_3_7: 0
+      success_rate_python_3_8: 0
+      success_rate_python_3_9: 0
     needs: [build, turn-on-env]
     steps:
     - uses: actions/checkout@v2
