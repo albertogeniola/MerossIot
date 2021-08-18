@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python_version: ['3.7.x', '3.8.x', '3.9.x']
+        python_version: ['3.7', '3.8', '3.9']
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
@@ -68,9 +68,9 @@ jobs:
         python_version: ['3.7', '3.8', '3.9']
       max-parallel: 1
     outputs:
-      success_rate_python_3_7: 0
-      success_rate_python_3_8: 0
-      success_rate_python_3_9: 0
+      success_rate_python_3_7: ${{steps.pytest.outputs.success_rate_3_7}}
+      success_rate_python_3_8: ${{steps.pytest.outputs.success_rate_3_8}}
+      success_rate_python_3_9: ${{steps.pytest.outputs.success_rate_3_9}}
     needs: [build, turn-on-env]
     steps:
     - uses: actions/checkout@v2
@@ -92,6 +92,7 @@ jobs:
         sleep 120
         echo "Waiting done."
     - name: Test with pytest
+      id: pytest
       env:
         MEROSS_EMAIL: ${{ secrets.MEROSS_EMAIL }}
         MEROSS_PASSWORD: ${{ secrets.MEROSS_PASSWORD }}
@@ -108,7 +109,9 @@ jobs:
         passed_tests=`cat .report.json | jq .summary.passed`
         failed_tests=`cat .report.json | jq .summary.failed`
         success_rate=`echo $passed_tests/$total_tests*100 | bc -l`
-        echo "::set-output name=success_rate::$success_rate"
+        pythonv=`echo success_rate_${{ matrix.python_version }} | sed 's/\./_/'`
+        echo "Setting pythonv=$pythonv"
+        echo "::set-output name=$pythonv::$success_rate"
       continue-on-error: true
     - name: Upload pytest test results
       uses: actions/upload-artifact@v2
@@ -160,7 +163,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     needs: [test, build]
-    if: jobs.test.outputs.success_rate_python_3_7 > 60 && jobs.test.outputs.success_rate_python_3_8 > 60 jobs.test.outputs.success_rate_python_3_9 > 60
+    if: needs.test.outputs.success_rate_python_3_7 > 60 && needs.test.outputs.success_rate_python_3_8 > 60 needs.test.outputs.success_rate_python_3_9 > 60
     steps:
       - name: Setup Python 3.8
         uses: actions/setup-python@v2
