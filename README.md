@@ -180,6 +180,10 @@ Anyways, feel free to contribute via donations!
 ## Changelog
 #### 0.4.2.2
 - Fixed asyncio and threading bug in _schedule_later() utility
+- Improved timeout argument not being always passed downstream
+- Implemented default command execution property on base-device
+- Added configurable timeout automatic test
+- Implemented device filtering by multiple types
 
 <details>
     <summary>Older</summary>
