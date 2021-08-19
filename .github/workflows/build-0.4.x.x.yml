@@ -113,6 +113,19 @@ jobs:
         echo "Setting pythonv=$pythonv"
         echo "::set-output name=$pythonv::$success_rate"
       continue-on-error: true
+    - name: Create success-rate artifact
+      run: |
+        pythonv=`echo success_rate_${{ matrix.python_version }} | sed 's/\./_/'`
+        echo "Python 3.7: ${{ steps.pytest.outputs.success_rate_3_7 }} %" > results.txt
+        echo "Python 3.8: ${{ steps.pytest.outputs.success_rate_3_8 }} %" >> results.txt
+        echo "Python 3.9: ${{ steps.pytest.outputs.success_rate_3_9 }} %" >> results.txt
+    - name: Upload pytest test results
+      uses: actions/upload-artifact@v2
+      with:
+        name: test-report
+        path: results.txt
+      # Use always() to always run this step to publish test results when there are test failures
+      if: ${{ always() }}
     - name: Upload pytest test results
       uses: actions/upload-artifact@v2
       with:
@@ -126,6 +139,11 @@ jobs:
       with:
         name: pytest-results-html
         path: htmlcov/
+    - name: Upload pytest test json results
+      uses: actions/upload-artifact@v2
+      with:
+        name: pytest-results-json
+        path: .report.json
       # Use always() to always run this step to publish test results when there are test failures
       if: ${{ always() }}
 
