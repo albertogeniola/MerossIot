@@ -112,24 +112,19 @@ jobs:
         pythonv=`echo success_rate_${{ matrix.python_version }} | sed 's/\./_/'`
         echo "Setting pythonv=$pythonv"
         echo "::set-output name=$pythonv::$success_rate"
+        echo "Python ${{ matrix.python_version }}: $success_rate %" > results-${{ matrix.python_version }}.txt
       continue-on-error: true
-    - name: Create success-rate artifact
-      run: |
-        pythonv=`echo success_rate_${{ matrix.python_version }} | sed 's/\./_/'`
-        echo "Python 3.7: ${{ steps.pytest.outputs.success_rate_3_7 }} %" > results.txt
-        echo "Python 3.8: ${{ steps.pytest.outputs.success_rate_3_8 }} %" >> results.txt
-        echo "Python 3.9: ${{ steps.pytest.outputs.success_rate_3_9 }} %" >> results.txt
     - name: Upload pytest test results
       uses: actions/upload-artifact@v2
       with:
-        name: test-report
+        name: test-report-${{ matrix.python_version }}
         path: results.txt
       # Use always() to always run this step to publish test results when there are test failures
       if: ${{ always() }}
     - name: Upload pytest test results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest-results
+        name: pytest-results-${{ matrix.python_version }}
         path: junit/
       # Use always() to always run this step to publish test results when there are test failures
       if: ${{ always() }}
@@ -137,12 +132,12 @@ jobs:
     - name: Upload pytest test results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest-results-html
+        name: pytest-results-html-${{ matrix.python_version }}
         path: htmlcov/
     - name: Upload pytest test json results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest-results-json
+        name: pytest-results-json-${{ matrix.python_version }}
         path: .report.json
       # Use always() to always run this step to publish test results when there are test failures
       if: ${{ always() }}
@@ -174,13 +169,26 @@ jobs:
           node ./switch.js --dev MEROSS_LAB --toggle=off
           popd
     if: ${{ always() }}
-    
+
+  # -----------------------------
+  # Release checks
+  # -----------------------------
+  release_checks:
+    runs-on: ubuntu-latest
+    needs: [ test ]
+    steps:
+      - name: Check test status
+        run: |
+          echo "Python 3.7: ${{ needs.test.outputs.success_rate_python_3_7 }}"
+          echo "Python 3.8: ${{ needs.test.outputs.success_rate_python_3_8 }}"
+          echo "Python 3.9: ${{ needs.test.outputs.success_rate_python_3_9 }}"
+
   # -----------------------------
   # Build and Release
   # -----------------------------
   release:
     runs-on: ubuntu-latest
-    needs: [test, build]
+    needs: [test, build, release_checks]
     if: needs.test.outputs.success_rate_python_3_7 > 60 && needs.test.outputs.success_rate_python_3_8 > 60 && needs.test.outputs.success_rate_python_3_9 > 60
     steps:
       - name: Setup Python 3.8
