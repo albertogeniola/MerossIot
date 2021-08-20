@@ -187,7 +187,8 @@ jobs:
       - name: Take release decision
         id: release_decision
         run: |
-          echo "success_threshold=90"
+          success_threshold=90
+          echo "Current minimum pass-threshold: $success_threshold %"
           should_release=`echo "${{ needs.test.outputs.success_rate_python_3_7 }} > $success_threshold && ${{ needs.test.outputs.success_rate_python_3_8 }} > $success_threshold && ${{ needs.test.outputs.success_rate_python_3_9 }} > $success_threshold" | bc -l`
           echo "::set-output name=should_release::$should_release"
           echo "Release decision: $should_release"
