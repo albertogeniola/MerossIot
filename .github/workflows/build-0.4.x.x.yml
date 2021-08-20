@@ -192,7 +192,7 @@ jobs:
           should_release=`echo "${{ needs.test.outputs.success_rate_python_3_7 }} > $success_threshold && ${{ needs.test.outputs.success_rate_python_3_8 }} > $success_threshold && ${{ needs.test.outputs.success_rate_python_3_9 }} > $success_threshold" | bc -l`
           echo "::set-output name=should_release::$should_release"
           echo "Release decision: $should_release"
-          if [[ $success_threshold != "1" ]]; then
+          if [[ $success_threshold -ne 1 ]]; then
             echo "Failing as one of the tests did not reach the minumum pass-threshold."
             exit 1
           fi
