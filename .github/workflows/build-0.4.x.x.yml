@@ -194,6 +194,7 @@ jobs:
           if [[ $success_threshold != "1" ]]; then
             echo "Failing as one of the tests did not reach the minumum pass-threshold."
             exit 1
+          fi
 
   # -----------------------------
   # Build and Release
