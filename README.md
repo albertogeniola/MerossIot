@@ -178,6 +178,13 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
+#### 0.4.2.3
+- Added custom user agent customization option to MerossHttpClient
+- Implemented pending task cancellation when shutting down the manager
+
+<details>
+    <summary>Older</summary>
+
 #### 0.4.2.2
 - Fixed asyncio and threading bug in _schedule_later() utility
 - Improved timeout argument not being always passed downstream
@@ -185,10 +192,6 @@ Anyways, feel free to contribute via donations!
 - Added configurable timeout automatic test
 - Implemented device filtering by multiple types
 - Fixed client reconnection not working as expected
-
-<details>
-    <summary>Older</summary>
-
 #### 0.4.2.1
 - Fixed "None error" when calling limiter api
 - Updated aiohttp dependency to 3.7.4 due to security issues
