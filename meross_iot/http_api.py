@@ -22,6 +22,10 @@ from meross_iot.model.http.exception import TooManyTokensException, TokenExpired
 from meross_iot.model.http.subdevice import HttpSubdeviceInfo
 import os
 
+from meross_iot.utilities.misc import current_version
+import platform
+
+
 _LOGGER = logging.getLogger(__name__)
 
 _SECRET = "23x17ahWarFH6w29"
@@ -30,6 +34,8 @@ _LOG_URL = "%s/v1/log/user"
 _DEV_LIST = "%s/v1/Device/devList"
 _HUB_DUBDEV_LIST = "%s/v1/Hub/getSubDevices"
 _LOGOUT_URL = "%s/v1/Profile/logout"
+_MODULE_VERSION = current_version()
+_DEFAULT_UA_HEADER=f"MerossIOT/{_MODULE_VERSION}"
 
 
 class ErrorCodes(Enum):
@@ -86,13 +92,15 @@ class MerossHttpClient(object):
     def __init__(self,
                  cloud_credentials: MerossCloudCreds,
                  api_base_url: str = DEFAULT_MEROSS_HTTP_API,
-                 http_proxy: str = None):
+                 http_proxy: str = None,
+                 custom_ua_header: str = _DEFAULT_UA_HEADER):
         self._cloud_creds = cloud_credentials
         self.api_url = api_base_url
         self._enable_proxy = False
         self._proxy_type = None
         self._proxy_addr = None
         self._http_proxy = http_proxy
+        self._ua_header = custom_ua_header
 
     @property
     def cloud_credentials(self) -> MerossCloudCreds:
@@ -139,6 +147,7 @@ class MerossHttpClient(object):
                           creds_env_var_name: str = '__MEROSS_CREDS',
                           api_base_url: str = DEFAULT_MEROSS_HTTP_API,
                           http_proxy: str = None,
+                          ua_header: str = _DEFAULT_UA_HEADER,
                           *args, **kwargs) -> MerossCloudCreds:
         """
         Performs the login against the Meross HTTP endpoint.
@@ -154,15 +163,16 @@ class MerossHttpClient(object):
         indicate which env variables stores such credentials
         :param api_base_url: Meross API base url
         :param http_proxy: Optional http proxy to use when to performing the request
+        :param ua_header: User Agent header to use when issuing the HTTP request
 
         :return: a `MerossCloudCreds` object
         """
         data = {"email": email, "password": password}
         url = _LOGIN_URL % api_base_url
         response_data = await MerossHttpClient._async_authenticated_post(url, params_data=data,
-
                                                                          mask_params_in_log=True,
-                                                                         http_proxy=http_proxy)
+                                                                         http_proxy=http_proxy,
+                                                                         ua_header=ua_header)
         creds = MerossCloudCreds(
             token=response_data["token"],
             key=response_data["key"],
@@ -180,7 +190,8 @@ class MerossHttpClient(object):
                                         params_data: dict,
                                         cloud_creds: Optional[MerossCloudCreds] = None,
                                         mask_params_in_log: bool = False,
-                                        http_proxy: str = None
+                                        http_proxy: str = None,
+                                        ua_header: str = _DEFAULT_UA_HEADER,
                                         ) -> dict:
         nonce = _generate_nonce(16)
         timestamp_millis = int(round(time.time() * 1000))
@@ -194,10 +205,8 @@ class MerossHttpClient(object):
 
         headers = {
             "Authorization": "Basic" if cloud_creds is None else "Basic %s" % cloud_creds.token,
-            "vender": "Meross",
-            "AppVersion": "1.3.0",
             "AppLanguage": "EN",
-            "User-Agent": "okhttp/3.6.0"
+            "User-Agent": ua_header
         }
 
         payload = {
@@ -268,7 +277,8 @@ class MerossHttpClient(object):
         url = _LOGOUT_URL % self.api_url
         result = await MerossHttpClient._async_authenticated_post(url, {},
                                                                   cloud_creds=self._cloud_creds,
-                                                                  http_proxy=self._http_proxy)
+                                                                  http_proxy=self._http_proxy,
+                                                                  ua_header=self._ua_header)
         self._cloud_creds = None
         _LOGGER.info("Logout succeeded.")
         return result
@@ -282,8 +292,10 @@ class MerossHttpClient(object):
         """
         url = _LOGOUT_URL % self.api_url
         _LOGGER.debug(f"Logging out. Invalidating cached credentials {creds}")
-        result = await MerossHttpClient._async_authenticated_post(url, {}, cloud_creds=creds,
-                                                                  http_proxy=self._http_proxy)
+        result = await MerossHttpClient._async_authenticated_post(url, {},
+                                                                  cloud_creds=creds,
+                                                                  http_proxy=self._http_proxy,
+                                                                  ua_header=self._ua_header)
         return result
 
     @classmethod
@@ -291,6 +303,7 @@ class MerossHttpClient(object):
                          creds: MerossCloudCreds,
                          api_base_url: str = DEFAULT_MEROSS_HTTP_API,
                          http_proxy: str = None,
+                         ua_header: str = _DEFAULT_UA_HEADER,
                          *args,
                          **kwargs) -> dict:
         """
@@ -301,10 +314,10 @@ class MerossHttpClient(object):
         """
         # TODO: talk to the Meross engineer and negotiate a custom system for identifying the API rather than
         #  emulating an Android 6 device.
-        data = {'extra': {}, 'model': 'Android,Android SDK built for x86_64', 'system': 'Android',
-                'uuid': '493dd9174941ed58waitForOpenWifi', 'vendor': 'Meross', 'version': '6.0'}
+        data = {'extra': {}, 'model': platform.release(), 'system': platform.system(),
+                'uuid': '493dd9174941ed58waitForOpenWifi', 'vendor': 'N/A', 'version': current_version()}
         url = _LOG_URL % api_base_url
-        return await cls._async_authenticated_post(url, params_data=data, cloud_creds=creds, http_proxy=http_proxy)
+        return await cls._async_authenticated_post(url, params_data=data, cloud_creds=creds, http_proxy=http_proxy, ua_header=ua_header)
 
     async def async_list_devices(self,
                                  *args,
@@ -315,7 +328,10 @@ class MerossHttpClient(object):
         :return: a list of `HttpDeviceInfo`
         """
         url = _DEV_LIST % self.api_url
-        result = await MerossHttpClient._async_authenticated_post(url, {}, cloud_creds=self._cloud_creds, http_proxy=self._http_proxy)
+        result = await MerossHttpClient._async_authenticated_post(url, {},
+                                                                  cloud_creds=self._cloud_creds,
+                                                                  http_proxy=self._http_proxy,
+                                                                  ua_header=self._ua_header)
         return [HttpDeviceInfo.from_dict(x) for x in result]
 
     async def async_list_hub_subdevices(self,
@@ -330,7 +346,10 @@ class MerossHttpClient(object):
         :return: a list of `HttpSubdeviceInfo`
         """
         url = _HUB_DUBDEV_LIST % self.api_url
-        result = await MerossHttpClient._async_authenticated_post(url, {"uuid": hub_id}, cloud_creds=self._cloud_creds, http_proxy=self._http_proxy)
+        result = await MerossHttpClient._async_authenticated_post(url, {"uuid": hub_id},
+                                                                  cloud_creds=self._cloud_creds,
+                                                                  http_proxy=self._http_proxy,
+                                                                  ua_header=self._ua_header)
         return [HttpSubdeviceInfo.from_dict(x) for x in result]
 
     def set_http_proxy(self, proxy_url: str):

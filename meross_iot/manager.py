@@ -59,6 +59,8 @@ _CONNECTION_DROP_UPDATE_SCHEDULE_INTERVAL = 2
 
 T = TypeVar("T", bound=BaseDevice)  # Declare type variable
 
+_PENDING_FUTURES = []
+
 
 def _mqtt_key_from_domain_port(domain: str, port: int) -> str:
     return f"{domain}:{port}"
@@ -246,6 +248,10 @@ class MerossManager(object):
             return
 
         _LOGGER.info("Manager stop requested.")
+        _LOGGER.debug("Canceling pending futures...")
+        for f in _PENDING_FUTURES:
+            if not f.cancelled():
+                f.cancel()
         self.__stop_requested = True
 
     def find_devices(
@@ -1098,11 +1104,16 @@ def _handle_future(future: Future, result: object, exception: Exception):
             future.set_result(result)
 
 
+def set_future_done(future):
+    if future in _PENDING_FUTURES:
+        _PENDING_FUTURES.remove(future)
+
+
 def _schedule_later(coroutine, start_delay, loop):
     async def delayed_execution(coro, delay, loop):
         await asyncio.sleep(delay=delay, loop=loop)
         await coro
 
-    _LOGGER.info("scheduling...")
-    asyncio.run_coroutine_threadsafe(coro=delayed_execution(coro=coroutine, delay=start_delay, loop=loop), loop=loop)
-    _LOGGER.info("scheduled")
+    future = asyncio.run_coroutine_threadsafe(coro=delayed_execution(coro=coroutine, delay=start_delay, loop=loop), loop=loop)
+    _PENDING_FUTURES.append(future)
+    future.add_done_callback(set_future_done)
