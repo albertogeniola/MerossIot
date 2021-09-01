@@ -4,11 +4,12 @@ import base64
 import hashlib
 import json
 import logging
+import os
+import platform
 import random
 import string
 import time
 from datetime import datetime
-from enum import Enum
 from typing import Optional, List
 
 from aiohttp import ClientSession
@@ -17,14 +18,12 @@ from meross_iot.model.constants import DEFAULT_MEROSS_HTTP_API
 from meross_iot.model.credentials import MerossCloudCreds
 # Appears to be used as a part of the signature algorithm as constant "salt" (kinda useless)
 from meross_iot.model.http.device import HttpDeviceInfo
+from meross_iot.model.http.error_codes import ErrorCodes
 from meross_iot.model.http.exception import TooManyTokensException, TokenExpiredException, AuthenticatedPostException, \
     HttpApiError, BadLoginException
 from meross_iot.model.http.subdevice import HttpSubdeviceInfo
-import os
-
 from meross_iot.utilities.misc import current_version
-import platform
-
+from meross_iot.utilities.stats import HttpStatsCounter
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -35,52 +34,7 @@ _DEV_LIST = "%s/v1/Device/devList"
 _HUB_DUBDEV_LIST = "%s/v1/Hub/getSubDevices"
 _LOGOUT_URL = "%s/v1/Profile/logout"
 _MODULE_VERSION = current_version()
-_DEFAULT_UA_HEADER=f"MerossIOT/{_MODULE_VERSION}"
-
-
-class ErrorCodes(Enum):
-    """
-    Status codes returned by the Meross HTTP APIs
-    """
-
-    CODE_NO_ERROR = 0
-    """Not an error"""
-
-    CODE_MISSING_PASSWORD = 1001
-    """Wrong or missing password"""
-
-    CODE_UNEXISTING_ACCOUNT = 1002
-    """Account does not exist"""
-
-    CODE_DISABLED_OR_DELETED_ACCOUNT = 1003
-    """This account has been disabled or deleted"""
-
-    CODE_WRONG_CREDENTIALS = 1004
-    """Wrong email or password"""
-
-    CODE_INVALID_EMAIL = 1005
-    """Invalid email address"""
-
-    CODE_BAD_PASSWORD_FORMAT = 1006
-    """Bad password format"""
-
-    CODE_WRONG_EMAIL = 1008
-    """This email is not registered"""
-
-    CODE_TOKEN_INVALID = 1019
-    """Token expired"""
-
-    CODE_TOKEN_ERROR = 1022
-    """Token error"""
-
-    CODE_TOKEN_EXPIRED = 1200
-    """Token has expired"""
-
-    CODE_TOO_MANY_TOKENS = 1301
-    """Too many tokens have been issued"""
-
-    CODE_GENERIC_ERROR = 5000
-    """Unknown or generic error"""
+_DEFAULT_UA_HEADER = f"MerossIOT/{_MODULE_VERSION}"
 
 
 class MerossHttpClient(object):
@@ -101,6 +55,11 @@ class MerossHttpClient(object):
         self._proxy_addr = None
         self._http_proxy = http_proxy
         self._ua_header = custom_ua_header
+        self._stats_counter = HttpStatsCounter()
+
+    @property
+    def stats(self) -> HttpStatsCounter:
+        return self._stats_counter
 
     @property
     def cloud_credentials(self) -> MerossCloudCreds:
@@ -148,6 +107,7 @@ class MerossHttpClient(object):
                           api_base_url: str = DEFAULT_MEROSS_HTTP_API,
                           http_proxy: str = None,
                           ua_header: str = _DEFAULT_UA_HEADER,
+                          stats_counter: HttpStatsCounter = None,
                           *args, **kwargs) -> MerossCloudCreds:
         """
         Performs the login against the Meross HTTP endpoint.
@@ -164,6 +124,7 @@ class MerossHttpClient(object):
         :param api_base_url: Meross API base url
         :param http_proxy: Optional http proxy to use when to performing the request
         :param ua_header: User Agent header to use when issuing the HTTP request
+        :param stats_counter: Stats counter object
 
         :return: a `MerossCloudCreds` object
         """
@@ -172,7 +133,8 @@ class MerossHttpClient(object):
         response_data = await MerossHttpClient._async_authenticated_post(url, params_data=data,
                                                                          mask_params_in_log=True,
                                                                          http_proxy=http_proxy,
-                                                                         ua_header=ua_header)
+                                                                         ua_header=ua_header,
+                                                                         stats_counter=stats_counter)
         creds = MerossCloudCreds(
             token=response_data["token"],
             key=response_data["key"],
@@ -192,6 +154,7 @@ class MerossHttpClient(object):
                                         mask_params_in_log: bool = False,
                                         http_proxy: str = None,
                                         ua_header: str = _DEFAULT_UA_HEADER,
+                                        stats_counter: HttpStatsCounter = None
                                         ) -> dict:
         nonce = _generate_nonce(16)
         timestamp_millis = int(round(time.time() * 1000))
@@ -236,6 +199,11 @@ class MerossHttpClient(object):
                 _LOGGER.debug(f"Response Status Code: {response.status}")
                 # Check if that is ok.
                 if response.status != 200:
+                    if stats_counter is not None:
+                        stats_counter.notify_http_request(request_url=url,
+                                                          method="post",
+                                                          http_response_code=response.status,
+                                                          api_response_code=None)
                     raise AuthenticatedPostException("Failed request to API. Response code: %s" % str(response.status))
 
                 # Save returned value
@@ -249,6 +217,12 @@ class MerossHttpClient(object):
                     raise AuthenticatedPostException(f"Unknown/Unhandled response code received from API. "
                                                      f"Response was: {jsondata}")
                 finally:
+                    # Keep track of the stats
+                    if stats_counter is not None:
+                        stats_counter.notify_http_request(request_url=url,
+                                                          method="post",
+                                                          http_response_code=response.status,
+                                                          api_response_code=ErrorCodes.CODE_GENERIC_ERROR if error is None else error)
                     if error is None:
                         _LOGGER.error(f"Could not parse error code {code}.")
                     elif error == ErrorCodes.CODE_NO_ERROR:
@@ -278,7 +252,8 @@ class MerossHttpClient(object):
         result = await MerossHttpClient._async_authenticated_post(url, {},
                                                                   cloud_creds=self._cloud_creds,
                                                                   http_proxy=self._http_proxy,
-                                                                  ua_header=self._ua_header)
+                                                                  ua_header=self._ua_header,
+                                                                  stats_counter=self._stats_counter)
         self._cloud_creds = None
         _LOGGER.info("Logout succeeded.")
         return result
@@ -295,7 +270,8 @@ class MerossHttpClient(object):
         result = await MerossHttpClient._async_authenticated_post(url, {},
                                                                   cloud_creds=creds,
                                                                   http_proxy=self._http_proxy,
-                                                                  ua_header=self._ua_header)
+                                                                  ua_header=self._ua_header,
+                                                                  stats_counter=self._stats_counter)
         return result
 
     @classmethod
@@ -304,6 +280,7 @@ class MerossHttpClient(object):
                          api_base_url: str = DEFAULT_MEROSS_HTTP_API,
                          http_proxy: str = None,
                          ua_header: str = _DEFAULT_UA_HEADER,
+                         stats_counter: HttpStatsCounter = None,
                          *args,
                          **kwargs) -> dict:
         """
@@ -317,7 +294,13 @@ class MerossHttpClient(object):
         data = {'extra': {}, 'model': platform.release(), 'system': platform.system(),
                 'uuid': '493dd9174941ed58waitForOpenWifi', 'vendor': 'N/A', 'version': current_version()}
         url = _LOG_URL % api_base_url
-        return await cls._async_authenticated_post(url, params_data=data, cloud_creds=creds, http_proxy=http_proxy, ua_header=ua_header)
+        return await cls._async_authenticated_post(url,
+                                                   params_data=data,
+                                                   cloud_creds=creds,
+                                                   http_proxy=http_proxy,
+                                                   ua_header=ua_header,
+                                                   stats_counter=stats_counter
+                                                   )
 
     async def async_list_devices(self,
                                  *args,
@@ -331,7 +314,8 @@ class MerossHttpClient(object):
         result = await MerossHttpClient._async_authenticated_post(url, {},
                                                                   cloud_creds=self._cloud_creds,
                                                                   http_proxy=self._http_proxy,
-                                                                  ua_header=self._ua_header)
+                                                                  ua_header=self._ua_header,
+                                                                  stats_counter=self._stats_counter)
         return [HttpDeviceInfo.from_dict(x) for x in result]
 
     async def async_list_hub_subdevices(self,
@@ -349,7 +333,8 @@ class MerossHttpClient(object):
         result = await MerossHttpClient._async_authenticated_post(url, {"uuid": hub_id},
                                                                   cloud_creds=self._cloud_creds,
                                                                   http_proxy=self._http_proxy,
-                                                                  ua_header=self._ua_header)
+                                                                  ua_header=self._ua_header,
+                                                                  stats_counter=self._stats_counter)
         return [HttpSubdeviceInfo.from_dict(x) for x in result]
 
     def set_http_proxy(self, proxy_url: str):

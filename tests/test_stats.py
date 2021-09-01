@@ -1,13 +1,14 @@
 import os
 import time
 from datetime import timedelta
+from random import randint
 from typing import List
 
 from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
 from meross_iot.controller.mixins.system import SystemAllMixin
-from meross_iot.controller.mixins.toggle import ToggleXMixin
+from meross_iot.http_api import ErrorCodes
 from meross_iot.manager import MerossManager
 from meross_iot.model.enums import OnlineStatus
 from meross_iot.utilities.limiter import RateLimitChecker
@@ -58,7 +59,7 @@ class TestStats(AioHTTPTestCase):
         await asyncio.gather(*tasks)
 
     @unittest_run_loop
-    async def test_api_call_stats(self):
+    async def test_mqtt_call_stats(self):
         n_devices = 2
         n_commands = 3
         timewindow_seconds = 10
@@ -78,7 +79,7 @@ class TestStats(AioHTTPTestCase):
             self.assertEqual(stats.total_calls, n_commands)
 
     @unittest_run_loop
-    async def test_api_delay(self):
+    async def test_mqtt_delay(self):
         n_devices = 2
         n_commands = 10
         timewindow_seconds = 30
@@ -127,6 +128,51 @@ class TestStats(AioHTTPTestCase):
 
         # Make sure no command has been dropped
         self.assertEqual(drop_stats.global_stats.total_calls, 0)
+
+    @unittest_run_loop
+    async def test_http_call_stats(self):
+        timewindow_seconds = 10
+
+        # Wait 10 seconds to reset stats
+        print(f"Waiting {timewindow_seconds} seconds before starting the test.")
+        await asyncio.sleep(timewindow_seconds)
+
+        # Get http client
+        client = self.meross_client
+
+        # Call discovery api for n times
+        ok_calls = randint(3, 6)
+        for i in range(ok_calls):
+            await client.async_list_devices()
+            await asyncio.sleep(.2)
+
+        # Call a bad api for m times
+        ko_calls = randint(2, 5)
+        for i in range(ko_calls):
+            try:
+                await client.async_login(email="notexisting", password="invalid", stats_counter=client.stats)
+            except Exception as e:
+                print(e)
+                pass
+            await asyncio.sleep(.2)
+
+        # Check stats
+        stats = client.stats.get_stats(time_window=timedelta(seconds=timewindow_seconds + 0.5))
+
+        # Make sure the total number of issued commands is OK
+        print(f"ok_calls: {ok_calls}, ko_calls: {ko_calls}, all: {ok_calls+ko_calls}")
+        self.assertEqual(stats.global_stats.total_calls, ok_calls+ko_calls)
+
+        failures = 0
+        for code, count in stats.global_stats.by_api_status_code():
+            if code == ErrorCodes.CODE_NO_ERROR:
+                # Make sure we count n OK calls
+                self.assertEqual(count, ok_calls)
+            else:
+                failures += count
+
+        # Make sure we count m Failed calls
+        self.assertEqual(failures, ko_calls)
 
     async def tearDownAsync(self):
         if self.requires_logout:

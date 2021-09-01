@@ -53,6 +53,23 @@ class TestHttpMethods(AioHTTPTestCase):
         assert devices is not None
         assert len(devices) > 0
 
+    @unittest_run_loop
+    async def test_subdevice_listing(self):
+        devices = await self.meross_client.async_list_devices()
+        # look for a msxh0 hub
+        hub = None
+        for d in devices:
+            if d.device_type == "msh300":
+                hub = d
+                break
+
+        if hub is None:
+            self.skipTest("No hub was found on this subscription. Cannot test hub listing.")
+
+        result = await self.meross_client.async_list_hub_subdevices(hub.uuid)
+        self.assertGreater(len(result), 0)
+        return result
+
     async def tearDownAsync(self):
         if self.requires_logout:
             await self.meross_client.async_logout()
