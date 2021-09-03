@@ -181,6 +181,7 @@ Anyways, feel free to contribute via donations!
 #### 0.4.2.3
 - Added custom user agent customization option to MerossHttpClient
 - Implemented pending task cancellation when shutting down the manager
+- Implemented HTTP API stats counting
 
 <details>
     <summary>Older</summary>
