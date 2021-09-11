@@ -30,8 +30,9 @@ class Ms100Sensor(GenericSubDevice):
         locally_handled = False
         if namespace == Namespace.HUB_ONLINE:
             update_element = self._prepare_push_notification_data(data=data, filter_accessor='online')
-            self._online = OnlineStatus(update_element.get('status', -1))
-            locally_handled = True
+            if update_element is not None:
+                self._online = OnlineStatus(update_element.get('status', -1))
+                locally_handled = True
         elif namespace == Namespace.HUB_SENSOR_ALL:
             self._online = OnlineStatus(data.get('online', {}).get('status', -1))
             self.__temperature.update(data.get('temperature', {}))
@@ -150,8 +151,9 @@ class Mts100v3Valve(GenericSubDevice):
         locally_handled = False
         if namespace == Namespace.HUB_ONLINE:
             update_element = self._prepare_push_notification_data(data=data, filter_accessor='online')
-            self._online = OnlineStatus(update_element.get('status', -1))
-            locally_handled = True
+            if update_element is not None:
+                self._online = OnlineStatus(update_element.get('status', -1))
+                locally_handled = True
         elif namespace == Namespace.HUB_MTS100_ALL:
             self._schedule_b_mode = data.get('scheduleBMode')
             self._online = OnlineStatus(data.get('online', {}).get('status', -1))
@@ -166,17 +168,20 @@ class Mts100v3Valve(GenericSubDevice):
             locally_handled = True
         elif namespace == Namespace.HUB_TOGGLEX:
             update_element = self._prepare_push_notification_data(data=data)
-            self.__togglex.update(update_element)
-            locally_handled = True
+            if update_element is not None:
+                self.__togglex.update(update_element)
+                locally_handled = True
         elif namespace == Namespace.HUB_MTS100_MODE:
             update_element = self._prepare_push_notification_data(data=data)
-            self.__mode.update(update_element)
-            locally_handled = True
+            if update_element is not None:
+                self.__mode.update(update_element)
+                locally_handled = True
         elif namespace == Namespace.HUB_MTS100_TEMPERATURE:
             update_element = self._prepare_push_notification_data(data=data)
-            self.__temperature.update(update_element)
-            self.__temperature['latestSampleTime'] = datetime.utcnow().timestamp()
-            locally_handled = True
+            if update_element is not None:
+                self.__temperature.update(update_element)
+                self.__temperature['latestSampleTime'] = datetime.utcnow().timestamp()
+                locally_handled = True
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.

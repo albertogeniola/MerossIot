@@ -182,6 +182,7 @@ Anyways, feel free to contribute via donations!
 - Added custom user agent customization option to MerossHttpClient
 - Implemented pending task cancellation when shutting down the manager
 - Implemented HTTP API stats counting
+- Fixed bug affecting push notification parsing when multiple sensors/valves were in use
 
 <details>
     <summary>Older</summary>
