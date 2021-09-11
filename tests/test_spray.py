@@ -25,10 +25,10 @@ class TestSpray(AioHTTPTestCase):
         self.meross_client, self.requires_logout = await async_get_client()
 
         # Look for a device to be used for this test
-        manager = MerossManager(http_client=self.meross_client)
-        await manager.async_init()
-        devices = await manager.async_device_discovery()
-        self.test_devices = manager.find_devices(device_class=SprayMixin, online_status=OnlineStatus.ONLINE)
+        self.meross_manager = MerossManager(http_client=self.meross_client)
+        await self.meross_manager.async_init()
+        devices = await self.meross_manager.async_device_discovery()
+        self.test_devices = self.meross_manager.find_devices(device_class=SprayMixin, online_status=OnlineStatus.ONLINE)
 
     @unittest_run_loop
     async def test_spry(self):
@@ -91,3 +91,7 @@ class TestSpray(AioHTTPTestCase):
     async def tearDownAsync(self):
         if self.requires_logout:
             await self.meross_client.async_logout()
+        self.meross_manager.close()
+
+        # Give a change to asyncio clean everything up
+        await asyncio.sleep(1, loop=self.meross_manager._loop)

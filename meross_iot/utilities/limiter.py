@@ -5,6 +5,8 @@ from time import time
 import logging
 from typing import Dict, Tuple
 
+from meross_iot.model.enums import Namespace
+
 _LIMITER = logging.getLogger("meross_iot.manager.apilimiter")
 
 
@@ -195,7 +197,10 @@ class RateLimitChecker(object):
     def device_limiters(self) -> Dict[str, TokenBucketRateLimiterWithBackoff]:
         return self._devices_limiters
 
-    def check_limits(self, device_uuid: str) -> Tuple[RateLimitResultStrategy, float]:
+    def check_limits(self, device_uuid: str,
+                     method: str,
+                     namespace: Namespace
+                     ) -> Tuple[RateLimitResultStrategy, float]:
         """
         Checks the API limit against the configured thresholds
         :param device_uuid: Device for which API call is being called
@@ -208,7 +213,9 @@ class RateLimitChecker(object):
             self._dec_command_queue(device_uuid=device_uuid)
             return RateLimitResultStrategy.PerformCall, 0
         elif device_command_queue_size < self._max_command_queue:
-            _LIMITER.warning("Api call delayed by %f seconds. Device %s queue size: %d/%d",
+            _LIMITER.warning("%s: MQTT message (%s) delayed by %f seconds. Device %s queue size: %d/%d",
+                             result,
+                             f"{method} {namespace}",
                              wait_time,
                              device_uuid,
                              device_command_queue_size,
@@ -216,7 +223,9 @@ class RateLimitChecker(object):
             self._inc_command_queue(device_uuid=device_uuid)
             return RateLimitResultStrategy.DelayCall, wait_time
         else:
-            _LIMITER.error("Api call dropped. Device %s queue size: %d/%d",
+            _LIMITER.error("%s: MQTT message (%s) dropped. Device %s queue size: %d/%d",
+                           result,
+                           f"{method} {namespace}",
                            device_uuid,
                            device_command_queue_size,
                            self._max_command_queue)

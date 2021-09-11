@@ -1,3 +1,4 @@
+import concurrent
 import os
 from random import randint
 
@@ -28,10 +29,10 @@ class TestLight(AioHTTPTestCase):
         self.meross_client, self.requires_logout = await async_get_client()
 
         # Look for a device to be used for this test
-        manager = MerossManager(http_client=self.meross_client)
-        await manager.async_init()
-        devices = await manager.async_device_discovery()
-        self.light_devices = manager.find_devices(device_class=LightMixin, online_status=OnlineStatus.ONLINE)
+        self.meross_manager = MerossManager(http_client=self.meross_client)
+        await self.meross_manager.async_init()
+        devices = await self.meross_manager.async_device_discovery()
+        self.light_devices = self.meross_manager.find_devices(device_class=LightMixin, online_status=OnlineStatus.ONLINE)
 
         # Update the states of all devices a first time
         concurrent_update = [d.async_update() for d in self.light_devices]
@@ -101,3 +102,7 @@ class TestLight(AioHTTPTestCase):
     async def tearDownAsync(self):
         if self.requires_logout:
             await self.meross_client.async_logout()
+        self.meross_manager.close()
+
+        # Give a change to asyncio clean everything up
+        await asyncio.sleep(1, loop=self.meross_manager._loop)

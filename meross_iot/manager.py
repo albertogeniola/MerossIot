@@ -10,7 +10,7 @@ from asyncio import TimeoutError
 from datetime import timedelta
 from hashlib import md5
 from time import time
-from typing import Optional, List, TypeVar, Iterable, Callable, Awaitable, Tuple, Union, Any
+from typing import Optional, List, TypeVar, Iterable, Callable, Awaitable, Tuple, Union, Any, Dict
 
 import paho.mqtt.client as mqtt
 
@@ -254,6 +254,7 @@ class MerossManager(object):
                 f.cancel()
         self.__stop_requested = True
 
+
     def find_devices(
             self,
             device_uuids: Optional[Iterable[str]] = None,
@@ -364,26 +365,55 @@ class MerossManager(object):
         # For every newly discovered device, retrieve its abilities and then build a corresponding wrapper.
         # In the meantime, update state of the already known devices
         # Do this in "parallel" with multiple tasks rather than executing every task singularly
-        tasks = []
+        # tasks = []
+        # for d in discovered_new_http_devices:
+        #     tasks.append(self._loop.create_task(self._async_enroll_new_http_dev(d)))
+        # for hdevice, ldevice in already_known_http_devices.items():
+        #     tasks.append(
+        #         self._loop.create_task(ldevice.update_from_http_state(hdevice))
+        #     )
+        # Wait for factory to build all devices
+        #enrolled_devices = await asyncio.gather(*tasks, loop=self._loop)
+        enrolled_devices = []
         for d in discovered_new_http_devices:
-            tasks.append(self._loop.create_task(self._async_enroll_new_http_dev(d)))
+            dev = await self._async_enroll_new_http_dev(d)
+            enrolled_devices.append(dev)
         for hdevice, ldevice in already_known_http_devices.items():
-            tasks.append(
-                self._loop.create_task(ldevice.update_from_http_state(hdevice))
-            )
+            dev = await ldevice.update_from_http_state(hdevice)
+            enrolled_devices.append(dev)
 
         _LOGGER.info(
             f"Updating {len(already_known_http_devices)} known devices form HTTPINFO and fetching "
             f"data from {len(discovered_new_http_devices)} newly discovered devices..."
         )
-        # Wait for factory to build all devices
-        enrolled_devices = await asyncio.gather(*tasks, loop=self._loop)
+
         _LOGGER.info(f"Fetch and update done")
 
         # Let's now handle HubDevices. For every HubDevice we have, we need to fetch new possible subdevices
         # from the HTTP API
-        subdevtasks = []
+        # subdevtasks = []
+        # hubs = []
+        # for d in enrolled_devices:
+        #     if isinstance(d, HubDevice):
+        #         hubs.append(d)
+        #         subdevs = await self._http_client.async_list_hub_subdevices(
+        #             hub_id=d.uuid
+        #         )
+        #         for sd in subdevs:
+        #             subdevtasks.append(
+        #                 self._loop.create_task(
+        #                     self._async_enroll_new_http_subdev(
+        #                         subdevice_info=sd,
+        #                         hub=d,
+        #                         hub_reported_abilities=d.abilities,
+        #                     )
+        #                 )
+        #             )
+        # # Wait for factory to build all devices
+        # enrolled_subdevices = await asyncio.gather(*subdevtasks, loop=self._loop)
+
         hubs = []
+        enrolled_subdevices = []
         for d in enrolled_devices:
             if isinstance(d, HubDevice):
                 hubs.append(d)
@@ -391,17 +421,11 @@ class MerossManager(object):
                     hub_id=d.uuid
                 )
                 for sd in subdevs:
-                    subdevtasks.append(
-                        self._loop.create_task(
-                            self._async_enroll_new_http_subdev(
+                    dev = await self._async_enroll_new_http_subdev(
                                 subdevice_info=sd,
                                 hub=d,
-                                hub_reported_abilities=d.abilities,
-                            )
-                        )
-                    )
-        # Wait for factory to build all devices
-        enrolled_subdevices = await asyncio.gather(*subdevtasks, loop=self._loop)
+                                hub_reported_abilities=d.abilities)
+                    enrolled_subdevices.append(dev)
 
         # We need to update the state of hubs in order to refresh subdevices online status
         if update_subdevice_status:
@@ -465,7 +489,8 @@ class MerossManager(object):
                     namespace=Namespace.SYSTEM_ABILITY,
                     payload={},
                     mqtt_hostname=device_info.domain,
-                    mqtt_port=DEFAULT_MQTT_PORT
+                    mqtt_port=DEFAULT_MQTT_PORT,
+                    skip_rate_limiting_check=True
                 )
                 abilities = res_abilities.get("ability")
             except CommandTimeoutError:
@@ -806,11 +831,15 @@ class MerossManager(object):
                 f"Raw data: {json.dumps(push_notification.raw_data)}"
             )
 
-    def _api_rate_limit_checks(self, destination_device_uuid: str) -> Tuple[RateLimitResultStrategy, float]:
+    def _api_rate_limit_checks(self,
+                               destination_device_uuid: str,
+                               method: str,
+                               namespace: Namespace
+                               ) -> Tuple[RateLimitResultStrategy, float]:
         if self._limiter is None:
             return RateLimitResultStrategy.PerformCall, 0
         else:
-            return self._limiter.check_limits(device_uuid=destination_device_uuid)
+            return self._limiter.check_limits(device_uuid=destination_device_uuid, method=method, namespace=namespace)
 
     async def async_execute_cmd(
             self,
@@ -863,7 +892,9 @@ class MerossManager(object):
         # Check rate limits
         if not skip_rate_limiting_check:
             rate_limiting_action, time_to_wait = self._api_rate_limit_checks(
-                destination_device_uuid=destination_device_uuid
+                destination_device_uuid=destination_device_uuid,
+                method=method,
+                namespace=namespace
             )
             if rate_limiting_action == RateLimitResultStrategy.PerformCall:
                 pass

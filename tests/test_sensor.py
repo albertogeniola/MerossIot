@@ -58,3 +58,7 @@ class TestSensor(AioHTTPTestCase):
     async def tearDownAsync(self):
         if self.requires_logout:
             await self.meross_client.async_logout()
+        self.meross_manager.close()
+
+        # Give a change to asyncio clean everything up
+        await asyncio.sleep(1, loop=self.meross_manager._loop)
