@@ -60,7 +60,7 @@ class TestLimits(AioHTTPTestCase):
             self.skipTest("No device found for this test")
 
         with self.assertRaises(RateLimitExceeded):
-            await self._perform_requests(sensor=self.test_sensors[0], n_requests=200)
+            await self._perform_requests(sensor=self.test_sensors[0], n_requests=50)
 
     async def tearDownAsync(self):
         if self.requires_logout:
