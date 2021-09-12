@@ -13,7 +13,7 @@ jobs:
     name: Build on node Python 3.9.x
     outputs: 
       tag: ${{steps.tag.outputs.tag}}
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-docker
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
