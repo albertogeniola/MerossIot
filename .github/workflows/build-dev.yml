@@ -13,7 +13,7 @@ jobs:
     name: Build on node Python 3.9.x
     outputs: 
       tag: ${{steps.tag.outputs.tag}}
-    runs-on: self-hosted-ubuntu
+    runs-on: ubuntu-latest
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
@@ -67,7 +67,7 @@ jobs:
   # ---------------------------------
   test:
     name: Testing
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-ubuntu
     needs: [build, turn-on-env]
     outputs:
       success_rate: ${{steps.pytest.outputs.success_rate}}
