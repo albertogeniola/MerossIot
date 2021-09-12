@@ -179,6 +179,7 @@ Anyways, feel free to contribute via donations!
 
 ## Changelog
 #### 0.4.2.3
+- Added new HTTP request headers (introduced with latest APP versions)
 - Added custom user agent customization option to MerossHttpClient
 - Implemented pending task cancellation when shutting down the manager
 - Implemented HTTP API stats counting
