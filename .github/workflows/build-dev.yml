@@ -15,6 +15,11 @@ jobs:
       tag: ${{steps.tag.outputs.tag}}
     runs-on: self-hosted-docker
     steps:
+    - run: |
+        # Hack to get setup-python to work on act
+        if [ ! -f "/etc/lsb-release" ] ; then
+          echo "DISTRIB_RELEASE=18.04" > /etc/lsb-release
+        fi
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
     - name: Setup Python 3.9.x
