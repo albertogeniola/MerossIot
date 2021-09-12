@@ -23,7 +23,7 @@ async def async_get_client() -> Tuple[MerossHttpClient, bool]:
 
     if CREDS is not None:
         _LOGGER.info("Found cached credentials. Using them.")
-        jsoncreds = base64.b64decode(CREDS)
+        jsoncreds = str(base64.b64decode(CREDS), 'utf8')
         creds = MerossCloudCreds.from_json(jsoncreds)
         return await MerossHttpClient.async_from_cloud_creds(creds, **opt_params), False
     else:
