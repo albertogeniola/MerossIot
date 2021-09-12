@@ -37,6 +37,7 @@ _LOGOUT_URL = "%s/v1/Profile/logout"
 _MODULE_VERSION = current_version()
 _DEFAULT_UA_HEADER = f"MerossIOT/{_MODULE_VERSION}"
 _DEFAULT_APP_TYPE = "MerossIOT"
+_DEFAULT_LOG_IDENTIFIER = '%030x' % random.randrange(16 ** 30) + str(uuid.uuid4())
 
 
 class MerossHttpClient(object):
@@ -49,7 +50,10 @@ class MerossHttpClient(object):
                  cloud_credentials: MerossCloudCreds,
                  api_base_url: str = DEFAULT_MEROSS_HTTP_API,
                  http_proxy: str = None,
-                 ua_header: str = _DEFAULT_UA_HEADER):
+                 ua_header: str = _DEFAULT_UA_HEADER,
+                 app_type: str = _DEFAULT_APP_TYPE,
+                 app_version: str = _MODULE_VERSION,
+                 log_identifier: str = _DEFAULT_LOG_IDENTIFIER):
         self._cloud_creds = cloud_credentials
         self.api_url = api_base_url
         self._enable_proxy = False
@@ -58,7 +62,9 @@ class MerossHttpClient(object):
         self._http_proxy = http_proxy
         self._ua_header = ua_header
         self._stats_counter = HttpStatsCounter()
-        self._log_identifier = _generate_log_identifier()
+        self._log_identifier = log_identifier
+        self._app_type = app_type
+        self._app_version = app_version
 
     @property
     def stats(self) -> HttpStatsCounter:
@@ -73,11 +79,15 @@ class MerossHttpClient(object):
         return self._cloud_creds
 
     @classmethod
-    async def async_from_user_password(cls, email: str,
+    async def async_from_user_password(cls,
+                                       email: str,
                                        password: str,
                                        api_base_url: str = DEFAULT_MEROSS_HTTP_API,
                                        http_proxy: str = None,
-                                       ua_header: str = _DEFAULT_UA_HEADER) -> MerossHttpClient:
+                                       ua_header: str = _DEFAULT_UA_HEADER,
+                                       app_type: str = _DEFAULT_APP_TYPE,
+                                       app_version: str = _MODULE_VERSION,
+                                       log_identifier: str = _DEFAULT_LOG_IDENTIFIER) -> MerossHttpClient:
         """
         Builds a MerossHttpClient using username/password combination.
         In any case, the login will generate a token, which might expire at any time.
@@ -86,25 +96,64 @@ class MerossHttpClient(object):
         :param password: Meross account password
         :param api_base_url: Meross API base URL
         :param http_proxy: Optional http proxy to use when issuing the requests
+        :param app_type: App Type header parameter to use
+        :param app_version:  App Version header parameter to use
+        :param log_identifier: Log identifier to use
 
         :return: an instance of `MerossHttpClient`
         """
         _LOGGER.debug(f"Logging in with email: {email}, password: XXXXX")
-        creds = await cls.async_login(email=email, password=password, api_base_url=api_base_url, http_proxy=http_proxy, ua_header=ua_header)
+        creds = await cls.async_login(email=email,
+                                      password=password,
+                                      api_base_url=api_base_url,
+                                      http_proxy=http_proxy,
+                                      ua_header=ua_header,
+                                      app_type=app_type,
+                                      app_version=app_version,
+                                      log_identifier=log_identifier)
         # Call log
-        await cls._async_log(creds=creds,http_proxy=http_proxy,api_base_url=api_base_url, ua_header=ua_header)
+        await cls._async_log(creds=creds,
+                             api_base_url=api_base_url,
+                             http_proxy=http_proxy,
+                             ua_header=ua_header,
+                             app_type=app_type,
+                             app_version=app_version,
+                             log_identifier=log_identifier)
+
         _LOGGER.debug(f"Login successful!")
-        return MerossHttpClient(cloud_credentials=creds, api_base_url=api_base_url, http_proxy=http_proxy, ua_header=ua_header)
+        return MerossHttpClient(cloud_credentials=creds,
+                                api_base_url=api_base_url,
+                                http_proxy=http_proxy,
+                                ua_header=ua_header,
+                                app_type=app_type,
+                                app_version=app_version,
+                                log_identifier=log_identifier)
 
     @classmethod
     async def async_from_cloud_creds(cls,
                                      creds: MerossCloudCreds,
                                      api_base_url: str = DEFAULT_MEROSS_HTTP_API,
                                      http_proxy: str = None,
-                                     ua_header: str = _DEFAULT_UA_HEADER) -> MerossHttpClient:
+                                     ua_header: str = _DEFAULT_UA_HEADER,
+                                     app_type: str = _DEFAULT_APP_TYPE,
+                                     app_version: str = _MODULE_VERSION,
+                                     log_identifier: str = _DEFAULT_LOG_IDENTIFIER) -> MerossHttpClient:
+
         # Use _log method to verify the credentials
-        verify_creds = await cls._async_log(creds=creds, api_base_url=api_base_url, http_proxy=http_proxy, ua_header=ua_header)
-        return MerossHttpClient(cloud_credentials=creds, api_base_url=api_base_url, http_proxy=http_proxy, ua_header=ua_header)
+        verify_creds = await cls._async_log(creds=creds,
+                                            api_base_url=api_base_url,
+                                            http_proxy=http_proxy,
+                                            ua_header=ua_header,
+                                            app_type=app_type,
+                                            app_version=app_version,
+                                            log_identifier=log_identifier)
+        return MerossHttpClient(cloud_credentials=creds,
+                                api_base_url=api_base_url,
+                                http_proxy=http_proxy,
+                                ua_header=ua_header,
+                                app_type=app_type,
+                                app_version=app_version,
+                                log_identifier=log_identifier)
 
     @classmethod
     async def async_login(cls,
@@ -114,6 +163,9 @@ class MerossHttpClient(object):
                           api_base_url: str = DEFAULT_MEROSS_HTTP_API,
                           http_proxy: str = None,
                           ua_header: str = _DEFAULT_UA_HEADER,
+                          app_type: str = _DEFAULT_APP_TYPE,
+                          app_version: str = _MODULE_VERSION,
+                          log_identifier: str = _DEFAULT_LOG_IDENTIFIER,
                           stats_counter: HttpStatsCounter = None,
                           *args, **kwargs) -> MerossCloudCreds:
         """
@@ -132,15 +184,29 @@ class MerossHttpClient(object):
         :param http_proxy: Optional http proxy to use when to performing the request
         :param ua_header: User Agent header to use when issuing the HTTP request
         :param stats_counter: Stats counter object
+        :param app_type: App Type header parameter to use
+        :param app_version:  App Version header parameter to use
 
         :return: a `MerossCloudCreds` object
         """
-        data = {"email": email, "password": password}
+        data = { "email": email,
+                 "password": password,
+                 "mobileInfo": {
+                     "deviceModel": platform.machine(),
+                     "mobileOsVersion": platform.version(),
+                     "mobileOs": platform.system(),
+                     "uuid": log_identifier,
+                     "carrier":""
+                 }
+             }
         url = _LOGIN_URL % api_base_url
-        response_data = await MerossHttpClient._async_authenticated_post(url, params_data=data,
+        response_data = await MerossHttpClient._async_authenticated_post(url=url,
+                                                                         params_data=data,
                                                                          mask_params_in_log=True,
                                                                          http_proxy=http_proxy,
                                                                          ua_header=ua_header,
+                                                                         app_type=app_type,
+                                                                         app_version=app_version,
                                                                          stats_counter=stats_counter)
         creds = MerossCloudCreds(
             token=response_data["token"],
@@ -261,10 +327,13 @@ class MerossHttpClient(object):
         """
         _LOGGER.debug(f"Logging out. Invalidating cached credentials {self._cloud_creds}")
         url = _LOGOUT_URL % self.api_url
-        result = await MerossHttpClient._async_authenticated_post(url, {},
+        result = await MerossHttpClient._async_authenticated_post(url=url,
+                                                                  params_data={},
                                                                   cloud_creds=self._cloud_creds,
                                                                   http_proxy=self._http_proxy,
                                                                   ua_header=self._ua_header,
+                                                                  app_type=self._app_type,
+                                                                  app_version=self._app_version,
                                                                   stats_counter=self._stats_counter)
         self._cloud_creds = None
         _LOGGER.info("Logout succeeded.")
@@ -279,10 +348,13 @@ class MerossHttpClient(object):
         """
         url = _LOGOUT_URL % self.api_url
         _LOGGER.debug(f"Logging out. Invalidating cached credentials {creds}")
-        result = await MerossHttpClient._async_authenticated_post(url, {},
+        result = await MerossHttpClient._async_authenticated_post(url=url,
+                                                                  params_data={},
                                                                   cloud_creds=creds,
                                                                   http_proxy=self._http_proxy,
                                                                   ua_header=self._ua_header,
+                                                                  app_type=self._app_type,
+                                                                  app_version=self._app_version,
                                                                   stats_counter=self._stats_counter)
         return result
 
@@ -292,8 +364,10 @@ class MerossHttpClient(object):
                          api_base_url: str = DEFAULT_MEROSS_HTTP_API,
                          http_proxy: str = None,
                          ua_header: str = _DEFAULT_UA_HEADER,
+                         app_type: str = _DEFAULT_APP_TYPE,
+                         app_version: str = _MODULE_VERSION,
+                         log_identifier: str = _DEFAULT_LOG_IDENTIFIER,
                          stats_counter: HttpStatsCounter = None,
-                         log_identifier: str = None,
                          *args,
                          **kwargs) -> dict:
         """
@@ -305,18 +379,20 @@ class MerossHttpClient(object):
         data = {
             "system":platform.system(),
             "vendor":"meross",
-            "uuid":log_identifier if log_identifier is not None else _generate_log_identifier(),
+            "uuid": log_identifier,
             "extra":"",
             "model":platform.machine(),
             "version":platform.version()
         }
 
         url = _LOG_URL % api_base_url
-        return await cls._async_authenticated_post(url,
+        return await cls._async_authenticated_post(url=url,
                                                    params_data=data,
                                                    cloud_creds=creds,
                                                    http_proxy=http_proxy,
                                                    ua_header=ua_header,
+                                                   app_type=app_type,
+                                                   app_version=app_version,
                                                    stats_counter=stats_counter
                                                    )
 
@@ -329,10 +405,13 @@ class MerossHttpClient(object):
         :return: a list of `HttpDeviceInfo`
         """
         url = _DEV_LIST % self.api_url
-        result = await MerossHttpClient._async_authenticated_post(url, {},
+        result = await MerossHttpClient._async_authenticated_post(url=url,
+                                                                  params_data={},
                                                                   cloud_creds=self._cloud_creds,
                                                                   http_proxy=self._http_proxy,
                                                                   ua_header=self._ua_header,
+                                                                  app_type=self._app_type,
+                                                                  app_version=self._app_version,
                                                                   stats_counter=self._stats_counter)
         return [HttpDeviceInfo.from_dict(x) for x in result]
 
@@ -348,10 +427,13 @@ class MerossHttpClient(object):
         :return: a list of `HttpSubdeviceInfo`
         """
         url = _HUB_DUBDEV_LIST % self.api_url
-        result = await MerossHttpClient._async_authenticated_post(url, {"uuid": hub_id},
+        result = await MerossHttpClient._async_authenticated_post(url=url,
+                                                                  params_data={"uuid": hub_id},
                                                                   cloud_creds=self._cloud_creds,
                                                                   http_proxy=self._http_proxy,
                                                                   ua_header=self._ua_header,
+                                                                  app_type=self._app_type,
+                                                                  app_version=self._app_version,
                                                                   stats_counter=self._stats_counter)
         return [HttpSubdeviceInfo.from_dict(x) for x in result]
 
@@ -419,14 +501,6 @@ def authenticated_command_executor(method, *args, **kwargs):
 
     return cmd
 
-
-def _generate_log_identifier() -> str:
-    # Generate random identifiers for _LOG calls
-    # 8x HEXDIGITS
-    hexdigits = '%030x' % random.randrange(16 ** 30)
-    # 1 random UUID
-    uuidstr = uuid.uuid4()
-    return f"{hexdigits}{uuidstr}"
 
 def main():
     import sys
