@@ -67,7 +67,7 @@ jobs:
   # ---------------------------------
   test:
     name: Testing
-    runs-on: self-hosted-ubuntu
+    runs-on: ubuntu-latest
     needs: [build, turn-on-env]
     outputs:
       success_rate: ${{steps.pytest.outputs.success_rate}}
