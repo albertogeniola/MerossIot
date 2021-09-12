@@ -290,7 +290,7 @@ MQTT broker.</p>
 <dd><p>Helper class that handles API stats result</p>
 <dl class="method">
 <dt id="meross_iot.utilities.stats.ApiStatsResult.device_stats">
-<code class="sig-name descname">device_stats</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; ItemsView[meross_iot.utilities.stats.ApiStat, Any]<a class="headerlink" href="#meross_iot.utilities.stats.ApiStatsResult.device_stats" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">device_stats</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; ItemsView[str, meross_iot.utilities.stats.ApiStat]<a class="headerlink" href="#meross_iot.utilities.stats.ApiStatsResult.device_stats" title="Permalink to this definition">¶</a></dt>
 <dd><p>Statistics aggregated by Device UUID</p>
 </dd></dl>
 
@@ -304,6 +304,107 @@ MQTT broker.</p>
 <dt id="meross_iot.utilities.stats.ApiStatsResult.stats_by_uuid">
 <code class="sig-name descname">stats_by_uuid</code><span class="sig-paren">(</span><em class="sig-param">device_uuid</em><span class="sig-paren">)</span> &#x2192; Optional[meross_iot.utilities.stats.ApiStat]<a class="headerlink" href="#meross_iot.utilities.stats.ApiStatsResult.stats_by_uuid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the statistics of a specific device UUID</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="meross_iot.utilities.stats.HttpRequestSample">
+<em class="property">class </em><code class="sig-prename descclassname">meross_iot.utilities.stats.</code><code class="sig-name descname">HttpRequestSample</code><span class="sig-paren">(</span><em class="sig-param">method: str</em>, <em class="sig-param">url: str</em>, <em class="sig-param">http_response_code: int</em>, <em class="sig-param">api_response_code: meross_iot.model.http.error_codes.ErrorCodes</em>, <em class="sig-param">timestamp: Optional[float] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.utilities.stats.HttpRequestSample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper class to hold a single request the http API server</p>
+<dl class="method">
+<dt id="meross_iot.utilities.stats.HttpRequestSample.api_response_code">
+<em class="property">property </em><code class="sig-name descname">api_response_code</code><a class="headerlink" href="#meross_iot.utilities.stats.HttpRequestSample.api_response_code" title="Permalink to this definition">¶</a></dt>
+<dd><p>Meross HTTP API response code
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.utilities.stats.HttpRequestSample.http_response_code">
+<em class="property">property </em><code class="sig-name descname">http_response_code</code><a class="headerlink" href="#meross_iot.utilities.stats.HttpRequestSample.http_response_code" title="Permalink to this definition">¶</a></dt>
+<dd><p>HTTP response code
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.utilities.stats.HttpRequestSample.method">
+<em class="property">property </em><code class="sig-name descname">method</code><a class="headerlink" href="#meross_iot.utilities.stats.HttpRequestSample.method" title="Permalink to this definition">¶</a></dt>
+<dd><p>HTTP Method
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.utilities.stats.HttpRequestSample.timestamp">
+<em class="property">property </em><code class="sig-name descname">timestamp</code><a class="headerlink" href="#meross_iot.utilities.stats.HttpRequestSample.timestamp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Timestamp of the request
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.utilities.stats.HttpRequestSample.url">
+<em class="property">property </em><code class="sig-name descname">url</code><a class="headerlink" href="#meross_iot.utilities.stats.HttpRequestSample.url" title="Permalink to this definition">¶</a></dt>
+<dd><p>URL
+:return:</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="meross_iot.utilities.stats.HttpStat">
+<em class="property">class </em><code class="sig-prename descclassname">meross_iot.utilities.stats.</code><code class="sig-name descname">HttpStat</code><a class="headerlink" href="#meross_iot.utilities.stats.HttpStat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper class that handles HTTP stats result for a single URL</p>
+<dl class="method">
+<dt id="meross_iot.utilities.stats.HttpStat.by_api_status_code">
+<code class="sig-name descname">by_api_status_code</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; ItemsView[meross_iot.model.http.error_codes.ErrorCodes, int]<a class="headerlink" href="#meross_iot.utilities.stats.HttpStat.by_api_status_code" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of calls for this url aggregated by API response status code</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.utilities.stats.HttpStat.by_http_reponse_code">
+<code class="sig-name descname">by_http_reponse_code</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; ItemsView[int, int]<a class="headerlink" href="#meross_iot.utilities.stats.HttpStat.by_http_reponse_code" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of calls for this url aggregated by HTTP response code</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.utilities.stats.HttpStat.total_calls">
+<em class="property">property </em><code class="sig-name descname">total_calls</code><a class="headerlink" href="#meross_iot.utilities.stats.HttpStat.total_calls" title="Permalink to this definition">¶</a></dt>
+<dd><p>Total number of calls for this URL</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="meross_iot.utilities.stats.HttpStatsCounter">
+<em class="property">class </em><code class="sig-prename descclassname">meross_iot.utilities.stats.</code><code class="sig-name descname">HttpStatsCounter</code><span class="sig-paren">(</span><em class="sig-param">max_samples=1000</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.utilities.stats.HttpStatsCounter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper class to keep track and calculate statistics for sent HTTP requests</p>
+<dl class="method">
+<dt id="meross_iot.utilities.stats.HttpStatsCounter.get_stats">
+<code class="sig-name descname">get_stats</code><span class="sig-paren">(</span><em class="sig-param">time_window: datetime.timedelta = datetime.timedelta(seconds=60)</em><span class="sig-paren">)</span> &#x2192; meross_iot.utilities.stats.HttpStatsResult<a class="headerlink" href="#meross_iot.utilities.stats.HttpStatsCounter.get_stats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the statistics of sent MQTT messages to the MQTT broker</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="meross_iot.utilities.stats.HttpStatsResult">
+<em class="property">class </em><code class="sig-prename descclassname">meross_iot.utilities.stats.</code><code class="sig-name descname">HttpStatsResult</code><a class="headerlink" href="#meross_iot.utilities.stats.HttpStatsResult" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper class that handles HTTP requests stats result</p>
+<dl class="method">
+<dt id="meross_iot.utilities.stats.HttpStatsResult.device_stats">
+<code class="sig-name descname">device_stats</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; ItemsView[str, meross_iot.utilities.stats.HttpStat]<a class="headerlink" href="#meross_iot.utilities.stats.HttpStatsResult.device_stats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Statistics aggregated by URL</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.utilities.stats.HttpStatsResult.global_stats">
+<em class="property">property </em><code class="sig-name descname">global_stats</code><a class="headerlink" href="#meross_iot.utilities.stats.HttpStatsResult.global_stats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Total number of calls</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.utilities.stats.HttpStatsResult.stats_by_url">
+<code class="sig-name descname">stats_by_url</code><span class="sig-paren">(</span><em class="sig-param">url: str</em><span class="sig-paren">)</span> &#x2192; Optional[meross_iot.utilities.stats.HttpStat]<a class="headerlink" href="#meross_iot.utilities.stats.HttpStatsResult.stats_by_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the statistics of a specific url</p>
 </dd></dl>
 
 </dd></dl>
