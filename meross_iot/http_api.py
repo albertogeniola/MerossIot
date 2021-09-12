@@ -9,6 +9,7 @@ import platform
 import random
 import string
 import time
+import uuid
 from datetime import datetime
 from typing import Optional, List
 
@@ -35,6 +36,7 @@ _HUB_DUBDEV_LIST = "%s/v1/Hub/getSubDevices"
 _LOGOUT_URL = "%s/v1/Profile/logout"
 _MODULE_VERSION = current_version()
 _DEFAULT_UA_HEADER = f"MerossIOT/{_MODULE_VERSION}"
+_DEFAULT_APP_TYPE = "MerossIOT"
 
 
 class MerossHttpClient(object):
@@ -47,15 +49,16 @@ class MerossHttpClient(object):
                  cloud_credentials: MerossCloudCreds,
                  api_base_url: str = DEFAULT_MEROSS_HTTP_API,
                  http_proxy: str = None,
-                 custom_ua_header: str = _DEFAULT_UA_HEADER):
+                 ua_header: str = _DEFAULT_UA_HEADER):
         self._cloud_creds = cloud_credentials
         self.api_url = api_base_url
         self._enable_proxy = False
         self._proxy_type = None
         self._proxy_addr = None
         self._http_proxy = http_proxy
-        self._ua_header = custom_ua_header
+        self._ua_header = ua_header
         self._stats_counter = HttpStatsCounter()
+        self._log_identifier = _generate_log_identifier()
 
     @property
     def stats(self) -> HttpStatsCounter:
@@ -73,7 +76,8 @@ class MerossHttpClient(object):
     async def async_from_user_password(cls, email: str,
                                        password: str,
                                        api_base_url: str = DEFAULT_MEROSS_HTTP_API,
-                                       http_proxy: str = None) -> MerossHttpClient:
+                                       http_proxy: str = None,
+                                       ua_header: str = _DEFAULT_UA_HEADER) -> MerossHttpClient:
         """
         Builds a MerossHttpClient using username/password combination.
         In any case, the login will generate a token, which might expire at any time.
@@ -86,18 +90,21 @@ class MerossHttpClient(object):
         :return: an instance of `MerossHttpClient`
         """
         _LOGGER.debug(f"Logging in with email: {email}, password: XXXXX")
-        creds = await cls.async_login(email=email, password=password, api_base_url=api_base_url, http_proxy=http_proxy)
+        creds = await cls.async_login(email=email, password=password, api_base_url=api_base_url, http_proxy=http_proxy, ua_header=ua_header)
+        # Call log
+        await cls._async_log(creds=creds,http_proxy=http_proxy,api_base_url=api_base_url, ua_header=ua_header)
         _LOGGER.debug(f"Login successful!")
-        return MerossHttpClient(cloud_credentials=creds, api_base_url=api_base_url)
+        return MerossHttpClient(cloud_credentials=creds, api_base_url=api_base_url, http_proxy=http_proxy, ua_header=ua_header)
 
     @classmethod
     async def async_from_cloud_creds(cls,
                                      creds: MerossCloudCreds,
                                      api_base_url: str = DEFAULT_MEROSS_HTTP_API,
-                                     http_proxy: str = None) -> MerossHttpClient:
+                                     http_proxy: str = None,
+                                     ua_header: str = _DEFAULT_UA_HEADER) -> MerossHttpClient:
         # Use _log method to verify the credentials
-        verify_creds = await cls._async_log(creds=creds, api_base_url=api_base_url, http_proxy=http_proxy)
-        return MerossHttpClient(cloud_credentials=creds, api_base_url=api_base_url, http_proxy=http_proxy)
+        verify_creds = await cls._async_log(creds=creds, api_base_url=api_base_url, http_proxy=http_proxy, ua_header=ua_header)
+        return MerossHttpClient(cloud_credentials=creds, api_base_url=api_base_url, http_proxy=http_proxy, ua_header=ua_header)
 
     @classmethod
     async def async_login(cls,
@@ -153,6 +160,8 @@ class MerossHttpClient(object):
                                         cloud_creds: Optional[MerossCloudCreds] = None,
                                         mask_params_in_log: bool = False,
                                         http_proxy: str = None,
+                                        app_type: str = _DEFAULT_APP_TYPE,
+                                        app_version: str = _MODULE_VERSION,
                                         ua_header: str = _DEFAULT_UA_HEADER,
                                         stats_counter: HttpStatsCounter = None
                                         ) -> dict:
@@ -167,7 +176,10 @@ class MerossHttpClient(object):
         md5hash = m.hexdigest()
 
         headers = {
+            "AppVersion": app_version,
             "Authorization": "Basic" if cloud_creds is None else "Basic %s" % cloud_creds.token,
+            "vender": "meross",
+            "AppType": app_type,
             "AppLanguage": "EN",
             "User-Agent": ua_header
         }
@@ -281,6 +293,7 @@ class MerossHttpClient(object):
                          http_proxy: str = None,
                          ua_header: str = _DEFAULT_UA_HEADER,
                          stats_counter: HttpStatsCounter = None,
+                         log_identifier: str = None,
                          *args,
                          **kwargs) -> dict:
         """
@@ -289,10 +302,15 @@ class MerossHttpClient(object):
 
         :return:
         """
-        # TODO: talk to the Meross engineer and negotiate a custom system for identifying the API rather than
-        #  emulating an Android 6 device.
-        data = {'extra': {}, 'model': platform.release(), 'system': platform.system(),
-                'uuid': '493dd9174941ed58waitForOpenWifi', 'vendor': 'N/A', 'version': current_version()}
+        data = {
+            "system":platform.system(),
+            "vendor":"meross",
+            "uuid":log_identifier if log_identifier is not None else _generate_log_identifier(),
+            "extra":"",
+            "model":platform.machine(),
+            "version":platform.version()
+        }
+
         url = _LOG_URL % api_base_url
         return await cls._async_authenticated_post(url,
                                                    params_data=data,
@@ -401,6 +419,14 @@ def authenticated_command_executor(method, *args, **kwargs):
 
     return cmd
 
+
+def _generate_log_identifier() -> str:
+    # Generate random identifiers for _LOG calls
+    # 8x HEXDIGITS
+    hexdigits = '%030x' % random.randrange(16 ** 30)
+    # 1 random UUID
+    uuidstr = uuid.uuid4()
+    return f"{hexdigits}{uuidstr}"
 
 def main():
     import sys
