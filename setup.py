@@ -39,15 +39,9 @@ setup(
         'Tracker': 'https://github.com/albertogeniola/MerossIot/issues',
     },
     install_requires=[
-        'retrying>=1.3.3',
         'paho-mqtt>=1.5.0',
         'requests>=2.19.1',
-        'retrying>=1.3.3',
-        'aiohttp[speedups]>=3.7.4.post0',
-        #'coverage==4.5.4',
-        #'pytest-aiohttp',
-        #'proxy.py',
-        #'pysocks'
+        'aiohttp[speedups]>=3.7.4.post0'
     ],
     python_requires='>=3.7',
     test_suite='tests',

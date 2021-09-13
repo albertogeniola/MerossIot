@@ -98,10 +98,11 @@ jobs:
         MEROSS_PASSWORD: ${{ secrets.MEROSS_PASSWORD }}
       run: |
         pip install .
+        pip install -r requirements-dev.txt
         # Set credentials into memory
         TOKEN=$(meross_api_cli auth login --email $MEROSS_EMAIL --password "$MEROSS_PASSWORD" | base64 -w0)
         # Run test
-        __MEROSS_CREDS=$TOKEN pytest tests --json-report --doctest-modules --junitxml=junit/test-results.xml --cov=. --cov-report=xml --cov-report=html --html=junit/test-results.html --self-contained-html
+        __MEROSS_CREDS=$TOKEN pytest tests --suppress-tests-failed-exit-code --json-report --doctest-modules --junitxml=junit/test-results.xml --cov=. --cov-report=xml --cov-report=html --html=junit/test-results.html --self-contained-html
         # Invalidate token
         __MEROSS_CREDS=$TOKEN meross_api_cli auth logout
         # Parse test outcomes
@@ -114,27 +115,26 @@ jobs:
         echo "::set-output name=$pythonv::$success_rate"
         echo "Python ${{ matrix.python_version }}: $success_rate %" > results-${{ matrix.python_version }}.txt
       continue-on-error: true
-    - name: Upload pytest test results
+    - name: Upload pytest test TXT results
       uses: actions/upload-artifact@v2
       with:
         name: test-report-${{ matrix.python_version }}
         path: results-${{ matrix.python_version }}.txt
       # Use always() to always run this step to publish test results when there are test failures
       if: ${{ always() }}
-    - name: Upload pytest test results
+    - name: Upload pytest test RAW results
       uses: actions/upload-artifact@v2
       with:
         name: pytest-results-${{ matrix.python_version }}
         path: junit/
       # Use always() to always run this step to publish test results when there are test failures
       if: ${{ always() }}
-
-    - name: Upload pytest test results
+    - name: Upload pytest HTML test results
       uses: actions/upload-artifact@v2
       with:
         name: pytest-results-html-${{ matrix.python_version }}
         path: htmlcov/
-    - name: Upload pytest test json results
+    - name: Upload pytest JSON test json results
       uses: actions/upload-artifact@v2
       with:
         name: pytest-results-json-${{ matrix.python_version }}

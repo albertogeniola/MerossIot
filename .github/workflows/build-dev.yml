@@ -80,11 +80,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pytest --upgrade
-        pip install pytest-html --upgrade
-        pip install pytest-cov --upgrade
-        pip install pytest-json-report --upgrade
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
     - name: Wait a bit before running tests
       run: |
         echo "Waiting 120 seconds before starting..."
@@ -101,7 +97,7 @@ jobs:
         # Set credentials into memory
         TOKEN=$(meross_api_cli auth login --email $MEROSS_EMAIL --password "$MEROSS_PASSWORD" | base64 -w0)
         # Run test
-        __MEROSS_CREDS=$TOKEN pytest tests --json-report --doctest-modules --junitxml=junit/test-results.xml --cov=. --cov-report=xml --cov-report=html --html=junit/test-results.html --self-contained-html
+        __MEROSS_CREDS=$TOKEN pytest tests --suppress-tests-failed-exit-code --json-report --doctest-modules --junitxml=junit/test-results.xml --cov=. --cov-report=xml --cov-report=html --html=junit/test-results.html --self-contained-html
         # Invalidate token
         __MEROSS_CREDS=$TOKEN meross_api_cli auth logout
         # Parse test outcomes
