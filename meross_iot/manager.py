@@ -58,6 +58,7 @@ _LOGGER = logging.getLogger(__name__)
 _CONNECTION_DROP_UPDATE_SCHEDULE_INTERVAL = 2
 
 T = TypeVar("T", bound=BaseDevice)  # Declare type variable
+ManagerPushNotificationHandlerType = Callable[[GenericPushNotification, List[BaseDevice], 'MerossManager'], Awaitable]
 
 _PENDING_FUTURES = []
 
@@ -209,7 +210,7 @@ class MerossManager(object):
         self._limiter = limiter
 
     def register_push_notification_handler_coroutine(
-            self, coro: Callable[[GenericPushNotification, List[BaseDevice]], Awaitable]
+            self, coro: ManagerPushNotificationHandlerType
     ) -> None:
         """
         Registers a coroutine so that it gets invoked whenever a push notification is received from the Meross
@@ -227,7 +228,7 @@ class MerossManager(object):
         self._push_coros.append(coro)
 
     def unregister_push_notification_handler_coroutine(
-            self, coro: Callable[[GenericPushNotification, List[BaseDevice]], Awaitable]
+            self, coro: ManagerPushNotificationHandlerType
     ) -> None:
         """
         Unregisters the event handler
@@ -810,15 +811,12 @@ class MerossManager(object):
             device_uuids=(push_notification.originating_device_uuid,)
         )
 
-        try:
-            for handler in self._push_coros:
-                await handler(
-                    push_notification=push_notification, target_devices=target_devs
-                )
-        except Exception as e:
-            _LOGGER.exception(
-                f"An error occurred while executing push notification handling for {push_notification}"
-            )
+        for handler in self._push_coros:
+            try:
+                await handler(push_notification, target_devs, self)
+            except Exception as e:
+                _LOGGER.exception(f"Uncaught error occurred while executing push notification "
+                                  f"handler {handler} for {push_notification}")
 
         # Handling post-dispatching
         handled_post = await self._async_handle_push_notification_post_dispatching(

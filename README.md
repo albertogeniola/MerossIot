@@ -25,7 +25,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```bash
-pip install meross_iot==0.4.2.3
+pip install meross_iot==0.4.2.4
 ```
 
 ## Usage & Full Documentation
@@ -178,16 +178,19 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
+#### 0.4.2.4
+- Added manager reference to Manager push notification handlers
+- Improved push notification tests
+
+<details>
+    <summary>Older</summary>
+
 #### 0.4.2.3
 - Added new HTTP request headers (introduced with latest APP versions)
 - Added custom user agent customization option to MerossHttpClient
 - Implemented pending task cancellation when shutting down the manager
 - Implemented HTTP API stats counting
 - Fixed bug affecting push notification parsing when multiple sensors/valves were in use
-
-<details>
-    <summary>Older</summary>
-
 #### 0.4.2.2
 - Fixed asyncio and threading bug in _schedule_later() utility
 - Improved timeout argument not being always passed downstream

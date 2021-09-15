@@ -1,10 +1,14 @@
 import os
+from typing import List
+
 from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
+from meross_iot.controller.device import BaseDevice
 from meross_iot.controller.mixins.toggle import ToggleXMixin
 from meross_iot.manager import MerossManager
 from meross_iot.model.enums import OnlineStatus
+from meross_iot.model.push.generic import GenericPushNotification
 from tests import async_get_client
 
 
@@ -54,15 +58,37 @@ class TestPushNotificationHandler(AioHTTPTestCase):
             devs = m.find_devices(device_uuids=(self.test_device.uuid,))
             dev = devs[0]
 
-            e = asyncio.Event()
+            mgr_e = asyncio.Event()
+            dev_e = asyncio.Event()
 
-            # Define the coroutine for handling push notification
-            async def my_coro(namespace, data, device_internal_id):
-                e.set()
+            # Define the coroutine for handling push notification at Manager Level
+            async def manager_push_handler(push: GenericPushNotification, devices: List[BaseDevice], manager: MerossManager):
+                mgr_e.set()
 
-            dev.register_push_notification_handler_coroutine(my_coro)
+            # Define the coroutine for handling push notification for a specific device
+            async def dev_push_handler(namespace, data, device_internal_id):
+                dev_e.set()
+
+            dev.register_push_notification_handler_coroutine(dev_push_handler)
+            self.meross_manager.register_push_notification_handler_coroutine(manager_push_handler)
+
             await self.test_device.async_turn_off()
-            await asyncio.wait_for(e.wait(), 5.0)
+            aws = [mgr_e.wait(), dev_e.wait()]
+            done, pending = await asyncio.wait(aws,timeout=5.0, return_when=asyncio.ALL_COMPLETED)
+            assert(len(done) == 2 and len(pending) == 0)
+
+            # Unregister the handlers, repeat the test and make sure none of them is triggered
+            dev.unregister_push_notification_handler_coroutine(dev_push_handler)
+            self.meross_manager.unregister_push_notification_handler_coroutine(manager_push_handler)
+            mgr_e.clear()
+            dev_e.clear()
+
+            aws = [mgr_e.wait(), dev_e.wait()]
+            await self.test_device.async_turn_on()
+            done, pending = await asyncio.wait(aws, timeout=5.0, return_when=asyncio.ALL_COMPLETED)
+            assert (len(done) == 0 and len(pending) == 2)
+            for task in pending:
+                task.cancel()
 
         finally:
             if m is not None:
