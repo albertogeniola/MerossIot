@@ -320,26 +320,35 @@ class MerossManager(object):
         _LOGGER.debug("Stop flag raised, ending loop")
 
     async def async_device_discovery(
-            self, update_subdevice_status: bool = True, meross_device_uuid: str = None
+            self,
+            update_subdevice_status: bool = True,
+            meross_device_uuid: str = None,
+            cached_http_device_list: Optional[Iterable[HttpDeviceInfo]] = None
     ) -> Iterable[BaseDevice]:
         """
         Fetch devices and online status from HTTP API. This method also notifies/updates local device online/offline
         status.
 
         :param meross_device_uuid: Meross UUID of the device that the user wants to discover (is already known).
-        This parameter restricts the discovery only to that particular device. When None, all the devices
-        reported by the HTTP api will be discovered.
+            This parameter restricts the discovery only to that particular device.
+
         :param update_subdevice_status: When True, tells the manager to retrieve the HUB status in order to update
-        hub-subdevice online status, which would be UNKNOWN if not explicitly retrieved.
+            hub-subdevice online status, which would be UNKNOWN if not explicitly retrieved.
+
+        :param cached_http_device_list: List/Iterable structure of HttpDeviceInfo to be used for the discovery.
+            When passed, the manger skips the HTTP API call and uses this data to perform MQTT discovery.
+            When not passed, the manager will issue the HTTP API call to retrieve the latest HTTP devices list
 
         :return: A list of discovered device, which implement `BaseDevice`
         """
-        _LOGGER.info(
-            f"\n\n------- Triggering HTTP discovery, filter_device: {meross_device_uuid} -------"
-        )
-        # List http devices
-        http_devices = await self._http_client.async_list_devices()
+        if cached_http_device_list is None:
+            _LOGGER.info(f"\n\n------- Triggering Manager Discovery, filter_device: [{meross_device_uuid}] -------")
+            http_devices = await self._http_client.async_list_devices()
+        else:
+            _LOGGER.info(f"\n\n------- Triggering Manager Discovery (using cached http device list), filter_device: [{meross_device_uuid}] -------")
+            http_devices = cached_http_device_list
 
+        # If the user pased a specific uuid, filter the list by that one
         if meross_device_uuid is not None:
             http_devices = filter(lambda d: d.uuid == meross_device_uuid, http_devices)
 
@@ -363,18 +372,6 @@ class MerossManager(object):
             f"The following devices are new to me: {discovered_new_http_devices}"
         )
 
-        # For every newly discovered device, retrieve its abilities and then build a corresponding wrapper.
-        # In the meantime, update state of the already known devices
-        # Do this in "parallel" with multiple tasks rather than executing every task singularly
-        # tasks = []
-        # for d in discovered_new_http_devices:
-        #     tasks.append(self._loop.create_task(self._async_enroll_new_http_dev(d)))
-        # for hdevice, ldevice in already_known_http_devices.items():
-        #     tasks.append(
-        #         self._loop.create_task(ldevice.update_from_http_state(hdevice))
-        #     )
-        # Wait for factory to build all devices
-        #enrolled_devices = await asyncio.gather(*tasks, loop=self._loop)
         enrolled_devices = []
         for d in discovered_new_http_devices:
             dev = await self._async_enroll_new_http_dev(d)
@@ -389,29 +386,6 @@ class MerossManager(object):
         )
 
         _LOGGER.info(f"Fetch and update done")
-
-        # Let's now handle HubDevices. For every HubDevice we have, we need to fetch new possible subdevices
-        # from the HTTP API
-        # subdevtasks = []
-        # hubs = []
-        # for d in enrolled_devices:
-        #     if isinstance(d, HubDevice):
-        #         hubs.append(d)
-        #         subdevs = await self._http_client.async_list_hub_subdevices(
-        #             hub_id=d.uuid
-        #         )
-        #         for sd in subdevs:
-        #             subdevtasks.append(
-        #                 self._loop.create_task(
-        #                     self._async_enroll_new_http_subdev(
-        #                         subdevice_info=sd,
-        #                         hub=d,
-        #                         hub_reported_abilities=d.abilities,
-        #                     )
-        #                 )
-        #             )
-        # # Wait for factory to build all devices
-        # enrolled_subdevices = await asyncio.gather(*subdevtasks, loop=self._loop)
 
         hubs = []
         enrolled_subdevices = []
@@ -432,7 +406,7 @@ class MerossManager(object):
         if update_subdevice_status:
             for h in hubs:
                 await h.async_update(drop_on_overquota=False)
-        _LOGGER.info(f"\n------- HTTP discovery ended -------\n")
+        _LOGGER.info(f"\n------- Manager Discovery ended -------\n")
 
         res = []
         res.extend(enrolled_devices)
@@ -598,7 +572,7 @@ class MerossManager(object):
             # Store the previous connection state for all known devices
             _prev_online_status = {d.uuid: d.online_status for d in self.find_devices()}
 
-            # Issue a new discovery to update their connection status. Thiss will rely on HTTP api to update it
+            # Issue a new discovery to update their connection status. This will rely on HTTP api to update it
             await self.async_device_discovery(update_subdevice_status=True)
 
             i = 0
