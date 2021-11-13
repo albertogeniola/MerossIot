@@ -1,43 +1,20 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8" />
-  
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>HTTP Client &mdash; MerossIot Library  documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+  <title>HTTP Client &mdash; MerossIot Library  documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
 
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+  <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
+    <script src="../_static/js/theme.js"></script>
         <script data-ad-client="ca-pub-9110025741700767" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 
     <link rel="index" title="Index" href="../genindex.html" />
@@ -46,29 +23,13 @@
     <link rel="prev" title="API Reference" href="index.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search"  style="background: white" >
-          
-
-          
             <a href="../index.html" class="icon icon-home"> MerossIot Library
-          
-
-          
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -76,18 +37,7 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption"><span class="caption-text">Table of Contents</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
@@ -122,136 +72,194 @@
 </li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: white" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">MerossIot Library</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-        
           <li><a href="index.html">API Reference</a> &raquo;</li>
-        
       <li>HTTP Client</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="../_sources/api-reference/http.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="http-client">
-<h1>HTTP Client<a class="headerlink" href="#http-client" title="Permalink to this headline">¶</a></h1>
+             
+  <div class="section" id="module-meross_iot.http_api">
+<span id="http-client"></span><h1>HTTP Client<a class="headerlink" href="#module-meross_iot.http_api" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="meross_iot.http_api.MerossHttpClient">
+<em class="property">class </em><code class="sig-prename descclassname">meross_iot.http_api.</code><code class="sig-name descname">MerossHttpClient</code><span class="sig-paren">(</span><em class="sig-param">cloud_credentials: meross_iot.model.credentials.MerossCloudCreds</em>, <em class="sig-param">api_base_url: str = 'https://iot.meross.com'</em>, <em class="sig-param">http_proxy: Optional[str] = None</em>, <em class="sig-param">ua_header: str = 'MerossIOT/0.0.0'</em>, <em class="sig-param">app_type: str = 'MerossIOT'</em>, <em class="sig-param">app_version: str = '0.0.0'</em>, <em class="sig-param">log_identifier: str = '27c8d9d038de85cfd0eacd574cd57edc5eebb5-8290-4d9e-9fe4-ca2c187d2e52'</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.http_api.MerossHttpClient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Utility class for dealing with Meross HTTP API.
+This class simplifies the usage of the Meross HTTP API providing login, logout and device listing API.</p>
+<dl class="method">
+<dt id="meross_iot.http_api.MerossHttpClient.async_from_user_password">
+<em class="property">async classmethod </em><code class="sig-name descname">async_from_user_password</code><span class="sig-paren">(</span><em class="sig-param">email: str</em>, <em class="sig-param">password: str</em>, <em class="sig-param">api_base_url: str = 'https://iot.meross.com'</em>, <em class="sig-param">http_proxy: Optional[str] = None</em>, <em class="sig-param">ua_header: str = 'MerossIOT/0.0.0'</em>, <em class="sig-param">app_type: str = 'MerossIOT'</em>, <em class="sig-param">app_version: str = '0.0.0'</em>, <em class="sig-param">log_identifier: str = '27c8d9d038de85cfd0eacd574cd57edc5eebb5-8290-4d9e-9fe4-ca2c187d2e52'</em><span class="sig-paren">)</span> &#x2192; meross_iot.http_api.MerossHttpClient<a class="headerlink" href="#meross_iot.http_api.MerossHttpClient.async_from_user_password" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds a MerossHttpClient using username/password combination.
+In any case, the login will generate a token, which might expire at any time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>email</strong> – Meross account email</p></li>
+<li><p><strong>password</strong> – Meross account password</p></li>
+<li><p><strong>api_base_url</strong> – Meross API base URL</p></li>
+<li><p><strong>http_proxy</strong> – Optional http proxy to use when issuing the requests</p></li>
+<li><p><strong>app_type</strong> – App Type header parameter to use</p></li>
+<li><p><strong>app_version</strong> – App Version header parameter to use</p></li>
+<li><p><strong>log_identifier</strong> – Log identifier to use</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>an instance of <cite>MerossHttpClient</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.http_api.MerossHttpClient.async_invalidate_credentials">
+<em class="property">async </em><code class="sig-name descname">async_invalidate_credentials</code><span class="sig-paren">(</span><em class="sig-param">creds: meross_iot.model.credentials.MerossCloudCreds</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.http_api.MerossHttpClient.async_invalidate_credentials" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class method used to invalidate credentials without logging in with a full MerossHttpClient.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>creds</strong> – <cite>MerossCloudCredentials</cite> as returned by <cite>async_login()</cite> or <cite>async_from_user_password()</cite></p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>API response data</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.http_api.MerossHttpClient.async_list_devices">
+<em class="property">async </em><code class="sig-name descname">async_list_devices</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; List[meross_iot.model.http.device.HttpDeviceInfo]<a class="headerlink" href="#meross_iot.http_api.MerossHttpClient.async_list_devices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Asks to the HTTP api to list the Meross device belonging to the given user account.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a list of <cite>HttpDeviceInfo</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.http_api.MerossHttpClient.async_list_hub_subdevices">
+<em class="property">async </em><code class="sig-name descname">async_list_hub_subdevices</code><span class="sig-paren">(</span><em class="sig-param">hub_id: str</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; List[meross_iot.model.http.subdevice.HttpSubdeviceInfo]<a class="headerlink" href="#meross_iot.http_api.MerossHttpClient.async_list_hub_subdevices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the sub-devices associated to the given hub.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>hub_id</strong> – Meross native UUID of the HUB</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a list of <cite>HttpSubdeviceInfo</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.http_api.MerossHttpClient.async_login">
+<em class="property">async classmethod </em><code class="sig-name descname">async_login</code><span class="sig-paren">(</span><em class="sig-param">email: str</em>, <em class="sig-param">password: str</em>, <em class="sig-param">creds_env_var_name: str = '__MEROSS_CREDS'</em>, <em class="sig-param">api_base_url: str = 'https://iot.meross.com'</em>, <em class="sig-param">http_proxy: Optional[str] = None</em>, <em class="sig-param">ua_header: str = 'MerossIOT/0.0.0'</em>, <em class="sig-param">app_type: str = 'MerossIOT'</em>, <em class="sig-param">app_version: str = '0.0.0'</em>, <em class="sig-param">log_identifier: str = '27c8d9d038de85cfd0eacd574cd57edc5eebb5-8290-4d9e-9fe4-ca2c187d2e52'</em>, <em class="sig-param">stats_counter: Optional[meross_iot.utilities.stats.HttpStatsCounter] = None</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; meross_iot.model.credentials.MerossCloudCreds<a class="headerlink" href="#meross_iot.http_api.MerossHttpClient.async_login" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs the login against the Meross HTTP endpoint.
+This api returns a MerossCloudCreds object, which contains a token.
+Be cautious when invoking this API: asking for too many tokens as the Meross HTTP API might refuse
+to issue more tokens. Instead, you should keep using the same issued token when possible, possibly
+storing it across sessions. When you are done using a specific token, be sure to invoke logout
+to invalidate it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>email</strong> – Meross account email</p></li>
+<li><p><strong>password</strong> – Meross account password</p></li>
+<li><p><strong>creds_env_var_name</strong> – If set, makes thi method store the obtained login-credentials in the specified env variable.</p></li>
+</ul>
+</dd>
+</dl>
+<p>indicate which env variables stores such credentials
+:param api_base_url: Meross API base url
+:param http_proxy: Optional http proxy to use when to performing the request
+:param ua_header: User Agent header to use when issuing the HTTP request
+:param stats_counter: Stats counter object
+:param app_type: App Type header parameter to use
+:param app_version:  App Version header parameter to use</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a <cite>MerossCloudCreds</cite> object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.http_api.MerossHttpClient.async_logout">
+<em class="property">async </em><code class="sig-name descname">async_logout</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.http_api.MerossHttpClient.async_logout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Invalidates the credentials stored in this object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>API response data</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.http_api.MerossHttpClient.cloud_credentials">
+<em class="property">property </em><code class="sig-name descname">cloud_credentials</code><a class="headerlink" href="#meross_iot.http_api.MerossHttpClient.cloud_credentials" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the meross credentials returned by the the HTTP Api
+:return:</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="manager.html" class="btn btn-neutral float-right" title="MerossManager" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="index.html" class="btn btn-neutral float-left" title="API Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="manager.html" class="btn btn-neutral float-right" title="MerossManager" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2020, Alberto Geniola.
-
-    </p>
+    <p>&#169; Copyright 2020, Alberto Geniola.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
   </script>
-
-  
-  
-    
     <!-- Theme Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-10387182-6"></script>
     <script>
-    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
 
-    ga('create', 'UA-10387182-6', 'auto');
-    
-    ga('send', 'pageview');
-    </script>
-
-    
-   
+      gtag('config', 'UA-10387182-6', {
+          'anonymize_ip': false,
+      });
+    </script> 
 
 </body>
 </html>

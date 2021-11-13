@@ -1,43 +1,20 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8" />
-  
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>Quick start &mdash; MerossIot Library  documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+  <title>Quick start &mdash; MerossIot Library  documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
 
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+  <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
+    <script src="_static/js/theme.js"></script>
         <script data-ad-client="ca-pub-9110025741700767" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 
     <link rel="index" title="Index" href="genindex.html" />
@@ -46,29 +23,13 @@
     <link rel="prev" title="Installation" href="installation.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search"  style="background: white" >
-          
-
-          
             <a href="index.html" class="icon icon-home"> MerossIot Library
-          
-
-          
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -76,18 +37,7 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption"><span class="caption-text">Table of Contents</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
@@ -106,71 +56,30 @@
 <li class="toctree-l1"><a class="reference internal" href="api-reference/index.html">API Reference</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: white" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">MerossIot Library</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-        
       <li>Quick start</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="_sources/quick-start.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
+             
   <div class="section" id="quick-start">
 <h1>Quick start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h1>
 <p>We (developers) all know how important is to get things working fast.
@@ -272,6 +181,41 @@ by the <code class="code docutils literal notranslate"><span class="pre">MerossM
 <code class="code docutils literal notranslate"><span class="pre">async_device_discovery()</span></code> too frequently as doing so might trigger some alert/banning from Meross API.</p>
 <p>The <code class="code docutils literal notranslate"><span class="pre">find_device()</span></code> method supports some filtering arguments to search for specific devices. Have a look at
 the following method signature for more details.</p>
+<dl class="method">
+<dt id="meross_iot.manager.MerossManager.find_devices">
+<code class="sig-prename descclassname">MerossManager.</code><code class="sig-name descname">find_devices</code><span class="sig-paren">(</span><em class="sig-param">device_uuids: Optional[Iterable[str]] = None, internal_ids: Optional[Iterable[str]] = None, device_type: Optional[str] = None, device_class: Union[type, Iterable[type], None] = None, device_name: Optional[str] = None, online_status: Optional[meross_iot.model.enums.OnlineStatus] = None</em><span class="sig-paren">)</span> &#x2192; List[T]<a class="headerlink" href="#meross_iot.manager.MerossManager.find_devices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lists devices that have been discovered via this manager. When invoked with no arguments,
+it returns the whole list of registered devices. When one or more filter arguments are specified,
+it returns the list of devices that satisfy all the filters (consider multiple filters as in logical AND).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>device_uuids</strong> – List of Meross native device UUIDs. When specified, only devices that have a native UUID
+contained in this list are returned.</p></li>
+<li><p><strong>internal_ids</strong> – Iterable List of MerossIot device ids. When specified, only devices that have a
+derived-ids contained in this list are returned.</p></li>
+<li><p><strong>device_type</strong> – Device type string as reported by meross app (e.g. “mss310” or “msl120”). Note that this
+field is case sensitive.</p></li>
+<li><p><strong>device_class</strong> – Filter based on the resulting device class or list of classes. When this parameter is
+a list of types, the filter returns al the devices that matches at least one of the types in the list
+(logic OR). You can filter also for capability Mixins, such as
+<code class="code docutils literal notranslate"><span class="pre">meross_iot.controller.mixins.toggle.ToggleXMixin</span></code> (returns all the devices supporting ToggleX
+capability) or <code class="code docutils literal notranslate"><span class="pre">meross_iot.controller.mixins.light.LightMixin</span></code>
+(returns all the device that supports light control). Similarly, you can identify all the HUB devices
+by specifying <code class="code docutils literal notranslate"><span class="pre">meross_iot.controller.device.HubDevice</span></code>, Sensors as
+<code class="code docutils literal notranslate"><span class="pre">meross_iot.controller.subdevice.Ms100Sensor</span></code> and Valves as
+<code class="code docutils literal notranslate"><span class="pre">meross_iot.controller.subdevice.Mts100v3Valve</span></code>.</p></li>
+<li><p><strong>device_name</strong> – Filter the devices based on their assigned name (case sensitive)</p></li>
+<li><p><strong>online_status</strong> – Filter the devices based on their <code class="code docutils literal notranslate"><span class="pre">meross_iot.model.enums.OnlineStatus</span></code>
+as reported by the HTTP api or byt the relative hub (when dealing with subdevices).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The list of devices that match the provided filters, if any.</p>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 <div class="section" id="controlling-switches">
 <h2>Controlling switches<a class="headerlink" href="#controlling-switches" title="Permalink to this headline">¶</a></h2>
@@ -1001,63 +945,44 @@ within the <a class="reference internal" href="api-reference/controller/subdevic
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="common-gotchas.html" class="btn btn-neutral float-right" title="Common gotchas" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="common-gotchas.html" class="btn btn-neutral float-right" title="Common gotchas" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2020, Alberto Geniola.
-
-    </p>
+    <p>&#169; Copyright 2020, Alberto Geniola.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
   </script>
-
-  
-  
-    
     <!-- Theme Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-10387182-6"></script>
     <script>
-    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
 
-    ga('create', 'UA-10387182-6', 'auto');
-    
-    ga('send', 'pageview');
-    </script>
-
-    
-   
+      gtag('config', 'UA-10387182-6', {
+          'anonymize_ip': false,
+      });
+    </script> 
 
 </body>
 </html>
