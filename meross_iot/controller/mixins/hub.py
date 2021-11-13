@@ -42,7 +42,7 @@ class HubMixn(object):
                             f"registered with this hub. The update will be skipped.")
                         return False
                     else:
-                        await subdev.async_handle_push_notification(namespace=namespace, data=subdev_state)
+                        await subdev.async_handle_subdevice_notification(namespace=namespace, data=subdev_state)
                 locally_handled = True
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
@@ -85,7 +85,7 @@ class HubMs100Mixin(object):
                 _LOGGER.warning(f"Received data for subdevice {target_device}, which has not been registered with this"
                                 f"hub yet. This update will be ignored.")
             else:
-                await target_device.async_handle_push_notification(namespace=Namespace.HUB_SENSOR_ALL, data=d)
+                await target_device.async_handle_subdevice_notification(namespace=Namespace.HUB_SENSOR_ALL, data=d)
 
     async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
@@ -112,7 +112,7 @@ class HubMs100Mixin(object):
                             f"registered with this hub. The update will be skipped.")
                         return False
                     else:
-                        await subdev.async_handle_push_notification(namespace=namespace, data=subdev_state)
+                        await subdev.async_handle_subdevice_notification(namespace=namespace, data=subdev_state)
                 locally_handled = True
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
@@ -137,23 +137,26 @@ class HubMts100Mixin(object):
         super().__init__(device_uuid=device_uuid, manager=manager, **kwargs)
 
     async def async_update(self, skip_rate_limits: bool = False, drop_on_overquota: bool = True, timeout: Optional[float] = None, *args, **kwargs) -> None:
-        # Call the super implementation
-        await super().async_update(skip_rate_limits=skip_rate_limits, drop_on_overquota=drop_on_overquota, timeout=timeout, *args, **kwargs)
+        try:
+            # Call the super implementation
+            await super().async_update(skip_rate_limits=skip_rate_limits, drop_on_overquota=drop_on_overquota, timeout=timeout, *args, **kwargs)
 
-        result = await self._execute_command(method="GET",
-                                             namespace=Namespace.HUB_MTS100_ALL,
-                                             payload={'all': []},
-                                             skip_rate_limits=skip_rate_limits,
-                                             drop_on_overquota=drop_on_overquota,
-                                             timeout=timeout)
-        subdevs_data = result.get('all', [])
-        for d in subdevs_data:
-            dev_id = d.get('id')
-            target_device = self.get_subdevice(subdevice_id=dev_id)
-            if target_device is None:
-                _LOGGER.warning(f"Received data for subdevice {target_device}, which has not been registered with this"
-                                f"hub yet. This update will be ignored.")
-            await target_device.async_handle_push_notification(namespace=Namespace.HUB_MTS100_ALL, data=d)
+            result = await self._execute_command(method="GET",
+                                                 namespace=Namespace.HUB_MTS100_ALL,
+                                                 payload={'all': []},
+                                                 skip_rate_limits=skip_rate_limits,
+                                                 drop_on_overquota=drop_on_overquota,
+                                                 timeout=timeout)
+            subdevs_data = result.get('all', [])
+            for d in subdevs_data:
+                dev_id = d.get('id')
+                target_device = self.get_subdevice(subdevice_id=dev_id)
+                if target_device is None:
+                    _LOGGER.warning(f"Received data for subdevice {target_device}, which has not been registered with this"
+                                    f"hub yet. This update will be ignored.")
+                await target_device.async_handle_subdevice_notification(namespace=Namespace.HUB_MTS100_ALL, data=d)
+        except Exception as e:
+            _LOGGER.exception("Error occurred during subdevice update")
 
     async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
@@ -179,8 +182,9 @@ class HubMts100Mixin(object):
                             f"registered with this hub. The update will be skipped.")
                         return False
                     else:
-                        await subdev.async_handle_push_notification(namespace=namespace, data=subdev_state)
-                locally_handled = True
+                        locally_handled = await subdev.async_handle_subdevice_notification(namespace=namespace, data=subdev_state)
+                        if locally_handled:
+                            break
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.

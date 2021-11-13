@@ -25,7 +25,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```bash
-pip install meross_iot==0.4.2.4
+pip install meross_iot==0.4.3.0
 ```
 
 ## Usage & Full Documentation
@@ -178,13 +178,16 @@ Anyways, feel free to contribute via donations!
 </p>
 
 ## Changelog
-#### 0.4.2.4
-- Added manager reference to Manager push notification handlers
-- Improved push notification tests
+#### 0.4.3.0
+- Refactored asyncio calls affected by loop parameter deprecation 
+- Various `subdevice` event handling improvements and bugfixes
 
 <details>
     <summary>Older</summary>
 
+#### 0.4.2.4
+- Added manager reference to Manager push notification handlers
+- Improved push notification tests
 #### 0.4.2.3
 - Added new HTTP request headers (introduced with latest APP versions)
 - Added custom user agent customization option to MerossHttpClient

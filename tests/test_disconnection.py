@@ -35,7 +35,7 @@ class ProxyManager:
 
     def start(self):
         if not self._started:
-            self._process = Process(target=proxy.main, args=(['--port', str(self._port)],))
+            self._process = Process(target=proxy.main, args=(['--port', str(self._port), '--hostname', '127.0.0.1', '--num-workers', '2'],))
             self._process.start()
             self._started = True
 
@@ -136,4 +136,4 @@ class TestDisconnection(AioHTTPTestCase):
         self.meross_manager.close()
 
         # Give a change to asyncio clean everything up
-        await asyncio.sleep(1, loop=self.meross_manager._loop)
+        await asyncio.sleep(1)

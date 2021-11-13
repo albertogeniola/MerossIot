@@ -103,4 +103,4 @@ class TestToggle(AioHTTPTestCase):
         self.meross_manager.close()
 
         # Give a change to asyncio clean everything up
-        await asyncio.sleep(1, loop=self.meross_manager._loop)
+        await asyncio.sleep(1)

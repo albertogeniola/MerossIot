@@ -33,7 +33,11 @@ class Ms100Sensor(GenericSubDevice):
             if update_element is not None:
                 self._online = OnlineStatus(update_element.get('status', -1))
                 locally_handled = True
-        elif namespace == Namespace.HUB_SENSOR_ALL:
+        return locally_handled
+
+    async def async_handle_subdevice_notification(self, namespace: Namespace, data: dict) -> bool:
+        locally_handled = False
+        if namespace == Namespace.HUB_SENSOR_ALL:
             self._online = OnlineStatus(data.get('online', {}).get('status', -1))
             self.__temperature.update(data.get('temperature', {}))
             self.__humidity.update(data.get('humidity', {}))
@@ -66,6 +70,8 @@ class Ms100Sensor(GenericSubDevice):
         elif namespace == Namespace.HUB_SENSOR_ALERT:
             locally_handled = False
             # TODO: not yet implemented
+        else:
+            _LOGGER.warning(f"Could not handle event %s in subdevice %s handler", namespace, self.name)
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
@@ -154,7 +160,11 @@ class Mts100v3Valve(GenericSubDevice):
             if update_element is not None:
                 self._online = OnlineStatus(update_element.get('status', -1))
                 locally_handled = True
-        elif namespace == Namespace.HUB_MTS100_ALL:
+        return locally_handled
+
+    async def async_handle_subdevice_notification(self, namespace: Namespace, data: dict) -> bool:
+        locally_handled = False
+        if namespace == Namespace.HUB_MTS100_ALL:
             self._schedule_b_mode = data.get('scheduleBMode')
             self._online = OnlineStatus(data.get('online', {}).get('status', -1))
             self._last_active_time = data.get('online', {}).get('lastActiveTime')
@@ -182,6 +192,8 @@ class Mts100v3Valve(GenericSubDevice):
                 self.__temperature.update(update_element)
                 self.__temperature['latestSampleTime'] = datetime.utcnow().timestamp()
                 locally_handled = True
+        else:
+            _LOGGER.error(f"Could not handle event %s in subdevice %s handler", namespace, self.name)
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.

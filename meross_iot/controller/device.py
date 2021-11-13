@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import time
 from datetime import datetime
@@ -403,7 +404,7 @@ class GenericSubDevice(BaseDevice):
 
             if subdev_id != self.subdevice_id:
                 continue
-            await self.async_handle_push_notification(namespace=self._UPDATE_ALL_NAMESPACE, data=subdev_state)
+            await self.async_handle_subdevice_notification(namespace=self._UPDATE_ALL_NAMESPACE, data=subdev_state)
             break
 
     async def async_get_battery_life(self,
@@ -425,6 +426,10 @@ class GenericSubDevice(BaseDevice):
         battery_life_perc = data.get('battery', {})[0].get('value')
         timestamp = datetime.utcnow()
         return BatteryInfo(battery_charge=battery_life_perc, sample_ts=timestamp)
+
+    async def async_handle_subdevice_notification(self, namespace: Namespace, data: dict) -> bool:
+        _LOGGER.error("Unhandled/NotImplemented event handler for %s (data: %s) - Subdevice %s (hub %s)", namespace, json.dumps(data), self.subdevice_id, self._hub.uuid)
+        return False
 
     @property
     def internal_id(self) -> str:

@@ -162,7 +162,7 @@ class MerossManager(object):
         if not client.is_connected():
             conn_evt = self._mqtt_connected_and_subscribed.get(dict_key)  # type: asyncio.Event
             if conn_evt is None:
-                conn_evt = asyncio.Event(loop=self._loop)
+                conn_evt = asyncio.Event()
                 client.connect(host=domain, port=port, keepalive=30)
                 self._mqtt_connected_and_subscribed[dict_key] = conn_evt
 
@@ -365,10 +365,10 @@ class MerossManager(object):
                 discovered_new_http_devices.append(hdevice)
 
         # Give some info
-        _LOGGER.info(
+        _LOGGER.debug(
             f"The following devices were already known to me: {already_known_http_devices}"
         )
-        _LOGGER.info(
+        _LOGGER.debug(
             f"The following devices are new to me: {discovered_new_http_devices}"
         )
 
@@ -447,7 +447,7 @@ class MerossManager(object):
         def reset_started_flag(_fut):
             self.__started = False
 
-        _LOGGER.info("Starting looper task")
+        _LOGGER.debug("Starting looper task")
         self._mqtt_looper_task = self._loop.create_task(self._async_loop()).add_done_callback(reset_started_flag)
 
     async def _async_enroll_new_http_dev(
@@ -709,8 +709,10 @@ class MerossManager(object):
     ) -> bool:
         handled = False
         # Lookup the originating device and deliver the push notification to that one.
+        # Exclude subdevices: event dispatching among them is handled by their relative HUB.
         target_devs = self._device_registry.find_all_by(
-            device_uuids=(push_notification.originating_device_uuid,)
+            device_uuids=(push_notification.originating_device_uuid,),
+            exclude_classes=(GenericSubDevice,)
         )
         dev = None
 
@@ -878,7 +880,7 @@ class MerossManager(object):
                 self._stats_counter.notify_delayed_call(device_uuid=destination_device_uuid,
                                                         namespace=namespace.value,
                                                         method=method)
-                await asyncio.sleep(delay=time_to_wait, loop=self._loop)
+                await asyncio.sleep(delay=time_to_wait)
                 return await self.async_execute_cmd_client(
                     client=client,
                     destination_device_uuid=destination_device_uuid,
@@ -925,7 +927,7 @@ class MerossManager(object):
             topic=build_device_request_topic(target_device_uuid), payload=message
         )
         try:
-            return await asyncio.wait_for(future, timeout, loop=self._loop)
+            return await asyncio.wait_for(future, timeout)
         except TimeoutError as e:
             domain, port = self._get_client_from_domain_port(client=client)
             time_window = timedelta(minutes=1)
@@ -1058,6 +1060,7 @@ class DeviceRegistry(object):
             device_class: Optional[Union[type, Iterable[type]]] = None,
             device_name: Optional[str] = None,
             online_status: Optional[OnlineStatus] = None,
+            exclude_classes: Optional[Iterable[type]] = None
     ) -> List[BaseDevice]:
 
         def filter_by_type(dev: Any):
@@ -1065,6 +1068,12 @@ class DeviceRegistry(object):
                 if isinstance(dev, t):
                     return True
             return False
+
+        def filter_by_excluded_type(dev: Any):
+            for t in exclude_classes:
+                if isinstance(dev, t):
+                    return False
+            return True
 
         # Look by Internal UUIDs
         if internal_ids is not None:
@@ -1088,6 +1097,8 @@ class DeviceRegistry(object):
                 res = filter(filter_by_type, res)
         if device_name is not None:
             res = filter(lambda d: d.name == device_name, res)
+        if exclude_classes is not None:
+            res = filter(filter_by_excluded_type, res)
 
         return list(res)
 
@@ -1114,7 +1125,7 @@ def set_future_done(future):
 
 def _schedule_later(coroutine, start_delay, loop):
     async def delayed_execution(coro, delay, loop):
-        await asyncio.sleep(delay=delay, loop=loop)
+        await asyncio.sleep(delay=delay)
         await coro
 
     future = asyncio.run_coroutine_threadsafe(coro=delayed_execution(coro=coroutine, delay=start_delay, loop=loop), loop=loop)

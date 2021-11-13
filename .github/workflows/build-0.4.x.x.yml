@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python_version: ['3.7', '3.8', '3.9']
+        python_version: ['3.7', '3.8', '3.9', '3.10']
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
@@ -65,12 +65,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python_version: ['3.7', '3.8', '3.9']
+        python_version: ['3.7', '3.8', '3.9', '3.10']
       max-parallel: 1
     outputs:
       success_rate_python_3_7: ${{steps.pytest.outputs.success_rate_3_7}}
       success_rate_python_3_8: ${{steps.pytest.outputs.success_rate_3_8}}
       success_rate_python_3_9: ${{steps.pytest.outputs.success_rate_3_9}}
+      success_rate_python_3_10: ${{steps.pytest.outputs.success_rate_3_10}}
     needs: [build, turn-on-env]
     steps:
     - uses: actions/checkout@v2
@@ -184,12 +185,13 @@ jobs:
           echo "Python 3.7: ${{ needs.test.outputs.success_rate_python_3_7 }}%"
           echo "Python 3.8: ${{ needs.test.outputs.success_rate_python_3_8 }}%"
           echo "Python 3.9: ${{ needs.test.outputs.success_rate_python_3_9 }}%"
+          echo "Python 3.10: ${{ needs.test.outputs.success_rate_python_3_10 }}%"
       - name: Take release decision
         id: release_decision
         run: |
           success_threshold=90
           echo "Current minimum pass-threshold: $success_threshold %"
-          should_release=`echo "${{ needs.test.outputs.success_rate_python_3_7 }} > $success_threshold && ${{ needs.test.outputs.success_rate_python_3_8 }} > $success_threshold && ${{ needs.test.outputs.success_rate_python_3_9 }} > $success_threshold" | bc -l`
+          should_release=`echo "${{ needs.test.outputs.success_rate_python_3_7 }} > $success_threshold && ${{ needs.test.outputs.success_rate_python_3_8 }} > $success_threshold && ${{ needs.test.outputs.success_rate_python_3_9 }} > $success_threshold" && ${{ needs.test.outputs.success_rate_python_3_10 }} > $success_threshold" | bc -l`
           echo "::set-output name=should_release::$should_release"
           echo "Release decision: $should_release"
           if [[ $should_release -ne 1 ]]; then
@@ -205,10 +207,10 @@ jobs:
     needs: [release_checks]
     if: ${{ success() }}
     steps:
-      - name: Setup Python 3.9
+      - name: Setup Python 3.10
         uses: actions/setup-python@v2
         with:
-          python-version: 3.9
+          python-version: 3.10
       - uses: actions/checkout@v2
       - name: Install python dependencies
         run: |
