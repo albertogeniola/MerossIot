@@ -380,9 +380,11 @@ class MerossManager(object):
             dev = await ldevice.update_from_http_state(hdevice)
             enrolled_devices.append(dev)
 
-        _LOGGER.info(
-            f"Updating {len(already_known_http_devices)} known devices form HTTPINFO and fetching "
-            f"data from {len(discovered_new_http_devices)} newly discovered devices..."
+        _LOGGER.debug(
+            f"Updating %d known devices form HTTPINFO and fetching "
+            f"data from %d newly discovered devices...",
+            len(already_known_http_devices),
+            len(discovered_new_http_devices)
         )
 
         _LOGGER.info(f"Fetch and update done")
