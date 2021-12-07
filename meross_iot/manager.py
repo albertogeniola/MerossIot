@@ -8,6 +8,7 @@ import sys
 from asyncio import Future, AbstractEventLoop
 from asyncio import TimeoutError
 from datetime import timedelta
+from enum import Enum
 from hashlib import md5
 from time import time
 from typing import Optional, List, TypeVar, Iterable, Callable, Awaitable, Tuple, Union, Any, Dict
@@ -67,6 +68,12 @@ def _mqtt_key_from_domain_port(domain: str, port: int) -> str:
     return f"{domain}:{port}"
 
 
+class MqttConnectionStatus(Enum):
+    DISCONNECTED = "DISCONNECTED"
+    CONNECTING = "CONNECTING"
+    CONNECTED = "CONNECTED"
+
+
 class MerossManager(object):
     """
     This class implements a full-features Meross Client, which provides device discovery and registry.
@@ -113,6 +120,7 @@ class MerossManager(object):
         self._push_coros = []
         self._mqtt_skip_validation = mqtt_skip_cert_validation
         self._mqtt_clients = {}
+        self._mqtt_clients_status = {}
         self._mqtt_connected_and_subscribed = {}
 
         # Default proxy setup
@@ -172,7 +180,7 @@ class MerossManager(object):
 
     def _new_mqtt_client(self) -> mqtt.Client:
         # Setup mqtt client
-        client = mqtt.Client(client_id=self._client_id, protocol=mqtt.MQTTv311)
+        client = mqtt.Client(client_id=self._client_id, protocol=mqtt.MQTTv311, clean_session=False)
         client.username_pw_set(username=self._cloud_creds.user_id, password=self._mqtt_password)
 
         # Certificate validation setup
@@ -307,16 +315,30 @@ class MerossManager(object):
         _LOGGER.info("Starting Manager Looper")
         processed_loops = 0
         while not self.__stop_requested:
-            # Loop over a copy of the dictionary to prevent dictionary changes while running
-            for key, client in {k: v for k, v in self._mqtt_clients.items() if v}.items():
-                # Process 100ms every loop
-                await self._loop.run_in_executor(None, client.loop, 0.1)
-                processed_loops += 1
+            try:
+                # Loop over a copy of the dictionary to prevent dictionary changes while running
+                for key, client in {k: v for k, v in self._mqtt_clients.items() if v}.items():
+                    # Process 100ms every loop
+                    await self._loop.run_in_executor(None, client.loop, 0.1)
+                    processed_loops += 1
 
-            # In case there is nothing to do, wait a bit
-            if processed_loops < 1:
-                await asyncio.sleep(.1)
+                    # Handle reconnection for this client, if needed
+                    client_status = self._mqtt_clients_status.get(client)
+                    if client_status == MqttConnectionStatus.DISCONNECTED and self._auto_reconnect:
+                        # handle reconnection autonomously on connection drops.
+                        _LOGGER.info("Reconnecting (auto_reconnect flag has been set)")
+                        try:
+                            self._mqtt_clients_status[client] = MqttConnectionStatus.CONNECTING
+                            client.reconnect()
+                        except Exception as e:
+                            _LOGGER.exception("Error occurred while reconnecting")
+                            self._mqtt_clients_status[client] = MqttConnectionStatus.DISCONNECTED
 
+                # In case there is nothing to do, wait a bit
+                if processed_loops < 1:
+                    await asyncio.sleep(.1)
+            except Exception as e:
+                _LOGGER.exception("Error occurred while executing looper")
         _LOGGER.debug("Stop flag raised, ending loop")
 
     async def async_device_discovery(
@@ -509,9 +531,11 @@ class MerossManager(object):
             self._device_registry.enroll_device(device)
             return device
 
-    def _on_connect(self, client, userdata, rc, other):
+    def _on_connect(self, client: mqtt.Client, userdata, rc, other):
         # NOTE! This method is called by the paho-mqtt thread, thus any invocation to the
         # asyncio platform must be scheduled via `self._loop.call_soon_threadsafe()` method.
+        self._mqtt_clients_status[client] = MqttConnectionStatus.CONNECTED
+
         topics = [(self._user_topic, 1), (self._client_response_topic, 1)]
 
         _LOGGER.debug(f"Connected with result code {rc}")
@@ -525,20 +549,9 @@ class MerossManager(object):
     def _on_disconnect(self, client: mqtt.Client, userdata, rc):
         # NOTE! This method is called by the paho-mqtt thread, thus any invocation to the
         # asyncio platform must be scheduled via `self._loop.call_soon_threadsafe()` method.
-        _LOGGER.info("Disconnection detected. Reason: %s" % str(rc))
+        self._mqtt_clients_status[client] = MqttConnectionStatus.DISCONNECTED
 
-        if rc == mqtt.MQTT_ERR_SUCCESS:
-            pass
-        else:
-            # Otherwise, if the disconnection was not intentional, we probably had a connection drop.
-            # In this case, we only stop the loop thread if auto_reconnect is not set. In fact, the loop will
-            # handle reconnection autonomously on connection drops.
-            if self._auto_reconnect:
-                _LOGGER.info("Reconnecting (auto_reconnect flag has been set)")
-                client.reconnect()
-            else:
-                _LOGGER.info("No reconnection will be attempted as auto_reconnect flag was not set")
-                del self._mqtt_connected_and_subscribed[userdata]
+        _LOGGER.info("Disconnection detected. Reason: %s" % str(rc))
 
         # When a disconnection occurs, we need to set "unavailable" status.
         asyncio.run_coroutine_threadsafe(
