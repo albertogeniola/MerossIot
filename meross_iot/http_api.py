@@ -305,7 +305,7 @@ class MerossHttpClient(object):
                         _LOGGER.error(f"Could not parse error code {code}.")
                     elif error == ErrorCodes.CODE_NO_ERROR:
                         return jsondata.get("data")
-                    elif error == ErrorCodes.CODE_TOKEN_EXPIRED:
+                    elif error in (ErrorCodes.CODE_TOKEN_EXPIRED, ErrorCodes.CODE_TOKEN_ERROR):
                         raise TokenExpiredException("The provided token has expired")
                     elif error == ErrorCodes.CODE_TOO_MANY_TOKENS:
                         raise TooManyTokensException("You have issued too many tokens without logging out and your "
