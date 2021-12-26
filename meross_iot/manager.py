@@ -517,14 +517,13 @@ class MerossManager(object):
                 device = build_meross_device_from_known_types(
                     http_device_info=device_info, manager=self
                 )
-                _LOGGER.warning(
-                    f"Device {device_info.dev_name} ({device_info.uuid}) was built statically via known "
-                    f"types, because we failed to retrieve updated abilities for the given device."
+                _LOGGER.info(
+                    "Device %s ({device_info.uuid}) was built statically via known "
+                    "types, because we failed to retrieve updated abilities for the given device.",
+                    device_info.dev_name
                 )
             except UnknownDeviceType:
-                _LOGGER.error(
-                    f"Could not build statically device {device_info.dev_name} ({device_info.uuid}) as it's not a known type."
-                )
+                _LOGGER.debug("Could not build statically device %s (%s) as it's not a known type.", device_info.dev_name, device_info.uuid)
 
         # Enroll the device
         if device is not None:
