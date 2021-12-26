@@ -342,7 +342,6 @@ class MerossManager(object):
                             time_to_wait = max(pow(2, self._mqtt_connection_errors[client]), 30.0)
                             await asyncio.sleep(time_to_wait)
 
-
                 # In case there is nothing to do, wait a bit
                 if processed_loops < 1:
                     await asyncio.sleep(.1)
