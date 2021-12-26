@@ -142,6 +142,9 @@ class MerossManager(object):
         self._limiter = rate_limiter
         self._stats_counter = ApiCounter()
 
+        # Keep track of re-connection errors into a dictionary.
+        self._mqtt_connection_errors = {}
+
     def _get_client_from_domain_port(self, client: mqtt.Client) -> Tuple[Optional[str], Optional[int]]:
         for k, v in self._mqtt_clients.items():
             if v == client:
@@ -331,8 +334,14 @@ class MerossManager(object):
                             self._mqtt_clients_status[client] = MqttConnectionStatus.CONNECTING
                             client.reconnect()
                         except Exception as e:
-                            _LOGGER.exception("Error occurred while reconnecting")
+                            _LOGGER.exception("Error occurred while (re)connecting to mqtt server %s", key)
                             self._mqtt_clients_status[client] = MqttConnectionStatus.DISCONNECTED
+                            self._mqtt_connection_errors[client] = self._mqtt_connection_errors.get(client, 0)+1
+
+                            # Wait some time before retrying.
+                            time_to_wait = max(pow(2, self._mqtt_connection_errors[client]), 30.0)
+                            await asyncio.sleep(time_to_wait)
+
 
                 # In case there is nothing to do, wait a bit
                 if processed_loops < 1:
@@ -544,6 +553,9 @@ class MerossManager(object):
 
         if result != mqtt.MQTT_ERR_SUCCESS:
             _LOGGER.error("Failed to subscribe to topics %s", str(topics))
+
+        # Reset reconnection errors
+        self._mqtt_connection_errors[client] = 0
 
     def _on_disconnect(self, client: mqtt.Client, userdata, rc):
         # NOTE! This method is called by the paho-mqtt thread, thus any invocation to the
