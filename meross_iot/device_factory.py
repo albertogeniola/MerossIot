@@ -2,12 +2,12 @@ import logging
 from typing import Optional
 
 from meross_iot.controller.device import BaseDevice, HubDevice, GenericSubDevice
-from meross_iot.controller.known.bulbs import MSL120, MSL100
-from meross_iot.controller.known.humidifiers import MSXH0
-from meross_iot.controller.known.openers import MSG100
-from meross_iot.controller.known.shutters import MRS100
-from meross_iot.controller.known.plugs import MSS110, MSS210, MSS310, MSS620, MSS710
-from meross_iot.controller.known.strips import MSS425E, MSS420F, MSS425F, MSS530
+# from meross_iot.controller.known.bulbs import MSL120, MSL100
+# from meross_iot.controller.known.humidifiers import MSXH0
+# from meross_iot.controller.known.openers import MSG100
+# from meross_iot.controller.known.shutters import MRS100
+# from meross_iot.controller.known.plugs import MSS110, MSS210, MSS310, MSS620, MSS710
+# from meross_iot.controller.known.strips import MSS425E, MSS420F, MSS425F, MSS530
 from meross_iot.controller.known.subdevice import Mts100v3Valve, Ms100Sensor
 from meross_iot.controller.mixins.consumption import ConsumptionXMixin, ConsumptionMixin
 from meross_iot.controller.mixins.electricity import ElectricityMixin
@@ -26,21 +26,21 @@ from meross_iot.model.http.subdevice import HttpSubdeviceInfo
 _LOGGER = logging.getLogger(__name__)
 
 _KNOWN_DEV_TYPES_CLASSES = {
-    "msl120": MSL120,
-    "msl100": MSL100,
-    "msxh0": MSXH0,
-    "msg100": MSG100,
-    "mrs100": MRS100,
-    "mss110": MSS110,
-    "mss210": MSS210,
-    "mss310": MSS310,
-    "mss620": MSS620,
-    "mss710": MSS710,
-    "msh300": HubDevice,
-    "mss425e": MSS425E,
-    "mss420f": MSS420F,
-    "mss425f": MSS425F,
-    "mss530": MSS530,
+    # "msl120": MSL120,
+    # "msl100": MSL100,
+    # "msxh0": MSXH0,
+    # "msg100": MSG100,
+    # "mrs100": MRS100,
+    # "mss110": MSS110,
+    # "mss210": MSS210,
+    # "mss310": MSS310,
+    # "mss620": MSS620,
+    # "mss710": MSS710,
+    # "msh300": HubDevice,
+    # "mss425e": MSS425E,
+    # "mss420f": MSS420F,
+    # "mss425f": MSS425F,
+    # "mss530": MSS530,
     "mts100v3": Mts100v3Valve,
     "ms100": Ms100Sensor
 }
