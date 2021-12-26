@@ -224,7 +224,7 @@ def build_meross_device_from_known_types(http_device_info: HttpDeviceInfo,
     target_clazz = _KNOWN_DEV_TYPES_CLASSES.get(dev_type)
 
     if target_clazz is None:
-        _LOGGER.warning("Could not find any known device class for device type (%s).", http_device_info.device_type)
+        _LOGGER.debug("Could not find any known device class for device type (%s).", http_device_info.device_type)
         raise UnknownDeviceType()
 
     return target_clazz(device_uuid=http_device_info.uuid, manager=manager, **http_device_info.to_dict())
