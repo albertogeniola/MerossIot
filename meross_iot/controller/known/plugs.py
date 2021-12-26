@@ -28,17 +28,17 @@ class MSS210(SystemAllMixin, SystemOnlineMixin, ToggleXMixin, BaseDevice):
                          manager=manager,
                          **kwargs)
 
-
-class MSS310(SystemAllMixin, SystemOnlineMixin, ConsumptionXMixin, ElectricityMixin, ToggleXMixin, BaseDevice):
-    """
-    MSS310 device with electricity/power consumption reading
-    """
-    def __init__(self, device_uuid: str, manager, **kwargs):
-        if 'channels' not in kwargs:
-            kwargs['channels'] = [{}]
-        super().__init__(device_uuid=device_uuid,
-                         manager=manager,
-                         **kwargs)
+# We cannot handle MSS310 in advance as some of them support ToggleX, while others Toggle.
+# class MSS310(SystemAllMixin, SystemOnlineMixin, ConsumptionXMixin, ElectricityMixin, ToggleXMixin, BaseDevice):
+#     """
+#     MSS310 device with electricity/power consumption reading
+#     """
+#     def __init__(self, device_uuid: str, manager, **kwargs):
+#         if 'channels' not in kwargs:
+#             kwargs['channels'] = [{}]
+#         super().__init__(device_uuid=device_uuid,
+#                          manager=manager,
+#                          **kwargs)
 
 
 class MSS620(SystemAllMixin, SystemOnlineMixin, ToggleXMixin, BaseDevice):
