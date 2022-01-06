@@ -649,7 +649,7 @@ class MerossManager(object):
             if future is not None:
                 _LOGGER.debug("Found a pending command waiting for response message")
                 if message_method == "ERROR":
-                    err = CommandError(error_payload=message.payload)
+                    err = CommandError(error_payload=message.get('payload'))
                     self._loop.call_soon_threadsafe(_handle_future, future, None, err)
                 elif message_method in ("SETACK", "GETACK"):
                     self._loop.call_soon_threadsafe(
