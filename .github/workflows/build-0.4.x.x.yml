@@ -191,7 +191,7 @@ jobs:
         run: |
           success_threshold=90
           echo "Current minimum pass-threshold: $success_threshold %"
-          should_release=`echo "${{ needs.test.outputs.success_rate_python_3_7 }} > $success_threshold && ${{ needs.test.outputs.success_rate_python_3_8 }} > $success_threshold && ${{ needs.test.outputs.success_rate_python_3_9 }} > $success_threshold" && ${{ needs.test.outputs.success_rate_python_3_10 }} > $success_threshold" | bc -l`
+          should_release=`echo "${{ needs.test.outputs.success_rate_python_3_7 }} > $success_threshold && ${{ needs.test.outputs.success_rate_python_3_8 }} > $success_threshold && ${{ needs.test.outputs.success_rate_python_3_9 }} > $success_threshold && ${{ needs.test.outputs.success_rate_python_3_10 }} > $success_threshold" | bc -l`
           echo "::set-output name=should_release::$should_release"
           echo "Release decision: $should_release"
           if [[ $should_release -ne 1 ]]; then
@@ -207,11 +207,11 @@ jobs:
     needs: [release_checks]
     if: ${{ success() }}
     steps:
+      - uses: actions/checkout@v2
       - name: Setup Python 3.10
         uses: actions/setup-python@v2
         with:
-          python-version: 3.10
-      - uses: actions/checkout@v2
+          python-version: "3.10"
       - name: Install python dependencies
         run: |
           python -m pip install --upgrade pip
