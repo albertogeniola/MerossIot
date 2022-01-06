@@ -21,9 +21,5 @@ class CommandError(Exception):
         self.error_payload = error_payload
 
 
-class RateLimitExceeded(Exception):
-    pass
-
-
 class UnknownDeviceType(Exception):
     pass

@@ -53,10 +53,8 @@ Ban from Meross cloud
     In some cases, an automated email is delivered to the email address of the user account,
     warning him about imminent suspension. In other cases, the account might be suspended without any notice.
     If that happens, the user need to contact Meross team and ask for ban-removal.
-    In any case, to prevent that from happening, be sure to adopt convenient rate-limits,
-    as introduced in version 0.4.0.4.
+    In any case, to prevent that from happening, be sure to limit calls to HTTP APIs.
 
-    At the time of writing, such rate limits are not documented. The MerossManager automatically applies conservative
-    limits in order to prevent banning from Meross Cloud, however it's up to the Developer to properly configure
-    the rate limits as explained in :ref:`advanced-topics:Managing rate limits`.
+    At the time of writing, such rate limits are not documented. It's up to the Developer to properly
+    handle rate limiting strategies to avoid Meross ban.
 

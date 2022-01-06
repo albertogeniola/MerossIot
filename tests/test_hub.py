@@ -37,6 +37,7 @@ class TestHub(AioHTTPTestCase):
             self.skipTest("No HUB device has been found to run this test.")
 
         dev = self.test_devices[0]
+        print(f"Testing device {dev.name}")
         await dev.async_update()
 
     async def tearDownAsync(self):

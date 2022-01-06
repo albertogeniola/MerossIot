@@ -42,6 +42,7 @@ class TestUpdate(AioHTTPTestCase):
 
         # Turn off device to start from a clean state
         for d in self.test_devices:
+            print(f"Testing device {d.name}")
             if isinstance(d, LightMixin):
                 self.assertIsNone(d.get_rgb_color())
             elif isinstance(d, ToggleXMixin):

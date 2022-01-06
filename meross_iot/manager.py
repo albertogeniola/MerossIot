@@ -7,11 +7,10 @@ import string
 import sys
 from asyncio import Future, AbstractEventLoop
 from asyncio import TimeoutError
-from datetime import timedelta
 from enum import Enum
 from hashlib import md5
 from time import time
-from typing import Optional, List, TypeVar, Iterable, Callable, Awaitable, Tuple, Union, Any, Dict
+from typing import Optional, List, TypeVar, Iterable, Callable, Awaitable, Tuple, Union, Any
 
 import paho.mqtt.client as mqtt
 
@@ -27,7 +26,6 @@ from meross_iot.model.enums import Namespace, OnlineStatus
 from meross_iot.model.exception import (
     CommandTimeoutError,
     CommandError,
-    RateLimitExceeded,
     UnknownDeviceType
 )
 from meross_iot.model.http.device import HttpDeviceInfo
@@ -36,10 +34,6 @@ from meross_iot.model.push.factory import parse_push_notification
 from meross_iot.model.push.generic import GenericPushNotification
 from meross_iot.model.push.online import OnlinePushNotification
 from meross_iot.model.push.unbind import UnbindPushNotification
-from meross_iot.utilities.limiter import (
-    RateLimitChecker,
-    RateLimitResultStrategy,
-)
 from meross_iot.utilities.mqtt import (
     generate_mqtt_password,
     generate_client_and_app_id,
@@ -49,7 +43,6 @@ from meross_iot.utilities.mqtt import (
     device_uuid_from_push_notification,
     build_device_request_topic,
 )
-from meross_iot.utilities.stats import ApiCounter
 
 logging.basicConfig(
     format="%(levelname)s:%(message)s", level=logging.INFO, stream=sys.stdout
@@ -87,7 +80,6 @@ class MerossManager(object):
             auto_reconnect: Optional[bool] = True,
             mqtt_skip_cert_validation: bool = False,
             ca_cert: Optional[str] = None,
-            rate_limiter: Optional[RateLimitChecker] = None,
             loop: Optional[AbstractEventLoop] = None,
             *args,
             **kwords,
@@ -101,7 +93,6 @@ class MerossManager(object):
         :param mqtt_skip_cert_validation: (Optional) When set the Manager will accept unverified SSL/TLS certificates
                                           from the remote MQTT server. Defaults to False.
         :param ca_cert: (Optional) Path to the PEM certificate to trust (Intermediate/CA)
-        :param rate_limiter: (Optional) Rate limiter
         :param loop: (Optional) Asyncio loop to use
         :param args:
         :param kwords:
@@ -139,8 +130,6 @@ class MerossManager(object):
             user_id=self._cloud_creds.user_id, app_id=self._app_id
         )
         self._user_topic = build_client_user_topic(user_id=self._cloud_creds.user_id)
-        self._limiter = rate_limiter
-        self._stats_counter = ApiCounter()
 
         # Keep track of re-connection errors into a dictionary.
         self._mqtt_connection_errors = {}
@@ -205,21 +194,6 @@ class MerossManager(object):
 
         return client
 
-    @property
-    def mqtt_call_stats(self) -> ApiCounter:
-        """
-        Exposes some MQTT API calls metrics
-        """
-        return self._stats_counter
-
-    @property
-    def limiter(self) -> RateLimitChecker:
-        return self._limiter
-
-    @limiter.setter
-    def limiter(self, limiter: RateLimitChecker):
-        self._limiter = limiter
-
     def register_push_notification_handler_coroutine(
             self, coro: ManagerPushNotificationHandlerType
     ) -> None:
@@ -265,7 +239,6 @@ class MerossManager(object):
             if not f.cancelled():
                 f.cancel()
         self.__stop_requested = True
-
 
     def find_devices(
             self,
@@ -336,7 +309,7 @@ class MerossManager(object):
                         except Exception as e:
                             _LOGGER.exception("Error occurred while (re)connecting to mqtt server %s", key)
                             self._mqtt_clients_status[client] = MqttConnectionStatus.DISCONNECTED
-                            self._mqtt_connection_errors[client] = self._mqtt_connection_errors.get(client, 0)+1
+                            self._mqtt_connection_errors[client] = self._mqtt_connection_errors.get(client, 0) + 1
 
                             # Wait some time before retrying.
                             time_to_wait = max(pow(2, self._mqtt_connection_errors[client]), 30.0)
@@ -375,7 +348,8 @@ class MerossManager(object):
             _LOGGER.info(f"\n\n------- Triggering Manager Discovery, filter_device: [{meross_device_uuid}] -------")
             http_devices = await self._http_client.async_list_devices()
         else:
-            _LOGGER.info(f"\n\n------- Triggering Manager Discovery (using cached http device list), filter_device: [{meross_device_uuid}] -------")
+            _LOGGER.info(
+                f"\n\n------- Triggering Manager Discovery (using cached http device list), filter_device: [{meross_device_uuid}] -------")
             http_devices = cached_http_device_list
 
         # If the user pased a specific uuid, filter the list by that one
@@ -429,9 +403,9 @@ class MerossManager(object):
                 )
                 for sd in subdevs:
                     dev = await self._async_enroll_new_http_subdev(
-                                subdevice_info=sd,
-                                hub=d,
-                                hub_reported_abilities=d.abilities)
+                        subdevice_info=sd,
+                        hub=d,
+                        hub_reported_abilities=d.abilities)
                     enrolled_subdevices.append(dev)
 
         # We need to update the state of hubs in order to refresh subdevices online status
@@ -496,22 +470,13 @@ class MerossManager(object):
                     namespace=Namespace.SYSTEM_ABILITY,
                     payload={},
                     mqtt_hostname=device_info.domain,
-                    mqtt_port=DEFAULT_MQTT_PORT,
-                    skip_rate_limiting_check=True
+                    mqtt_port=DEFAULT_MQTT_PORT
                 )
                 abilities = res_abilities.get("ability")
             except CommandTimeoutError:
-                time_window = timedelta(minutes=1)
-                calls = self.mqtt_call_stats.get_api_stats(time_window=time_window)
-                delayed = self.mqtt_call_stats.get_delayed_api_stats(time_window=time_window)
-                dropped = self.mqtt_call_stats.get_dropped_api_stats(time_window=time_window)
                 _LOGGER.warning(
-                    f"Device {device_info.dev_name} ({device_info.uuid}) is online, but timeout occurred "
-                    f"when fetching its abilities. "
-                    f"Global manager stats (last minute): "
-                    f"Issued -> {calls.global_stats.total_calls}, "
-                    f"Delayed -> {delayed.global_stats.total_calls}, "
-                    f"Dropped -> {dropped.global_stats.total_calls}"
+                    f"Device %s (%s) is online, but timeout occurred "
+                    f"when fetching its abilities. ", str(device_info.dev_name), str(device_info.uuid)
                 )
         if abilities is not None:
             # Build a full-featured device using the given ability set
@@ -526,12 +491,13 @@ class MerossManager(object):
                     http_device_info=device_info, manager=self
                 )
                 _LOGGER.info(
-                    "Device %s ({device_info.uuid}) was built statically via known "
+                    "Device %s (%s) was built statically via known "
                     "types, because we failed to retrieve updated abilities for the given device.",
-                    device_info.dev_name
+                    device_info.dev_name, str(device_info.uuid)
                 )
             except UnknownDeviceType:
-                _LOGGER.debug("Could not build statically device %s (%s) as it's not a known type.", device_info.dev_name, device_info.uuid)
+                _LOGGER.debug("Could not build statically device %s (%s) as it's not a known type.",
+                              device_info.dev_name, device_info.uuid)
 
         # Enroll the device
         if device is not None:
@@ -621,7 +587,7 @@ class MerossManager(object):
         if dev.online_status == OnlineStatus.ONLINE:
             # In case the device was known and is ONLINE, we want to manually update its status
             _LOGGER.warning("Updating status for device %s", dev)
-            await dev.async_update(skip_rate_limits=True, drop_on_overquota=False)
+            await dev.async_update()
 
         # In case the device was known and is not ONLINE, we just send the ONLINE push notification
         if dev.online_status != old_status:
@@ -830,16 +796,6 @@ class MerossManager(object):
                 f"Raw data: {json.dumps(push_notification.raw_data)}"
             )
 
-    def _api_rate_limit_checks(self,
-                               destination_device_uuid: str,
-                               method: str,
-                               namespace: Namespace
-                               ) -> Tuple[RateLimitResultStrategy, float]:
-        if self._limiter is None:
-            return RateLimitResultStrategy.PerformCall, 0
-        else:
-            return self._limiter.check_limits(device_uuid=destination_device_uuid, method=method, namespace=namespace)
-
     async def async_execute_cmd(
             self,
             mqtt_hostname: str,
@@ -849,8 +805,6 @@ class MerossManager(object):
             namespace: Namespace,
             payload: dict,
             timeout: float = 10.0,
-            skip_rate_limiting_check: bool = False,
-            drop_on_overquota: bool = True,
     ):
         """
         This method sends a command to the MQTT Meross broker.
@@ -862,9 +816,6 @@ class MerossManager(object):
         :param namespace: Command namespace
         :param payload: A dict containing the payload to be sent
         :param timeout: Maximum time interval in seconds to wait for the command-answer
-        :param skip_rate_limiting_check: When True, no API rate limit is performed for executing the command
-        :param drop_on_overquota: When True, API calls that hit the overquota limit will be dropped.
-                                  If set to False, those calls will not be dropped, but delayed accordingly.
         :return:
         """
         # Retrieve the mqtt client for the given domain:port broker
@@ -874,9 +825,7 @@ class MerossManager(object):
                                                    method=method,
                                                    namespace=namespace,
                                                    payload=payload,
-                                                   timeout=timeout,
-                                                   skip_rate_limiting_check=skip_rate_limiting_check,
-                                                   drop_on_overquota=drop_on_overquota)
+                                                   timeout=timeout)
 
     async def async_execute_cmd_client(self,
                                        client: mqtt.Client,
@@ -884,46 +833,7 @@ class MerossManager(object):
                                        method: str,
                                        namespace: Namespace,
                                        payload: dict,
-                                       timeout: float = 10.0,
-                                       skip_rate_limiting_check: bool = False,
-                                       drop_on_overquota: bool = True, ):
-        # TODO: Document this method
-        # Check rate limits
-        if not skip_rate_limiting_check:
-            rate_limiting_action, time_to_wait = self._api_rate_limit_checks(
-                destination_device_uuid=destination_device_uuid,
-                method=method,
-                namespace=namespace
-            )
-            if rate_limiting_action == RateLimitResultStrategy.PerformCall:
-                pass
-            elif (
-                    rate_limiting_action == RateLimitResultStrategy.DelayCall
-                    or rate_limiting_action == RateLimitResultStrategy.DropCall
-                    and not drop_on_overquota
-            ):
-                self._stats_counter.notify_delayed_call(device_uuid=destination_device_uuid,
-                                                        namespace=namespace.value,
-                                                        method=method)
-                await asyncio.sleep(delay=time_to_wait)
-                return await self.async_execute_cmd_client(
-                    client=client,
-                    destination_device_uuid=destination_device_uuid,
-                    method=method,
-                    namespace=namespace,
-                    payload=payload,
-                    timeout=timeout,
-                    skip_rate_limiting_check=skip_rate_limiting_check,
-                    drop_on_overquota=drop_on_overquota
-                )
-            elif rate_limiting_action == RateLimitResultStrategy.DropCall:
-                self._stats_counter.notify_dropped_call(device_uuid=destination_device_uuid,
-                                                        namespace=namespace.value,
-                                                        method=method)
-                raise RateLimitExceeded()
-            else:
-                raise ValueError("Unsupported rate-limiting action")
-
+                                       timeout: float = 10.0):
         # Send the message over the network
         # Build the mqtt message we will send to the broker
         message, message_id = self._build_mqtt_message(method, namespace, payload)
@@ -931,11 +841,6 @@ class MerossManager(object):
         # Create a future and perform the send/waiting to a task
         fut = self._loop.create_future()
         self._pending_messages_futures[message_id] = fut
-
-        self._stats_counter.notify_api_call(device_uuid=destination_device_uuid,
-                                            namespace=namespace.value,
-                                            method=method)
-
         response = await self._async_send_and_wait_ack(
             client=client,
             future=fut,
@@ -948,25 +853,17 @@ class MerossManager(object):
     async def _async_send_and_wait_ack(
             self, client: mqtt.Client, future: Future, target_device_uuid: str, message: bytes, timeout: float,
     ):
-        message_info = client.publish(
+        client.publish(
             topic=build_device_request_topic(target_device_uuid), payload=message
         )
         try:
             return await asyncio.wait_for(future, timeout)
         except TimeoutError as e:
             domain, port = self._get_client_from_domain_port(client=client)
-            time_window = timedelta(minutes=1)
-            calls = self.mqtt_call_stats.get_api_stats(time_window=time_window)
-            delayed = self.mqtt_call_stats.get_delayed_api_stats(time_window=time_window)
-            dropped = self.mqtt_call_stats.get_dropped_api_stats(time_window=time_window)
             _LOGGER.error(
-                f"Timeout occurred while waiting a response for message {message} sent to device uuid "
-                f"{target_device_uuid}. Timeout was: {timeout} seconds. Mqtt Host: {domain}:{port}."
-                f"Global manager stats (last minute): "
-                f"Issued -> {calls.global_stats.total_calls}, "
-                f"Delayed -> {delayed.global_stats.total_calls}, "
-                f"Dropped -> {dropped.global_stats.total_calls}"
-            )
+                "Timeout occurred while waiting a response for message %s sent to device uuid "
+                "%s. Timeout was: %f seconds. Mqtt Host: %s:%d.",
+                str(message), str(target_device_uuid), timeout, domain, port)
             raise CommandTimeoutError(message=str(message), target_device_uuid=target_device_uuid, timeout=timeout)
 
     async def _notify_connection_drop(self):
@@ -1153,6 +1050,7 @@ def _schedule_later(coroutine, start_delay, loop):
         await asyncio.sleep(delay=delay)
         await coro
 
-    future = asyncio.run_coroutine_threadsafe(coro=delayed_execution(coro=coroutine, delay=start_delay, loop=loop), loop=loop)
+    future = asyncio.run_coroutine_threadsafe(coro=delayed_execution(coro=coroutine, delay=start_delay, loop=loop),
+                                              loop=loop)
     _PENDING_FUTURES.append(future)
     future.add_done_callback(set_future_done)

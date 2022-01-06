@@ -5,6 +5,7 @@ from random import randint
 from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
+from meross_iot.controller.device import BaseDevice
 from meross_iot.controller.mixins.light import LightMixin
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
@@ -41,23 +42,56 @@ class TestLight(AioHTTPTestCase):
     @unittest_run_loop
     async def test_rgb(self):
         # Make sure we have an RGB-capable available device
-        rgb_capable = list(filter(lambda d: d.get_supports_rgb(), self.light_devices))
+        rgb_capable = [d for d in self.light_devices if d.get_supports_rgb()]
         if len(rgb_capable) < 1:
             self.skipTest("Could not find any RGB-capable LightMixin within the given set of devices. "
                           "The test will be skipped")
-
         for light in rgb_capable:
+            print(f"Testing device: {light.name}...")
             await light.async_update()
 
             # Set a random color
             r = randint(0, 256)
             g = randint(0, 256)
             b = randint(0, 256)
-            await light.async_set_light_color(rgb=(r, g, b))
+            await light.async_set_light_color(rgb=(r, g, b), onoff=True)
 
             # Check the color property returns red
             color = light.get_rgb_color()
             self.assertEqual(color, (r, g, b))
+
+    @unittest_run_loop
+    async def test_turn_on_off(self):
+        # Make sure we have an RGB-capable available device
+        rgb_capable = [d for d in self.light_devices if d.get_supports_rgb()]
+        if len(rgb_capable) < 1:
+            self.skipTest("Could not find any RGB-capable LightMixin within the given set of devices. "
+                          "The test will be skipped")
+        for light in rgb_capable:
+            print(f"Testing device: {light.name}...")
+            await light.async_update()
+
+            # Turn device off
+            await light.async_set_light_color(rgb=(255, 255, 255), onoff=False)
+            # Make sure device is now off
+            self.assertFalse(light.get_light_is_on())
+
+            # Set a color and turn the device on
+            await light.async_set_light_color(rgb=(0, 255, 0), onoff=True)
+            # Make sure device is now on with that specific color set
+            self.assertTrue(light.get_light_is_on())
+            self.assertEqual(light.get_rgb_color(), (0, 255, 0))
+
+            # Set a color without changing the on-off state
+            await light.async_set_light_color(rgb=(255, 0, 0))
+            # Make sure device is now showing the specific color
+            self.assertTrue(light.get_light_is_on())
+            self.assertEqual(light.get_rgb_color(), (255, 0, 0))
+
+            # Turn off device without changing color
+            await light.async_set_light_color(onoff=False)
+            # Make sure device is now off
+            self.assertFalse(light.get_light_is_on())
 
     @unittest_run_loop
     async def test_rgb_push_notification(self):
@@ -67,7 +101,8 @@ class TestLight(AioHTTPTestCase):
             self.skipTest("Could not find any RGB-capable LightMixin within the given set of devices. "
                           "The test will be skipped")
 
-        light = rgb_capable[0]
+        light: BaseDevice = rgb_capable[0]
+        print(f"Selected test device: {light.name}.")
 
         # Create a new manager
         new_meross_client, requires_logout = await async_get_client()
@@ -83,11 +118,11 @@ class TestLight(AioHTTPTestCase):
             await dev.async_update()
 
             # Set RGB color to known state
-            r = await light.async_set_light_color(rgb=(255, 0, 0))
+            r = await light.async_set_light_color(rgb=(255, 0, 0), onoff=True)
             await asyncio.sleep(2)
 
             # Turn on the device
-            r = await light.async_set_light_color(rgb=(0, 255, 0))
+            r = await light.async_set_light_color(rgb=(0, 255, 0), onoff=True)
 
             # Wait a bit and make sure the other manager received the push notification
             await asyncio.sleep(10)

@@ -24,8 +24,6 @@ class ElectricityMixin(object):
 
     async def async_get_instant_metrics(self,
                                         channel=0,
-                                        skip_rate_limits: bool = False,
-                                        drop_on_overquota: bool = True,
                                         timeout: Optional[float] = None,
                                         *args, **kwargs) -> PowerInfo:
         """
@@ -43,8 +41,6 @@ class ElectricityMixin(object):
         result = await self._execute_command(method="GET",
                                              namespace=Namespace.CONTROL_ELECTRICITY,
                                              payload={'channel': channel},
-                                             skip_rate_limits=skip_rate_limits,
-                                             drop_on_overquota=drop_on_overquota,
                                              timeout=timeout)
         data = result.get('electricity')
 

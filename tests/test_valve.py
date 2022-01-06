@@ -39,6 +39,7 @@ class TestValve(AioHTTPTestCase):
             self.skipTest("No valve device has been found to run this test.")
 
         for dev in self.test_devices:
+            print(f"Testing device {dev.name}")
             res = await dev.async_update()
             temperature = await dev.async_get_temperature()
             self.assertIsInstance(temperature, float)
@@ -49,6 +50,7 @@ class TestValve(AioHTTPTestCase):
             self.skipTest("No valve device has been found to run this test.")
 
         for dev in self.test_devices:
+            print(f"Testing device {dev.name}")
             res = await dev.async_update()
 
             max_supported_temp = dev.max_supported_temperature
@@ -69,6 +71,7 @@ class TestValve(AioHTTPTestCase):
             self.skipTest("No valve device has been found to run this test.")
 
         dev = self.test_devices[0]
+        print(f"Testing device {dev.name}")
         await dev.async_update()
         self.assertIsNotNone(dev.mode)
         modes = set(ThermostatV3Mode)
@@ -86,6 +89,7 @@ class TestValve(AioHTTPTestCase):
             self.skipTest("No valve device has been found to run this test.")
 
         for dev in self.test_devices:
+            print(f"Testing device {dev.name}")
             res = await dev.async_update()
 
             if dev.is_on():
@@ -101,6 +105,7 @@ class TestValve(AioHTTPTestCase):
             self.skipTest("No valve device has been found to run this test.")
 
         dev = self.test_devices[0]
+        print(f"Testing device {dev.name}")
         await dev.async_update()
         res = await dev.async_get_battery_life()
 
@@ -113,7 +118,7 @@ class TestValve(AioHTTPTestCase):
             self.skipTest("No valve device has been found to run this test.")
 
         dev1 = self.test_devices[0]
-
+        print(f"Testing device {dev1.name}")
         # Turn it on
         await dev1.async_turn_on()
 

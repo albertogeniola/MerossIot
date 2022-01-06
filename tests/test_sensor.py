@@ -38,6 +38,7 @@ class TestSensor(AioHTTPTestCase):
             self.skipTest("No sensor device has been found to run this test.")
 
         dev = self.test_devices[0]
+        print(f"Testing device {dev.name}")
         await dev.async_update()
 
         self.assertIsNotNone(dev.last_sampled_temperature)
@@ -49,6 +50,7 @@ class TestSensor(AioHTTPTestCase):
             self.skipTest("No sensor device has been found to run this test.")
 
         dev = self.test_devices[0]
+        print(f"Testing device {dev.name}")
         await dev.async_update()
         res = await dev.async_get_battery_life()
 

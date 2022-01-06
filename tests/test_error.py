@@ -54,7 +54,7 @@ class TestError(AioHTTPTestCase):
         if len(devs) < 1:
             self.skipTest("No available/online devices found to test. Skipping...")
         dev = devs[0]
-
+        print(f"Testing device {dev.name}")
         async def send_invalid_command_to_device(dev: BaseDevice):
             res = await self.meross_manager.async_execute_cmd(destination_device_uuid=dev.uuid,
                                                               method='GET',
@@ -73,7 +73,7 @@ class TestError(AioHTTPTestCase):
         if len(devs) < 1:
             self.skipTest("No available/online devices found to test. Skipping...")
         dev = devs[0]
-
+        print(f"Testing device {dev.name}")
         async def send_invalid_command_to_device(dev: BaseDevice):
             return await self.meross_manager.async_execute_cmd(destination_device_uuid=dev.uuid,
                                                                method='SET',

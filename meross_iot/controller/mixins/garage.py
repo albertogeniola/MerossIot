@@ -79,16 +79,12 @@ class GarageOpenerMixin:
     async def _async_operate(self,
                              state: bool,
                              channel: int = 0,
-                             skip_rate_limits: bool = False,
-                             drop_on_overquota: bool = True,
                              timeout: Optional[float] = None,
                              *args, **kwargs) -> None:
         payload = {"state": {"channel": channel, "open": 1 if state else 0, "uuid": self.uuid}}
         await self._execute_command(method="SET",
                                     namespace=Namespace.GARAGE_DOOR_STATE,
                                     payload=payload,
-                                    skip_rate_limits=skip_rate_limits,
-                                    drop_on_overquota=drop_on_overquota,
                                     timeout=timeout)
 
     def get_is_open(self, channel: int = 0, *args, **kwargs) -> Optional[bool]:

@@ -1,7 +1,11 @@
 import os
+from ctypes import Union
+from typing import Optional
+
 from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
+from meross_iot.controller.device import BaseDevice
 from meross_iot.controller.mixins.consumption import ConsumptionXMixin
 from meross_iot.manager import MerossManager
 from meross_iot.model.enums import OnlineStatus
@@ -39,7 +43,7 @@ class TestConsumptionX(AioHTTPTestCase):
     async def test_consumptionx_local_state(self):
         if self.test_device is None:
             self.skipTest("No ConsumptionX device has been found to run this test on.")
-
+        print(f"Testing device {self.test_device.name}")
         r = await self.test_device.async_get_daily_power_consumption()
         self.assertGreater(len(r), 1)
 

@@ -225,8 +225,6 @@ class BaseDevice(object):
         return False
 
     async def async_update(self,
-                           skip_rate_limits: bool = False,
-                           drop_on_overquota: bool = True,
                            *args,
                            **kwargs) -> None:
         """
@@ -271,8 +269,6 @@ class BaseDevice(object):
                                namespace: Namespace,
                                payload: dict,
                                timeout: Optional[float] = None,
-                               skip_rate_limits: bool = False,
-                               drop_on_overquota: bool = True
                                ) -> dict:
         if timeout is None:
             to = self.default_command_timeout
@@ -284,8 +280,6 @@ class BaseDevice(object):
                                                      namespace=namespace,
                                                      payload=payload,
                                                      timeout=to,
-                                                     skip_rate_limiting_check=skip_rate_limits,
-                                                     drop_on_overquota=drop_on_overquota,
                                                      mqtt_hostname=self.mqtt_host,
                                                      mqtt_port=self.mqtt_port)
 
@@ -368,15 +362,11 @@ class GenericSubDevice(BaseDevice):
                                namespace: Namespace,
                                payload: dict,
                                timeout: Optional[float] = None,
-                               skip_rate_limits: bool = False,
-                               drop_on_overquota: bool = True
                                ) -> dict:
         # Every command should be invoked via HUB?
         raise NotImplementedError("Subdevices should rely on Hub in order to send commands.")
 
     async def async_update(self,
-                           skip_rate_limits: bool = False,
-                           drop_on_overquota: bool = True,
                            timeout: Optional[float] = None,
                            *args,
                            **kwargs) -> None:
@@ -388,15 +378,13 @@ class GenericSubDevice(BaseDevice):
             pass
 
         # When dealing with hubs, we need to "intercept" the UPDATE()
-        await super().async_update(skip_rate_limits=skip_rate_limits, drop_on_overquota=drop_on_overquota, *args, **kwargs)
+        await super().async_update(*args, **kwargs)
 
         # When issuing an update-all command to the hub,
         # we need to query all sub-devices.
         result = await self._hub._execute_command(method="GET",
                                                   namespace=self._UPDATE_ALL_NAMESPACE,
                                                   payload={'all': [{'id': self.subdevice_id}]},
-                                                  skip_rate_limits=skip_rate_limits,
-                                                  drop_on_overquota=drop_on_overquota,
                                                   timeout=timeout)
         subdevices_states = result.get('all')
         for subdev_state in subdevices_states:
@@ -408,8 +396,6 @@ class GenericSubDevice(BaseDevice):
             break
 
     async def async_get_battery_life(self,
-                                     skip_rate_limits: bool = False,
-                                     drop_on_overquota: bool = True,
                                      timeout: Optional[float] = None,
                                      *args,
                                      **kwargs) -> BatteryInfo:
@@ -420,8 +406,6 @@ class GenericSubDevice(BaseDevice):
         data = await self._hub._execute_command(method='GET',
                                                 namespace=Namespace.HUB_BATTERY,
                                                 payload={'battery': [{'id': self.subdevice_id}]},
-                                                skip_rate_limits=skip_rate_limits,
-                                                drop_on_overquota=drop_on_overquota,
                                                 timeout=timeout)
         battery_life_perc = data.get('battery', {})[0].get('value')
         timestamp = datetime.utcnow()

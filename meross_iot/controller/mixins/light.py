@@ -16,7 +16,8 @@ class LightMixin(object):
     """
     _execute_command: callable
     check_full_update_done: callable
-    #async_handle_update: Callable[[Namespace, dict], Awaitable]
+
+    # async_handle_update: Callable[[Namespace, dict], Awaitable]
 
     def __init__(self, device_uuid: str,
                  manager,
@@ -91,8 +92,6 @@ class LightMixin(object):
                                     rgb: Optional[RgbTuple] = None,
                                     luminance: Optional[int] = -1,
                                     temperature: Optional[int] = -1,
-                                    skip_rate_limits: bool = False,
-                                    drop_on_overquota: bool = True,
                                     timeout: Optional[float] = None,
                                     *args,
                                     **kwargs) -> None:
@@ -123,14 +122,20 @@ class LightMixin(object):
         # For some reason, not all the Meross Devices do offer 'onoff' control attribute. For instance, the
         # light of the smart humidifier does require this parameter to be set, while the MSL120 requires
         # Toggle/ToggleX usage. For this reason, we'll only set the onoff value when Toggle/ToggleX is unavailable.
-        if onoff is not None:
-            if isinstance(self, ToggleMixin) or isinstance(self, ToggleXMixin):
-                _LOGGER.warning(f"Device {self.name} seems to support ToggleX/Toggle; Ignoring onoff parameter.")
-            else:
+        is_on = self.get_light_is_on(channel=channel)
+
+        # Only set the onoff payload state if device does not support toggle/togglex
+        if not isinstance(self, ToggleMixin) and not isinstance(self, ToggleXMixin):
+            if onoff is not None:
                 payload['light']['onoff'] = 1 if onoff else 0
-        else:
-            if self._channel_light_status[channel].is_on is not None:
+            elif self._channel_light_status[channel].is_on is not None:
                 payload['light']['onoff'] = 1 if self._channel_light_status[channel].is_on else 0
+        else:
+            if onoff is not None and is_on != onoff:
+                if onoff:
+                    await self.async_turn_on(channel=channel, timeout=timeout)
+                else:
+                    await self.async_turn_off(channel=channel, timeout=timeout)
 
         mode = 0
         if self._supports_mode(LightMode.MODE_RGB) and rgb is not None:
@@ -152,12 +157,10 @@ class LightMixin(object):
         await self._execute_command(method='SET',
                                     namespace=Namespace.CONTROL_LIGHT,
                                     payload=payload,
-                                    skip_rate_limits=skip_rate_limits,
-                                    drop_on_overquota=drop_on_overquota,
                                     timeout=timeout)
 
         # If the command was ok, immediately update the local state.
-        self._update_channel_status(channel, rgb=rgb, luminance=luminance, temperature=temperature)
+        self._update_channel_status(channel, rgb=rgb, luminance=luminance, temperature=temperature, onoff=onoff)
 
     def get_supports_rgb(self, channel: int = 0) -> bool:
         """

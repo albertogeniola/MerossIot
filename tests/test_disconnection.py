@@ -13,7 +13,7 @@ from tests import async_get_client
 import os
 from proxy import proxy
 
-PROXY_PORT = 5001
+PROXY_PORT = 9001
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -82,6 +82,7 @@ class TestDisconnection(AioHTTPTestCase):
 
         # Select the first device
         dev = self.test_devices[0]  # type: BaseDevice
+        print(f"Testing device {dev.name}")
         _LOGGER.info("Selected device %s for disconnection testing", dev)
         await dev.async_update()
         _LOGGER.info("Device state updated")

@@ -38,6 +38,7 @@ class TestGarageOpener(AioHTTPTestCase):
                           "The test will be skipped")
 
         garage = self.garage_devices[0]
+        print(f"Testing device {garage.name}")
 
         # Without a full update, the status will be NONE
         current_status = garage.get_is_open(channel=0)

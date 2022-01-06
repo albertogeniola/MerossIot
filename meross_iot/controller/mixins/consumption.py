@@ -20,8 +20,6 @@ class ConsumptionXMixin(object):
 
     async def async_get_daily_power_consumption(self,
                                                 channel=0,
-                                                skip_rate_limits: bool = False,
-                                                drop_on_overquota: bool = True,
                                                 timeout: Optional[float] = None,
                                                 *args, **kwargs) -> List[dict]:
         """
@@ -35,8 +33,6 @@ class ConsumptionXMixin(object):
         result = await self._execute_command(method="GET",
                                              namespace=Namespace.CONTROL_CONSUMPTIONX,
                                              payload={'channel': channel},
-                                             skip_rate_limits=skip_rate_limits,
-                                             drop_on_overquota=drop_on_overquota,
                                              timeout=timeout)
         data = result.get('consumptionx')
 
@@ -59,8 +55,6 @@ class ConsumptionMixin(object):
 
     async def async_get_daily_power_consumption(self,
                                                 channel=0,
-                                                skip_rate_limits: bool = False,
-                                                drop_on_overquota: bool = True,
                                                 timeout: Optional[float] = None,
                                                 *args, **kwargs) -> List[dict]:
         """
@@ -74,8 +68,6 @@ class ConsumptionMixin(object):
         result = await self._execute_command(method="GET",
                                              namespace=Namespace.CONTROL_CONSUMPTION,
                                              payload={'channel': channel},
-                                             skip_rate_limits=skip_rate_limits,
-                                             drop_on_overquota=drop_on_overquota,
                                              timeout=timeout)
         data = result.get('consumption')
 

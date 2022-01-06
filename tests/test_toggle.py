@@ -4,11 +4,9 @@ from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
 from meross_iot.controller.mixins.toggle import ToggleMixin
-from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
 from meross_iot.model.enums import OnlineStatus
 from tests import async_get_client
-
 
 if os.name == 'nt':
     import asyncio
@@ -41,7 +39,7 @@ class TestToggle(AioHTTPTestCase):
     async def test_toggle_local_state(self):
         if self.test_device is None:
             self.skipTest("No ToggleX device has been found to run this test on.")
-
+        print(f"Testing device {self.test_device.name}")
         # Turn off device to start from a clean state
         r = await self.test_device.async_turn_off()
         self.assertFalse(self.test_device.is_on())
@@ -60,7 +58,7 @@ class TestToggle(AioHTTPTestCase):
     async def test_toggle_push_notification(self):
         if self.test_device is None:
             self.skipTest("No ToggleX device has been found to run this test on.")
-
+        print(f"Testing device {self.test_device.name}")
         # Create a new manager
         new_meross_client, requires_logout = await async_get_client()
         m = None

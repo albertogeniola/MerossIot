@@ -36,7 +36,7 @@ class TestHttpMethods(AioHTTPTestCase):
 
         if hub is None:
             self.skipTest("No hub was found on this subscription. Cannot test hub listing.")
-
+        print(f"Testing device {hub.dev_name}")
         result = await self.meross_client.async_list_hub_subdevices(hub.uuid)
         self.assertGreater(len(result), 0)
         return result
@@ -65,7 +65,7 @@ class TestHttpMethods(AioHTTPTestCase):
 
         if hub is None:
             self.skipTest("No hub was found on this subscription. Cannot test hub listing.")
-
+        print(f"Testing device {hub.dev_name}")
         result = await self.meross_client.async_list_hub_subdevices(hub.uuid)
         self.assertGreater(len(result), 0)
         return result

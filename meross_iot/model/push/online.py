@@ -1,5 +1,4 @@
 from meross_iot.model.enums import Namespace, OnlineStatus
-from meross_iot.model.push.common import HardwareInfo, FirmwareInfo, TimeInfo
 from meross_iot.model.push.generic import GenericPushNotification
 
 

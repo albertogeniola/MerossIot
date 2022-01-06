@@ -25,7 +25,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```bash
-pip install meross_iot==0.4.3.0
+pip install meross_iot==0.4.4.0
 ```
 
 ## Usage & Full Documentation
@@ -174,16 +174,19 @@ is released on Pypi. However, to ensure that the code <i>really works</i>,
 the pipeline will issue on/off commands against real devices, that are dedicated 24/7 to the tests.
 Such devices have been bought by myself (with contributions received by donators).
 However, keeping such devices connected 24/7 has a cost, which I sustain happily due to the success of the library.
-Anyways, feel free to contribute via donations!
+Anyway, feel free to contribute via donations!
 </p>
 
 ## Changelog
-#### 0.4.3.1
-- Fixed MQTT reconnection issue 
+#### 0.4.4.0
+- Removed rate limiting logic/switches
+- Fixed light_rgb test failing when issuing commands to smart-humidifier led
 
 <details>
     <summary>Older</summary>
 
+#### 0.4.3.1
+- Fixed MQTT reconnection issue 
 #### 0.4.3.0
 - Refactored asyncio calls affected by loop parameter deprecation 
 - Various `subdevice` event handling improvements and bugfixes

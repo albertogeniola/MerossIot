@@ -37,6 +37,7 @@ class TestSpray(AioHTTPTestCase):
                           "The test will be skipped")
 
         dev = self.test_devices[0]
+        print(f"Testing device {dev.name}")
         await dev.async_set_mode(mode=SprayMode.CONTINUOUS)
         self.assertEqual(dev.get_current_mode(), SprayMode.CONTINUOUS)
 
@@ -47,46 +48,6 @@ class TestSpray(AioHTTPTestCase):
         self.assertEqual(dev.get_current_mode(), SprayMode.OFF)
 
         await dev.async_update()
-
-    """
-    @unittest_run_loop
-    async def test_rgb_push_notification(self):
-        # Make sure we have an RGB-capable available device
-        rgb_capable = list(filter(lambda d: d.supports_rgb, self.light_devices))
-        if len(rgb_capable) < 1:
-            self.skipTest("Could not find any RGB-capable LightMixin within the given set of devices. "
-                          "The test will be skipped")
-            return
-
-        light = rgb_capable[0]
-
-        # Create a new manager
-        new_meross_client = await MerossHttpClient.async_from_user_password(email=EMAIL, password=PASSWORD)
-        m = None
-        try:
-            # Retrieve the same device with another manager
-            m = MerossManager(http_client=new_meross_client)
-            await m.async_init()
-            await m.async_device_discovery()
-            devs = m.find_device(uuids=(light.uuid))
-            dev = devs[0]
-
-            # Set RGB color to known state
-            r = await light.async_set_light_color(rgb=(255, 0, 0))
-            await asyncio.sleep(2)
-
-            # Turn on the device
-            r = await light.async_set_light_color(rgb=(0, 255, 0))
-
-            # Wait a bit and make sure the other manager received the push notification
-            await asyncio.sleep(10)
-            self.assertEqual(light.rgb_color, (0, 255, 0))
-            self.assertEqual(dev.rgb_color, (0, 255, 0))
-        finally:
-            if m is not None:
-                m.close()
-            await new_meross_client.async_logout()
-    """
 
     async def tearDownAsync(self):
         if self.requires_logout:
