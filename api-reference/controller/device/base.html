@@ -20,7 +20,7 @@
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
     <link rel="next" title="GenericSubDevice" href="generic.html" />
-    <link rel="prev" title="Statistics" href="../../stats.html" /> 
+    <link rel="prev" title="MerossCloudCredentials" href="../../creds.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -49,7 +49,6 @@
 <li class="toctree-l2"><a class="reference internal" href="../../http.html">HTTP Client</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../manager.html">MerossManager</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../creds.html">MerossCloudCredentials</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../stats.html">Statistics</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">BaseDevice</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generic.html">GenericSubDevice</a></li>
 <li class="toctree-l2"><a class="reference internal" href="hub.html">HubDevice</a></li>
@@ -108,7 +107,7 @@ name, type (i.e. device specific model), firmware/hardware version, a Meross int
 identifier, a library assigned internal identifier.</p>
 <dl class="method">
 <dt id="meross_iot.controller.device.BaseDevice.async_update">
-<em class="property">async </em><code class="sig-name descname">async_update</code><span class="sig-paren">(</span><em class="sig-param">skip_rate_limits: bool = False</em>, <em class="sig-param">drop_on_overquota: bool = True</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.device.BaseDevice.async_update" title="Permalink to this definition">¶</a></dt>
+<em class="property">async </em><code class="sig-name descname">async_update</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.device.BaseDevice.async_update" title="Permalink to this definition">¶</a></dt>
 <dd><p>Forces a full data update on the device. If your network bandwidth is limited or you are running
 this program on an embedded device, try to invoke this method only when strictly needed.
 Most of the parameters of a device are updated automatically upon push-notification received
@@ -218,7 +217,7 @@ This coroutine function should have been previously registered
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="../../stats.html" class="btn btn-neutral float-left" title="Statistics" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../../creds.html" class="btn btn-neutral float-left" title="MerossCloudCredentials" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="generic.html" class="btn btn-neutral float-right" title="GenericSubDevice" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

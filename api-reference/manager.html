@@ -49,7 +49,6 @@
 <li class="toctree-l2"><a class="reference internal" href="http.html">HTTP Client</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">MerossManager</a></li>
 <li class="toctree-l2"><a class="reference internal" href="creds.html">MerossCloudCredentials</a></li>
-<li class="toctree-l2"><a class="reference internal" href="stats.html">Statistics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="controller/device/base.html">BaseDevice</a></li>
 <li class="toctree-l2"><a class="reference internal" href="controller/device/generic.html">GenericSubDevice</a></li>
 <li class="toctree-l2"><a class="reference internal" href="controller/device/hub.html">HubDevice</a></li>
@@ -101,7 +100,7 @@
 <span id="merossmanager"></span><h1>MerossManager<a class="headerlink" href="#module-meross_iot.manager" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="meross_iot.manager.MerossManager">
-<em class="property">class </em><code class="sig-prename descclassname">meross_iot.manager.</code><code class="sig-name descname">MerossManager</code><span class="sig-paren">(</span><em class="sig-param">http_client: meross_iot.http_api.MerossHttpClient</em>, <em class="sig-param">auto_reconnect: Optional[bool] = True</em>, <em class="sig-param">mqtt_skip_cert_validation: bool = False</em>, <em class="sig-param">ca_cert: Optional[str] = None</em>, <em class="sig-param">rate_limiter: Optional[meross_iot.utilities.limiter.RateLimitChecker] = None</em>, <em class="sig-param">loop: Optional[asyncio.events.AbstractEventLoop] = None</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwords</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.manager.MerossManager" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">meross_iot.manager.</code><code class="sig-name descname">MerossManager</code><span class="sig-paren">(</span><em class="sig-param">http_client: meross_iot.http_api.MerossHttpClient</em>, <em class="sig-param">auto_reconnect: Optional[bool] = True</em>, <em class="sig-param">mqtt_skip_cert_validation: bool = False</em>, <em class="sig-param">ca_cert: Optional[str] = None</em>, <em class="sig-param">loop: Optional[asyncio.events.AbstractEventLoop] = None</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwords</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.manager.MerossManager" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class implements a full-features Meross Client, which provides device discovery and registry.
 <em>Note</em>: The manager must be initialized before invoking any of its discovery/registry methods. As soon as
 you create a manager, you shoul call <a class="reference internal" href="#meross_iot.manager.MerossManager.async_init" title="meross_iot.manager.MerossManager.async_init"><code class="xref py py-meth docutils literal notranslate"><span class="pre">async_init()</span></code></a>!</p>
@@ -130,7 +129,7 @@ When not passed, the manager will issue the HTTP API call to retrieve the latest
 
 <dl class="method">
 <dt id="meross_iot.manager.MerossManager.async_execute_cmd">
-<em class="property">async </em><code class="sig-name descname">async_execute_cmd</code><span class="sig-paren">(</span><em class="sig-param">mqtt_hostname: str</em>, <em class="sig-param">mqtt_port: int</em>, <em class="sig-param">destination_device_uuid: str</em>, <em class="sig-param">method: str</em>, <em class="sig-param">namespace: meross_iot.model.enums.Namespace</em>, <em class="sig-param">payload: dict</em>, <em class="sig-param">timeout: float = 10.0</em>, <em class="sig-param">skip_rate_limiting_check: bool = False</em>, <em class="sig-param">drop_on_overquota: bool = True</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.manager.MerossManager.async_execute_cmd" title="Permalink to this definition">¶</a></dt>
+<em class="property">async </em><code class="sig-name descname">async_execute_cmd</code><span class="sig-paren">(</span><em class="sig-param">mqtt_hostname: str</em>, <em class="sig-param">mqtt_port: int</em>, <em class="sig-param">destination_device_uuid: str</em>, <em class="sig-param">method: str</em>, <em class="sig-param">namespace: meross_iot.model.enums.Namespace</em>, <em class="sig-param">payload: dict</em>, <em class="sig-param">timeout: float = 10.0</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.manager.MerossManager.async_execute_cmd" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method sends a command to the MQTT Meross broker.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -142,9 +141,6 @@ When not passed, the manager will issue the HTTP API call to retrieve the latest
 <li><p><strong>namespace</strong> – Command namespace</p></li>
 <li><p><strong>payload</strong> – A dict containing the payload to be sent</p></li>
 <li><p><strong>timeout</strong> – Maximum time interval in seconds to wait for the command-answer</p></li>
-<li><p><strong>skip_rate_limiting_check</strong> – When True, no API rate limit is performed for executing the command</p></li>
-<li><p><strong>drop_on_overquota</strong> – When True, API calls that hit the overquota limit will be dropped.
-If set to False, those calls will not be dropped, but delayed accordingly.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -192,12 +188,6 @@ as reported by the HTTP api or byt the relative hub (when dealing with subdevice
 <dd class="field-even"><p>The list of devices that match the provided filters, if any.</p>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="meross_iot.manager.MerossManager.mqtt_call_stats">
-<em class="property">property </em><code class="sig-name descname">mqtt_call_stats</code><a class="headerlink" href="#meross_iot.manager.MerossManager.mqtt_call_stats" title="Permalink to this definition">¶</a></dt>
-<dd><p>Exposes some MQTT API calls metrics</p>
 </dd></dl>
 
 <dl class="method">

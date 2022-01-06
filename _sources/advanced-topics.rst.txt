@@ -43,49 +43,6 @@ Again, it is possible to de-register such push notification handlers by invoking
    For long-running and deamon like scripts, you should limit the number of registered push notificaiton handlers
    and you should unregister when they are no more needed.
 
-Managing rate limits
---------------------
-
-The latest version of MerossManager does not implement any mqtt rate limiting out-of-the-box, but allows the
-developer to control how mqtt calls are issued to the Meross broker. To do so, simply set the value of the
-`rate_limiter` property of the `MerossManager` object. You can use the `RateLimitChecker` helper class
-as shown below.
-
-.. code-block:: python
-
-    # ... OMISSIS ...
-    # Look for a device to be used for this test
-    meross_client = await MerossHttpClient.async_from_user_password(email=EMAIL, password=PASSWORD, **opt_params)
-    rate_limiter = RateLimitChecker(global_time_window=timedelta(seconds=1), global_burst_rate=BURST_RATE, device_max_command_queue=BURST_RATE)
-    manager = MerossManager(http_client=meross_client, rate_limiter=rate_limiter)
-
-The current implementation of rate limits is based on a *global* rate limiter and on a *per device* rate limiter.
-Both limit checks are based on the `Token bucket policy <https://it.wikipedia.org/wiki/Token_bucket>`_ and
-the developer can set them up when building the `MerossManager` object.
-
-Each command issued by the manager is first checked against the per-device rate limiter.
-If that limit is not reached hit, then a second check is performed against the global rate limiter.
-If both the checks pass, then the command is issued to the broker.
-
-In case any of the two limits is hit, the Manager will reschedule the command (retrying) with an exponential backoff
-strategy. The command is retried (delayed) until the number of retries exceeds the device_max_command_queue
-parameter value. When this happens, the current call and the future calls are dropped, until new tokens are added
-to the bucket.
-
-MQTT Calls Statistics
---------------------
-
-The `MerossManager` tracks some statistics about MQTT messages sent to the broker, useful to better tune
-the API rate limits. You can access such statistics via `MerossManager.mqtt_call_stats()`, which returns an
-instance of `ApiCounter` class, which exposes convenient methods to retrieve performed calls, delayed ones and
-dropped ones.
-
-At the moment, the ApiCounter keeps track of the latest 1000 mqtt calls performed.
-Statistics are calculated over a timewindow of 1 minute: you can override the timewindow size
-by setting the `time_window` parameter accordingly (pass a `timedelta`).
-
-For more info, please refer to the API reference of `MerossManager` and `ApiCounter` classes.
-
 Logging
 -------
 This library relies on the standard Python's logging module.

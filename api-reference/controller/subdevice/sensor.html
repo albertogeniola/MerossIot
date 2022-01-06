@@ -49,7 +49,6 @@
 <li class="toctree-l2"><a class="reference internal" href="../../http.html">HTTP Client</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../manager.html">MerossManager</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../creds.html">MerossCloudCredentials</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../stats.html">Statistics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../device/base.html">BaseDevice</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../device/generic.html">GenericSubDevice</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../device/hub.html">HubDevice</a></li>
@@ -99,68 +98,6 @@
              
   <div class="section" id="ms100sensor">
 <h1>Ms100Sensor<a class="headerlink" href="#ms100sensor" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="meross_iot.controller.known.subdevice.Ms100Sensor">
-<em class="property">class </em><code class="sig-prename descclassname">meross_iot.controller.known.subdevice.</code><code class="sig-name descname">Ms100Sensor</code><span class="sig-paren">(</span><em class="sig-param">hubdevice_uuid: str</em>, <em class="sig-param">subdevice_id: str</em>, <em class="sig-param">manager</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.controller.known.subdevice.Ms100Sensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>This class maps the functionality offered by the MS100 sensor device.
-The MS100 offers temperature and humidity sensing.
-Moreover, this device is capable of triggering settable alerts.</p>
-<dl class="method">
-<dt id="meross_iot.controller.known.subdevice.Ms100Sensor.last_sampled_humidity">
-<em class="property">property </em><code class="sig-name descname">last_sampled_humidity</code><a class="headerlink" href="#meross_iot.controller.known.subdevice.Ms100Sensor.last_sampled_humidity" title="Permalink to this definition">¶</a></dt>
-<dd><p>Exposes the latest sampled humidity, in %.
-If you want to refresh this data, call <cite>async_update</cite> to force a full
-data refresh.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>The latest sampled humidity grade in %, if available</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="meross_iot.controller.known.subdevice.Ms100Sensor.last_sampled_temperature">
-<em class="property">property </em><code class="sig-name descname">last_sampled_temperature</code><a class="headerlink" href="#meross_iot.controller.known.subdevice.Ms100Sensor.last_sampled_temperature" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the latest sampled temperature in Celsius degrees.
-If you want to refresh this data, call <cite>async_update</cite> to force a full
-data refresh.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>The latest sampled temperature, if available, in Celsius degree</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="meross_iot.controller.known.subdevice.Ms100Sensor.last_sampled_time">
-<em class="property">property </em><code class="sig-name descname">last_sampled_time</code><a class="headerlink" href="#meross_iot.controller.known.subdevice.Ms100Sensor.last_sampled_time" title="Permalink to this definition">¶</a></dt>
-<dd><p>UTC datetime when the latest update has been sampled by the sensor</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>latest sampling time in UTC, if available</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="meross_iot.controller.known.subdevice.Ms100Sensor.max_supported_temperature">
-<em class="property">property </em><code class="sig-name descname">max_supported_temperature</code><a class="headerlink" href="#meross_iot.controller.known.subdevice.Ms100Sensor.max_supported_temperature" title="Permalink to this definition">¶</a></dt>
-<dd><p>Minimum supported temperature that this device can report</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="meross_iot.controller.known.subdevice.Ms100Sensor.min_supported_temperature">
-<em class="property">property </em><code class="sig-name descname">min_supported_temperature</code><a class="headerlink" href="#meross_iot.controller.known.subdevice.Ms100Sensor.min_supported_temperature" title="Permalink to this definition">¶</a></dt>
-<dd><p>Maximum supported temperature that this device can report</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>float value, maximum supported temperature, if available</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
 </div>
 
 
