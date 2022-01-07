@@ -189,8 +189,8 @@ jobs:
         id: release_decision
         run: |
           failure_threshold=10
-          echo "Current minimum pass-threshold: failure_threshold %"
-          should_release=`echo "${{ needs.test.outputs.failure_rate_python_3_7 }} < failure_threshold && ${{ needs.test.outputs.failure_rate_python_3_8 }} < $failure_threshold && ${{ needs.test.outputs.failure_rate_python_3_9 }} < $failure_threshold && ${{ needs.test.outputs.failure_rate_python_3_10 }} > $failure_threshold" | bc -l`
+          echo "Current minimum pass-threshold: $failure_threshold %"
+          should_release=`echo "${{ needs.test.outputs.failure_rate_python_3_7 }} < $failure_threshold && ${{ needs.test.outputs.failure_rate_python_3_8 }} < $failure_threshold && ${{ needs.test.outputs.failure_rate_python_3_9 }} < $failure_threshold && ${{ needs.test.outputs.failure_rate_python_3_10 }} > $failure_threshold" | bc -l`
           echo "::set-output name=should_release::$should_release"
           echo "Release decision: $should_release"
           if [[ $should_release -ne 1 ]]; then
