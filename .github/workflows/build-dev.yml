@@ -123,6 +123,16 @@ jobs:
       # Use always() to always run this step to publish test results when there are test failures
       if: ${{ always() }}
 
+    # Upload to CODECOV
+    - uses: codecov/codecov-action@v2
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        name: codecov-merossiot-python-dev
+        directory: ./coverage/reports/
+        path_to_write_report: ./coverage/codecov_report.txt
+        flags: unittests
+        verbose: true
+
   # ------------------------------
   # Turn off ENV
   # ------------------------------
