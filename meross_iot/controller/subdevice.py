@@ -36,7 +36,10 @@ class Ms100Sensor(GenericSubDevice):
 
     async def async_handle_subdevice_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
-        if namespace == Namespace.HUB_SENSOR_ALL:
+        if namespace == Namespace.HUB_ONLINE:
+            self._online = OnlineStatus(data.get('online', {}).get('status', -1))
+            self._last_active_time = data.get('online', {}).get('lastActiveTime')
+        elif namespace == Namespace.HUB_SENSOR_ALL:
             self._online = OnlineStatus(data.get('online', {}).get('status', -1))
             self.__temperature.update(data.get('temperature', {}))
             self.__humidity.update(data.get('humidity', {}))
@@ -162,7 +165,10 @@ class Mts100v3Valve(GenericSubDevice):
 
     async def async_handle_subdevice_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
-        if namespace == Namespace.HUB_MTS100_ALL:
+        if namespace == Namespace.HUB_ONLINE:
+            self._online = OnlineStatus(data.get('online', {}).get('status', -1))
+            self._last_active_time = data.get('online', {}).get('lastActiveTime')
+        elif namespace == Namespace.HUB_MTS100_ALL:
             self._schedule_b_mode = data.get('scheduleBMode')
             self._online = OnlineStatus(data.get('online', {}).get('status', -1))
             self._last_active_time = data.get('online', {}).get('lastActiveTime')

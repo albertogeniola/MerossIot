@@ -68,10 +68,10 @@ jobs:
         python_version: ['3.7', '3.8', '3.9', '3.10']
       max-parallel: 1
     outputs:
-      success_rate_python_3_7: ${{steps.pytest.outputs.success_rate_3_7}}
-      success_rate_python_3_8: ${{steps.pytest.outputs.success_rate_3_8}}
-      success_rate_python_3_9: ${{steps.pytest.outputs.success_rate_3_9}}
-      success_rate_python_3_10: ${{steps.pytest.outputs.success_rate_3_10}}
+      failure_rate_python_3_7: ${{steps.pytest.outputs.failure_rate_3_7}}
+      failure_rate_python_3_8: ${{steps.pytest.outputs.failure_rate_3_8}}
+      failure_rate_python_3_9: ${{steps.pytest.outputs.failure_rate_3_9}}
+      failure_rate_python_3_10: ${{steps.pytest.outputs.failure_rate_3_10}}
     needs: [build, turn-on-env]
     steps:
     - uses: actions/checkout@v2
@@ -108,13 +108,12 @@ jobs:
         __MEROSS_CREDS=$TOKEN meross_api_cli auth logout
         # Parse test outcomes
         total_tests=`cat .report.json | jq .summary.total`
-        passed_tests=`cat .report.json | jq .summary.passed`
         failed_tests=`cat .report.json | jq .summary.failed`
-        success_rate=`echo $passed_tests/$total_tests*100 | bc -l`
-        pythonv=`echo success_rate_${{ matrix.python_version }} | sed 's/\./_/'`
+        failure_rate=`echo $failed_tests/$total_tests*100 | bc -l`
+        pythonv=`echo failure_rate_${{ matrix.python_version }} | sed 's/\./_/'`
         echo "Setting pythonv=$pythonv"
-        echo "::set-output name=$pythonv::$success_rate"
-        echo "Python ${{ matrix.python_version }}: $success_rate %" > results-${{ matrix.python_version }}.txt
+        echo "::set-output name=$pythonv::$failure_rate"
+        echo "Python ${{ matrix.python_version }}: $failure_rate %" > results-${{ matrix.python_version }}.txt
       continue-on-error: true
     - name: Upload pytest test TXT results
       uses: actions/upload-artifact@v2
@@ -182,20 +181,20 @@ jobs:
     steps:
       - name: Print current configuration
         run: |
-          echo "Python 3.7: ${{ needs.test.outputs.success_rate_python_3_7 }}%"
-          echo "Python 3.8: ${{ needs.test.outputs.success_rate_python_3_8 }}%"
-          echo "Python 3.9: ${{ needs.test.outputs.success_rate_python_3_9 }}%"
-          echo "Python 3.10: ${{ needs.test.outputs.success_rate_python_3_10 }}%"
+          echo "Python 3.7: ${{ needs.test.outputs.failure_rate_python_3_7 }}%"
+          echo "Python 3.8: ${{ needs.test.outputs.failure_rate_python_3_8 }}%"
+          echo "Python 3.9: ${{ needs.test.outputs.failure_rate_python_3_9 }}%"
+          echo "Python 3.10: ${{ needs.test.outputs.failure_rate_python_3_10 }}%"
       - name: Take release decision
         id: release_decision
         run: |
-          success_threshold=80
-          echo "Current minimum pass-threshold: $success_threshold %"
-          should_release=`echo "${{ needs.test.outputs.success_rate_python_3_7 }} > $success_threshold && ${{ needs.test.outputs.success_rate_python_3_8 }} > $success_threshold && ${{ needs.test.outputs.success_rate_python_3_9 }} > $success_threshold && ${{ needs.test.outputs.success_rate_python_3_10 }} > $success_threshold" | bc -l`
+          failure_threshold=10
+          echo "Current minimum pass-threshold: failure_threshold %"
+          should_release=`echo "${{ needs.test.outputs.failure_rate_python_3_7 }} < failure_threshold && ${{ needs.test.outputs.failure_rate_python_3_8 }} < $failure_threshold && ${{ needs.test.outputs.failure_rate_python_3_9 }} < $failure_threshold && ${{ needs.test.outputs.failure_rate_python_3_10 }} > $failure_threshold" | bc -l`
           echo "::set-output name=should_release::$should_release"
           echo "Release decision: $should_release"
           if [[ $should_release -ne 1 ]]; then
-            echo "Failing as one of the tests did not reach the minumum pass-threshold."
+            echo "Failing as one of the tests did hit the maximum failure threshold."
             exit 1
           fi
 

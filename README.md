@@ -178,9 +178,10 @@ Anyway, feel free to contribute via donations!
 </p>
 
 ## Changelog
-#### 0.4.4.0
+#### 0.4.4.2
 - Removed rate limiting logic/switches
 - Fixed light_rgb test failing when issuing commands to smart-humidifier led
+- Handling HUB_ONLINE event at subdevice level
 
 <details>
     <summary>Older</summary>
