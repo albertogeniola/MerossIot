@@ -124,12 +124,11 @@ jobs:
       if: ${{ always() }}
 
     # Upload to CODECOV
-    - uses: codecov/codecov-action@v2
+    - name: codecov-upload
+      uses: codecov/codecov-action@v2
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         name: codecov-merossiot-python-dev
-        directory: ./coverage/reports/
-        path_to_write_report: ./coverage/codecov_report.txt
         flags: unittests
         verbose: true
 
