@@ -1,5 +1,6 @@
 ![DEV Build Status](https://github.com/albertogeniola/MerossIot/workflows/Build%20pre-release/badge.svg?branch=development-0.4.X.X)
 ![0.4.X.X Build](https://github.com/albertogeniola/MerossIot/workflows/Build%20Test%20and%20Release/badge.svg?branch=0.4.X.X)
+[![codecov](https://codecov.io/gh/albertogeniola/MerossIot/branch/0.4.X.X/graph/badge.svg?token=f0Rb4n4Vux)](https://codecov.io/gh/albertogeniola/MerossIot)
 ![Documentation](https://github.com/albertogeniola/MerossIot/workflows/Publish%20Documentation/badge.svg?branch=0.4.X.X)
 [![PyPI version](https://badge.fury.io/py/meross-iot.svg)](https://badge.fury.io/py/meross-iot)
 [![Downloads](https://pepy.tech/badge/meross-iot)](https://pepy.tech/project/meross-iot)
@@ -25,7 +26,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```bash
-pip install meross_iot==0.4.4.0
+pip install meross_iot==0.4.4.2
 ```
 
 ## Usage & Full Documentation
