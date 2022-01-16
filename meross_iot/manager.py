@@ -289,8 +289,8 @@ class MerossManager(object):
         Looper logic
         """
         _LOGGER.info("Starting Manager Looper")
-        processed_loops = 0
         while not self.__stop_requested:
+            processed_loops = 0
             try:
                 # Loop over a copy of the dictionary to prevent dictionary changes while running
                 for key, client in {k: v for k, v in self._mqtt_clients.items() if v}.items():
@@ -314,12 +314,12 @@ class MerossManager(object):
                             # Wait some time before retrying.
                             time_to_wait = max(pow(2, self._mqtt_connection_errors[client]), 30.0)
                             await asyncio.sleep(time_to_wait)
-
+            except Exception as e:
+                _LOGGER.exception("Error occurred while executing looper")
+            finally:
                 # In case there is nothing to do, wait a bit
                 if processed_loops < 1:
                     await asyncio.sleep(.1)
-            except Exception as e:
-                _LOGGER.exception("Error occurred while executing looper")
         _LOGGER.debug("Stop flag raised, ending loop")
 
     async def async_device_discovery(

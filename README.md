@@ -179,14 +179,15 @@ Anyway, feel free to contribute via donations!
 </p>
 
 ## Changelog
+#### 0.4.4.3
+- Improved async_loop to avoid flooding when IDLE.
+
+<details>
+    <summary>Older</summary>
 #### 0.4.4.2
 - Removed rate limiting logic/switches
 - Fixed light_rgb test failing when issuing commands to smart-humidifier led
 - Handling HUB_ONLINE event at subdevice level
-
-<details>
-    <summary>Older</summary>
-
 #### 0.4.3.1
 - Fixed MQTT reconnection issue 
 #### 0.4.3.0
