@@ -102,8 +102,7 @@
 <dt id="meross_iot.manager.MerossManager">
 <em class="property">class </em><code class="sig-prename descclassname">meross_iot.manager.</code><code class="sig-name descname">MerossManager</code><span class="sig-paren">(</span><em class="sig-param">http_client: meross_iot.http_api.MerossHttpClient</em>, <em class="sig-param">auto_reconnect: Optional[bool] = True</em>, <em class="sig-param">mqtt_skip_cert_validation: bool = False</em>, <em class="sig-param">ca_cert: Optional[str] = None</em>, <em class="sig-param">loop: Optional[asyncio.events.AbstractEventLoop] = None</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwords</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.manager.MerossManager" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class implements a full-features Meross Client, which provides device discovery and registry.
-<em>Note</em>: The manager must be initialized before invoking any of its discovery/registry methods. As soon as
-you create a manager, you shoul call <a class="reference internal" href="#meross_iot.manager.MerossManager.async_init" title="meross_iot.manager.MerossManager.async_init"><code class="xref py py-meth docutils literal notranslate"><span class="pre">async_init()</span></code></a>!</p>
+<em>Note</em>: The manager must be initialized before invoking any of its discovery/registry methods.</p>
 <dl class="method">
 <dt id="meross_iot.manager.MerossManager.async_device_discovery">
 <em class="property">async </em><code class="sig-name descname">async_device_discovery</code><span class="sig-paren">(</span><em class="sig-param">update_subdevice_status: bool = True</em>, <em class="sig-param">meross_device_uuid: str = None</em>, <em class="sig-param">cached_http_device_list: Optional[Iterable[meross_iot.model.http.device.HttpDeviceInfo]] = None</em><span class="sig-paren">)</span> &#x2192; Iterable[meross_iot.controller.device.BaseDevice]<a class="headerlink" href="#meross_iot.manager.MerossManager.async_device_discovery" title="Permalink to this definition">¶</a></dt>
@@ -152,7 +151,8 @@ When not passed, the manager will issue the HTTP API call to retrieve the latest
 <dl class="method">
 <dt id="meross_iot.manager.MerossManager.async_init">
 <em class="property">async </em><code class="sig-name descname">async_init</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.manager.MerossManager.async_init" title="Permalink to this definition">¶</a></dt>
-<dd><p>Starts the looper logic</p>
+<dd><p>&#64;deprecated
+Ignored, signature left for backward compatibility</p>
 </dd></dl>
 
 <dl class="method">

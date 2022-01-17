@@ -43,7 +43,9 @@ plug, in sequence.
                 "timestamp": {{TIMESTAMP}},
                 "sign": "{{SIGNATURE}}",
                 "method": "SET",
-                "namespace": "Appliance.Config.Key"
+                "namespace": "Appliance.Config.Key",
+                "triggerSrc": "Android",
+                "uuid": "{{TARGET_DEVICE_UUID}}"
             },
             "payload": {
                 "key": {
