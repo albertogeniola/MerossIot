@@ -54,7 +54,7 @@ class TestGarageOpener(AioHTTPTestCase):
             await garage.async_close()
         else:
             await garage.async_open()
-        await asyncio.sleep(30)
+        await asyncio.sleep(40)
         self.assertEqual(garage.get_is_open(), not is_open)
 
         is_open = garage.get_is_open()
@@ -62,7 +62,7 @@ class TestGarageOpener(AioHTTPTestCase):
             await garage.async_close()
         else:
             await garage.async_open()
-        await asyncio.sleep(30)
+        await asyncio.sleep(40)
         self.assertEqual(garage.get_is_open(), not is_open)
 
     async def tearDownAsync(self):

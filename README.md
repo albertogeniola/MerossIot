@@ -180,7 +180,9 @@ Anyway, feel free to contribute via donations!
 
 ## Changelog
 #### 0.4.4.3
-- Improved async_loop to avoid flooding when IDLE.
+- Improved mqtt client and async: switched back to mixed async/threading approach.
+- Added triggerSrc and uuid attributes to header
+- Fixed a bug affecting message dispatching to sub-devices 
 
 <details>
     <summary>Older</summary>

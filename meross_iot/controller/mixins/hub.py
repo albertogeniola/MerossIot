@@ -150,7 +150,8 @@ class HubMts100Mixin(object):
                 if target_device is None:
                     _LOGGER.warning(f"Received data for subdevice {target_device}, which has not been registered with this"
                                     f"hub yet. This update will be ignored.")
-                await target_device.async_handle_subdevice_notification(namespace=Namespace.HUB_MTS100_ALL, data=d)
+                else:
+                    await target_device.async_handle_subdevice_notification(namespace=Namespace.HUB_MTS100_ALL, data=d)
         except Exception as e:
             _LOGGER.exception("Error occurred during subdevice update")
 
