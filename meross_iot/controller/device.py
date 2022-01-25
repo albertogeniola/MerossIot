@@ -193,6 +193,10 @@ class BaseDevice(object):
         """
         return self._channels
 
+    def get_default_channel(self):
+        #TODO:
+        pass
+
     async def update_from_http_state(self, hdevice: HttpDeviceInfo) -> BaseDevice:
         # Careful with online  status: not all the devices might expose an online mixin.
         if hdevice.uuid != self.uuid:

@@ -1,6 +1,7 @@
 import logging
-from typing import Optional
+from typing import Optional, List
 
+from meross_iot.controller.device import ChannelInfo
 from meross_iot.model.enums import Namespace
 
 _LOGGER = logging.getLogger(__name__)
@@ -16,6 +17,7 @@ class GarageOpenerMixin:
                  **kwargs):
         super().__init__(device_uuid=device_uuid, manager=manager, **kwargs)
         self._door_open_state_by_channel = {}
+        self._door_config_state_by_channel = {}
 
     async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
@@ -36,6 +38,21 @@ class GarageOpenerMixin:
                     state = door['open'] == 1
                     self._door_open_state_by_channel[channel_index] = state
                     locally_handled = True
+        elif namespace == Namespace.GARAGE_DOOR_MULTIPLECONFIG:
+            _LOGGER.debug(f"{self.__class__.__name__} handling push notification for namespace "
+                          f"{namespace}")
+            payload = data.get('config')
+            if payload is None:
+                _LOGGER.error(f"{self.__class__.__name__} could not find 'config' attribute in push notification data: "
+                              f"{data}")
+                locally_handled = False
+            else:
+                # The door opener state push notification contains an object for every channel handled by the
+                # device
+                for door in payload:
+                    channel_index = door['channel']
+                    self._door_config_state_by_channel[channel_index] = door
+                    locally_handled = True
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
@@ -51,6 +68,7 @@ class GarageOpenerMixin:
                 channel_index = door['channel']
                 state = door['open'] == 1
                 self._door_open_state_by_channel[channel_index] = state
+
             locally_handled = True
 
         super_handled = await super().async_handle_update(namespace=namespace, data=data)
@@ -87,13 +105,12 @@ class GarageOpenerMixin:
                                     payload=payload,
                                     timeout=timeout)
 
-    def get_is_open(self, channel: int = 0, *args, **kwargs) -> Optional[bool]:
+    def get_is_open(self, channel: Optional[int] = None, *args, **kwargs) -> Optional[bool]:
         """
         The current door-open status. Returns True if the given door is open, False otherwise.
-
         :param channel: channel of which status is needed
 
         :return: False if the door is closed, True otherwise
         """
         self.check_full_update_done()
-        return self._door_open_state_by_channel.get(channel)
+        return self._door_open_state_by_channel.get(target_channel)

@@ -66,6 +66,7 @@ class Namespace(Enum):
 
     # Garage opener abilities
     GARAGE_DOOR_STATE = 'Appliance.GarageDoor.State'
+    GARAGE_DOOR_MULTIPLECONFIG = 'Appliance.GarageDoor.MultipleConfig'
 
     # Roller shutter timer
     ROLLER_SHUTTER_STATE = 'Appliance.RollerShutter.State'
