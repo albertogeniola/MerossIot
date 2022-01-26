@@ -26,7 +26,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```bash
-pip install meross_iot==0.4.4.2
+pip install meross_iot==0.4.4.3
 ```
 
 ## Usage & Full Documentation
@@ -190,20 +190,30 @@ Anyway, feel free to contribute via donations!
 - Removed rate limiting logic/switches
 - Fixed light_rgb test failing when issuing commands to smart-humidifier led
 - Handling HUB_ONLINE event at subdevice level
+
+
 #### 0.4.3.1
 - Fixed MQTT reconnection issue 
+
+
 #### 0.4.3.0
 - Refactored asyncio calls affected by loop parameter deprecation 
 - Various `subdevice` event handling improvements and bugfixes
+
+
 #### 0.4.2.4
 - Added manager reference to Manager push notification handlers
 - Improved push notification tests
+
+
 #### 0.4.2.3
 - Added new HTTP request headers (introduced with latest APP versions)
 - Added custom user agent customization option to MerossHttpClient
 - Implemented pending task cancellation when shutting down the manager
 - Implemented HTTP API stats counting
 - Fixed bug affecting push notification parsing when multiple sensors/valves were in use
+
+
 #### 0.4.2.2
 - Fixed asyncio and threading bug in _schedule_later() utility
 - Improved timeout argument not being always passed downstream
@@ -211,9 +221,13 @@ Anyway, feel free to contribute via donations!
 - Added configurable timeout automatic test
 - Implemented device filtering by multiple types
 - Fixed client reconnection not working as expected
+
+
 #### 0.4.2.1
 - Fixed "None error" when calling limiter api
 - Updated aiohttp dependency to 3.7.4 due to security issues
+
+
 #### 0.4.2.0
 - Refactored MerossManager avoiding usage of multiple threads
 - Implemented multiple mqtt connections to different servers
@@ -224,8 +238,12 @@ Anyway, feel free to contribute via donations!
 - Improved disconnection/reconnection event handling
 - OnlineEvent is now being re-issued after client disconnection/reconnection
 - Implemented disconnect/reconnect automatic test
+
+
 #### 0.4.1.0rc8
 - Implemented first roller_shutter support (merged #160), thanks to @adrigonzalvez 
+
+
 #### 0.4.1.0rc7
 - Implemented exponential backoff for api-rate limiter
 - Fixed memory leakage that occurred for long-lived sessions of the MerossManager 
@@ -239,23 +257,35 @@ Anyway, feel free to contribute via donations!
 - Addressed problems with online events not being propagated correctly in some edge cases
 - Fixed some known-cached types that were missing SystemOnline and SystemAll mixins 
 - Removed warning logs from LightMixin when checking supported modes
+
+
 #### 0.4.0.6
 - Added device internal id parameter to async event handlers    
+
+
 #### 0.4.0.5
 - Implemented MQTT rate-limiter
 - Updated documentation
 - Fixed error occurring with paho-mqtt > 1.5.0
+
+
 #### 0.4.0.3
 - Improved sniffing data masking
 - Added light.py update instruction
 - Added error logs in case of missing async_update() call first call
+
+
 #### 0.4.0.2
 - Re-Implemented Meross Sniffer utility
+
+
 #### 0.4.0.1
 - Fixed #117
 - Extended API error codes
 - Updated paho-mqtt dependency to v1.5.0 
 - Fixed errors caused in tests when running on windows system / Python 3.8
+
+
 #### 0.4.0.0
 Complete re-engineerization of the library.
 
@@ -265,91 +295,157 @@ Complete re-engineerization of the library.
 - Added full-featured documentation
 - Added python type hints
 - Moved CI/CD to GitHub pages for letting PR test with on-premise Meross devices 
+
+
 #### 0.3.4.0RC
 - Added HTTP API logout capability
 - Refactored MerossManager/HTTPClient classes
+
+
 #### 0.3.3.3
 - Added lock-assistant capability to help debug deadlock cases
 - Improved tests
+
+
 #### 0.3.3.0
 - Added auto-reconnection capabilities by default
 - Improved automated testing skipping
+
+
 #### 0.3.2.22
 - Fixed MerossManager not being thread-safe
+
+
 #### 0.3.2.21
 - Fixed status integer not being parsed as INT
+
+
 #### 0.3.2.20 
 - Merged PR that adds supports for humidity sensor
+
+
 ### 0.3.2.17
 - Added Offline event emulation
+
+
 ### 0.3.2.15
 - Fixed deadlock occurring when handling Thermostat
 - Implementing callback/timeouts
+
+
 ### 0.3.2.14
 - Added option to force status-update on devices
 - get_sys_data now ignores online status in order to allow full status update (including online status)
+
+
 ### 0.3.2.12
 - Hotfix for introduced regression
 - Minor fix for power_plugs
+
+
 ### 0.3.2.9
 - Implemented battery stats fetch for HUB devices (valve)
+
+
 ### 0.3.2.7
 - Added support for smart humidifier
+
+
 ### 0.3.2.6
-- Added support for binding/unbinding events    
+- Added support for binding/unbinding events   
+
+ 
 ### 0.3.2.5
 - Fixed set_target_temperature not working as intended
+
+
 ### 0.3.2.4
 - Improved thermostat support
 - New handling of Hub and subdevices
 - General refactor    
+
+
 ### 0.3.1.12
 - Implemented meross_sniffer tool for collecting unknown devices logs
+
+
 ### 0.3.1.11
 - Implemented meross_info_gather script
+
+
 ### 0.3.1.10
 - Improved logging
+
+
 ### 0.3.1.9
 - Fixed missing method implementation
 - Improved logging
 - Minor improvements __str__ methods
+
+
 ### 0.3.1.8
 - Added HUB + thermostat support
+
+
 ### 0.3.1.6
 - Improved light bulb driver (capacity)
+
+
 ### 0.3.1.5
 - Fixed wrong MerossEventType being advertised for DeviceDoorStatusEvent
+
+
 ### 0.3.1.3
 - Added event fire capability to GenericBulb class.
 - Fixed bulb state kwargs bug
 - Improved set_light_color function for bulbs
+
+
 ### 0.3.0.2
 - Fixed door closing checks when using the async + callback close() and open() methods.
+
+
 ### 0.3.0.1
 - Added get_power_consumption() and get_electricity() methods as abstract methods of AbstractMerossDevice
 - Fixed regression passing manager parameter when firing Meross events.
+
+
 ### 0.3.0.0rc4
 - Added added switch_state to the generated event
+
+
 ### 0.3.0.0rc3
 - Added quick fix for MSS560 color control
+
+
 ### 0.3.0.0rc2
 - Fixed Major bugs with MSG100
 - Updated README examples
+
+
 ### 0.3.0.0rc1
 - Added MSG100 support
 - Fixed errors being logged when power consumptionX command was issued on powerplugs
+
+
 ### 0.3.0.0b1
 - General refactor of the library
 - Added event-based support
 - Fixed default mqtt broker address for non-european devices
+
+
 ### 0.2.2.1
 - Added basic bulb support: turning on/off and light control
 - Implemented MSL120 support
 - Implemented MSL120 automatic test
 - Extended example script usage to show how to control the light bulbs
 - Added maximum retry limit for execute_command and connect()
+
+
 ### 0.2.1.1
 - Code refactoring to support heterogeneous devices (bulbs, plugs, garage openers)
+
+
 ### 0.2.1.0
 - Implemented auto-reconnect on lost connection
 - Improving locking system in order to prevent library hangs when no ack is received
