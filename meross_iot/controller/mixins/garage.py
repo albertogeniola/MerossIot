@@ -8,6 +8,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class GarageOpenerMixin:
+    _channels: List[ChannelInfo]
     _execute_command: callable
     check_full_update_done: callable
     uuid: str
@@ -18,6 +19,11 @@ class GarageOpenerMixin:
         super().__init__(device_uuid=device_uuid, manager=manager, **kwargs)
         self._door_open_state_by_channel = {}
         self._door_config_state_by_channel = {}
+
+        # Initialize the state attributes
+        for c in self._channels:
+            self._door_open_state_by_channel[c.index] = None
+            self._door_config_state_by_channel[c.index] = None
 
     async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
@@ -32,7 +38,7 @@ class GarageOpenerMixin:
                 locally_handled = False
             else:
                 # The door opener state push notification contains an object for every channel handled by the
-                # device
+                # device.
                 for door in payload:
                     channel_index = door['channel']
                     state = door['open'] == 1
@@ -68,13 +74,12 @@ class GarageOpenerMixin:
                 channel_index = door['channel']
                 state = door['open'] == 1
                 self._door_open_state_by_channel[channel_index] = state
-
             locally_handled = True
 
         super_handled = await super().async_handle_update(namespace=namespace, data=data)
         return super_handled or locally_handled
 
-    async def async_open(self, channel: int = 0, *args, **kwargs) -> None:
+    async def async_open(self, channel: Optional[int] = None, *args, **kwargs) -> None:
         """
         Operates the door: sends the open command.
 
@@ -84,7 +89,7 @@ class GarageOpenerMixin:
         """
         await self._async_operate(state=True, channel=channel, *args, **kwargs)
 
-    async def async_close(self, channel: int = 0, *args, **kwargs) -> None:
+    async def async_close(self, channel: Optional[int] = None, *args, **kwargs) -> None:
         """
         Operates the door: sends the close command.
 
@@ -96,10 +101,11 @@ class GarageOpenerMixin:
 
     async def _async_operate(self,
                              state: bool,
-                             channel: int = 0,
+                             channel: Optional[int] = None,
                              timeout: Optional[float] = None,
                              *args, **kwargs) -> None:
-        payload = {"state": {"channel": channel, "open": 1 if state else 0, "uuid": self.uuid}}
+        target_channel = self._get_default_channel_index(channel)
+        payload = {"state": {"channel": target_channel, "open": 1 if state else 0, "uuid": self.uuid}}
         await self._execute_command(method="SET",
                                     namespace=Namespace.GARAGE_DOOR_STATE,
                                     payload=payload,
@@ -113,4 +119,14 @@ class GarageOpenerMixin:
         :return: False if the door is closed, True otherwise
         """
         self.check_full_update_done()
-        return self._door_open_state_by_channel.get(target_channel)
+        target_channel = self._get_default_channel_index(channel)
+        return self._door_open_state_by_channel.get(target_channel, None)
+
+    def _get_default_channel_index(self, channel: Optional[int]) -> int:
+        if channel is not None:
+            return channel
+
+        if len(self._channels)<2:
+            return 0
+        else:
+            return 1
