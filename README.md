@@ -104,6 +104,7 @@ The list of tested devices is the following:
 - MSS425E/MSS425F (Smart strip)
 - MSS530H (Wall-mount switches)
 - MSG100 (Garage opener)
+- MSG200 (3-doors Garage opener)
 - MSH300 (Smart hub + valve thermostat)
 - MS100 (Smart hub + temperature/humidity sensor)
 - MSS710
@@ -179,13 +180,18 @@ Anyway, feel free to contribute via donations!
 </p>
 
 ## Changelog
+#### 0.4.4.4
+- Added support for MSG200
+ 
+
+<details>
+    <summary>Older</summary>
 #### 0.4.4.3
 - Improved mqtt client and async: switched back to mixed async/threading approach.
 - Added triggerSrc and uuid attributes to header
 - Fixed a bug affecting message dispatching to sub-devices 
 
-<details>
-    <summary>Older</summary>
+
 #### 0.4.4.2
 - Removed rate limiting logic/switches
 - Fixed light_rgb test failing when issuing commands to smart-humidifier led
