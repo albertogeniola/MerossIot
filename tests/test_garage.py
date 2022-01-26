@@ -29,7 +29,7 @@ class TestGarageOpener(AioHTTPTestCase):
         self.meross_manager = MerossManager(http_client=self.meross_client)
         await self.meross_manager.async_init()
         devices = await self.meross_manager.async_device_discovery()
-        self.garage_devices = self.meross_manager.find_devices(device_class=GarageOpenerMixin, online_status=OnlineStatus.ONLINE)
+        self.garage_devices = self.meross_manager.find_devices(device_class=GarageOpenerMixin, online_status=OnlineStatus.ONLINE, device_type="msg100")
 
     @unittest_run_loop
     async def test_open_close(self):
