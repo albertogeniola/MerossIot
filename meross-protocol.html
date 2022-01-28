@@ -114,6 +114,7 @@ plug, in sequence.</p>
 <span class="n">body</span><span class="p">:</span>
     <span class="p">{</span>
         <span class="s2">&quot;header&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;from&quot;</span><span class="p">:</span> <span class="s2">&quot;{{FROM_DEVICE}}&quot;</span><span class="p">,</span>
             <span class="s2">&quot;messageId&quot;</span><span class="p">:</span> <span class="s2">&quot;{{MESSAGE_ID}}&quot;</span><span class="p">,</span>
             <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="p">{{</span><span class="n">TIMESTAMP</span><span class="p">}},</span>
             <span class="s2">&quot;sign&quot;</span><span class="p">:</span> <span class="s2">&quot;{{SIGNATURE}}&quot;</span><span class="p">,</span>
@@ -149,6 +150,7 @@ step to perform in order to make it connect to the MQTT broker: setting the loca
 <span class="n">body</span><span class="p">:</span>
     <span class="p">{</span>
     <span class="s2">&quot;header&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;from&quot;</span><span class="p">:</span> <span class="s2">&quot;http://10.10.10.1/config&quot;</span><span class="p">,</span>
         <span class="s2">&quot;messageId&quot;</span><span class="p">:</span> <span class="s2">&quot;{{MESSAGE_ID}}&quot;</span><span class="p">,</span>
         <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="p">{{</span><span class="n">TIMESTAMP</span><span class="p">}},</span>
         <span class="s2">&quot;sign&quot;</span><span class="p">:</span> <span class="s2">&quot;{{SIGNATURE}}&quot;</span><span class="p">,</span>

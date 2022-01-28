@@ -39,6 +39,7 @@ plug, in sequence.
     body:
         {
             "header": {
+                "from": "{{FROM_DEVICE}}",
                 "messageId": "{{MESSAGE_ID}}",
                 "timestamp": {{TIMESTAMP}},
                 "sign": "{{SIGNATURE}}",
@@ -77,6 +78,7 @@ To do so, the APP sends another message to the plug device.
     body:
         {
         "header": {
+            "from": "http://10.10.10.1/config",
             "messageId": "{{MESSAGE_ID}}",
             "timestamp": {{TIMESTAMP}},
             "sign": "{{SIGNATURE}}",
