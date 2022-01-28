@@ -26,7 +26,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```bash
-pip install meross_iot==0.4.4.3
+pip install meross_iot==0.4.4.4
 ```
 
 ## Usage & Full Documentation
@@ -182,7 +182,7 @@ Anyway, feel free to contribute via donations!
 ## Changelog
 #### 0.4.4.4
 - Added support for MSG200
- 
+
 
 <details>
     <summary>Older</summary>
