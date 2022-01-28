@@ -70,7 +70,7 @@ class DeviceSniffer(object):
                                               password=hashed_password)
         self._mqtt_client.tls_set(ca_certs=ca_cert, certfile=None,
                                   keyfile=None, cert_reqs=ssl.CERT_REQUIRED,
-                                  tls_version=ssl.PROTOCOL_TLS,
+                                  tls_version=ssl.PROTOCOL_TLS_CLIENT,
                                   ciphers=None)
 
     def _on_connect(self, client, userdata, rc, other):

@@ -176,7 +176,7 @@ class MerossManager(object):
             certfile=None,
             keyfile=None,
             cert_reqs=ssl.CERT_NONE if self._mqtt_skip_validation else ssl.CERT_REQUIRED,
-            tls_version=ssl.PROTOCOL_TLS,
+            tls_version=ssl.PROTOCOL_TLS_CLIENT,
             ciphers=None,
         )
         client.tls_insecure_set(self._mqtt_skip_validation)
