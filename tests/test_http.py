@@ -38,6 +38,9 @@ class TestHttpMethods(AioHTTPTestCase):
             self.skipTest("No hub was found on this subscription. Cannot test hub listing.")
         print(f"Testing device {hub.dev_name}")
         result = await self.meross_client.async_list_hub_subdevices(hub.uuid)
+        if len(result) < 1:
+            self.skipTest("No subdevice found for selected hub")
+            return
         self.assertGreater(len(result), 0)
         return result
 
