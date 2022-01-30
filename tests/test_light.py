@@ -73,23 +73,27 @@ class TestLight(AioHTTPTestCase):
 
             # Turn device off
             await light.async_set_light_color(rgb=(255, 255, 255), onoff=False)
+            await asyncio.sleep(1)
             # Make sure device is now off
             self.assertFalse(light.get_light_is_on())
 
             # Set a color and turn the device on
             await light.async_set_light_color(rgb=(0, 255, 0), onoff=True)
+            await asyncio.sleep(1)
             # Make sure device is now on with that specific color set
             self.assertTrue(light.get_light_is_on())
             self.assertEqual(light.get_rgb_color(), (0, 255, 0))
 
             # Set a color without changing the on-off state
             await light.async_set_light_color(rgb=(255, 0, 0))
+            await asyncio.sleep(1)
             # Make sure device is now showing the specific color
             self.assertTrue(light.get_light_is_on())
             self.assertEqual(light.get_rgb_color(), (255, 0, 0))
 
             # Turn off device without changing color
             await light.async_set_light_color(onoff=False)
+            await asyncio.sleep(1)
             # Make sure device is now off
             self.assertFalse(light.get_light_is_on())
 
@@ -113,9 +117,10 @@ class TestLight(AioHTTPTestCase):
             await m.async_init()
             await m.async_device_discovery()
             devs = m.find_devices(device_uuids=(light.uuid,))
+            if len(devs) < 1:
+                self.skipTest("Could not find dev for push notification")
+                return
             dev = devs[0]
-
-            await dev.async_update()
 
             # Set RGB color to known state
             r = await light.async_set_light_color(rgb=(255, 0, 0), onoff=True)
