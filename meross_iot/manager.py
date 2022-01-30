@@ -811,6 +811,13 @@ class MerossManager(object):
                 "%s. Timeout was: %f seconds. Mqtt Host: %s:%d.",
                 str(message), str(target_device_uuid), timeout, domain, port)
             raise CommandTimeoutError(message=str(message), target_device_uuid=target_device_uuid, timeout=timeout)
+        except CommandError as e:
+            domain, port = self._get_client_from_domain_port(client=client)
+            _LOGGER.error(
+                "Error occurred while waiting a response for message %s sent to device uuid "
+                "%s. Mqtt Host: %s:%d. Returned error: %s",
+                str(message), str(target_device_uuid), domain, port, e.error_payload)
+            raise
 
     async def _notify_connection_drop(self):
         for d in self._device_registry.find_all_by():
