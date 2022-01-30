@@ -90,8 +90,8 @@ class LightMixin(object):
                                     channel: int = 0,
                                     onoff: Optional[bool] = None,
                                     rgb: Optional[RgbTuple] = None,
-                                    luminance: Optional[int] = -1,
-                                    temperature: Optional[int] = -1,
+                                    luminance: Optional[int] = None,
+                                    temperature: Optional[int] = None,
                                     timeout: Optional[float] = None,
                                     *args,
                                     **kwargs) -> None:
@@ -108,56 +108,59 @@ class LightMixin(object):
 
         :return: None
         """
-        if rgb is not None and temperature != -1:
+        if rgb is not None and temperature is not None:
             _LOGGER.error("You are trying to set both RGB and luminance values for this bulb. It won't work!")
 
         # Prepare a basic command payload
-        payload = {
-            'light': {
-                'channel': channel,
-                'gradual': 0
-            }
-        }
+        light_payload = {}
 
         # For some reason, not all the Meross Devices do offer 'onoff' control attribute. For instance, the
         # light of the smart humidifier does require this parameter to be set, while the MSL120 requires
         # Toggle/ToggleX usage. For this reason, we'll only set the onoff value when Toggle/ToggleX is unavailable.
         is_on = self.get_light_is_on(channel=channel)
 
-        # Only set the onoff payload state if device does not support toggle/togglex
-        if not isinstance(self, ToggleMixin) and not isinstance(self, ToggleXMixin):
+        # Handle "turn off" case for devices which implement togglex and toggle abilities.
+        # In such case, we need to turn off the device explicitly. In all other cases, we can just send
+        # the CONTROL_LIGHT command (which turns on the light).
+        if (isinstance(self, ToggleMixin) or isinstance(self, ToggleXMixin)) and onoff == False and is_on != onoff:
+            await self.async_turn_off(channel=channel, timeout=timeout)
+        # In case the device does not support toggle/togglex, and the user explicitly asket to turn it on/off,
+        # we must set the appropriate value for the light_payload.
+        elif not isinstance(self, ToggleMixin) and not isinstance(self, ToggleXMixin) and onoff is not None and onoff != is_on:
             if onoff is not None:
-                payload['light']['onoff'] = 1 if onoff else 0
+                light_payload['onoff'] = 1 if onoff else 0
             elif self._channel_light_status[channel].is_on is not None:
-                payload['light']['onoff'] = 1 if self._channel_light_status[channel].is_on else 0
-        else:
-            if onoff is not None and is_on != onoff:
-                if onoff:
-                    await self.async_turn_on(channel=channel, timeout=timeout)
-                else:
-                    await self.async_turn_off(channel=channel, timeout=timeout)
+                light_payload['onoff'] = 1 if self._channel_light_status[channel].is_on else 0
 
-        mode = 0
         if self._supports_mode(LightMode.MODE_RGB) and rgb is not None:
             # Convert the RGB to integer
             color = rgb_to_int(rgb)
-            payload['light']['rgb'] = color
-            mode = mode | LightMode.MODE_RGB.value
+            light_payload['rgb'] = color
+            light_payload['capacity'] = light_payload.get('capacity',0) | LightMode.MODE_RGB.value
 
-        if self._supports_mode(LightMode.MODE_LUMINANCE) and luminance != -1:
-            payload['light']['luminance'] = luminance
-            mode = mode | LightMode.MODE_LUMINANCE.value
+        if self._supports_mode(LightMode.MODE_LUMINANCE) and luminance is not None:
+            light_payload['luminance'] = luminance
+            light_payload['capacity'] = light_payload.get('capacity',0) | LightMode.MODE_LUMINANCE.value
 
-        if self._supports_mode(LightMode.MODE_TEMPERATURE) and temperature != -1:
-            payload['light']['temperature'] = temperature
-            mode = mode | LightMode.MODE_TEMPERATURE.value
+        if self._supports_mode(LightMode.MODE_TEMPERATURE) and temperature is not None:
+            light_payload['temperature'] = temperature
+            light_payload['capacity'] = light_payload.get('capacity',0) | LightMode.MODE_TEMPERATURE.value
 
-        payload['light']['capacity'] = mode
+        # Only proceed sending the command if any attribute of the light payload was previously computed
+        if light_payload != {}:
+            light_payload.update({
+                    'channel': channel,
+                    'gradual': 0
+                })
+            payload = {
+                'light': light_payload
+            }
 
-        await self._execute_command(method='SET',
-                                    namespace=Namespace.CONTROL_LIGHT,
-                                    payload=payload,
-                                    timeout=timeout)
+            #payload['light']['capacity'] = mode
+            await self._execute_command(method='SET',
+                                        namespace=Namespace.CONTROL_LIGHT,
+                                        payload=payload,
+                                        timeout=timeout)
 
         # If the command was ok, immediately update the local state.
         self._update_channel_status(channel, rgb=rgb, luminance=luminance, temperature=temperature, onoff=onoff)
