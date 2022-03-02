@@ -13,7 +13,7 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.7
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
       - uses: ammaraskar/sphinx-action@master
         with:
           docs-folder: "docs/"
