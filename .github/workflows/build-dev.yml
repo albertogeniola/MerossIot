@@ -125,7 +125,7 @@ jobs:
 
     # Upload to CODECOV
     - name: codecov-upload
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v3
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         name: codecov-merossiot-python-dev
