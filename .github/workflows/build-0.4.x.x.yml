@@ -116,26 +116,26 @@ jobs:
         echo "Python ${{ matrix.python_version }}: $failure_rate %" > results-${{ matrix.python_version }}.txt
       continue-on-error: true
     - name: Upload pytest test TXT results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: test-report-${{ matrix.python_version }}
         path: results-${{ matrix.python_version }}.txt
       # Use always() to always run this step to publish test results when there are test failures
       if: ${{ always() }}
     - name: Upload pytest test RAW results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: pytest-results-${{ matrix.python_version }}
         path: junit/
       # Use always() to always run this step to publish test results when there are test failures
       if: ${{ always() }}
     - name: Upload pytest HTML test results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: pytest-results-html-${{ matrix.python_version }}
         path: htmlcov/
     - name: Upload pytest JSON test json results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: pytest-results-json-${{ matrix.python_version }}
         path: .report.json

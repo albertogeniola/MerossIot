@@ -108,7 +108,7 @@ jobs:
         echo "::set-output name=failure_rate::$failure_rate"
 
     - name: Upload pytest test results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: pytest-results
         path: junit/
@@ -116,7 +116,7 @@ jobs:
       if: ${{ always() }}
 
     - name: Upload pytest test results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: pytest-results-html
         path: htmlcov/
