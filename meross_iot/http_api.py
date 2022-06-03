@@ -247,7 +247,8 @@ class MerossHttpClient(object):
             "vender": "meross",
             "AppType": app_type,
             "AppLanguage": "EN",
-            "User-Agent": ua_header
+            "User-Agent": ua_header,
+            "Content-Type": "application/json"
         }
 
         payload = {
@@ -273,7 +274,7 @@ class MerossHttpClient(object):
 
         _LOGGER.debug(f"Performing HTTP request against {url}, headers: {headers}, post data: {payload}")
         async with ClientSession() as session:
-            async with session.post(url, data=payload, headers=headers, proxy=http_proxy) as response:
+            async with session.post(url, json=payload, headers=headers, proxy=http_proxy) as response:
                 _LOGGER.debug(f"Response Status Code: {response.status}")
                 # Check if that is ok.
                 if response.status != 200:
