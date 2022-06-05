@@ -43,6 +43,7 @@ from meross_iot.utilities.mqtt import (
     device_uuid_from_push_notification,
     build_device_request_topic,
 )
+from meross_iot.utilities.network import extract_domain
 
 logging.basicConfig(
     format="%(levelname)s:%(message)s", level=logging.INFO, stream=sys.stdout
@@ -157,6 +158,7 @@ class MerossManager(object):
             conn_evt = self._mqtt_connected_and_subscribed.get(dict_key)  # type: asyncio.Event
             if conn_evt is None:
                 conn_evt = asyncio.Event()
+                _LOGGER.debug("MQTT client connecting to %s:%d", domain, port)
                 client.connect(host=domain, port=port, keepalive=30)
                 self._mqtt_connected_and_subscribed[dict_key] = conn_evt
             # Start the client looper
@@ -410,13 +412,15 @@ class MerossManager(object):
         device = None
         abilities = None
         if device_info.online_status == OnlineStatus.ONLINE:
+            mqtt_domain = extract_domain(device_info.domain)
+
             try:
                 res_abilities = await self.async_execute_cmd(
                     destination_device_uuid=device_info.uuid,
                     method="GET",
                     namespace=Namespace.SYSTEM_ABILITY,
                     payload={},
-                    mqtt_hostname=device_info.domain,
+                    mqtt_hostname=mqtt_domain,
                     mqtt_port=DEFAULT_MQTT_PORT
                 )
                 abilities = res_abilities.get("ability")
