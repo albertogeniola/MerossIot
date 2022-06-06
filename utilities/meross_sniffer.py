@@ -15,7 +15,7 @@ from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
 from meross_iot.model.enums import Namespace, OnlineStatus
 from meross_iot.utilities.mqtt import build_device_request_topic, build_client_response_topic, build_client_user_topic
-
+from meross_iot.utilities.network import extract_domain
 
 SNIFF_LOG_FILE = 'sniff.log'
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -193,7 +193,7 @@ async def _main():
         hashed_password,
         selected_device.uuid,
         ca_cert=None,
-        mqtt_host=selected_device.domain or "iot.meross.com"
+        mqtt_host=extract_domain(selected_device.domain) or "iot.meross.com"
     )
 
     print("Starting the sniffer...")

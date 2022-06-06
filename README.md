@@ -180,11 +180,14 @@ Anyway, feel free to contribute via donations!
 </p>
 
 ## Changelog
-#### 0.4.4.5
-- Added Content-Type header to API calls 
+#### 0.4.4.7
+- Added manager options to override default mqtt server host/port connection info.
 
 <details>
     <summary>Older</summary>
+#### 0.4.4.5
+- Added Content-Type header to API calls 
+
 #### 0.4.4.4
 - Added support for MSG200
 

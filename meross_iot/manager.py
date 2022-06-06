@@ -21,7 +21,7 @@ from meross_iot.device_factory import (
     build_meross_device_from_known_types,
 )
 from meross_iot.http_api import MerossHttpClient
-from meross_iot.model.constants import DEFAULT_MQTT_PORT, DEFAULT_COMMAND_TIMEOUT
+from meross_iot.model.constants import DEFAULT_COMMAND_TIMEOUT, DEFAULT_MQTT_PORT
 from meross_iot.model.enums import Namespace, OnlineStatus
 from meross_iot.model.exception import (
     CommandTimeoutError,
@@ -81,6 +81,7 @@ class MerossManager(object):
             mqtt_skip_cert_validation: bool = False,
             ca_cert: Optional[str] = None,
             loop: Optional[AbstractEventLoop] = None,
+            mqtt_override_server: Optional[Tuple[str, int]] = None,
             *args,
             **kwords,
     ) -> None:
@@ -95,6 +96,9 @@ class MerossManager(object):
         :param ca_cert: (Optional) Path to the PEM certificate to trust (Intermediate/CA)
         :param loop: (Optional) Asyncio loop to use
         :param args:
+        :param mqtt_override_server: (Optional) Tuple (hostname, port) of the MQTT server to use for MQTT connection.
+                                     When None (default), the hostname will be extracted by the domain/reserved domain
+                                     obtained via HTTP API, and port 443 will be used.
         :param kwords:
         """
 
@@ -127,6 +131,7 @@ class MerossManager(object):
             user_id=self._cloud_creds.user_id, app_id=self._app_id
         )
         self._user_topic = build_client_user_topic(user_id=self._cloud_creds.user_id)
+        self._override_mqtt_server = mqtt_override_server
 
 
     def _get_client_from_domain_port(self, client: mqtt.Client) -> Tuple[Optional[str], Optional[int]]:
@@ -412,15 +417,13 @@ class MerossManager(object):
         device = None
         abilities = None
         if device_info.online_status == OnlineStatus.ONLINE:
-            mqtt_domain = extract_domain(device_info.domain)
-
             try:
                 res_abilities = await self.async_execute_cmd(
                     destination_device_uuid=device_info.uuid,
                     method="GET",
                     namespace=Namespace.SYSTEM_ABILITY,
                     payload={},
-                    mqtt_hostname=mqtt_domain,
+                    mqtt_hostname=extract_domain(device_info.domain),
                     mqtt_port=DEFAULT_MQTT_PORT
                 )
                 abilities = res_abilities.get("ability")
@@ -766,6 +769,11 @@ class MerossManager(object):
         :return:
         """
         # Retrieve the mqtt client for the given domain:port broker
+        if self._override_mqtt_server is not None:
+            _LOGGER.debug("Overriding MQTT host/port as per manager parameter")
+            mqtt_hostname = self._override_mqtt_server[0]
+            mqtt_port = self._override_mqtt_server[1]
+
         client = await self._async_get_create_mqtt_client(domain=mqtt_hostname, port=mqtt_port)
         return await self.async_execute_cmd_client(client=client,
                                                    destination_device_uuid=destination_device_uuid,
