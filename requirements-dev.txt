@@ -7,5 +7,5 @@ pytest-cov==2.12.1
 pytest-json-report==1.4.0
 pytest-aiohttp==0.3.0
 pytest-custom_exit_code==0.3.0
-proxy.py==2.3.1
+proxy.py==2.4.3
 pysocks==1.7.1
