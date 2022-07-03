@@ -13,6 +13,7 @@ from time import time
 from typing import Optional, List, TypeVar, Iterable, Callable, Awaitable, Tuple, Union, Any
 
 import paho.mqtt.client as mqtt
+from aiohttp import ClientSession
 
 from meross_iot.controller.device import BaseDevice, HubDevice, GenericSubDevice
 from meross_iot.device_factory import (
@@ -20,6 +21,7 @@ from meross_iot.device_factory import (
     build_meross_subdevice,
     build_meross_device_from_known_types,
 )
+from meross_iot.error_budget import ErrorBudgetManager
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.model.constants import DEFAULT_COMMAND_TIMEOUT, DEFAULT_MQTT_PORT
 from meross_iot.model.enums import Namespace, OnlineStatus
@@ -60,6 +62,12 @@ _PENDING_FUTURES = []
 
 def _mqtt_key_from_domain_port(domain: str, port: int) -> str:
     return f"{domain}:{port}"
+
+
+class TransportMode(Enum):
+    MQTT_ONLY = 0
+    LAN_HTTP_FIRST = 1
+    LAN_HTTP_FIRST_ONLY_GET = 2
 
 
 class MqttConnectionStatus(Enum):
@@ -115,6 +123,11 @@ class MerossManager(object):
         self._mqtt_clients = {}
         self._mqtt_connected_and_subscribed = {}
 
+        # By default, assume MQTT-Only transport mode
+        self._default_transport_mode = TransportMode.MQTT_ONLY
+
+        self._error_budget_manager = ErrorBudgetManager()
+
         # Default proxy setup
         self._enable_proxy = False
         self._proxy_type = None
@@ -133,6 +146,13 @@ class MerossManager(object):
         self._user_topic = build_client_user_topic(user_id=self._cloud_creds.user_id)
         self._override_mqtt_server = mqtt_override_server
 
+    @property
+    def default_transport_mode(self) -> TransportMode:
+        return self._default_transport_mode
+
+    @default_transport_mode.setter
+    def default_transport_mode(self, value: TransportMode) -> None:
+        self._default_transport_mode = value
 
     def _get_client_from_domain_port(self, client: mqtt.Client) -> Tuple[Optional[str], Optional[int]]:
         for k, v in self._mqtt_clients.items():
@@ -755,9 +775,10 @@ class MerossManager(object):
             namespace: Namespace,
             payload: dict,
             timeout: float = DEFAULT_COMMAND_TIMEOUT,
+            override_transport_mode: TransportMode = None
     ):
         """
-        This method sends a command to the MQTT Meross broker.
+        This method sends a command to the device, locally via HTTP or via the MQTT Meross broker.
 
         :param mqtt_hostname: the mqtt broker hostname
         :param mqtt_port: the mqtt broker port
@@ -766,14 +787,43 @@ class MerossManager(object):
         :param namespace: Command namespace
         :param payload: A dict containing the payload to be sent
         :param timeout: Maximum time interval in seconds to wait for the command-answer
+        :param override_transport_mode: when set, overrides the manager transport mode
         :return:
         """
+
+        # Only attempt local http communication if enabled via configuration.
+        transport_mode = override_transport_mode if override_transport_mode is not None else self._default_transport_mode
+        attempt_lan = transport_mode == TransportMode.LAN_HTTP_FIRST or transport_mode == TransportMode.LAN_HTTP_FIRST_ONLY_GET and method.upper() == 'GET'
+        if attempt_lan:
+            # Check if the LocalIP is available for the given device
+            device = self._device_registry.lookup_base_by_uuid(destination_device_uuid)
+            if device is None:
+                _LOGGER.debug("Cannot issue command via LAN (http) against device with uuid %s as the device is not yet available on the registry", destination_device_uuid)
+                attempt_lan = False
+            elif device.lan_ip is None:
+                _LOGGER.debug("Cannot issue command via LAN (http) against device with uuid %s as the device has not reported any internal LAN ip.", destination_device_uuid)
+                attempt_lan = False
+            elif self._error_budget_manager.is_out_of_budget(destination_device_uuid):
+                _LOGGER.debug("Cannot issue command via LAN (http) against device with uuid %s as the device has no more error budget left.", destination_device_uuid)
+                attempt_lan = False
+            if attempt_lan:
+                try:
+                    # In case we succeed here, return the data we got.
+                    # Otherwise, try again with MQTT.
+                    _LOGGER.debug("Sending %s-%s command via HTTP to %s via %s", method, str(namespace), destination_device_uuid, device.lan_ip)
+                    return await self._async_execute_cmd_http(device_ip=device.lan_ip,destination_device_uuid=destination_device_uuid,method=method,namespace=namespace,payload=payload,timeout=min(timeout, 1.0))
+                except Exception as e:
+                    _LOGGER.exception("An error occurred while attempting to send a message over internal LAN to device %s. Retrying with MQTT transport.", destination_device_uuid)
+                    self._error_budget_manager.notify_error(destination_device_uuid)
+
         # Retrieve the mqtt client for the given domain:port broker
         if self._override_mqtt_server is not None:
             _LOGGER.debug("Overriding MQTT host/port as per manager parameter")
             mqtt_hostname = self._override_mqtt_server[0]
             mqtt_port = self._override_mqtt_server[1]
 
+        _LOGGER.debug("Sending %s-%s command via MQTT to %s via %s:%d", method, str(namespace), destination_device_uuid,
+                      mqtt_hostname, mqtt_port)
         client = await self._async_get_create_mqtt_client(domain=mqtt_hostname, port=mqtt_port)
         return await self.async_execute_cmd_client(client=client,
                                                    destination_device_uuid=destination_device_uuid,
@@ -781,6 +831,22 @@ class MerossManager(object):
                                                    namespace=namespace,
                                                    payload=payload,
                                                    timeout=timeout)
+
+    async def _async_execute_cmd_http(self,
+                                      device_ip: str,
+                                      destination_device_uuid: str,
+                                      method: str,
+                                      namespace: Namespace,
+                                      payload: dict,
+                                      timeout: float = 10.0):
+        # Send the message over the network
+        # Build the mqtt message we will send to the broker
+        message, message_id = self._build_mqtt_message(method, namespace, payload, destination_device_uuid)
+
+        async with ClientSession() as session:
+            async with session.post(f"http://{device_ip}/config", json=json.loads(message.decode()), timeout=timeout) as response:
+                data = await response.json()
+                return data.get("payload")
 
     async def async_execute_cmd_client(self,
                                        client: mqtt.Client,

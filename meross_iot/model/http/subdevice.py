@@ -1,8 +1,7 @@
+import json
 import logging
 
 from meross_iot.model.shared import BaseDictPayload
-import json
-
 
 _LOGGER = logging.getLogger(__name__)
 

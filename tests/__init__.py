@@ -1,7 +1,7 @@
 import base64
 import logging
 import os
-
+import sys
 from typing import Tuple
 
 from meross_iot.http_api import MerossHttpClient
@@ -14,6 +14,9 @@ CREDS = os.getenv("__MEROSS_CREDS")
 
 
 _LOGGER = logging.getLogger(__name__)
+logging.basicConfig(
+    format="%(levelname)s:%(message)s", level=logging.DEBUG, stream=sys.stdout
+)
 
 
 async def async_get_client() -> Tuple[MerossHttpClient, bool]:

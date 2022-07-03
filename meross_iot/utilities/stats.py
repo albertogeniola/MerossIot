@@ -1,8 +1,9 @@
-from meross_iot.http_api import ErrorCodes
 import time
 from collections import deque
 from datetime import timedelta
 from typing import Optional, Deque, Dict, ItemsView
+
+from meross_iot.http_api import ErrorCodes
 
 
 class HttpRequestSample:

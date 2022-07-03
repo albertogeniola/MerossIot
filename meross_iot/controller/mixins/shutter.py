@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 
 from meross_iot.model.enums import Namespace
 

@@ -35,6 +35,7 @@ class BaseDevice(object):
         self._fwversion = kwargs.get('fmwareVersion')
         self._hwversion = kwargs.get('hdwareVersion')
         self._online = OnlineStatus(kwargs.get('onlineStatus', -1))
+        self._inner_ip = None
 
         # Domain and port
         domain = kwargs.get('domain')
@@ -68,6 +69,10 @@ class BaseDevice(object):
 
         # Set default timeout value for command execution
         self._timeout = DEFAULT_COMMAND_TIMEOUT
+
+    @property
+    def lan_ip(self):
+        return self._inner_ip
 
     @property
     def mqtt_host(self):
@@ -215,8 +220,12 @@ class BaseDevice(object):
         return False
 
     async def async_handle_update(self, namespace: Namespace, data: dict) -> bool:
-        # By design, the base class doe snot implement any update logic
-        # TODO: we might update name/uuid/other stuff in here...
+        # Catch SYSTEM_ALL case and update the generic device info
+        if namespace == Namespace.SYSTEM_ALL:
+            # TODO: we might update name/uuid/other stuff in here...
+            system = data.get('all', {}).get('system', {})
+            self._inner_ip = system.get('firmware', {}).get('innerIp')
+
         await self._fire_push_notification_event(namespace=namespace, data=data, device_internal_id=self.internal_id)
         self._last_full_update_ts = time.time() * 1000
 
@@ -361,7 +370,7 @@ class GenericSubDevice(BaseDevice):
                                method: str,
                                namespace: Namespace,
                                payload: dict,
-                               timeout: Optional[float] = None,
+                               timeout: Optional[float] = None
                                ) -> dict:
         # Every command should be invoked via HUB?
         raise NotImplementedError("Subdevices should rely on Hub in order to send commands.")
