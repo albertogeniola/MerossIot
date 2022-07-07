@@ -37,6 +37,13 @@ class ThermostatV3Mode(Enum):
     HEAT = 1
 
 
+class RollerShutterState(Enum):
+    UNKNOWN = -1
+    IDLE = 0
+    OPENING = 1
+    CLOSING = 2
+
+
 class Namespace(Enum):
     # Common abilities
     SYSTEM_ALL = 'Appliance.System.All'
