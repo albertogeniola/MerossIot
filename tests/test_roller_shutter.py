@@ -136,6 +136,30 @@ class TestRollerShutter(AioHTTPTestCase):
 
         self.test_device.unregister_push_notification_handler_coroutine(coro)
 
+    @unittest_run_loop
+    async def test_get_opening_timer(self):
+        if self.test_device is None:
+            self.skipTest("No RollerShutter device has been found to run this test on.")
+        print(f"Testing device {self.test_device.name}")
+
+        # Update its status
+        await self.test_device.async_update()
+
+        opening_timer = self.test_device.get_open_timer_duration_millis(channel=0)
+        self.assertEqual(opening_timer, 30000)
+
+    @unittest_run_loop
+    async def test_get_closing_timer(self):
+        if self.test_device is None:
+            self.skipTest("No RollerShutter device has been found to run this test on.")
+        print(f"Testing device {self.test_device.name}")
+
+        # Update its status
+        await self.test_device.async_update()
+
+        closing_timer = self.test_device.get_close_timer_duration_millis(channel=0)
+        self.assertEqual(closing_timer, 30000)
+
     async def tearDownAsync(self):
         if self.requires_logout:
             await self.meross_client.async_logout()

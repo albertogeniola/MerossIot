@@ -180,11 +180,15 @@ Anyway, feel free to contribute via donations!
 </p>
 
 ## Changelog
-#### 0.4.4.7
-- Added manager options to override default mqtt server host/port connection info.
+#### 0.4.5.0
+- Introduced support for local-lan-http command handling
+- RollerShutter refactor and code improvements
+- Added RolleShutter automatic tests
 
 <details>
     <summary>Older</summary>
+#### 0.4.4.7
+- Added manager options to override default mqtt server host/port connection info.
 #### 0.4.4.5
 - Added Content-Type header to API calls 
 

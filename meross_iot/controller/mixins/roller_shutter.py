@@ -10,15 +10,17 @@ class RollerShutterTimerMixin:
     _execute_command: callable
     check_full_update_done: callable
     uuid: str
-    __state_by_channel: Dict[int, RollerShutterState]
-    __position_by_channel: Dict[int, int]
+    _shutter__state_by_channel: Dict[int, RollerShutterState]
+    _shutter__position_by_channel: Dict[int, int]
+    _shutter__config_by_channel: Dict[int, Dict]
 
     def __init__(self, device_uuid: str,
                  manager,
                  **kwargs):
         super().__init__(device_uuid=device_uuid, manager=manager, **kwargs)
-        self.__state_by_channel = {}
-        self.__position_by_channel = {}
+        self._shutter__state_by_channel = {}
+        self._shutter__position_by_channel = {}
+        self._shutter__config_by_channel = {}
 
     async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
@@ -37,7 +39,7 @@ class RollerShutterTimerMixin:
                 for roller_shutter in payload:
                     channel_index = roller_shutter['channel']
                     state = RollerShutterState(roller_shutter['state']) # open (position=100, state=1), close (position=0, state=2), stop (position=-1, state=0)
-                    self.__state_by_channel[channel_index] = state
+                    self._shutter__state_by_channel[channel_index] = state
                     locally_handled = True
 
         elif namespace == Namespace.ROLLER_SHUTTER_POSITION:
@@ -54,14 +56,13 @@ class RollerShutterTimerMixin:
                 for roller_shutter in payload:
                     channel_index = roller_shutter['channel']
                     position = roller_shutter['position'] # open (position=100, state=1), close (position=0, state=2), stop (position=-1, state=0)
-                    self.__position_by_channel[channel_index] = position
+                    self._shutter__position_by_channel[channel_index] = position
                     locally_handled = True
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
         parent_handled = await super().async_handle_push_notification(namespace=namespace, data=data)
         return locally_handled or parent_handled
-
 
     async def async_open(self, channel: int = 0, *args, **kwargs) -> None:
         """
@@ -104,6 +105,32 @@ class RollerShutterTimerMixin:
         # self.__state_by_channel[channel] = state
         # self._roller_shutter_position_by_channel[channel] = position
 
+    async def async_update(self, timeout: Optional[float] = None, *args, **kwargs) -> None:
+        # Call the super implementation
+        await super().async_update(*args, **kwargs)
+        # Update the configuration at the same time
+        await self.async_fetch_config()
+
+    async def async_fetch_config(self, timeout: Optional[float] = None, *args, **kwargs) -> None:
+        data = await self._execute_command(method="GET",
+                                    namespace=Namespace.ROLLER_SHUTTER_CONFIG,
+                                    payload={},
+                                    timeout=timeout)
+        config = data.get('config')
+        for d in config:
+            channel = d['channel']
+            channel_config = d.copy()
+            del channel_config['channel']
+            self._shutter__config_by_channel[channel] = channel_config
+
+    def get_open_timer_duration_millis(self, channel: int = 0, *args, **kwargs) -> int:
+        self.check_full_update_done()
+        return self._shutter__config_by_channel.get(channel).get("signalOpen")
+
+    def get_close_timer_duration_millis(self, channel: int = 0, *args, **kwargs) -> int:
+        self.check_full_update_done()
+        return self._shutter__config_by_channel.get(channel).get("signalClose")
+
     def get_status(self, channel: int = 0, *args, **kwargs) -> RollerShutterState:
         """
         The current roller shutter status. Returns 1 if the given roller shutter is open, 2 if it is close, 0 if it is stop.
@@ -113,7 +140,7 @@ class RollerShutterTimerMixin:
         :return: 1 if the given roller shutter is opened, 2 if it is closed, 0 if it is stopped.
         """
         self.check_full_update_done()
-        state = self.__state_by_channel.get(channel)
+        state = self._shutter__state_by_channel.get(channel)
         return RollerShutterState(state) if state is not None else RollerShutterState.UNKNOWN
 
     def get_position(self, channel: int = 0, *args, **kwargs) -> Optional[int]:
@@ -125,4 +152,4 @@ class RollerShutterTimerMixin:
         :return: 100 if the given roller shutter is opened, 0 if it is closed, -1 if it is stopped.
         """
         self.check_full_update_done()
-        return self.__position_by_channel.get(channel)
+        return self._shutter__position_by_channel.get(channel)

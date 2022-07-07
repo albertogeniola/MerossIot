@@ -4,7 +4,7 @@
 #define SERVO_OPEN 180
 #define SERVO_CLOSED 90
 #define INPUT_PULSE_PIN 4
-#define SERVO_PIN 5
+#define SERVO_PIN 5 // Wemos D1 (Pin D1)
 #define MOVE_TIME 15000 // 15 seconds opening time
 
 Servo myservo;  // create servo object to control a servo
