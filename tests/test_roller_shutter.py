@@ -1,4 +1,5 @@
 import os
+import random
 from typing import Union, Dict
 
 from aiohttp import web
@@ -146,7 +147,7 @@ class TestRollerShutter(AioHTTPTestCase):
         await self.test_device.async_update()
 
         opening_timer = self.test_device.get_open_timer_duration_millis(channel=0)
-        self.assertEqual(opening_timer, 30000)
+        self.assertGreater(opening_timer, 0)
 
     @unittest_run_loop
     async def test_get_closing_timer(self):
@@ -158,7 +159,22 @@ class TestRollerShutter(AioHTTPTestCase):
         await self.test_device.async_update()
 
         closing_timer = self.test_device.get_close_timer_duration_millis(channel=0)
-        self.assertEqual(closing_timer, 30000)
+        self.assertGreater(closing_timer, 0)
+
+    @unittest_run_loop
+    async def test_set_config(self):
+        if self.test_device is None:
+            self.skipTest("No RollerShutter device has been found to run this test on.")
+        print(f"Testing device {self.test_device.name}")
+
+        open_timer = random.randint(10,120)
+        close_timer = random.randint(10, 120)
+        await self.test_device.async_set_config(open_timer_seconds=open_timer, close_timer_seconds=close_timer, channel=0)
+        await self.test_device.async_fetch_config()
+        opening_timer = self.test_device.get_open_timer_duration_millis(channel=0)
+        self.assertEqual(opening_timer, open_timer*1000)
+        closing_timer = self.test_device.get_close_timer_duration_millis(channel=0)
+        self.assertEqual(closing_timer, close_timer*1000)
 
     async def tearDownAsync(self):
         if self.requires_logout:

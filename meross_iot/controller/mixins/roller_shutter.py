@@ -41,7 +41,6 @@ class RollerShutterTimerMixin:
                     state = RollerShutterState(roller_shutter['state']) # open (position=100, state=1), close (position=0, state=2), stop (position=-1, state=0)
                     self._shutter__state_by_channel[channel_index] = state
                     locally_handled = True
-
         elif namespace == Namespace.ROLLER_SHUTTER_POSITION:
             _LOGGER.debug(f"{self.__class__.__name__} handling push notification for namespace "
                           f"{namespace}")
@@ -120,7 +119,6 @@ class RollerShutterTimerMixin:
         for d in config:
             channel = d['channel']
             channel_config = d.copy()
-            del channel_config['channel']
             self._shutter__config_by_channel[channel] = channel_config
 
     def get_open_timer_duration_millis(self, channel: int = 0, *args, **kwargs) -> int:
@@ -130,6 +128,27 @@ class RollerShutterTimerMixin:
     def get_close_timer_duration_millis(self, channel: int = 0, *args, **kwargs) -> int:
         self.check_full_update_done()
         return self._shutter__config_by_channel.get(channel).get("signalClose")
+
+    async def async_set_config(self, open_timer_seconds: int, close_timer_seconds: int, channel: int = 0, timeout: Optional[float] = None, *args, **kwargs) -> None:
+        """
+        Sets the configuration parameters for the roller shutter on the given channel.
+        :param open_timer_seconds: open timer, min 10, max 120.
+        :param close_timer_seconds: close timer, min 10, max 120.
+        :param channel: channel to configure
+        :param timeout:
+        :return:
+        """
+        if open_timer_seconds < 10 or open_timer_seconds > 120:
+            raise ValueError("Invalid open_timer_seconds timer, must be between 10 and 120 seconds.")
+        if close_timer_seconds < 10 or close_timer_seconds > 120:
+            raise ValueError("Invalid close_timer_seconds timer, must be between 10 and 120 seconds.")
+
+        config = {"channel": channel, "signalOpen": 1000*open_timer_seconds, "signalClose": 1000*close_timer_seconds}
+        res = await self._execute_command(method="SET",
+                                    namespace=Namespace.ROLLER_SHUTTER_CONFIG,
+                                    payload={"config": config},
+                                    timeout=timeout)
+        self._shutter__config_by_channel[channel] = config
 
     def get_status(self, channel: int = 0, *args, **kwargs) -> RollerShutterState:
         """
