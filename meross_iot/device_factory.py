@@ -3,6 +3,7 @@ from typing import Optional
 
 from meross_iot.controller.device import BaseDevice, HubDevice, GenericSubDevice
 from meross_iot.controller.mixins.consumption import ConsumptionXMixin, ConsumptionMixin
+from meross_iot.controller.mixins.dnd import SystemDndMixin
 from meross_iot.controller.mixins.electricity import ElectricityMixin
 from meross_iot.controller.mixins.garage import GarageOpenerMixin
 from meross_iot.controller.mixins.hub import HubMts100Mixin, HubMixn, HubMs100Mixin
@@ -58,7 +59,10 @@ _ABILITY_MATRIX = {
 
     Namespace.HUB_MTS100_ALL.value: HubMts100Mixin,
     Namespace.HUB_MTS100_MODE.value: HubMts100Mixin,
-    Namespace.HUB_MTS100_TEMPERATURE.value: HubMts100Mixin
+    Namespace.HUB_MTS100_TEMPERATURE.value: HubMts100Mixin,
+
+    # DND
+    Namespace.SYSTEM_DND_MODE.value: SystemDndMixin,
 
     # TODO: BIND, UNBIND, ONLINE, WIFI, ETC!
 }

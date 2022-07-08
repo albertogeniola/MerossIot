@@ -60,13 +60,14 @@ class Namespace(Enum):
     CONFIG_WIFI_LIST = 'Appliance.Config.WifiList'
     CONFIG_TRACE = 'Appliance.Config.Trace'
 
+    SYSTEM_DND_MODE = 'Appliance.System.DNDMode'
+
     # Power plug/bulbs abilities
     CONTROL_TOGGLE = 'Appliance.Control.Toggle'
     CONTROL_TOGGLEX = 'Appliance.Control.ToggleX'
     CONTROL_ELECTRICITY = 'Appliance.Control.Electricity'
     CONTROL_CONSUMPTION = 'Appliance.Control.Consumption'
     CONTROL_CONSUMPTIONX = 'Appliance.Control.ConsumptionX'
-
 
     # Bulbs-only abilities
     CONTROL_LIGHT = 'Appliance.Control.Light'
