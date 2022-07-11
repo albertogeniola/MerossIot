@@ -44,6 +44,11 @@ class RollerShutterState(Enum):
     CLOSING = 2
 
 
+class DNDMode(Enum):
+    DND_DISABLED = 0
+    DND_ENABLED = 1
+
+
 class Namespace(Enum):
     # Common abilities
     SYSTEM_ALL = 'Appliance.System.All'

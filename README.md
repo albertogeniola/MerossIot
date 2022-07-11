@@ -184,6 +184,7 @@ Anyway, feel free to contribute via donations!
 - Introduced support for local-lan-http command handling
 - RollerShutter refactor and code improvements
 - Added RolleShutter automatic tests
+- Added support for do-not-disturb mode 
 
 <details>
     <summary>Older</summary>
