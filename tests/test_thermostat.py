@@ -38,6 +38,19 @@ class TestThermostat(AioHTTPTestCase):
         self.test_devices: List[Mts200Type] = self.meross_manager.find_devices(device_class=ThermostatModeMixin, online_status=OnlineStatus.ONLINE)
 
     @unittest_run_loop
+    async def test_on_off(self):
+        if len(self.test_devices) < 1:
+            self.skipTest("No valve device has been found to run this test.")
+
+        dev = self.test_devices[0]
+        print(f"Testing device {dev.name}")
+        await dev.async_update()
+        state = dev.get_thermostat_state()
+        toggled_state = not state.is_on
+        await dev.async_set_thermostat_config(on_not_off=toggled_state)
+        self.assertEqual(dev.get_thermostat_state().is_on, toggled_state)
+
+    @unittest_run_loop
     async def test_ambient_temperature(self):
         if len(self.test_devices) < 1:
             self.skipTest("No valve device has been found to run this test.")
