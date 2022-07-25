@@ -13,9 +13,10 @@ from zipfile import ZipFile
 import paho.mqtt.client as mqtt
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
+from meross_iot.model.constants import DEFAULT_MQTT_PORT
 from meross_iot.model.enums import Namespace, OnlineStatus
 from meross_iot.utilities.mqtt import build_device_request_topic, build_client_response_topic, build_client_user_topic
-from meross_iot.utilities.network import extract_domain
+from meross_iot.utilities.network import extract_domain, extract_port
 
 SNIFF_LOG_FILE = 'sniff.log'
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -213,19 +214,22 @@ async def _main():
         manager = MerossManager(http_client=http)
         await manager.async_init()
 
+        mqtt_host = selected_device.get_mqtt_host()
+        mqtt_port = selected_device.get_mqtt_port()
+
         # Manually get device abilities
         response_all = await manager.async_execute_cmd(destination_device_uuid=selected_device.uuid,
                                                        method="GET",
                                                        namespace=Namespace.SYSTEM_ALL,
                                                        payload={},
-                                                       mqtt_hostname=selected_device.mqtt_host,
-                                                       mqtt_port=selected_device.mqtt_port)
+                                                       mqtt_hostname=mqtt_host,
+                                                       mqtt_port=mqtt_port)
         response_abilities = await manager.async_execute_cmd(destination_device_uuid=selected_device.uuid,
                                                              method="GET",
                                                              namespace=Namespace.SYSTEM_ABILITY,
                                                              payload={},
-                                                             mqtt_hostname=selected_device.mqtt_host,
-                                                             mqtt_port=selected_device.mqtt_port
+                                                             mqtt_hostname=mqtt_host,
+                                                             mqtt_port=mqtt_port
                                                              )
 
         l.info(f"Sysdata for {selected_device.dev_name} ({selected_device.uuid}): {response_all}")

@@ -11,6 +11,7 @@ from meross_iot.model.constants import DEFAULT_MQTT_PORT, DEFAULT_MQTT_HOST, DEF
 from meross_iot.model.enums import OnlineStatus, Namespace
 from meross_iot.model.http.device import HttpDeviceInfo
 from meross_iot.model.plugin.hub import BatteryInfo
+from meross_iot.utilities.network import extract_domain, extract_port
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -43,22 +44,13 @@ class BaseDevice(object):
 
         # Prefer domain over reserved domain
         if domain is not None:
-            self._mqtt_host = domain
+            self._mqtt_host = extract_domain(domain)
+            self._mqtt_port = extract_port(domain, DEFAULT_MQTT_PORT)
         elif reserved_domain is not None:
-            self._mqtt_host = reserved_domain
+            self._mqtt_host = extract_domain(reserved_domain)
+            self._mqtt_port = extract_port(reserved_domain, DEFAULT_MQTT_PORT)
         else:
-            _LOGGER.warning("No MQTT DOMAIN specified in args, assuming default value %s", DEFAULT_MQTT_HOST)
-
-        port = kwargs.get("port")
-        second_port = kwargs.get("secondPort")
-
-        if port is not None:
-            self._mqtt_port = port
-        elif second_port is not None:
-            self._mqtt_port = second_port
-        else:
-            _LOGGER.info("No MQTT PORT specified in args, assuming default value %d", DEFAULT_MQTT_PORT)
-            self._mqtt_port = DEFAULT_MQTT_PORT
+            _LOGGER.warning("No MQTT DOMAIN/RESERVED DOMAIN specified in args, assuming default value %s:%d", DEFAULT_MQTT_HOST, DEFAULT_MQTT_PORT)
 
         if hasattr(self, "_abilities_spec"):
             self._abilities = self._abilities_spec

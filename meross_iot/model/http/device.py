@@ -3,8 +3,10 @@ import logging
 from datetime import datetime
 from typing import Union, List
 
+from meross_iot.model.constants import DEFAULT_MQTT_PORT, DEFAULT_MQTT_HOST
 from meross_iot.model.enums import OnlineStatus
 from meross_iot.model.shared import BaseDictPayload
+from meross_iot.utilities.network import extract_domain, extract_port
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -61,6 +63,26 @@ class HttpDeviceInfo(BaseDictPayload):
         self.domain = domain
         self.reserved_domain = reserved_domain
 
+    def get_mqtt_host(self) -> str:
+        """Infers the mqtt server host for this device"""
+        # Prefer domain over reserved domain
+        if self.domain is not None:
+            return extract_domain(self.domain)
+        if self.reserved_domain is not None:
+            return extract_domain(self.reserved_domain)
+        _LOGGER.warning("Could not find domain info for device %s, returning default domain %s", str(self.uuid), DEFAULT_MQTT_HOST)
+        return DEFAULT_MQTT_HOST
+
+    def get_mqtt_port(self) -> int:
+        """Infers the mqtt server port for this device"""
+        # Prefer domain over reserved domain
+        if self.domain is not None:
+            return extract_port(self.domain, DEFAULT_MQTT_PORT)
+        if self.reserved_domain is not None:
+            return extract_port(self.reserved_domain, DEFAULT_MQTT_PORT)
+        _LOGGER.warning("Could not find domain info for device %s, returning default port %d", str(self.uuid),
+                    DEFAULT_MQTT_PORT)
+        return DEFAULT_MQTT_PORT
 
     def __repr__(self):
         return json.dumps(self.__dict__, default=lambda x: x.isoformat() if isinstance(x,datetime) else x.name if(isinstance(x,OnlineStatus)) else "NOT-SERIALIZABLE")

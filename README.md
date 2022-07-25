@@ -153,6 +153,9 @@ So far, I've bought the following devices:
 - MSG100
 - MSH300
 - MSXH0
+- MSG200
+- MTS200
+- MRS100
 
 By issuing a donation, you will:
 1. Give me the opportunity to buy new devices and support them in this library
@@ -183,8 +186,9 @@ Anyway, feel free to contribute via donations!
 #### 0.4.5.0
 - Introduced support for local-lan-http command handling
 - RollerShutter refactor and code improvements
-- Added RolleShutter automatic tests
-- Added support for do-not-disturb mode 
+- Added RollerShutter automatic tests
+- Added support for do-not-disturb mode
+- Implemented ThermostatMixin and added support for MTS200 
 
 <details>
     <summary>Older</summary>

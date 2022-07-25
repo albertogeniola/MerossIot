@@ -2,12 +2,10 @@ import logging
 from enum import Enum
 from typing import Union
 
-
 _LOGGER = logging.getLogger(__name__)
 
 
 class OnlineStatus(Enum):
-
     NOT_ONLINE = 0
     ONLINE = 1
     OFFLINE = 2
@@ -35,6 +33,14 @@ class ThermostatV3Mode(Enum):
     CUSTOM = 0
     ECONOMY = 4
     HEAT = 1
+
+
+class ThermostatMode(Enum):
+    HEAT = 0
+    COOL = 1
+    ECONOMY = 2
+    AUTO = 3
+    MANUAL = 4
 
 
 class RollerShutterState(Enum):
@@ -107,6 +113,10 @@ class Namespace(Enum):
     HUB_MTS100_TEMPERATURE = 'Appliance.Hub.Mts100.Temperature'
     HUB_MTS100_MODE = 'Appliance.Hub.Mts100.Mode'
     HUB_MTS100_ADJUST = 'Appliance.Hub.Mts100.Adjust'
+
+    # Thermostat / MTS200
+    CONTROL_THERMOSTAT_MODE = 'Appliance.Control.Thermostat.Mode'
+    CONTROL_THERMOSTAT_WINDOWOPENED = 'Appliance.Control.Thermostat.WindowOpened'
 
 
 def get_or_parse_namespace(namespace: Union[Namespace, str]):
