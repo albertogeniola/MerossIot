@@ -108,16 +108,18 @@
 </li>
       <li><a href="api-reference/controller/mixins/consumption.html#meross_iot.controller.mixins.consumption.ConsumptionXMixin.async_get_daily_power_consumption">async_get_daily_power_consumption() (meross_iot.controller.mixins.consumption.ConsumptionXMixin method)</a>
 </li>
+      <li><a href="api-reference/controller/mixins/toggle.html#meross_iot.controller.mixins.dnd.SystemDndMixin.async_get_dnd_mode">async_get_dnd_mode() (meross_iot.controller.mixins.dnd.SystemDndMixin method)</a>
+</li>
       <li><a href="api-reference/controller/mixins/electricity.html#meross_iot.controller.mixins.electricity.ElectricityMixin.async_get_instant_metrics">async_get_instant_metrics() (meross_iot.controller.mixins.electricity.ElectricityMixin method)</a>
 </li>
       <li><a href="api-reference/manager.html#meross_iot.manager.MerossManager.async_init">async_init() (meross_iot.manager.MerossManager method)</a>
 </li>
       <li><a href="api-reference/http.html#meross_iot.http_api.MerossHttpClient.async_invalidate_credentials">async_invalidate_credentials() (meross_iot.http_api.MerossHttpClient method)</a>
 </li>
-      <li><a href="api-reference/http.html#meross_iot.http_api.MerossHttpClient.async_list_devices">async_list_devices() (meross_iot.http_api.MerossHttpClient method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api-reference/http.html#meross_iot.http_api.MerossHttpClient.async_list_devices">async_list_devices() (meross_iot.http_api.MerossHttpClient method)</a>
+</li>
       <li><a href="api-reference/http.html#meross_iot.http_api.MerossHttpClient.async_list_hub_subdevices">async_list_hub_subdevices() (meross_iot.http_api.MerossHttpClient method)</a>
 </li>
       <li><a href="api-reference/http.html#meross_iot.http_api.MerossHttpClient.async_login">async_login() (meross_iot.http_api.MerossHttpClient class method)</a>
@@ -128,11 +130,11 @@
 </li>
       <li><a href="api-reference/controller/mixins/light.html#meross_iot.controller.mixins.light.LightMixin.async_set_light_color">async_set_light_color() (meross_iot.controller.mixins.light.LightMixin method)</a>
 </li>
-      <li><a href="api-reference/controller/mixins/toggle.html#meross_iot.controller.mixins.toggle.ToggleXMixin.async_toggle">async_toggle() (meross_iot.controller.mixins.toggle.ToggleXMixin method)</a>
+      <li><a href="api-reference/controller/mixins/dnd.html#meross_iot.controller.mixins.toggle.ToggleXMixin.async_toggle">async_toggle() (meross_iot.controller.mixins.toggle.ToggleXMixin method)</a>
 </li>
-      <li><a href="api-reference/controller/mixins/toggle.html#meross_iot.controller.mixins.toggle.ToggleXMixin.async_turn_off">async_turn_off() (meross_iot.controller.mixins.toggle.ToggleXMixin method)</a>
+      <li><a href="api-reference/controller/mixins/dnd.html#meross_iot.controller.mixins.toggle.ToggleXMixin.async_turn_off">async_turn_off() (meross_iot.controller.mixins.toggle.ToggleXMixin method)</a>
 </li>
-      <li><a href="api-reference/controller/mixins/toggle.html#meross_iot.controller.mixins.toggle.ToggleXMixin.async_turn_on">async_turn_on() (meross_iot.controller.mixins.toggle.ToggleXMixin method)</a>
+      <li><a href="api-reference/controller/mixins/dnd.html#meross_iot.controller.mixins.toggle.ToggleXMixin.async_turn_on">async_turn_on() (meross_iot.controller.mixins.toggle.ToggleXMixin method)</a>
 </li>
       <li><a href="api-reference/controller/device/base.html#meross_iot.controller.device.BaseDevice.async_update">async_update() (meross_iot.controller.device.BaseDevice method)</a>
 
@@ -254,7 +256,7 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api-reference/controller/mixins/toggle.html#meross_iot.controller.mixins.toggle.ToggleXMixin.is_on">is_on() (meross_iot.controller.mixins.toggle.ToggleXMixin method)</a>
+      <li><a href="api-reference/controller/mixins/dnd.html#meross_iot.controller.mixins.toggle.ToggleXMixin.is_on">is_on() (meross_iot.controller.mixins.toggle.ToggleXMixin method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -328,11 +330,15 @@
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api-reference/controller/mixins/toggle.html#meross_iot.controller.mixins.dnd.SystemDndMixin.set_dnd_mode">set_dnd_mode() (meross_iot.controller.mixins.dnd.SystemDndMixin method)</a>
+</li>
       <li><a href="api-reference/controller/mixins/spray.html#meross_iot.controller.mixins.spray.SprayMixin">SprayMixin (class in meross_iot.controller.mixins.spray)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-reference/controller/mixins/system.html#meross_iot.controller.mixins.system.SystemAllMixin">SystemAllMixin (class in meross_iot.controller.mixins.system)</a>
+</li>
+      <li><a href="api-reference/controller/mixins/toggle.html#meross_iot.controller.mixins.dnd.SystemDndMixin">SystemDndMixin (class in meross_iot.controller.mixins.dnd)</a>
 </li>
       <li><a href="api-reference/controller/mixins/system.html#meross_iot.controller.mixins.system.SystemOnlineMixin">SystemOnlineMixin (class in meross_iot.controller.mixins.system)</a>
 </li>
@@ -344,11 +350,13 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-reference/creds.html#meross_iot.model.credentials.MerossCloudCreds.to_json">to_json() (meross_iot.model.credentials.MerossCloudCreds method)</a>
 </li>
-      <li><a href="api-reference/controller/mixins/toggle.html#meross_iot.controller.mixins.toggle.ToggleMixin">ToggleMixin (class in meross_iot.controller.mixins.toggle)</a>
+      <li><a href="api-reference/controller/mixins/dnd.html#meross_iot.controller.mixins.toggle.ToggleMixin">ToggleMixin (class in meross_iot.controller.mixins.toggle)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api-reference/controller/mixins/toggle.html#meross_iot.controller.mixins.toggle.ToggleXMixin">ToggleXMixin (class in meross_iot.controller.mixins.toggle)</a>
+      <li><a href="api-reference/controller/mixins/dnd.html#meross_iot.controller.mixins.toggle.ToggleXMixin">ToggleXMixin (class in meross_iot.controller.mixins.toggle)</a>
+</li>
+      <li><a href="api-reference/manager.html#meross_iot.manager.TransportMode">TransportMode (class in meross_iot.manager)</a>
 </li>
       <li><a href="api-reference/controller/device/base.html#meross_iot.controller.device.BaseDevice.type">type() (meross_iot.controller.device.BaseDevice property)</a>
 </li>

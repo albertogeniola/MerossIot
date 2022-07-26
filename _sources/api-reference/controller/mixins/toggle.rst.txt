@@ -1,11 +1,6 @@
-ToggleXMixin
+DNDMixin
 ------------
 
-.. autoclass:: meross_iot.controller.mixins.toggle.ToggleXMixin
+.. autoclass:: meross_iot.controller.mixins.dnd.SystemDndMixin
    :members:
 
-ToggleMixin
-------------
-
-.. autoclass:: meross_iot.controller.mixins.toggle.ToggleMixin
-   :members:

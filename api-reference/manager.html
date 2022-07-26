@@ -63,8 +63,7 @@
 <li class="toctree-l2"><a class="reference internal" href="controller/mixins/spray.html">SprayMixin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="controller/mixins/system.html">SystemAllMixin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="controller/mixins/system.html#systemonlinemixin">SystemOnlineMixin</a></li>
-<li class="toctree-l2"><a class="reference internal" href="controller/mixins/toggle.html">ToggleXMixin</a></li>
-<li class="toctree-l2"><a class="reference internal" href="controller/mixins/toggle.html#togglemixin">ToggleMixin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/toggle.html">DNDMixin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="controller/subdevice/sensor.html">Ms100Sensor</a></li>
 <li class="toctree-l2"><a class="reference internal" href="controller/subdevice/valve.html">Mts100v3Valve</a></li>
 </ul>
@@ -128,8 +127,8 @@ When not passed, the manager will issue the HTTP API call to retrieve the latest
 
 <dl class="method">
 <dt id="meross_iot.manager.MerossManager.async_execute_cmd">
-<em class="property">async </em><code class="sig-name descname">async_execute_cmd</code><span class="sig-paren">(</span><em class="sig-param">mqtt_hostname: str</em>, <em class="sig-param">mqtt_port: int</em>, <em class="sig-param">destination_device_uuid: str</em>, <em class="sig-param">method: str</em>, <em class="sig-param">namespace: meross_iot.model.enums.Namespace</em>, <em class="sig-param">payload: dict</em>, <em class="sig-param">timeout: float = 10.0</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.manager.MerossManager.async_execute_cmd" title="Permalink to this definition">¶</a></dt>
-<dd><p>This method sends a command to the MQTT Meross broker.</p>
+<em class="property">async </em><code class="sig-name descname">async_execute_cmd</code><span class="sig-paren">(</span><em class="sig-param">mqtt_hostname: str</em>, <em class="sig-param">mqtt_port: int</em>, <em class="sig-param">destination_device_uuid: str</em>, <em class="sig-param">method: str</em>, <em class="sig-param">namespace: meross_iot.model.enums.Namespace</em>, <em class="sig-param">payload: dict</em>, <em class="sig-param">timeout: float = 10.0</em>, <em class="sig-param">override_transport_mode: meross_iot.manager.TransportMode = None</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.manager.MerossManager.async_execute_cmd" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method sends a command to the device, locally via HTTP or via the MQTT Meross broker.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -140,6 +139,7 @@ When not passed, the manager will issue the HTTP API call to retrieve the latest
 <li><p><strong>namespace</strong> – Command namespace</p></li>
 <li><p><strong>payload</strong> – A dict containing the payload to be sent</p></li>
 <li><p><strong>timeout</strong> – Maximum time interval in seconds to wait for the command-answer</p></li>
+<li><p><strong>override_transport_mode</strong> – when set, overrides the manager transport mode</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -219,6 +219,12 @@ MQTT broker.
 <dl class="class">
 <dt id="meross_iot.manager.MqttConnectionStatus">
 <em class="property">class </em><code class="sig-prename descclassname">meross_iot.manager.</code><code class="sig-name descname">MqttConnectionStatus</code><a class="headerlink" href="#meross_iot.manager.MqttConnectionStatus" title="Permalink to this definition">¶</a></dt>
+<dd><p>An enumeration.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="meross_iot.manager.TransportMode">
+<em class="property">class </em><code class="sig-prename descclassname">meross_iot.manager.</code><code class="sig-name descname">TransportMode</code><a class="headerlink" href="#meross_iot.manager.TransportMode" title="Permalink to this definition">¶</a></dt>
 <dd><p>An enumeration.</p>
 </dd></dl>
 
