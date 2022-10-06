@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3.1.0
     - name: Setup Python 3.9.x
       uses: actions/setup-python@v2
       with:
@@ -50,7 +50,7 @@ jobs:
         uses: actions/setup-node@v2-beta
         with:
           node-version: 11.x
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3.1.0
       - name: Install npm dependencies
         run: |
           pushd ext-res/tests
@@ -72,7 +72,7 @@ jobs:
     outputs:
       failure_rate: ${{steps.pytest.outputs.failure_rate}}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3.1.0
     - name: Setup Python 3.9.x
       uses: actions/setup-python@v2
       with:
@@ -147,7 +147,7 @@ jobs:
         uses: actions/setup-node@v2-beta
         with:
           node-version: 11.x
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3.1.0
       - name: Install npm dependencies
         run: |
           pushd ext-res/tests
@@ -170,7 +170,7 @@ jobs:
     # Only publish release if the failure rate is < 10 %
     if: needs.test.outputs.failure_rate < 10
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3.1.0
     - name: Calculate Version
       id: tag
       run: |

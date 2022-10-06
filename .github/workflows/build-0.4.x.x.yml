@@ -18,7 +18,7 @@ jobs:
         python_version: ['3.7', '3.8', '3.9', '3.10']
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3.1.0
     - name: Setup Python ${{matrix.python_version}}
       uses: actions/setup-python@v2
       with:
@@ -45,7 +45,7 @@ jobs:
         uses: actions/setup-node@v2-beta
         with:
           node-version: 11.x
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3.1.0
       - name: Install npm dependencies
         run: |
           pushd ext-res/tests
@@ -74,7 +74,7 @@ jobs:
       failure_rate_python_3_10: ${{steps.pytest.outputs.failure_rate_3_10}}
     needs: [build, turn-on-env]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3.1.0
     - name: Setup Python ${{matrix.python_version}}
       uses: actions/setup-python@v2
       with:
@@ -157,7 +157,7 @@ jobs:
         uses: actions/setup-node@v2-beta
         with:
           node-version: 11.x
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3.1.0
       - name: Install npm dependencies
         run: |
           pushd ext-res/tests
@@ -206,7 +206,7 @@ jobs:
     needs: [release_checks]
     if: ${{ success() }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3.1.0
       - name: Setup Python 3.10
         uses: actions/setup-python@v2
         with:
