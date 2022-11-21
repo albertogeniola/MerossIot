@@ -97,6 +97,10 @@ class Namespace(Enum):
 
     SYSTEM_DIGEST_HUB = 'Appliance.Digest.Hub'
 
+    # Oil diffuser
+    DIFFUSER_LIGHT = "Appliance.Control.Diffuser.Light"
+    DIFFUSER_SPRAY = "Appliance.Control.Diffuser.Spray"
+
     # HUB
     HUB_EXCEPTION = 'Appliance.Hub.Exception'
     HUB_BATTERY = 'Appliance.Hub.Battery'
