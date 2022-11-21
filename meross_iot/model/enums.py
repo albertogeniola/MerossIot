@@ -27,6 +27,12 @@ class SprayMode(Enum):
     INTERMITTENT = 2
 
 
+class DiffuserLightMode(Enum):
+    ROTATING_COLORS = 0
+    FIXED_RGB = 1
+    FIXED_LUMINANCE = 2
+
+
 class ThermostatV3Mode(Enum):
     AUTO = 3
     COOL = 2
