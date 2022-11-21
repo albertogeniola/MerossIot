@@ -126,7 +126,7 @@ class HubMts100Mixin(object):
         Namespace.HUB_MTS100_TEMPERATURE: 'temperature'
     }
     _execute_command: callable
-    get_subdevices: callable
+    get_subdevice: callable
     uuid: str
 
     def __init__(self, device_uuid: str,
