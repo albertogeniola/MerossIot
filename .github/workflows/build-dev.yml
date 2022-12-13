@@ -10,17 +10,17 @@ jobs:
   # Builds the code
   # ------------------------------
   build:
-    name: Build on node Python 3.9.x
+    name: Build on node Python 3.9
     outputs: 
       tag: ${{steps.tag.outputs.tag}}
     runs-on: ubuntu-latest
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
-    - name: Setup Python 3.9.x
+    - name: Setup Python 3.9
       uses: actions/setup-python@v2
       with:
-        python-version: 3.9.7
+        python-version: 3.9
     - name: Install python dependencies
       run: |
         python -m pip install --upgrade pip
@@ -73,7 +73,7 @@ jobs:
       failure_rate: ${{steps.pytest.outputs.failure_rate}}
     steps:
     - uses: actions/checkout@v2
-    - name: Setup Python 3.9.x
+    - name: Setup Python 3.9
       uses: actions/setup-python@v2
       with:
         python-version: 3.9

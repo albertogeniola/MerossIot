@@ -982,7 +982,7 @@ class DeviceRegistry(object):
 
     def enroll_device(self, device: BaseDevice):
         if device.internal_id in self._devices_by_internal_id:
-            _LOGGER.warning(
+            _LOGGER.info(
                 f"Device {device.name} ({device.internal_id}) has been already added to the registry."
             )
             return

@@ -15,7 +15,7 @@ async def main():
 
     # Setup and start the device manager
     manager = MerossManager(http_client=http_api_client)
-    manager.transport_mode = TransportMode.LAN_HTTP_FIRST
+    manager.default_transport_mode = TransportMode.LAN_HTTP_FIRST
     await manager.async_init()
 
     # Retrieve all the devices that implement the electricity mixin
