@@ -178,7 +178,7 @@ Look at the test environment that ensures high quality code of the library!
 testing it on Python 3.5/3.6/3.7, relying on some junit tests and, if all the tests pass as expected, the library
 is released on Pypi. However, to ensure that the code <i>really works</i>,
 the pipeline will issue on/off commands against real devices, that are dedicated 24/7 to the tests.
-Such devices have been bought by myself (with contributions received by donators).
+Such devices have been bought by myself (with contributions received by donors).
 However, keeping such devices connected 24/7 has a cost, which I sustain happily due to the success of the library.
 Anyway, feel free to contribute via donations!
 </p>
