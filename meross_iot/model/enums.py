@@ -27,6 +27,12 @@ class SprayMode(Enum):
     INTERMITTENT = 2
 
 
+class DiffuserSprayMode(Enum):
+    LIGHT = 0
+    STRONG = 1
+    OFF = 2
+
+
 class DiffuserLightMode(Enum):
     ROTATING_COLORS = 0
     FIXED_RGB = 1

@@ -6,9 +6,10 @@ from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
 from meross_iot.controller.device import BaseDevice
-from meross_iot.controller.mixins.diffuser import DiffuserLightMixin
+from meross_iot.controller.mixins.diffuser_light import DiffuserLightMixin
+from meross_iot.controller.mixins.diffuser_spray import DiffuserSprayMixin
 from meross_iot.manager import MerossManager
-from meross_iot.model.enums import OnlineStatus, DiffuserLightMode
+from meross_iot.model.enums import OnlineStatus, DiffuserLightMode, DiffuserSprayMode
 from tests import async_get_client
 
 if os.name == 'nt':
@@ -18,7 +19,7 @@ else:
     import asyncio
 
 
-class TestLight(AioHTTPTestCase):
+class TestDiffuser(AioHTTPTestCase):
     async def get_application(self):
         return web.Application()
 
@@ -32,6 +33,7 @@ class TestLight(AioHTTPTestCase):
         await self.meross_manager.async_init()
         devices = await self.meross_manager.async_device_discovery()
         self.light_devices = self.meross_manager.find_devices(device_class=DiffuserLightMixin, online_status=OnlineStatus.ONLINE)
+        self.spray_devices = self.meross_manager.find_devices(device_class=DiffuserSprayMixin, online_status=OnlineStatus.ONLINE)
 
 
     @unittest_run_loop
@@ -62,31 +64,31 @@ class TestLight(AioHTTPTestCase):
                           "The test will be skipped.")
         for light in self.light_devices:
             print(f"Testing device: {light.name}...")
-            await light.async_update()
+            await light.async_update()  # type: Union[BaseDevice, DiffuserLightMode]
 
             # Set mode to FIXED RGB
-            await light.async_set_mode(mode=DiffuserLightMode.FIXED_RGB)
+            await light.async_set_light_mode(mode=DiffuserLightMode.FIXED_RGB)
 
             # Turn device off
-            await light.async_set_mode(onoff=False)
+            await light.async_set_light_mode(onoff=False)
             self.assertFalse(light.get_light_is_on())
             # Change the color without turning it on
-            await light.async_set_mode(rgb=(255, 0, 0))
+            await light.async_set_light_mode(rgb=(255, 0, 0))
             # Make sure device is now showing the specific color
-            self.assertEqual(light.get_rgb_color(), (255, 0, 0))
+            self.assertEqual(light.get_light_rgb_color(), (255, 0, 0))
             self.assertFalse(light.get_light_is_on())
             # Turn device on and check if the color is right
-            await light.async_set_mode(onoff=True)
+            await light.async_set_light_mode(onoff=True)
             self.assertTrue(light.get_light_is_on())
 
             # Turn off device without changing color
-            await light.async_set_mode(onoff=False)
+            await light.async_set_light_mode(onoff=False)
             await asyncio.sleep(1)
             # Make sure device is now off
             self.assertFalse(light.get_light_is_on())
 
     @unittest_run_loop
-    async def test_mode(self):
+    async def test_light_mode(self):
         if len(self.light_devices) < 1:
             self.skipTest("Could not find any DiffuserLightMixin within the given set of devices. "
                           "The test will be skipped.")
@@ -94,15 +96,15 @@ class TestLight(AioHTTPTestCase):
             print(f"Testing device: {light.name}...")
             await light.async_update()
 
-            await light.async_set_mode(mode=DiffuserLightMode.FIXED_LUMINANCE, onoff=True)
-            self.assertEqual(light.get_mode(), DiffuserLightMode.FIXED_LUMINANCE)
-            await light.async_set_mode(mode=DiffuserLightMode.ROTATING_COLORS)
-            self.assertEqual(light.get_mode(), DiffuserLightMode.ROTATING_COLORS)
-            await light.async_set_mode(mode=DiffuserLightMode.FIXED_RGB)
-            self.assertEqual(light.get_mode(), DiffuserLightMode.FIXED_RGB)
+            await light.async_set_light_mode(mode=DiffuserLightMode.FIXED_LUMINANCE, onoff=True)
+            self.assertEqual(light.get_light_mode(), DiffuserLightMode.FIXED_LUMINANCE)
+            await light.async_set_light_mode(mode=DiffuserLightMode.ROTATING_COLORS)
+            self.assertEqual(light.get_light_mode(), DiffuserLightMode.ROTATING_COLORS)
+            await light.async_set_light_mode(mode=DiffuserLightMode.FIXED_RGB)
+            self.assertEqual(light.get_light_mode(), DiffuserLightMode.FIXED_RGB)
 
     @unittest_run_loop
-    async def test_brightness(self):
+    async def test_light_brightness(self):
         if len(self.light_devices) < 1:
             self.skipTest("Could not find any DiffuserLightMixin within the given set of devices. "
                           "The test will be skipped.")
@@ -110,11 +112,11 @@ class TestLight(AioHTTPTestCase):
             print(f"Testing device: {light.name}...")
             await light.async_update()
 
-            await light.async_set_mode(onoff=True)
+            await light.async_set_light_mode(onoff=True)
             for i in range(0,100,10):
-                await light.async_set_mode(brightness=i)
+                await light.async_set_light_mode(brightness=i)
                 await asyncio.sleep(0.5)
-                self.assertEqual(light.get_brightness(), i)
+                self.assertEqual(light.get_light_brightness(), i)
 
     @unittest_run_loop
     async def test_light_rgb_push_notification(self):
@@ -140,21 +142,41 @@ class TestLight(AioHTTPTestCase):
             dev = devs[0]
 
             # Set RGB color to known state
-            r = await light.async_set_mode(rgb=(255, 0, 0), onoff=True)
+            r = await light.async_set_light_mode(rgb=(255, 0, 0), onoff=True)
             await asyncio.sleep(2)
 
             # Turn on the device
-            r = await light.async_set_mode(rgb=(0, 255, 0), onoff=True)
+            r = await light.async_set_light_mode(rgb=(0, 255, 0), onoff=True)
 
             # Wait a bit and make sure the other manager received the push notification
             await asyncio.sleep(10)
-            self.assertEqual(light.get_rgb_color(), (0, 255, 0))
-            self.assertEqual(dev.get_rgb_color(), (0, 255, 0))
+            self.assertEqual(light.get_light_rgb_color(), (0, 255, 0))
+            self.assertEqual(dev.get_light_rgb_color(), (0, 255, 0))
         finally:
             if m is not None:
                 m.close()
             if requires_logout:
                 await new_meross_client.async_logout()
+
+    @unittest_run_loop
+    async def test_spray_mode(self):
+        if len(self.spray_devices) < 1:
+            self.skipTest("Could not find any DiffuserSprayMixin within the given set of devices. "
+                          "The test will be skipped.")
+        for spray in self.spray_devices:  # type: Union[BaseDevice, DiffuserSprayMixin]
+            print(f"Testing device: {spray.name}...")
+            await spray.async_update()
+
+            await asyncio.sleep(1)
+            await spray.async_set_spray_mode(DiffuserSprayMode.LIGHT)
+            self.assertEqual(spray.get_current_spray_mode(), DiffuserSprayMode.LIGHT)
+            await asyncio.sleep(1)
+            await spray.async_set_spray_mode(DiffuserSprayMode.STRONG)
+            self.assertEqual(spray.get_current_spray_mode(), DiffuserSprayMode.STRONG)
+            await asyncio.sleep(1)
+            await spray.async_set_spray_mode(DiffuserSprayMode.OFF)
+            self.assertEqual(spray.get_current_spray_mode(), DiffuserSprayMode.OFF)
+
 
     async def tearDownAsync(self):
         if self.requires_logout:

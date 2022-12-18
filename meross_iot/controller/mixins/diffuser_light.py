@@ -1,7 +1,7 @@
 import logging
 from typing import Optional
 
-from meross_iot.model.enums import Namespace, SprayMode, DiffuserLightMode
+from meross_iot.model.enums import Namespace, DiffuserLightMode
 from meross_iot.model.typing import RgbTuple
 from meross_iot.utilities.conversion import rgb_to_int, int_to_rgb
 
@@ -44,7 +44,7 @@ class DiffuserLightMixin(object):
         parent_handled = await super().async_handle_push_notification(namespace=namespace, data=data)
         return locally_handled or parent_handled
 
-    def get_mode(self, channel: int = 0, *args, **kwargs) -> Optional[DiffuserLightMode]:
+    def get_light_mode(self, channel: int = 0, *args, **kwargs) -> Optional[DiffuserLightMode]:
         """
         Returns the operating mode for this device
         :param channel: channel to fetch info from
@@ -70,7 +70,7 @@ class DiffuserLightMixin(object):
         super_handled = await super().async_handle_update(namespace=namespace, data=data)
         return super_handled or locally_handled
 
-    def get_brightness(self, channel: int = 0, *args, **kwargs) -> Optional[int]:
+    def get_light_brightness(self, channel: int = 0, *args, **kwargs) -> Optional[int]:
         """
         Returns the current configured led brightness
         :param channel: channel index to fetch info from
@@ -79,7 +79,7 @@ class DiffuserLightMixin(object):
         self.check_full_update_done()
         return self._channel_diffuser_light_status.get(channel, {}).get("luminance")
 
-    def get_rgb_color(self, channel=0, *args, **kwargs) -> Optional[RgbTuple]:
+    def get_light_rgb_color(self, channel=0, *args, **kwargs) -> Optional[RgbTuple]:
         """
         Returns the current RGB configuration of the device.
 
@@ -93,7 +93,7 @@ class DiffuserLightMixin(object):
             return None
         return int_to_rgb(info)
 
-    async def async_set_mode(self, channel: int = 0, onoff: bool = None, mode: DiffuserLightMode = None, brightness: int = None, rgb: Optional[RgbTuple] = None, timeout: Optional[float] = None, *args, **kwargs) -> None:
+    async def async_set_light_mode(self, channel: int = 0, onoff: bool = None, mode: DiffuserLightMode = None, brightness: int = None, rgb: Optional[RgbTuple] = None, timeout: Optional[float] = None, *args, **kwargs) -> None:
         """
         Sets the light mode for this device.
         :param channel: channel to configure
@@ -137,7 +137,7 @@ class DiffuserLightMixin(object):
         return onoff == 1
 
     async def async_turn_on(self, channel=0, *args, **kwargs) -> None:
-        await self.async_set_mode(channel=channel, onoff=True)
+        await self.async_set_light_mode(channel=channel, onoff=True)
 
     async def async_turn_off(self, channel=0, *args, **kwargs) -> None:
-        await self.async_set_mode(channel=channel, onoff=False)
+        await self.async_set_light_mode(channel=channel, onoff=False)

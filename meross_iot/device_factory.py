@@ -3,7 +3,8 @@ from typing import Optional
 
 from meross_iot.controller.device import BaseDevice, HubDevice, GenericSubDevice
 from meross_iot.controller.mixins.consumption import ConsumptionXMixin, ConsumptionMixin
-from meross_iot.controller.mixins.diffuser import DiffuserLightMixin
+from meross_iot.controller.mixins.diffuser_light import DiffuserLightMixin
+from meross_iot.controller.mixins.diffuser_spray import DiffuserSprayMixin
 from meross_iot.controller.mixins.dnd import SystemDndMixin
 from meross_iot.controller.mixins.electricity import ElectricityMixin
 from meross_iot.controller.mixins.garage import GarageOpenerMixin
@@ -49,6 +50,7 @@ _ABILITY_MATRIX = {
 
     # Oil diffuser
     Namespace.DIFFUSER_LIGHT.value: DiffuserLightMixin,
+    Namespace.DIFFUSER_SPRAY.value: DiffuserSprayMixin,
 
     # System
     Namespace.SYSTEM_ALL.value: SystemAllMixin,
