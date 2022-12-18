@@ -186,6 +186,7 @@ Anyway, feel free to contribute via donations!
 ## Changelog
 #### 0.4.5.1
 - Adds support for MOD150 oil diffuser
+- Enables position set for MSR100 devices (might not work with non-HomeKit versions, though)
 
 <details>
     <summary>Older</summary>
