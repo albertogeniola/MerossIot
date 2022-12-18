@@ -47,6 +47,7 @@ async def main():
         # Randomly choose a temperature between min and max
         new_temp = randint(dev.min_supported_temperature, dev.max_supported_temperature)
         print(f"Setting target temperature to {new_temp}")
+        await dev.async_set_target_temperature(new_temp)
 
     # Close the manager and logout from http_api
     manager.close()
