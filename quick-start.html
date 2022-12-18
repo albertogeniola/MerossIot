@@ -874,7 +874,8 @@ within the <a class="reference internal" href="api-reference/controller/subdevic
 58
 59
 60
-61</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">asyncio</span>
+61
+62</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">asyncio</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">randint</span>
 
@@ -923,6 +924,7 @@ within the <a class="reference internal" href="api-reference/controller/subdevic
         <span class="c1"># Randomly choose a temperature between min and max</span>
         <span class="n">new_temp</span> <span class="o">=</span> <span class="n">randint</span><span class="p">(</span><span class="n">dev</span><span class="o">.</span><span class="n">min_supported_temperature</span><span class="p">,</span> <span class="n">dev</span><span class="o">.</span><span class="n">max_supported_temperature</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Setting target temperature to </span><span class="si">{new_temp}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">dev</span><span class="o">.</span><span class="n">async_set_target_temperature</span><span class="p">(</span><span class="n">new_temp</span><span class="p">)</span>
 
     <span class="c1"># Close the manager and logout from http_api</span>
     <span class="n">manager</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
