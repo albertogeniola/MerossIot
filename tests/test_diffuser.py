@@ -120,44 +120,6 @@ class TestDiffuser(AioHTTPTestCase):
                 self.assertEqual(light.get_light_brightness(), i)
 
     @unittest_run_loop
-    async def test_light_rgb_push_notification(self):
-        if len(self.light_devices) < 1:
-            self.skipTest("Could not find any DiffuserLightMixin within the given set of devices. "
-                          "The test will be skipped.")
-
-        light: Union[BaseDevice, DiffuserLightMixin] = self.light_devices[0]
-        print(f"Selected test device: {light.name}.")
-
-        # Create a new manager
-        new_meross_client, requires_logout = await async_get_client()
-        m = None
-        try:
-            # Retrieve the same device with another manager
-            m = MerossManager(http_client=new_meross_client)
-            await m.async_init()
-            await m.async_device_discovery()
-            devs = m.find_devices(device_uuids=(light.uuid,))
-            if len(devs) < 1:
-                self.skipTest("Could not find dev for push notification")
-                return
-            dev = devs[0]
-
-            # Set RGB color to known state
-            random_rgb = (randint(1,254), randint(1,254), randint(1,254))
-            r = await light.async_set_light_mode(rgb=random_rgb, onoff=True)
-            await asyncio.sleep(2)
-
-            # Wait a bit and make sure the other manager received the push notification
-            await asyncio.sleep(10)
-            self.assertEqual(light.get_light_rgb_color(), random_rgb)
-            self.assertEqual(dev.get_light_rgb_color(), random_rgb)
-        finally:
-            if m is not None:
-                m.close()
-            if requires_logout:
-                await new_meross_client.async_logout()
-
-    @unittest_run_loop
     async def test_spray_mode(self):
         if len(self.spray_devices) < 1:
             self.skipTest("Could not find any DiffuserSprayMixin within the given set of devices. "

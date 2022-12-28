@@ -61,7 +61,7 @@ class DiffuserLightMixin(object):
         _LOGGER.debug(f"Handling {self.__class__.__name__} mixin data update.")
         locally_handled = False
         if namespace == Namespace.SYSTEM_ALL:
-            diffuser_data = data.get('all', {}).get('digest', {}).get('diffuser', {}).get('light',[])
+            diffuser_data = data.get('all', {}).get('digest', {}).get('diffuser', {}).get('light', [])
             for l in diffuser_data:
                 channel = l['channel']
                 self._channel_diffuser_light_status[channel] = l
@@ -88,12 +88,14 @@ class DiffuserLightMixin(object):
         :return: a Tuple containing three integer 8bits values (red, green, blue)
         """
         self.check_full_update_done()
-        info = self._channel_diffuser_light_status.get(channel,{}).get('rgb')
+        info = self._channel_diffuser_light_status.get(channel, {}).get('rgb')
         if info is None:
             return None
         return int_to_rgb(info)
 
-    async def async_set_light_mode(self, channel: int = 0, onoff: bool = None, mode: DiffuserLightMode = None, brightness: int = None, rgb: Optional[RgbTuple] = None, timeout: Optional[float] = None, *args, **kwargs) -> None:
+    async def async_set_light_mode(self, channel: int = 0, onoff: bool = None, mode: DiffuserLightMode = None,
+                                   brightness: int = None, rgb: Optional[RgbTuple] = None,
+                                   timeout: Optional[float] = None, *args, **kwargs) -> None:
         """
         Sets the light mode for this device.
         :param channel: channel to configure
