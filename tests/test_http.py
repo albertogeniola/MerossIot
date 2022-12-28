@@ -47,7 +47,7 @@ class TestHttpMethods(AioHTTPTestCase):
     @unittest_run_loop
     async def test_bad_login(self):
         with self.assertRaises(BadLoginException):
-            return await MerossHttpClient.async_from_user_password(email="wronguser@anythin.com",
+            return await MerossHttpClient.async_from_user_password(email="albertogeniola@gmail.com",
                                                                    password="thisIzWRONG!")
 
     @unittest_run_loop

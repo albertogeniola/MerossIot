@@ -119,10 +119,12 @@ class DiffuserLightMixin(object):
                                     payload=payload,
                                     timeout=timeout)
         # Immediately update local state
+        if channel not in self._channel_diffuser_light_status:
+            self._channel_diffuser_light_status[channel] = {}
+
         self._channel_diffuser_light_status[channel].update(light_payload)
 
-
-    def get_light_is_on(self, channel=0, *args, **kwargs) -> Optional[bool]:
+    def get_light_is_on(self, channel: int = 0, *args, **kwargs) -> Optional[bool]:
         """
         Returns True if the light is ON, False otherwise.
 
@@ -131,7 +133,7 @@ class DiffuserLightMixin(object):
         :return: current onoff state
         """
         self.check_full_update_done()
-        onoff = self._channel_diffuser_light_status.get(channel,{}).get('onoff')
+        onoff = self._channel_diffuser_light_status.get(channel, {}).get('onoff')
         if onoff is None:
             return None
         return onoff == 1

@@ -1,4 +1,5 @@
 import os
+import random
 from random import randint
 from typing import Union
 
@@ -45,20 +46,20 @@ class TestDiffuser(AioHTTPTestCase):
             print(f"Testing device: {light.name}...")
             await light.async_update()
 
-            await light.async_set_mode(mode=DiffuserLightMode.FIXED_RGB)
+            await light.async_set_light_mode(mode=DiffuserLightMode.FIXED_RGB)
 
             # Set a random color
             r = randint(0, 256)
             g = randint(0, 256)
             b = randint(0, 256)
-            await light.async_set_light_color(rgb=(r, g, b), onoff=True)
+            await light.async_set_light_mode(rgb=(r, g, b), onoff=True)
 
             # Check the color property returns red
-            color = light.get_rgb_color()
+            color = light.get_light_rgb_color()
             self.assertEqual(color, (r, g, b))
 
     @unittest_run_loop
-    async def test_turn_on_off(self):
+    async def test_turn_light_on_off(self):
         if len(self.light_devices) < 1:
             self.skipTest("Could not find any DiffuserLightMixin within the given set of devices. "
                           "The test will be skipped.")
@@ -142,16 +143,14 @@ class TestDiffuser(AioHTTPTestCase):
             dev = devs[0]
 
             # Set RGB color to known state
-            r = await light.async_set_light_mode(rgb=(255, 0, 0), onoff=True)
+            random_rgb = (randint(1,254), randint(1,254), randint(1,254))
+            r = await light.async_set_light_mode(rgb=random_rgb, onoff=True)
             await asyncio.sleep(2)
-
-            # Turn on the device
-            r = await light.async_set_light_mode(rgb=(0, 255, 0), onoff=True)
 
             # Wait a bit and make sure the other manager received the push notification
             await asyncio.sleep(10)
-            self.assertEqual(light.get_light_rgb_color(), (0, 255, 0))
-            self.assertEqual(dev.get_light_rgb_color(), (0, 255, 0))
+            self.assertEqual(light.get_light_rgb_color(), random_rgb)
+            self.assertEqual(dev.get_light_rgb_color(), random_rgb)
         finally:
             if m is not None:
                 m.close()
@@ -176,7 +175,6 @@ class TestDiffuser(AioHTTPTestCase):
             await asyncio.sleep(1)
             await spray.async_set_spray_mode(DiffuserSprayMode.OFF)
             self.assertEqual(spray.get_current_spray_mode(), DiffuserSprayMode.OFF)
-
 
     async def tearDownAsync(self):
         if self.requires_logout:
