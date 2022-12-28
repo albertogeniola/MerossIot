@@ -27,6 +27,18 @@ class SprayMode(Enum):
     INTERMITTENT = 2
 
 
+class DiffuserSprayMode(Enum):
+    LIGHT = 0
+    STRONG = 1
+    OFF = 2
+
+
+class DiffuserLightMode(Enum):
+    ROTATING_COLORS = 0
+    FIXED_RGB = 1
+    FIXED_LUMINANCE = 2
+
+
 class ThermostatV3Mode(Enum):
     AUTO = 3
     COOL = 2
@@ -62,6 +74,7 @@ class Namespace(Enum):
     SYSTEM_ONLINE = 'Appliance.System.Online'
     SYSTEM_REPORT = 'Appliance.System.Report'
     SYSTEM_DEBUG = 'Appliance.System.Debug'
+    SYSTEM_RUNTIME = 'Appliance.System.Runtime'
 
     CONTROL_BIND = 'Appliance.Control.Bind'
     CONTROL_UNBIND = 'Appliance.Control.Unbind'
@@ -96,6 +109,10 @@ class Namespace(Enum):
     CONTROL_SPRAY = 'Appliance.Control.Spray'
 
     SYSTEM_DIGEST_HUB = 'Appliance.Digest.Hub'
+
+    # Oil diffuser
+    DIFFUSER_LIGHT = "Appliance.Control.Diffuser.Light"
+    DIFFUSER_SPRAY = "Appliance.Control.Diffuser.Spray"
 
     # HUB
     HUB_EXCEPTION = 'Appliance.Hub.Exception'

@@ -104,6 +104,9 @@ class RollerShutterTimerMixin:
         # self.__state_by_channel[channel] = state
         # self._roller_shutter_position_by_channel[channel] = position
 
+    async def async_set_position(self, position: int, channel: int = 0, timeout: Optional[float] = None, *args, **kwargs) -> None:
+        return await self._async_operate(position=position, channel=channel, timeout=timeout, *args, **kwargs)
+
     async def async_update(self, timeout: Optional[float] = None, *args, **kwargs) -> None:
         # Call the super implementation
         await super().async_update(*args, **kwargs)

@@ -26,7 +26,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```bash
-pip install meross_iot==0.4.5.0
+pip install meross_iot==0.4.5.2
 ```
 
 ## Usage & Full Documentation
@@ -156,6 +156,7 @@ So far, I've bought the following devices:
 - MSG200
 - MTS200
 - MRS100
+- MOD150
 
 By issuing a donation, you will:
 1. Give me the opportunity to buy new devices and support them in this library
@@ -177,12 +178,22 @@ Look at the test environment that ensures high quality code of the library!
 testing it on Python 3.5/3.6/3.7, relying on some junit tests and, if all the tests pass as expected, the library
 is released on Pypi. However, to ensure that the code <i>really works</i>,
 the pipeline will issue on/off commands against real devices, that are dedicated 24/7 to the tests.
-Such devices have been bought by myself (with contributions received by donators).
+Such devices have been bought by myself (with contributions received by donors).
 However, keeping such devices connected 24/7 has a cost, which I sustain happily due to the success of the library.
 Anyway, feel free to contribute via donations!
 </p>
 
 ## Changelog
+#### 0.4.5.2
+- Adds support for Runtime mixin (addresses #270)
+- Improves documentation
+
+<details>
+    <summary>Older</summary>
+#### 0.4.5.1
+- Adds support for MOD150 oil diffuser
+- Enables position set for MSR100 devices (might not work with non-HomeKit versions, though)
+
 #### 0.4.5.0
 - Introduced support for local-lan-http command handling
 - RollerShutter refactor and code improvements
@@ -190,8 +201,6 @@ Anyway, feel free to contribute via donations!
 - Added support for do-not-disturb mode
 - Implemented ThermostatMixin and added support for MTS200 
 
-<details>
-    <summary>Older</summary>
 #### 0.4.4.7
 - Added manager options to override default mqtt server host/port connection info.
 #### 0.4.4.5

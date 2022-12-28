@@ -3,12 +3,15 @@ from typing import Optional
 
 from meross_iot.controller.device import BaseDevice, HubDevice, GenericSubDevice
 from meross_iot.controller.mixins.consumption import ConsumptionXMixin, ConsumptionMixin
+from meross_iot.controller.mixins.diffuser_light import DiffuserLightMixin
+from meross_iot.controller.mixins.diffuser_spray import DiffuserSprayMixin
 from meross_iot.controller.mixins.dnd import SystemDndMixin
 from meross_iot.controller.mixins.electricity import ElectricityMixin
 from meross_iot.controller.mixins.garage import GarageOpenerMixin
 from meross_iot.controller.mixins.hub import HubMts100Mixin, HubMixn, HubMs100Mixin
 from meross_iot.controller.mixins.light import LightMixin
 from meross_iot.controller.mixins.roller_shutter import RollerShutterTimerMixin
+from meross_iot.controller.mixins.runtime import SystemRuntimeMixin
 from meross_iot.controller.mixins.spray import SprayMixin
 from meross_iot.controller.mixins.system import SystemAllMixin, SystemOnlineMixin
 from meross_iot.controller.mixins.thermostat import ThermostatModeMixin
@@ -43,12 +46,17 @@ _ABILITY_MATRIX = {
     # Roller shutter timer
     Namespace.ROLLER_SHUTTER_STATE.value: RollerShutterTimerMixin,
 
-    # Spray opener
+    # Spray
     Namespace.CONTROL_SPRAY.value: SprayMixin,
+
+    # Oil diffuser
+    Namespace.DIFFUSER_LIGHT.value: DiffuserLightMixin,
+    Namespace.DIFFUSER_SPRAY.value: DiffuserSprayMixin,
 
     # System
     Namespace.SYSTEM_ALL.value: SystemAllMixin,
     Namespace.SYSTEM_ONLINE.value: SystemOnlineMixin,
+    Namespace.SYSTEM_RUNTIME.value: SystemRuntimeMixin,
 
     # Hub
     Namespace.HUB_ONLINE.value: HubMixn,
