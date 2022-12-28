@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Tuple
 
 
 def rgb_to_int(rgb: Union[tuple, dict, int]) -> int:
@@ -20,7 +20,7 @@ def rgb_to_int(rgb: Union[tuple, dict, int]) -> int:
     return r+g+b
 
 
-def int_to_rgb(rgb: int) -> tuple[int,int,int]:
+def int_to_rgb(rgb: int) -> Tuple[int, int, int]:
     red = (rgb & 16711680) >> 16
     green = (rgb & 65280) >> 8
     blue = (rgb & 255)
