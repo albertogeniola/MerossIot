@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LightMixin &mdash; MerossIot Library  documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <title>System`RuntimeMixin &mdash; MerossIot Library  documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
 
   <!--[if lt IE 9]>
@@ -19,8 +19,8 @@
 
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-    <link rel="next" title="RollerShutterMixin" href="rollershutter.html" />
-    <link rel="prev" title="HubDevice" href="../device/hub.html" /> 
+    <link rel="next" title="Ms100Sensor" href="../subdevice/sensor.html" />
+    <link rel="prev" title="RollerShutterMixin" href="rollershutter.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -61,9 +61,9 @@
 <li class="toctree-l2"><a class="reference internal" href="hub.html">HubMixn</a></li>
 <li class="toctree-l2"><a class="reference internal" href="hub.html#hubmts100mixin">HubMts100Mixin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../device/hub.html">HubDevice</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">LightMixin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="light.html">LightMixin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rollershutter.html">RollerShutterMixin</a></li>
-<li class="toctree-l2"><a class="reference internal" href="runtime.html">System`RuntimeMixin</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">System`RuntimeMixin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../subdevice/sensor.html">Ms100Sensor</a></li>
 <li class="toctree-l2"><a class="reference internal" href="spray.html">SprayMixin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="system.html">SystemAllMixin</a></li>
@@ -91,9 +91,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a></li>
           <li class="breadcrumb-item"><a href="../../index.html">API Reference</a></li>
-      <li class="breadcrumb-item active">LightMixin</li>
+      <li class="breadcrumb-item active">System`RuntimeMixin</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../../../_sources/api-reference/controller/mixins/light.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../../../_sources/api-reference/controller/mixins/runtime.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -101,16 +101,41 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="lightmixin">
-<h1>LightMixin<a class="headerlink" href="#lightmixin" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="system-runtimemixin">
+<h1>System`RuntimeMixin<a class="headerlink" href="#system-runtimemixin" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="meross_iot.controller.mixins.runtime.SystemRuntimeMixin">
+<em class="property">class </em><code class="sig-prename descclassname">meross_iot.controller.mixins.runtime.</code><code class="sig-name descname">SystemRuntimeMixin</code><span class="sig-paren">(</span><em class="sig-param">device_uuid: str</em>, <em class="sig-param">manager</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.controller.mixins.runtime.SystemRuntimeMixin" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="meross_iot.controller.mixins.runtime.SystemRuntimeMixin.async_update_runtime_info">
+<em class="property">async </em><code class="sig-name descname">async_update_runtime_info</code><span class="sig-paren">(</span><em class="sig-param">timeout: Optional[float] = None</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; dict<a class="headerlink" href="#meross_iot.controller.mixins.runtime.SystemRuntimeMixin.async_update_runtime_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Polls the device to gather the latest runtime information for this device.
+Note that the returned value might vary with the time as Meross could add/remove/change runtime information
+in the future.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a <cite>dict</cite> object containing the runtime information provided by the Meross device</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.controller.mixins.runtime.SystemRuntimeMixin.cached_system_runtime_info">
+<em class="property">property </em><code class="sig-name descname">cached_system_runtime_info</code><a class="headerlink" href="#meross_iot.controller.mixins.runtime.SystemRuntimeMixin.cached_system_runtime_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the latest cached runtime info. If you want a fresh value, consider using the
+<cite>update_runtime_info</cite> method instead.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="../device/hub.html" class="btn btn-neutral float-left" title="HubDevice" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="rollershutter.html" class="btn btn-neutral float-right" title="RollerShutterMixin" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="rollershutter.html" class="btn btn-neutral float-left" title="RollerShutterMixin" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../subdevice/sensor.html" class="btn btn-neutral float-right" title="Ms100Sensor" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

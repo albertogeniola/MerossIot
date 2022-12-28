@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LightMixin &mdash; MerossIot Library  documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <title>DiffuserSprayMixin &mdash; MerossIot Library  documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
 
   <!--[if lt IE 9]>
@@ -19,8 +19,8 @@
 
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-    <link rel="next" title="RollerShutterMixin" href="rollershutter.html" />
-    <link rel="prev" title="HubDevice" href="../device/hub.html" /> 
+    <link rel="next" title="DNDMixin" href="dnd.html" />
+    <link rel="prev" title="DiffuserLightMixin" href="diffuserlight.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -53,7 +53,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../device/channel.html">ChannelInfo</a></li>
 <li class="toctree-l2"><a class="reference internal" href="consumption.html">ConsumptionXMixin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="diffuserlight.html">DiffuserLightMixin</a></li>
-<li class="toctree-l2"><a class="reference internal" href="diffuserspray.html">DiffuserSprayMixin</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">DiffuserSprayMixin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="dnd.html">DNDMixin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="electricity.html">ElectricityMixin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cover.html">GarageOpenerMixin</a></li>
@@ -61,7 +61,7 @@
 <li class="toctree-l2"><a class="reference internal" href="hub.html">HubMixn</a></li>
 <li class="toctree-l2"><a class="reference internal" href="hub.html#hubmts100mixin">HubMts100Mixin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../device/hub.html">HubDevice</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">LightMixin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="light.html">LightMixin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rollershutter.html">RollerShutterMixin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="runtime.html">System`RuntimeMixin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../subdevice/sensor.html">Ms100Sensor</a></li>
@@ -91,9 +91,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a></li>
           <li class="breadcrumb-item"><a href="../../index.html">API Reference</a></li>
-      <li class="breadcrumb-item active">LightMixin</li>
+      <li class="breadcrumb-item active">DiffuserSprayMixin</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../../../_sources/api-reference/controller/mixins/light.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../../../_sources/api-reference/controller/mixins/diffuserspray.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -101,16 +101,41 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="lightmixin">
-<h1>LightMixin<a class="headerlink" href="#lightmixin" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="diffuserspraymixin">
+<h1>DiffuserSprayMixin<a class="headerlink" href="#diffuserspraymixin" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="meross_iot.controller.mixins.diffuser_spray.DiffuserSprayMixin">
+<em class="property">class </em><code class="sig-prename descclassname">meross_iot.controller.mixins.diffuser_spray.</code><code class="sig-name descname">DiffuserSprayMixin</code><span class="sig-paren">(</span><em class="sig-param">device_uuid: str</em>, <em class="sig-param">manager</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.controller.mixins.diffuser_spray.DiffuserSprayMixin" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="meross_iot.controller.mixins.diffuser_spray.DiffuserSprayMixin.async_set_spray_mode">
+<em class="property">async </em><code class="sig-name descname">async_set_spray_mode</code><span class="sig-paren">(</span><em class="sig-param">mode: meross_iot.model.enums.DiffuserSprayMode</em>, <em class="sig-param">channel: int = 0</em>, <em class="sig-param">timeout: Optional[float] = None</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.mixins.diffuser_spray.DiffuserSprayMixin.async_set_spray_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Changes the operating mode for this device
+:param mode: mode to set
+:param channel: channel to handle
+:param timeout: command timeout
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.controller.mixins.diffuser_spray.DiffuserSprayMixin.get_current_spray_mode">
+<code class="sig-name descname">get_current_spray_mode</code><span class="sig-paren">(</span><em class="sig-param">channel: int = 0</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; Optional[meross_iot.model.enums.DiffuserSprayMode]<a class="headerlink" href="#meross_iot.controller.mixins.diffuser_spray.DiffuserSprayMixin.get_current_spray_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the current spray mode
+:param channel: channel to fetch info from
+:param args:
+:param kwargs:
+:return:</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="../device/hub.html" class="btn btn-neutral float-left" title="HubDevice" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="rollershutter.html" class="btn btn-neutral float-right" title="RollerShutterMixin" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="diffuserlight.html" class="btn btn-neutral float-left" title="DiffuserLightMixin" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="dnd.html" class="btn btn-neutral float-right" title="DNDMixin" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

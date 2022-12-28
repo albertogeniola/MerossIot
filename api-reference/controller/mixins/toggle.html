@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DNDMixin &mdash; MerossIot Library  documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <title>ToggleXMixin &mdash; MerossIot Library  documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
 
   <!--[if lt IE 9]>
@@ -19,8 +19,8 @@
 
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-    <link rel="next" title="Ms100Sensor" href="../subdevice/sensor.html" />
-    <link rel="prev" title="SystemAllMixin" href="system.html" /> 
+    <link rel="next" title="Mts100v3Valve" href="../subdevice/valve.html" />
+    <link rel="prev" title="ThermostatMixin" href="thermostat.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -50,21 +50,27 @@
 <li class="toctree-l2"><a class="reference internal" href="../../manager.html">MerossManager</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../creds.html">MerossCloudCredentials</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../device/base.html">BaseDevice</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../device/generic.html">GenericSubDevice</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../device/hub.html">HubDevice</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../device/channel.html">ChannelInfo</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../device/channel.html">ChannelInfo</a></li>
 <li class="toctree-l2"><a class="reference internal" href="consumption.html">ConsumptionXMixin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="diffuserlight.html">DiffuserLightMixin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="diffuserspray.html">DiffuserSprayMixin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dnd.html">DNDMixin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="electricity.html">ElectricityMixin</a></li>
-<li class="toctree-l2"><a class="reference internal" href="garage.html">GarageOpenerMixin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cover.html">GarageOpenerMixin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../device/generic.html">GenericSubDevice</a></li>
 <li class="toctree-l2"><a class="reference internal" href="hub.html">HubMixn</a></li>
 <li class="toctree-l2"><a class="reference internal" href="hub.html#hubmts100mixin">HubMts100Mixin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../device/hub.html">HubDevice</a></li>
 <li class="toctree-l2"><a class="reference internal" href="light.html">LightMixin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rollershutter.html">RollerShutterMixin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="runtime.html">System`RuntimeMixin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../subdevice/sensor.html">Ms100Sensor</a></li>
 <li class="toctree-l2"><a class="reference internal" href="spray.html">SprayMixin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="system.html">SystemAllMixin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="system.html#systemonlinemixin">SystemOnlineMixin</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">DNDMixin</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../subdevice/sensor.html">Ms100Sensor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermostat.html">ThermostatMixin</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">ToggleXMixin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#togglemixin">ToggleMixin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../subdevice/valve.html">Mts100v3Valve</a></li>
 </ul>
 </li>
@@ -85,7 +91,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a></li>
           <li class="breadcrumb-item"><a href="../../index.html">API Reference</a></li>
-      <li class="breadcrumb-item active">DNDMixin</li>
+      <li class="breadcrumb-item active">ToggleXMixin</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../../_sources/api-reference/controller/mixins/toggle.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -95,37 +101,81 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="dndmixin">
-<h1>DNDMixin<a class="headerlink" href="#dndmixin" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="togglexmixin">
+<h1>ToggleXMixin<a class="headerlink" href="#togglexmixin" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
-<dt id="meross_iot.controller.mixins.dnd.SystemDndMixin">
-<em class="property">class </em><code class="sig-prename descclassname">meross_iot.controller.mixins.dnd.</code><code class="sig-name descname">SystemDndMixin</code><a class="headerlink" href="#meross_iot.controller.mixins.dnd.SystemDndMixin" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="meross_iot.controller.mixins.dnd.SystemDndMixin.async_get_dnd_mode">
-<em class="property">async </em><code class="sig-name descname">async_get_dnd_mode</code><span class="sig-paren">(</span><em class="sig-param">timeout: Optional[float] = None</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; meross_iot.model.enums.DNDMode<a class="headerlink" href="#meross_iot.controller.mixins.dnd.SystemDndMixin.async_get_dnd_mode" title="Permalink to this definition">¶</a></dt>
-<dd><p>Polls the device and retrieves its DO-NOT-DISTURB mode.
-This method will actually refresh the cached DNDMode by issuing a MQTT message to the broker.
-You should avoid using this method when not strictly needed and rely on the cached DNDMode available
-via <cite>get_dnd_mode()</cite>.
-:param timeout:
-:param args:
-:param kwargs:
-:return:</p>
+<dt id="meross_iot.controller.mixins.toggle.ToggleXMixin">
+<em class="property">class </em><code class="sig-prename descclassname">meross_iot.controller.mixins.toggle.</code><code class="sig-name descname">ToggleXMixin</code><span class="sig-paren">(</span><em class="sig-param">device_uuid: str</em>, <em class="sig-param">manager</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.controller.mixins.toggle.ToggleXMixin" title="Permalink to this definition">¶</a></dt>
+<dd><p>This mixin is implemented by devices that support ToggleX operation, such as smart switches
+and smart bulbs.</p>
+<dl class="method">
+<dt id="meross_iot.controller.mixins.toggle.ToggleXMixin.async_toggle">
+<em class="property">async </em><code class="sig-name descname">async_toggle</code><span class="sig-paren">(</span><em class="sig-param">channel=0</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.mixins.toggle.ToggleXMixin.async_toggle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Toggles the switch status of the specified channel</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>channel</strong> – channel index to toggle. Defaults to 0.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
-<dt id="meross_iot.controller.mixins.dnd.SystemDndMixin.set_dnd_mode">
-<em class="property">async </em><code class="sig-name descname">set_dnd_mode</code><span class="sig-paren">(</span><em class="sig-param">mode: meross_iot.model.enums.DNDMode</em>, <em class="sig-param">timeout: Optional[float] = None</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.mixins.dnd.SystemDndMixin.set_dnd_mode" title="Permalink to this definition">¶</a></dt>
-<dd><p>Controls the DND Mode setting on this device. When “Do not disturb” mode is enabled,
-the device will turn off its ambient led.
-:param mode:
-:param timeout:
-:param args:
-:param kwargs:
-:return:</p>
+<dt id="meross_iot.controller.mixins.toggle.ToggleXMixin.async_turn_off">
+<em class="property">async </em><code class="sig-name descname">async_turn_off</code><span class="sig-paren">(</span><em class="sig-param">channel=0</em>, <em class="sig-param">timeout: Optional[float] = None</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.mixins.toggle.ToggleXMixin.async_turn_off" title="Permalink to this definition">¶</a></dt>
+<dd><p>Turns off the specified channel of the device</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>channel</strong> – channel index to turn off. Defaults to 0.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.controller.mixins.toggle.ToggleXMixin.async_turn_on">
+<em class="property">async </em><code class="sig-name descname">async_turn_on</code><span class="sig-paren">(</span><em class="sig-param">channel=0</em>, <em class="sig-param">timeout: Optional[float] = None</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.mixins.toggle.ToggleXMixin.async_turn_on" title="Permalink to this definition">¶</a></dt>
+<dd><p>Turns on the specified channel of the device</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>channel</strong> – channel index to turn on. Defaults to 0.</p></li>
+<li><p><strong>channel</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.controller.mixins.toggle.ToggleXMixin.is_on">
+<code class="sig-name descname">is_on</code><span class="sig-paren">(</span><em class="sig-param">channel=0</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; Optional[bool]<a class="headerlink" href="#meross_iot.controller.mixins.toggle.ToggleXMixin.is_on" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the ON/OFF state of the switch channel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>channel</strong> – channel index of interested. Defaults to 0</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True is the stat is ON, False when it’s OFF</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
+
+</div>
+<div class="section" id="togglemixin">
+<h1>ToggleMixin<a class="headerlink" href="#togglemixin" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="meross_iot.controller.mixins.toggle.ToggleMixin">
+<em class="property">class </em><code class="sig-prename descclassname">meross_iot.controller.mixins.toggle.</code><code class="sig-name descname">ToggleMixin</code><span class="sig-paren">(</span><em class="sig-param">device_uuid: str</em>, <em class="sig-param">manager</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.controller.mixins.toggle.ToggleMixin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </div>
 
@@ -133,8 +183,8 @@ the device will turn off its ambient led.
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="system.html" class="btn btn-neutral float-left" title="SystemAllMixin" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="../subdevice/sensor.html" class="btn btn-neutral float-right" title="Ms100Sensor" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="thermostat.html" class="btn btn-neutral float-left" title="ThermostatMixin" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../subdevice/valve.html" class="btn btn-neutral float-right" title="Mts100v3Valve" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

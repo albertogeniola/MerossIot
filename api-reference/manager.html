@@ -50,21 +50,27 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">MerossManager</a></li>
 <li class="toctree-l2"><a class="reference internal" href="creds.html">MerossCloudCredentials</a></li>
 <li class="toctree-l2"><a class="reference internal" href="controller/device/base.html">BaseDevice</a></li>
-<li class="toctree-l2"><a class="reference internal" href="controller/device/generic.html">GenericSubDevice</a></li>
-<li class="toctree-l2"><a class="reference internal" href="controller/device/hub.html">HubDevice</a></li>
-<li class="toctree-l2"><a class="reference internal" href="controller/device/channel.html">ChannelInfo</a></li>
 <li class="toctree-l2"><a class="reference internal" href="controller/device/channel.html">ChannelInfo</a></li>
 <li class="toctree-l2"><a class="reference internal" href="controller/mixins/consumption.html">ConsumptionXMixin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/diffuserlight.html">DiffuserLightMixin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/diffuserspray.html">DiffuserSprayMixin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/dnd.html">DNDMixin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="controller/mixins/electricity.html">ElectricityMixin</a></li>
-<li class="toctree-l2"><a class="reference internal" href="controller/mixins/garage.html">GarageOpenerMixin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/cover.html">GarageOpenerMixin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="controller/device/generic.html">GenericSubDevice</a></li>
 <li class="toctree-l2"><a class="reference internal" href="controller/mixins/hub.html">HubMixn</a></li>
 <li class="toctree-l2"><a class="reference internal" href="controller/mixins/hub.html#hubmts100mixin">HubMts100Mixin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="controller/device/hub.html">HubDevice</a></li>
 <li class="toctree-l2"><a class="reference internal" href="controller/mixins/light.html">LightMixin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/rollershutter.html">RollerShutterMixin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/runtime.html">System`RuntimeMixin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="controller/subdevice/sensor.html">Ms100Sensor</a></li>
 <li class="toctree-l2"><a class="reference internal" href="controller/mixins/spray.html">SprayMixin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="controller/mixins/system.html">SystemAllMixin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="controller/mixins/system.html#systemonlinemixin">SystemOnlineMixin</a></li>
-<li class="toctree-l2"><a class="reference internal" href="controller/mixins/toggle.html">DNDMixin</a></li>
-<li class="toctree-l2"><a class="reference internal" href="controller/subdevice/sensor.html">Ms100Sensor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/thermostat.html">ThermostatMixin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/toggle.html">ToggleXMixin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/toggle.html#togglemixin">ToggleMixin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="controller/subdevice/valve.html">Mts100v3Valve</a></li>
 </ul>
 </li>
@@ -95,139 +101,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="module-meross_iot.manager">
-<span id="merossmanager"></span><h1>MerossManager<a class="headerlink" href="#module-meross_iot.manager" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="meross_iot.manager.MerossManager">
-<em class="property">class </em><code class="sig-prename descclassname">meross_iot.manager.</code><code class="sig-name descname">MerossManager</code><span class="sig-paren">(</span><em class="sig-param">http_client: meross_iot.http_api.MerossHttpClient</em>, <em class="sig-param">auto_reconnect: Optional[bool] = True</em>, <em class="sig-param">mqtt_skip_cert_validation: bool = False</em>, <em class="sig-param">ca_cert: Optional[str] = None</em>, <em class="sig-param">loop: Optional[asyncio.events.AbstractEventLoop] = None</em>, <em class="sig-param">mqtt_override_server: Optional[Tuple[str</em>, <em class="sig-param">int]] = None</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwords</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.manager.MerossManager" title="Permalink to this definition">¶</a></dt>
-<dd><p>This class implements a full-features Meross Client, which provides device discovery and registry.
-<em>Note</em>: The manager must be initialized before invoking any of its discovery/registry methods.</p>
-<dl class="method">
-<dt id="meross_iot.manager.MerossManager.async_device_discovery">
-<em class="property">async </em><code class="sig-name descname">async_device_discovery</code><span class="sig-paren">(</span><em class="sig-param">update_subdevice_status: bool = True</em>, <em class="sig-param">meross_device_uuid: str = None</em>, <em class="sig-param">cached_http_device_list: Optional[Iterable[meross_iot.model.http.device.HttpDeviceInfo]] = None</em><span class="sig-paren">)</span> &#x2192; Iterable[meross_iot.controller.device.BaseDevice]<a class="headerlink" href="#meross_iot.manager.MerossManager.async_device_discovery" title="Permalink to this definition">¶</a></dt>
-<dd><p>Fetch devices and online status from HTTP API. This method also notifies/updates local device online/offline
-status.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>meross_device_uuid</strong> – Meross UUID of the device that the user wants to discover (is already known).
-This parameter restricts the discovery only to that particular device.</p></li>
-<li><p><strong>update_subdevice_status</strong> – When True, tells the manager to retrieve the HUB status in order to update
-hub-subdevice online status, which would be UNKNOWN if not explicitly retrieved.</p></li>
-<li><p><strong>cached_http_device_list</strong> – List/Iterable structure of HttpDeviceInfo to be used for the discovery.
-When passed, the manger skips the HTTP API call and uses this data to perform MQTT discovery.
-When not passed, the manager will issue the HTTP API call to retrieve the latest HTTP devices list</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A list of discovered device, which implement <cite>BaseDevice</cite></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="meross_iot.manager.MerossManager.async_execute_cmd">
-<em class="property">async </em><code class="sig-name descname">async_execute_cmd</code><span class="sig-paren">(</span><em class="sig-param">mqtt_hostname: str</em>, <em class="sig-param">mqtt_port: int</em>, <em class="sig-param">destination_device_uuid: str</em>, <em class="sig-param">method: str</em>, <em class="sig-param">namespace: meross_iot.model.enums.Namespace</em>, <em class="sig-param">payload: dict</em>, <em class="sig-param">timeout: float = 10.0</em>, <em class="sig-param">override_transport_mode: meross_iot.manager.TransportMode = None</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.manager.MerossManager.async_execute_cmd" title="Permalink to this definition">¶</a></dt>
-<dd><p>This method sends a command to the device, locally via HTTP or via the MQTT Meross broker.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>mqtt_hostname</strong> – the mqtt broker hostname</p></li>
-<li><p><strong>mqtt_port</strong> – the mqtt broker port</p></li>
-<li><p><strong>destination_device_uuid</strong> – </p></li>
-<li><p><strong>method</strong> – Can be GET/SET</p></li>
-<li><p><strong>namespace</strong> – Command namespace</p></li>
-<li><p><strong>payload</strong> – A dict containing the payload to be sent</p></li>
-<li><p><strong>timeout</strong> – Maximum time interval in seconds to wait for the command-answer</p></li>
-<li><p><strong>override_transport_mode</strong> – when set, overrides the manager transport mode</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="meross_iot.manager.MerossManager.async_init">
-<em class="property">async </em><code class="sig-name descname">async_init</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.manager.MerossManager.async_init" title="Permalink to this definition">¶</a></dt>
-<dd><p>&#64;deprecated
-Ignored, signature left for backward compatibility</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="meross_iot.manager.MerossManager.find_devices">
-<code class="sig-name descname">find_devices</code><span class="sig-paren">(</span><em class="sig-param">device_uuids: Optional[Iterable[str]] = None, internal_ids: Optional[Iterable[str]] = None, device_type: Optional[str] = None, device_class: Union[type, Iterable[type], None] = None, device_name: Optional[str] = None, online_status: Optional[meross_iot.model.enums.OnlineStatus] = None</em><span class="sig-paren">)</span> &#x2192; List[T]<a class="headerlink" href="#meross_iot.manager.MerossManager.find_devices" title="Permalink to this definition">¶</a></dt>
-<dd><p>Lists devices that have been discovered via this manager. When invoked with no arguments,
-it returns the whole list of registered devices. When one or more filter arguments are specified,
-it returns the list of devices that satisfy all the filters (consider multiple filters as in logical AND).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>device_uuids</strong> – List of Meross native device UUIDs. When specified, only devices that have a native UUID
-contained in this list are returned.</p></li>
-<li><p><strong>internal_ids</strong> – Iterable List of MerossIot device ids. When specified, only devices that have a
-derived-ids contained in this list are returned.</p></li>
-<li><p><strong>device_type</strong> – Device type string as reported by meross app (e.g. “mss310” or “msl120”). Note that this
-field is case sensitive.</p></li>
-<li><p><strong>device_class</strong> – Filter based on the resulting device class or list of classes. When this parameter is
-a list of types, the filter returns al the devices that matches at least one of the types in the list
-(logic OR). You can filter also for capability Mixins, such as
-<code class="code docutils literal notranslate"><span class="pre">meross_iot.controller.mixins.toggle.ToggleXMixin</span></code> (returns all the devices supporting ToggleX
-capability) or <code class="code docutils literal notranslate"><span class="pre">meross_iot.controller.mixins.light.LightMixin</span></code>
-(returns all the device that supports light control). Similarly, you can identify all the HUB devices
-by specifying <code class="code docutils literal notranslate"><span class="pre">meross_iot.controller.device.HubDevice</span></code>, Sensors as
-<code class="code docutils literal notranslate"><span class="pre">meross_iot.controller.subdevice.Ms100Sensor</span></code> and Valves as
-<code class="code docutils literal notranslate"><span class="pre">meross_iot.controller.subdevice.Mts100v3Valve</span></code>.</p></li>
-<li><p><strong>device_name</strong> – Filter the devices based on their assigned name (case sensitive)</p></li>
-<li><p><strong>online_status</strong> – Filter the devices based on their <code class="code docutils literal notranslate"><span class="pre">meross_iot.model.enums.OnlineStatus</span></code>
-as reported by the HTTP api or byt the relative hub (when dealing with subdevices).</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The list of devices that match the provided filters, if any.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="meross_iot.manager.MerossManager.register_push_notification_handler_coroutine">
-<code class="sig-name descname">register_push_notification_handler_coroutine</code><span class="sig-paren">(</span><em class="sig-param">coro: Callable[[meross_iot.model.push.generic.GenericPushNotification, List[meross_iot.controller.device.BaseDevice], MerossManager], Awaitable]</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.manager.MerossManager.register_push_notification_handler_coroutine" title="Permalink to this definition">¶</a></dt>
-<dd><p>Registers a coroutine so that it gets invoked whenever a push notification is received from the Meross
-MQTT broker.
-:param coro: coroutine-function: a function that, when invoked, returns a Coroutine object that can be awaited.
-:return:</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="meross_iot.manager.MerossManager.unregister_push_notification_handler_coroutine">
-<code class="sig-name descname">unregister_push_notification_handler_coroutine</code><span class="sig-paren">(</span><em class="sig-param">coro: Callable[[meross_iot.model.push.generic.GenericPushNotification, List[meross_iot.controller.device.BaseDevice], MerossManager], Awaitable]</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.manager.MerossManager.unregister_push_notification_handler_coroutine" title="Permalink to this definition">¶</a></dt>
-<dd><p>Unregisters the event handler
-:param coro: coroutine-function: a function that, when invoked, returns a Coroutine object that can be awaited.</p>
-<blockquote>
-<div><p>This coroutine function should have been previously registered</p>
-</div></blockquote>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p></p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="meross_iot.manager.MqttConnectionStatus">
-<em class="property">class </em><code class="sig-prename descclassname">meross_iot.manager.</code><code class="sig-name descname">MqttConnectionStatus</code><a class="headerlink" href="#meross_iot.manager.MqttConnectionStatus" title="Permalink to this definition">¶</a></dt>
-<dd><p>An enumeration.</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="meross_iot.manager.TransportMode">
-<em class="property">class </em><code class="sig-prename descclassname">meross_iot.manager.</code><code class="sig-name descname">TransportMode</code><a class="headerlink" href="#meross_iot.manager.TransportMode" title="Permalink to this definition">¶</a></dt>
-<dd><p>An enumeration.</p>
-</dd></dl>
-
+  <div class="section" id="merossmanager">
+<h1>MerossManager<a class="headerlink" href="#merossmanager" title="Permalink to this headline">¶</a></h1>
 </div>
 
 
