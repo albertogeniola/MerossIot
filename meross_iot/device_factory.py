@@ -11,6 +11,7 @@ from meross_iot.controller.mixins.garage import GarageOpenerMixin
 from meross_iot.controller.mixins.hub import HubMts100Mixin, HubMixn, HubMs100Mixin
 from meross_iot.controller.mixins.light import LightMixin
 from meross_iot.controller.mixins.roller_shutter import RollerShutterTimerMixin
+from meross_iot.controller.mixins.runtime import SystemRuntimeMixin
 from meross_iot.controller.mixins.spray import SprayMixin
 from meross_iot.controller.mixins.system import SystemAllMixin, SystemOnlineMixin
 from meross_iot.controller.mixins.thermostat import ThermostatModeMixin
@@ -55,6 +56,7 @@ _ABILITY_MATRIX = {
     # System
     Namespace.SYSTEM_ALL.value: SystemAllMixin,
     Namespace.SYSTEM_ONLINE.value: SystemOnlineMixin,
+    Namespace.SYSTEM_RUNTIME.value: SystemRuntimeMixin,
 
     # Hub
     Namespace.HUB_ONLINE.value: HubMixn,

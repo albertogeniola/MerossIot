@@ -74,6 +74,7 @@ class Namespace(Enum):
     SYSTEM_ONLINE = 'Appliance.System.Online'
     SYSTEM_REPORT = 'Appliance.System.Report'
     SYSTEM_DEBUG = 'Appliance.System.Debug'
+    SYSTEM_RUNTIME = 'Appliance.System.Runtime'
 
     CONTROL_BIND = 'Appliance.Control.Bind'
     CONTROL_UNBIND = 'Appliance.Control.Unbind'
