@@ -103,6 +103,68 @@
              
   <div class="section" id="diffuserlightmixin">
 <h1>DiffuserLightMixin<a class="headerlink" href="#diffuserlightmixin" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="meross_iot.controller.mixins.diffuser_light.DiffuserLightMixin">
+<em class="property">class </em><code class="sig-prename descclassname">meross_iot.controller.mixins.diffuser_light.</code><code class="sig-name descname">DiffuserLightMixin</code><span class="sig-paren">(</span><em class="sig-param">device_uuid: str</em>, <em class="sig-param">manager</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.controller.mixins.diffuser_light.DiffuserLightMixin" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="meross_iot.controller.mixins.diffuser_light.DiffuserLightMixin.async_set_light_mode">
+<em class="property">async </em><code class="sig-name descname">async_set_light_mode</code><span class="sig-paren">(</span><em class="sig-param">channel: int = 0</em>, <em class="sig-param">onoff: bool = None</em>, <em class="sig-param">mode: meross_iot.model.enums.DiffuserLightMode = None</em>, <em class="sig-param">brightness: int = None</em>, <em class="sig-param">rgb: Optional[Tuple[int</em>, <em class="sig-param">int</em>, <em class="sig-param">int]] = None</em>, <em class="sig-param">timeout: Optional[float] = None</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.mixins.diffuser_light.DiffuserLightMixin.async_set_light_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the light mode for this device.
+:param channel: channel to configure
+:param onoff: when True, sets the light ON, otherwise OFF.
+:param mode: defines the operation mode for this light
+:param brightness: brightness value (from 0 to 100)
+:param rgb: tuple of three integers (each from 0 to 255) for red, green, blue
+:param timeout: command timeout
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.controller.mixins.diffuser_light.DiffuserLightMixin.get_light_brightness">
+<code class="sig-name descname">get_light_brightness</code><span class="sig-paren">(</span><em class="sig-param">channel: int = 0</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; Optional[int]<a class="headerlink" href="#meross_iot.controller.mixins.diffuser_light.DiffuserLightMixin.get_light_brightness" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the current configured led brightness
+:param channel: channel index to fetch info from
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.controller.mixins.diffuser_light.DiffuserLightMixin.get_light_is_on">
+<code class="sig-name descname">get_light_is_on</code><span class="sig-paren">(</span><em class="sig-param">channel: int = 0</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; Optional[bool]<a class="headerlink" href="#meross_iot.controller.mixins.diffuser_light.DiffuserLightMixin.get_light_is_on" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if the light is ON, False otherwise.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>channel</strong> – channel to control, defaults to 0 (bulbs generally have only one channel)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>current onoff state</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.controller.mixins.diffuser_light.DiffuserLightMixin.get_light_mode">
+<code class="sig-name descname">get_light_mode</code><span class="sig-paren">(</span><em class="sig-param">channel: int = 0</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; Optional[meross_iot.model.enums.DiffuserLightMode]<a class="headerlink" href="#meross_iot.controller.mixins.diffuser_light.DiffuserLightMixin.get_light_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the operating mode for this device
+:param channel: channel to fetch info from
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.controller.mixins.diffuser_light.DiffuserLightMixin.get_light_rgb_color">
+<code class="sig-name descname">get_light_rgb_color</code><span class="sig-paren">(</span><em class="sig-param">channel=0</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; Optional[Tuple[int, int, int]]<a class="headerlink" href="#meross_iot.controller.mixins.diffuser_light.DiffuserLightMixin.get_light_rgb_color" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the current RGB configuration of the device.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>channel</strong> – channel to control, defaults to 0.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a Tuple containing three integer 8bits values (red, green, blue)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 
 
