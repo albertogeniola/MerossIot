@@ -61,7 +61,7 @@ class DiffuserLightMixin(object):
         _LOGGER.debug(f"Handling {self.__class__.__name__} mixin data update.")
         locally_handled = False
         if namespace == Namespace.SYSTEM_ALL:
-            diffuser_data = data.get('all', {}).get('digest', {}).get('diffuser', {}).get('light',[])
+            diffuser_data = data.get('all', {}).get('digest', {}).get('diffuser', {}).get('light', [])
             for l in diffuser_data:
                 channel = l['channel']
                 self._channel_diffuser_light_status[channel] = l
@@ -88,12 +88,14 @@ class DiffuserLightMixin(object):
         :return: a Tuple containing three integer 8bits values (red, green, blue)
         """
         self.check_full_update_done()
-        info = self._channel_diffuser_light_status.get(channel,{}).get('rgb')
+        info = self._channel_diffuser_light_status.get(channel, {}).get('rgb')
         if info is None:
             return None
         return int_to_rgb(info)
 
-    async def async_set_light_mode(self, channel: int = 0, onoff: bool = None, mode: DiffuserLightMode = None, brightness: int = None, rgb: Optional[RgbTuple] = None, timeout: Optional[float] = None, *args, **kwargs) -> None:
+    async def async_set_light_mode(self, channel: int = 0, onoff: bool = None, mode: DiffuserLightMode = None,
+                                   brightness: int = None, rgb: Optional[RgbTuple] = None,
+                                   timeout: Optional[float] = None, *args, **kwargs) -> None:
         """
         Sets the light mode for this device.
         :param channel: channel to configure
@@ -119,10 +121,12 @@ class DiffuserLightMixin(object):
                                     payload=payload,
                                     timeout=timeout)
         # Immediately update local state
+        if channel not in self._channel_diffuser_light_status:
+            self._channel_diffuser_light_status[channel] = {}
+
         self._channel_diffuser_light_status[channel].update(light_payload)
 
-
-    def get_light_is_on(self, channel=0, *args, **kwargs) -> Optional[bool]:
+    def get_light_is_on(self, channel: int = 0, *args, **kwargs) -> Optional[bool]:
         """
         Returns True if the light is ON, False otherwise.
 
@@ -131,7 +135,7 @@ class DiffuserLightMixin(object):
         :return: current onoff state
         """
         self.check_full_update_done()
-        onoff = self._channel_diffuser_light_status.get(channel,{}).get('onoff')
+        onoff = self._channel_diffuser_light_status.get(channel, {}).get('onoff')
         if onoff is None:
             return None
         return onoff == 1

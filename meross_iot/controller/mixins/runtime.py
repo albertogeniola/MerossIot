@@ -47,4 +47,4 @@ class SystemRuntimeMixin(object):
                            **kwargs) -> None:
         # call the superclass implementation first
         await super().async_update(*args, **kwargs)
-        await self.async_get_runtime_info()
+        await self.async_update_runtime_info()

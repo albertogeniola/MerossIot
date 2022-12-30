@@ -620,11 +620,17 @@ class MerossManager(object):
                 _LOGGER.debug("Found a pending command waiting for response message")
                 if message_method == "ERROR":
                     err = CommandError(error_payload=message.get('payload'))
-                    self._loop.call_soon_threadsafe(_handle_future, future, None, err)
+                    if not self._loop.is_closed():
+                        self._loop.call_soon_threadsafe(_handle_future, future, None, err)
+                    else:
+                        _LOGGER.warning("Could not return message %s to caller as the event loop has been closed already", message)
                 elif message_method in ("SETACK", "GETACK"):
-                    self._loop.call_soon_threadsafe(
-                        _handle_future, future, message, None
-                    )  # future.set_exception
+                    if not self._loop.is_closed():
+                        self._loop.call_soon_threadsafe(
+                            _handle_future, future, message, None
+                        )  # future.set_exception
+                    else:
+                        _LOGGER.warning("Could not return message %s to caller as the event loop has been closed already", message)
                 else:
                     _LOGGER.error(
                         f"Unhandled message method {message_method}. Please report it to the developer."

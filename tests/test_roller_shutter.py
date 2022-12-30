@@ -13,6 +13,7 @@ from tests import async_get_client
 
 if os.name == 'nt':
     import asyncio
+
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 else:
     import asyncio
@@ -20,6 +21,7 @@ else:
 
 class TestRollerShutter(AioHTTPTestCase):
     test_device: Union[RollerShutterTimerMixin, BaseDevice, None]
+
     async def get_application(self):
         return web.Application()
 
@@ -32,7 +34,8 @@ class TestRollerShutter(AioHTTPTestCase):
         self.meross_manager = MerossManager(http_client=self.meross_client)
         await self.meross_manager.async_init()
         devices = await self.meross_manager.async_device_discovery()
-        roller_devices = self.meross_manager.find_devices(device_class=RollerShutterTimerMixin, online_status=OnlineStatus.ONLINE)
+        roller_devices = self.meross_manager.find_devices(device_class=RollerShutterTimerMixin,
+                                                          online_status=OnlineStatus.ONLINE)
 
         if len(roller_devices) < 1:
             self.test_device = None
@@ -53,11 +56,12 @@ class TestRollerShutter(AioHTTPTestCase):
         state_idle = asyncio.Event()
         position_opened = asyncio.Event()
         position_closed = asyncio.Event()
-        async def coro(namespace:Namespace, data: Dict, device_internal_id: str):
+
+        async def coro(namespace: Namespace, data: Dict, device_internal_id: str):
             if namespace == Namespace.ROLLER_SHUTTER_STATE:
                 states = data.get('state')
                 # Filter by channel
-                state = next(filter(lambda s: s.get('channel')==0, states)).get('state')
+                state = next(filter(lambda s: s.get('channel') == 0, states)).get('state')
                 if state == RollerShutterState.OPENING.value:
                     state_opening.set()
                 elif state == RollerShutterState.CLOSING.value:
@@ -67,7 +71,7 @@ class TestRollerShutter(AioHTTPTestCase):
             if namespace == Namespace.ROLLER_SHUTTER_POSITION:
                 positions = data.get('position')
                 # Filter by channel
-                position = next(filter(lambda s: s.get('channel')==0, positions)).get('position')
+                position = next(filter(lambda s: s.get('channel') == 0, positions)).get('position')
                 if position == 100:
                     position_opened.set()
                 elif position == 0:
@@ -102,11 +106,12 @@ class TestRollerShutter(AioHTTPTestCase):
         state_idle = asyncio.Event()
         position_opened = asyncio.Event()
         position_closed = asyncio.Event()
-        async def coro(namespace:Namespace, data: Dict, device_internal_id: str):
+
+        async def coro(namespace: Namespace, data: Dict, device_internal_id: str):
             if namespace == Namespace.ROLLER_SHUTTER_STATE:
                 states = data.get('state')
                 # Filter by channel
-                state = next(filter(lambda s: s.get('channel')==0, states)).get('state')
+                state = next(filter(lambda s: s.get('channel') == 0, states)).get('state')
                 if state == RollerShutterState.OPENING.value:
                     state_opening.set()
                 elif state == RollerShutterState.CLOSING.value:
@@ -116,7 +121,7 @@ class TestRollerShutter(AioHTTPTestCase):
             if namespace == Namespace.ROLLER_SHUTTER_POSITION:
                 positions = data.get('position')
                 # Filter by channel
-                position = next(filter(lambda s: s.get('channel')==0, positions)).get('position')
+                position = next(filter(lambda s: s.get('channel') == 0, positions)).get('position')
                 if position == 100:
                     position_opened.set()
                 elif position == 0:
@@ -167,14 +172,15 @@ class TestRollerShutter(AioHTTPTestCase):
             self.skipTest("No RollerShutter device has been found to run this test on.")
         print(f"Testing device {self.test_device.name}")
 
-        open_timer = random.randint(10,120)
+        open_timer = random.randint(10, 120)
         close_timer = random.randint(10, 120)
-        await self.test_device.async_set_config(open_timer_seconds=open_timer, close_timer_seconds=close_timer, channel=0)
+        await self.test_device.async_set_config(open_timer_seconds=open_timer, close_timer_seconds=close_timer,
+                                                channel=0)
         await self.test_device.async_fetch_config()
         opening_timer = self.test_device.get_open_timer_duration_millis(channel=0)
-        self.assertEqual(opening_timer, open_timer*1000)
+        self.assertEqual(opening_timer, open_timer * 1000)
         closing_timer = self.test_device.get_close_timer_duration_millis(channel=0)
-        self.assertEqual(closing_timer, close_timer*1000)
+        self.assertEqual(closing_timer, close_timer * 1000)
 
     async def tearDownAsync(self):
         if self.requires_logout:
