@@ -63,6 +63,40 @@ in the following example.
 
 That code snippet will raise the log-level to WARNING, so DEBUG and INFO messages are not logged any longer.
 
+
+Cache device registry information
+-----------------
+
+The `MerossManager` instance holds a device registry which keeps track of discovered devices.
+Sometimes it might be useful to dump the information contained into the registry to reload it
+when necessary. For instance, the usage of a dumped registry file can reduce the number of calls to
+the Meross Cloud, as you can avoid the discovery call. An example of this approach is explained
+in the `examples\\dump.py`
+
+In particular, the registry information can be exported to the a file calling the `dump_device_registry()`.
+
+.. code-block:: python
+
+    # ...
+    # Init the manager and issue a discovery
+    manager = MerossManager(http_client=http_api_client)
+    await manager.async_init()
+    await manager.async_device_discovery()
+    # Dump the registry information into a test.dump file
+    manager.dump_device_registry("test.dump")
+
+At the same time, the information can be reloaded using the `load_devices_from_dump()`.
+
+.. code-block:: python
+
+    # ...
+    # Init the manager and load the dump, so that we don't need to issue a discovery
+    manager = MerossManager(http_client=http_api_client)
+    await manager.async_init()
+    manager.load_devices_from_dump("test.dump")
+    print("Registry dump loaded.")
+
+
 Sniff device data
 -----------------
 

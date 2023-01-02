@@ -46,6 +46,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Advanced topics</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#push-notification-handling">Push notification handling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#logging">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cache-device-registry-information">Cache device registry information</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#sniff-device-data">Sniff device data</a></li>
 </ul>
 </li>
@@ -133,6 +134,33 @@ in the following example.</p>
 </pre></div>
 </div>
 <p>That code snippet will raise the log-level to WARNING, so DEBUG and INFO messages are not logged any longer.</p>
+</div>
+<div class="section" id="cache-device-registry-information">
+<h2>Cache device registry information<a class="headerlink" href="#cache-device-registry-information" title="Permalink to this headline">¶</a></h2>
+<p>The <cite>MerossManager</cite> instance holds a device registry which keeps track of discovered devices.
+Sometimes it might be useful to dump the information contained into the registry to reload it
+when necessary. For instance, the usage of a dumped registry file can reduce the number of calls to
+the Meross Cloud, as you can avoid the discovery call. An example of this approach is explained
+in the <cite>examples\dump.py</cite></p>
+<p>In particular, the registry information can be exported to the a file calling the <cite>dump_device_registry()</cite>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># ...</span>
+<span class="c1"># Init the manager and issue a discovery</span>
+<span class="n">manager</span> <span class="o">=</span> <span class="n">MerossManager</span><span class="p">(</span><span class="n">http_client</span><span class="o">=</span><span class="n">http_api_client</span><span class="p">)</span>
+<span class="k">await</span> <span class="n">manager</span><span class="o">.</span><span class="n">async_init</span><span class="p">()</span>
+<span class="k">await</span> <span class="n">manager</span><span class="o">.</span><span class="n">async_device_discovery</span><span class="p">()</span>
+<span class="c1"># Dump the registry information into a test.dump file</span>
+<span class="n">manager</span><span class="o">.</span><span class="n">dump_device_registry</span><span class="p">(</span><span class="s2">&quot;test.dump&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>At the same time, the information can be reloaded using the <cite>load_devices_from_dump()</cite>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># ...</span>
+<span class="c1"># Init the manager and load the dump, so that we don&#39;t need to issue a discovery</span>
+<span class="n">manager</span> <span class="o">=</span> <span class="n">MerossManager</span><span class="p">(</span><span class="n">http_client</span><span class="o">=</span><span class="n">http_api_client</span><span class="p">)</span>
+<span class="k">await</span> <span class="n">manager</span><span class="o">.</span><span class="n">async_init</span><span class="p">()</span>
+<span class="n">manager</span><span class="o">.</span><span class="n">load_devices_from_dump</span><span class="p">(</span><span class="s2">&quot;test.dump&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Registry dump loaded.&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="sniff-device-data">
 <h2>Sniff device data<a class="headerlink" href="#sniff-device-data" title="Permalink to this headline">¶</a></h2>
