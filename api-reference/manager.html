@@ -162,6 +162,15 @@ Ignored, signature left for backward compatibility</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="meross_iot.manager.MerossManager.dump_device_registry">
+<code class="sig-name descname">dump_device_registry</code><span class="sig-paren">(</span><em class="sig-param">filename</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.manager.MerossManager.dump_device_registry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the current list of devices into a file so that you can later re-load it without issuing
+a discovery. <strong>Note</strong>: the stored information might become out-of-date or unvalidated. For instance,
+a device name might change over time, as its online status or any other info that is not immutable (as the UUID).
+Use this with caution!</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="meross_iot.manager.MerossManager.find_devices">
 <code class="sig-name descname">find_devices</code><span class="sig-paren">(</span><em class="sig-param">device_uuids: Optional[Iterable[str]] = None, internal_ids: Optional[Iterable[str]] = None, device_type: Optional[str] = None, device_class: Union[type, Iterable[type], None] = None, device_name: Optional[str] = None, online_status: Optional[meross_iot.model.enums.OnlineStatus] = None</em><span class="sig-paren">)</span> &#x2192; List[T]<a class="headerlink" href="#meross_iot.manager.MerossManager.find_devices" title="Permalink to this definition">¶</a></dt>
 <dd><p>Lists devices that have been discovered via this manager. When invoked with no arguments,
@@ -194,6 +203,12 @@ as reported by the HTTP api or byt the relative hub (when dealing with subdevice
 <dd class="field-even"><p>The list of devices that match the provided filters, if any.</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="meross_iot.manager.MerossManager.load_devices_from_dump">
+<code class="sig-name descname">load_devices_from_dump</code><span class="sig-paren">(</span><em class="sig-param">filename</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.manager.MerossManager.load_devices_from_dump" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reload the registry info from a dump. <strong>Note</strong>: this will override all the currently discovered devices.</p>
 </dd></dl>
 
 <dl class="method">
