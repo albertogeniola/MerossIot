@@ -7,6 +7,7 @@ import string
 import sys
 from asyncio import Future, AbstractEventLoop
 from asyncio import TimeoutError
+from datetime import datetime
 from enum import Enum
 from hashlib import md5
 from time import time
@@ -967,10 +968,47 @@ class MerossManager(object):
             client.proxy_set(proxy_type=self._proxy_type, proxy_addr=self._proxy_addr, proxy_port=self._proxy_port)
             client.reconnect()
 
+    def dump_device_registry(self, filename):
+        """
+        Save the current list of devices into a file so that you can later re-load it without issuing
+        a discovery. **Note**: the stored information might become out-of-date or unvalidated. For instance,
+        a device name might change over time, as its online status or any other info that is not immutable (as the UUID).
+        Use this with caution!
+        """
+        self._device_registry.dump_to_file(filename)
+
+    def load_devices_from_dump(self, filename):
+        """Reload the registry info from a dump. **Note**: this will override all the currently discovered devices."""
+        self._device_registry.load_from_dump(filename, manager=self)
+
 
 class DeviceRegistry(object):
     def __init__(self):
         self._devices_by_internal_id = {}
+
+    def clear(self) -> None:
+        """Clear all the registered devices"""
+        ids = [devid for devid in self._devices_by_internal_id]
+        for devid in ids:
+            self.relinquish_device(devid)
+
+    def dump_to_file(self, filename: str)->None:
+        """Dump the current device list to a file"""
+        dumped_base_devices = [{'abilities': x.abilities, 'info': x.cached_http_info.to_dict()} for x in self._devices_by_internal_id.values() if not isinstance(x, GenericSubDevice)]
+        with open(filename, "wt") as f:
+            json.dump(dumped_base_devices, f, default=lambda x: x.isoformat() if isinstance(x, datetime) else x.value if(isinstance(x,OnlineStatus)) else 'Not-Serializable')
+
+    def load_from_dump(self, filename: str, manager: MerossManager) -> None:
+        """Load the device registry from a file"""
+        dumped_json_data = []
+        with open(filename, "rt") as f:
+            dumped_json_data = json.load(f)
+
+        for deviced in dumped_json_data:
+            device_abilities = deviced['abilities']
+            device_info = HttpDeviceInfo.from_dict(deviced['info'])
+            device = build_meross_device_from_abilities(http_device_info=device_info, device_abilities=device_abilities, manager=manager)
+            self.enroll_device(device)
 
     def relinquish_device(self, device_internal_id: str):
         dev = self._devices_by_internal_id.get(device_internal_id)
@@ -980,7 +1018,6 @@ class DeviceRegistry(object):
             )
 
         # Dismiss the device
-        # TODO: implement the dismiss() method to release device-held resources
         _LOGGER.debug(f"Disposing resources for {dev.name} ({dev.uuid})")
         dev.dismiss()
         del self._devices_by_internal_id[device_internal_id]

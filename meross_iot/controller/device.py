@@ -11,6 +11,7 @@ from meross_iot.model.constants import DEFAULT_MQTT_PORT, DEFAULT_MQTT_HOST, DEF
 from meross_iot.model.enums import OnlineStatus, Namespace
 from meross_iot.model.http.device import HttpDeviceInfo
 from meross_iot.model.plugin.hub import BatteryInfo
+from meross_iot.model.shared import BaseDictPayload
 from meross_iot.utilities.network import extract_domain, extract_port
 
 _LOGGER = logging.getLogger(__name__)
@@ -23,34 +24,42 @@ class BaseDevice(object):
     name, type (i.e. device specific model), firmware/hardware version, a Meross internal
     identifier, a library assigned internal identifier.
     """
+
     def __init__(self, device_uuid: str,
                  manager,  # TODO: type hinting "manager"
                  **kwargs):
         self._uuid = device_uuid
         self._manager = manager
-        self._channels = self._parse_channels(kwargs.get('channels', []))
 
-        # Information about device
-        self._name = kwargs.get('devName')
-        self._type = kwargs.get('deviceType')
-        self._fwversion = kwargs.get('fmwareVersion')
-        self._hwversion = kwargs.get('hdwareVersion')
-        self._online = OnlineStatus(kwargs.get('onlineStatus', -1))
-        self._inner_ip = None
+        self._cached_http_info = None
 
-        # Domain and port
-        domain = kwargs.get('domain')
-        reserved_domain = kwargs.get('reservedDomain')
+        # Parse device info, if any
+        if 'http_device_info' in kwargs:
+            self._cached_http_info: HttpDeviceInfo = kwargs.get('http_device_info', {})
+            self._channels = self._parse_channels(self._cached_http_info.channels)
 
-        # Prefer domain over reserved domain
-        if domain is not None:
-            self._mqtt_host = extract_domain(domain)
-            self._mqtt_port = extract_port(domain, DEFAULT_MQTT_PORT)
-        elif reserved_domain is not None:
-            self._mqtt_host = extract_domain(reserved_domain)
-            self._mqtt_port = extract_port(reserved_domain, DEFAULT_MQTT_PORT)
-        else:
-            _LOGGER.warning("No MQTT DOMAIN/RESERVED DOMAIN specified in args, assuming default value %s:%d", DEFAULT_MQTT_HOST, DEFAULT_MQTT_PORT)
+            # Information about device
+            self._name = self._cached_http_info.dev_name
+            self._type = self._cached_http_info.device_type
+            self._fwversion = self._cached_http_info.fmware_version
+            self._hwversion = self._cached_http_info.hdware_version
+            self._online = self._cached_http_info.online_status
+            self._inner_ip = None
+
+            # Domain and port
+            domain = self._cached_http_info.domain
+            reserved_domain = self._cached_http_info.reserved_domain
+
+            # Prefer domain to reserved domain
+            if domain is not None:
+                self._mqtt_host = extract_domain(domain)
+                self._mqtt_port = extract_port(domain, DEFAULT_MQTT_PORT)
+            elif reserved_domain is not None:
+                self._mqtt_host = extract_domain(reserved_domain)
+                self._mqtt_port = extract_port(reserved_domain, DEFAULT_MQTT_PORT)
+            else:
+                _LOGGER.warning("No MQTT DOMAIN/RESERVED DOMAIN specified in args, assuming default value %s:%d",
+                                DEFAULT_MQTT_HOST, DEFAULT_MQTT_PORT)
 
         if hasattr(self, "_abilities_spec"):
             self._abilities = self._abilities_spec
@@ -61,6 +70,10 @@ class BaseDevice(object):
 
         # Set default timeout value for command execution
         self._timeout = DEFAULT_COMMAND_TIMEOUT
+
+    @property
+    def cached_http_info(self) -> Optional[HttpDeviceInfo]:
+        return self._cached_http_info
 
     @property
     def lan_ip(self):
@@ -194,6 +207,8 @@ class BaseDevice(object):
         # Careful with online  status: not all the devices might expose an online mixin.
         if hdevice.uuid != self.uuid:
             raise ValueError(f"Cannot update device ({self.uuid}) with HttpDeviceInfo for device id {hdevice.uuid}")
+        self._cached_http_info=hdevice
+        self._cached_http_info = hdevice
         self._name = hdevice.dev_name
         self._channels = self._parse_channels(hdevice.channels)
         self._type = hdevice.device_type
@@ -413,7 +428,8 @@ class GenericSubDevice(BaseDevice):
         return BatteryInfo(battery_charge=battery_life_perc, sample_ts=timestamp)
 
     async def async_handle_subdevice_notification(self, namespace: Namespace, data: dict) -> bool:
-        _LOGGER.error("Unhandled/NotImplemented event handler for %s (data: %s) - Subdevice %s (hub %s)", namespace, json.dumps(data), self.subdevice_id, self._hub.uuid)
+        _LOGGER.error("Unhandled/NotImplemented event handler for %s (data: %s) - Subdevice %s (hub %s)", namespace,
+                      json.dumps(data), self.subdevice_id, self._hub.uuid)
         return False
 
     @property
@@ -437,7 +453,9 @@ class GenericSubDevice(BaseDevice):
             # Operate only on relative accessor
             context = data.get(filter_accessor)
             if context is None:
-                raise ValueError("Could not find accessor %s within data %s. This push notification will be ignored." % (filter_accessor, str(data)))
+                raise ValueError(
+                    "Could not find accessor %s within data %s. This push notification will be ignored." % (
+                        filter_accessor, str(data)))
             pertinent_notifications = filter(lambda n: n.get('id') == self.subdevice_id, context)
             next(pertinent_notifications, None)
 

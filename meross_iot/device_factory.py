@@ -197,7 +197,8 @@ def build_meross_device_from_abilities(http_device_info: HttpDeviceInfo,
                                          base_class=base_class)
         _dynamic_types[device_type_name] = cached_type
 
-    component = cached_type(device_uuid=http_device_info.uuid, manager=manager, **http_device_info.to_dict())
+    #component = cached_type(device_uuid=http_device_info.uuid, manager=manager, **http_device_info.to_dict())
+    component = cached_type(device_uuid=http_device_info.uuid, manager=manager, http_device_info=http_device_info)
     return component
 
 

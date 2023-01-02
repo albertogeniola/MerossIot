@@ -26,7 +26,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```bash
-pip install meross_iot==0.4.5.2
+pip install meross_iot==0.4.5.3
 ```
 
 ## Usage & Full Documentation
@@ -184,12 +184,15 @@ Anyway, feel free to contribute via donations!
 </p>
 
 ## Changelog
+#### 0.4.5.3
+- Implement device registry dumper (#255)
+
+<details>
+    <summary>Older</summary>
 #### 0.4.5.2
 - Adds support for Runtime mixin (addresses #270)
 - Improves documentation
 
-<details>
-    <summary>Older</summary>
 #### 0.4.5.1
 - Adds support for MOD150 oil diffuser
 - Enables position set for MSR100 devices (might not work with non-HomeKit versions, though)

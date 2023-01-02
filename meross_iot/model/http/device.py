@@ -47,6 +47,8 @@ class HttpDeviceInfo(BaseDictPayload):
             self.bind_time = datetime.utcfromtimestamp(bind_time)
         elif isinstance(bind_time, datetime):
             self.bind_time = bind_time
+        elif isinstance(bind_time, str):
+            self.bind_time = datetime.strptime(bind_time, "%Y-%m-%dT%H:%M:%S")
         else:
             _LOGGER.warning(f"Provided bind_time is not int neither datetime. It will be ignored.")
             self.bind_time = None
