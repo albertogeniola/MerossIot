@@ -37,10 +37,14 @@ async def main():
     print("Registry dump loaded.")
     print_devices(manager)
 
+    # Close the manager.
+    manager.close()
+    await http_api_client.async_logout()
+
 
 def print_devices(manager):
     devices = manager.find_devices()
-    print("Discovered %d devices:", len(devices))
+    print(f"Discovered {len(devices)} devices:")
     for dev in devices:
         print(f". {dev.name} {dev.type} ({dev.uuid})")
 
