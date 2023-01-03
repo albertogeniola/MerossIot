@@ -259,7 +259,7 @@ def main():
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(_main())
-    loop.close()
+    loop.stop()
 
 
 if __name__ == '__main__':

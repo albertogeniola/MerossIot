@@ -5,6 +5,7 @@ from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
 from meross_iot.controller.device import BaseDevice
+from meross_iot.controller.mixins.garage import GarageOpenerMixin
 from meross_iot.controller.mixins.toggle import ToggleXMixin
 from meross_iot.manager import MerossManager
 from meross_iot.model.enums import OnlineStatus
@@ -33,7 +34,8 @@ class TestPushNotificationHandler(AioHTTPTestCase):
         await self.meross_manager.async_init()
         devices = await self.meross_manager.async_device_discovery()
         toggle_devices = self.meross_manager.find_devices(device_class=ToggleXMixin, online_status=OnlineStatus.ONLINE)
-
+        # Exclude garage openers
+        toggle_devices = list(filter(lambda x: not isinstance(x, GarageOpenerMixin), toggle_devices))
         if len(toggle_devices) < 1:
             self.test_device = None
         else:
@@ -73,8 +75,8 @@ class TestPushNotificationHandler(AioHTTPTestCase):
             self.meross_manager.register_push_notification_handler_coroutine(manager_push_handler)
 
             await self.test_device.async_turn_off()
-            aws = [mgr_e.wait(), dev_e.wait()]
-            done, pending = await asyncio.wait(aws,timeout=5.0, return_when=asyncio.ALL_COMPLETED)
+            aws = [asyncio.create_task(mgr_e.wait()), asyncio.create_task(dev_e.wait())]
+            done, pending = await asyncio.wait(aws, timeout=5.0, return_when=asyncio.ALL_COMPLETED)
             assert(len(done) == 2 and len(pending) == 0)
 
             # Unregister the handlers, repeat the test and make sure none of them is triggered
@@ -83,7 +85,7 @@ class TestPushNotificationHandler(AioHTTPTestCase):
             mgr_e.clear()
             dev_e.clear()
 
-            aws = [mgr_e.wait(), dev_e.wait()]
+            aws = [asyncio.create_task(mgr_e.wait()), asyncio.create_task(dev_e.wait())]
             await self.test_device.async_turn_on()
             done, pending = await asyncio.wait(aws, timeout=5.0, return_when=asyncio.ALL_COMPLETED)
             assert (len(done) == 0 and len(pending) == 2)

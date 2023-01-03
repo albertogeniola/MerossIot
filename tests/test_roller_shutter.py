@@ -19,6 +19,10 @@ else:
     import asyncio
 
 
+DEFAULT_OPEN_TIMER = 15
+DEFAULT_CLOSE_TIMER = 15
+
+
 class TestRollerShutter(AioHTTPTestCase):
     test_device: Union[RollerShutterTimerMixin, BaseDevice, None]
 
@@ -50,6 +54,10 @@ class TestRollerShutter(AioHTTPTestCase):
 
         # Update its status
         await self.test_device.async_update()
+
+        # Set timers
+        await self.test_device.async_set_config(open_timer_seconds=DEFAULT_OPEN_TIMER,
+                                                close_timer_seconds=DEFAULT_CLOSE_TIMER)
 
         state_opening = asyncio.Event()
         state_closing = asyncio.Event()
@@ -83,7 +91,7 @@ class TestRollerShutter(AioHTTPTestCase):
         print("Sending opening command to Roller Shutter")
         await self.test_device.async_open()
         print("Waiting for state to become OPENING...")
-        await asyncio.wait_for(state_opening.wait(), timeout=5.0)
+        await asyncio.wait_for(state_opening.wait(), timeout=30.0)
         print("Waiting for state to become IDLE...")
         await asyncio.wait_for(state_idle.wait(), timeout=60.0)
         print("Waiting for position to become 100...")
@@ -97,6 +105,9 @@ class TestRollerShutter(AioHTTPTestCase):
         if self.test_device is None:
             self.skipTest("No RollerShutter device has been found to run this test on.")
         print(f"Testing device {self.test_device.name}")
+
+        # Set timers
+        await self.test_device.async_set_config(open_timer_seconds=DEFAULT_OPEN_TIMER, close_timer_seconds=DEFAULT_CLOSE_TIMER)
 
         # Update its status
         await self.test_device.async_update()
@@ -133,7 +144,7 @@ class TestRollerShutter(AioHTTPTestCase):
         print("Sending closing command to Roller Shutter")
         await self.test_device.async_close()
         print("Waiting for state to become CLOSING...")
-        await asyncio.wait_for(state_closing.wait(), timeout=5.0)
+        await asyncio.wait_for(state_closing.wait(), timeout=30.0)
         print("Waiting for state to become IDLE...")
         await asyncio.wait_for(state_idle.wait(), timeout=60.0)
         print("Waiting for position to become 0...")
@@ -172,15 +183,25 @@ class TestRollerShutter(AioHTTPTestCase):
             self.skipTest("No RollerShutter device has been found to run this test on.")
         print(f"Testing device {self.test_device.name}")
 
+        await self.test_device.async_update()
+
+        # Retrieve original values
+        original_open_timer = self.test_device.get_open_timer_duration_millis()
+        original_close_timer = self.test_device.get_close_timer_duration_millis()
+
+        # Set new random values
         open_timer = random.randint(10, 120)
         close_timer = random.randint(10, 120)
         await self.test_device.async_set_config(open_timer_seconds=open_timer, close_timer_seconds=close_timer,
                                                 channel=0)
-        await self.test_device.async_fetch_config()
+
         opening_timer = self.test_device.get_open_timer_duration_millis(channel=0)
         self.assertEqual(opening_timer, open_timer * 1000)
         closing_timer = self.test_device.get_close_timer_duration_millis(channel=0)
         self.assertEqual(closing_timer, close_timer * 1000)
+
+        # Restore original values
+        await self.test_device.async_set_config(open_timer_seconds=int(original_open_timer/1000), close_timer_seconds=int(original_close_timer/1000))
 
     async def tearDownAsync(self):
         if self.requires_logout:

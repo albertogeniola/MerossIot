@@ -466,7 +466,7 @@ def unauthenticated_command_executor(func, *args, **kwargs):
         loop = asyncio.get_event_loop()
         data = loop.run_until_complete(func(**params))
         print(data)
-        loop.close()
+        loop.stop()
 
     return cmd
 
@@ -498,7 +498,7 @@ def authenticated_command_executor(method, *args, **kwargs):
         loop = asyncio.get_event_loop()
         data = loop.run_until_complete(execute(method, **params))
         print(data)
-        loop.close()
+        loop.stop()
 
     return cmd
 

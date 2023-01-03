@@ -3,6 +3,7 @@ import os
 from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
+from meross_iot.controller.mixins.garage import GarageOpenerMixin
 from meross_iot.controller.mixins.toggle import ToggleXMixin
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
@@ -29,12 +30,14 @@ class TestToggleX(AioHTTPTestCase):
         self.meross_manager = MerossManager(http_client=self.meross_client)
         await self.meross_manager.async_init()
         devices = await self.meross_manager.async_device_discovery()
-        toggle_devices = self.meross_manager.find_devices(device_class=ToggleXMixin, online_status=OnlineStatus.ONLINE)
+        self.toggle_devices = self.meross_manager.find_devices(device_class=ToggleXMixin, online_status=OnlineStatus.ONLINE)
+        # Filter away garage openers: they are tested independently.
+        self.toggle_devices = list(filter(lambda x: not isinstance(x, GarageOpenerMixin), self.toggle_devices))
 
-        if len(toggle_devices) < 1:
+        if len(self.toggle_devices) < 1:
             self.test_device = None
         else:
-            self.test_device = toggle_devices[0]
+            self.test_device = self.toggle_devices[0]
 
     @unittest_run_loop
     async def test_toggle_local_state(self):
@@ -56,8 +59,7 @@ class TestToggleX(AioHTTPTestCase):
     @unittest_run_loop
     async def test_toggle_multi_channel(self):
         # Search for a device with multiple channels
-        devices = self.meross_manager.find_devices(online_status=OnlineStatus.ONLINE)
-        multi_channel_devices = list(filter(lambda d: len(d.channels) > 1, devices))
+        multi_channel_devices = list(filter(lambda d: len(d.channels) > 1, self.toggle_devices))
         if len(multi_channel_devices) < 1:
             self.skipTest("Could not find any online device supporting more than 1 channel")
 
@@ -76,8 +78,7 @@ class TestToggleX(AioHTTPTestCase):
     @unittest_run_loop
     async def test_toggle_master_switch(self):
         # Search for a device with multiple channels
-        devices = self.meross_manager.find_devices(online_status=OnlineStatus.ONLINE)
-        multi_channel_devices = list(filter(lambda d: len(d.channels) > 1, devices))
+        multi_channel_devices = list(filter(lambda d: len(d.channels) > 1, self.toggle_devices))
         if len(multi_channel_devices) < 1:
             self.skipTest("Could not find any online device supporting more than 1 channel")
 
@@ -107,10 +108,9 @@ class TestToggleX(AioHTTPTestCase):
     @unittest_run_loop
     async def test_usb_switches(self):
         # Search for a device with usb channel
-        devices = self.meross_manager.find_devices(online_status=OnlineStatus.ONLINE)
         usb_dev = None
         usb_channel = None
-        for d in devices:
+        for d in self.toggle_devices:
             for c in d.channels:
                 if c.is_usb:
                     usb_dev = d
