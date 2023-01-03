@@ -184,11 +184,15 @@ Anyway, feel free to contribute via donations!
 </p>
 
 ## Changelog
-#### 0.4.5.3
-- Implement device registry dumper (#255)
+#### 0.4.5.4-rc1
+- Fix tests
+- Implement auto-discovery control parameter for the `MerossManager`
 
 <details>
     <summary>Older</summary>
+#### 0.4.5.3
+- Implement device registry dumper (#255)
+
 #### 0.4.5.2
 - Adds support for Runtime mixin (addresses #270)
 - Improves documentation
