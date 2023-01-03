@@ -91,6 +91,7 @@ class MerossManager(object):
             ca_cert: Optional[str] = None,
             loop: Optional[AbstractEventLoop] = None,
             mqtt_override_server: Optional[Tuple[str, int]] = None,
+            auto_discovery_on_connection: bool = True,
             *args,
             **kwords,
     ) -> None:
@@ -108,7 +109,8 @@ class MerossManager(object):
         :param mqtt_override_server: (Optional) Tuple (hostname, port) of the MQTT server to use for MQTT connection.
                                      When None (default), the hostname will be extracted by the domain/reserved domain
                                      obtained via HTTP API, and port 443 will be used.
-        :param kwords:
+        :param auto_discovery_on_connection: (Optional) When set instructs the manager to issue a discovery as soon as
+                                             the mqtt connection is established against the MQTT broker (defaults to True)
         """
 
         # Store local attributes
@@ -123,10 +125,10 @@ class MerossManager(object):
         self._mqtt_skip_validation = mqtt_skip_cert_validation
         self._mqtt_clients = {}
         self._mqtt_connected_and_subscribed = {}
+        self._auto_discovery_on_connection = auto_discovery_on_connection
 
         # By default, assume MQTT-Only transport mode
         self._default_transport_mode = TransportMode.MQTT_ONLY
-
         self._error_budget_manager = ErrorBudgetManager()
 
         # Default proxy setup
@@ -146,6 +148,15 @@ class MerossManager(object):
         )
         self._user_topic = build_client_user_topic(user_id=self._cloud_creds.user_id)
         self._override_mqtt_server = mqtt_override_server
+
+    @property
+    def auto_discovery_on_connection(self) -> bool:
+        """When set, tells the manager to automatically issue a discovery after a successful connection"""
+        return self._auto_discovery_on_connection
+
+    @auto_discovery_on_connection.setter
+    def auto_discovery_on_connection(self, val: bool):
+        self._auto_discovery_on_connection = val
 
     @property
     def default_transport_mode(self) -> TransportMode:
@@ -541,7 +552,7 @@ class MerossManager(object):
             for d in self.find_devices():
                 old_status = _prev_online_status.get(d.uuid)
                 if old_status is None:
-                    # This is a new device that has been added while we where offline.
+                    # This is a new device that has been added while we were offline.
                     _LOGGER.warning("Found a new device %s that has become online while we were offline.", d)
                     # TODO: do we need to issue a BINDING event manually here?
                     continue
@@ -552,7 +563,8 @@ class MerossManager(object):
 
         # If a connection drop occurs, we must update the device state in order to be consistent
         # TODO: Do we need to issue this command only when connection drops occur or also at first connection attempt?
-        asyncio.run_coroutine_threadsafe(coro=_update_devices_after_reconnection(), loop=self._loop)
+        if self._auto_discovery_on_connection:
+            asyncio.run_coroutine_threadsafe(coro=_update_devices_after_reconnection(), loop=self._loop)
 
     async def _update_and_send_push(self, dev: BaseDevice, old_status: OnlineStatus) -> None:
         if dev.online_status == OnlineStatus.ONLINE:
