@@ -185,6 +185,18 @@ jobs:
           echo "Python 3.8: ${{ needs.test.outputs.failure_rate_python_3_8 }}%"
           echo "Python 3.9: ${{ needs.test.outputs.failure_rate_python_3_9 }}%"
           echo "Python 3.10: ${{ needs.test.outputs.failure_rate_python_3_10 }}%"
+      - name: Save test output artifacts
+        run: |
+          touch "test_pass_rates.txt"
+          echo "Python 3.7: ${{ needs.test.outputs.failure_rate_python_3_7 }}%" >> "test_pass_rates.txt" 
+          echo "Python 3.8: ${{ needs.test.outputs.failure_rate_python_3_8 }}%" >> "test_pass_rates.txt"
+          echo "Python 3.9: ${{ needs.test.outputs.failure_rate_python_3_9 }}%" >> "test_pass_rates.txt"
+          echo "Python 3.10: ${{ needs.test.outputs.failure_rate_python_3_10 }}%" >> "test_pass_rates.txt"
+      - name: Upload test pass rates
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-pass-rates
+          path: test_pass_rates.txt
       - name: Take release decision
         id: release_decision
         run: |
