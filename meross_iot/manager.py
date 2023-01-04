@@ -92,6 +92,7 @@ class MerossManager(object):
             loop: Optional[AbstractEventLoop] = None,
             mqtt_override_server: Optional[Tuple[str, int]] = None,
             auto_discovery_on_connection: bool = True,
+            mqtt_keep_alive_seconds: int = 15,
             *args,
             **kwords,
     ) -> None:
@@ -128,6 +129,7 @@ class MerossManager(object):
         self._auto_discovery_on_connection = auto_discovery_on_connection
 
         # By default, assume MQTT-Only transport mode
+        self._mqtt_keep_alive_seconds = mqtt_keep_alive_seconds
         self._default_transport_mode = TransportMode.MQTT_ONLY
         self._error_budget_manager = ErrorBudgetManager()
 
@@ -196,7 +198,7 @@ class MerossManager(object):
             if conn_evt is None:
                 conn_evt = asyncio.Event()
                 _LOGGER.debug("MQTT client connecting to %s:%d", domain, port)
-                client.connect(host=domain, port=port, keepalive=30)
+                client.connect(host=domain, port=port, keepalive=self._mqtt_keep_alive_seconds)
                 self._mqtt_connected_and_subscribed[dict_key] = conn_evt
             # Start the client looper
             client.loop_start()
