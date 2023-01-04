@@ -43,7 +43,7 @@ from meross_iot.utilities.mqtt import (
     build_client_user_topic,
     verify_message_signature,
     device_uuid_from_push_notification,
-    build_device_request_topic, generate_app_id, generate_client_id,
+    build_device_request_topic, generate_app_id,
 )
 from meross_iot.utilities.network import extract_domain
 
@@ -203,8 +203,7 @@ class MerossManager(object):
 
     def _new_mqtt_client(self) -> mqtt.Client:
         # Setup mqtt client
-        client_id = generate_client_id()
-        client = mqtt.Client(client_id=client_id, protocol=mqtt.MQTTv311, clean_session=False)
+        client = mqtt.Client(protocol=mqtt.MQTTv311, clean_session=True)
         client.username_pw_set(username=self._cloud_creds.user_id, password=self._mqtt_password)
 
         # Certificate validation setup
