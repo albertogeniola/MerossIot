@@ -39,12 +39,11 @@ from meross_iot.model.push.online import OnlinePushNotification
 from meross_iot.model.push.unbind import UnbindPushNotification
 from meross_iot.utilities.mqtt import (
     generate_mqtt_password,
-    generate_client_and_app_id,
     build_client_response_topic,
     build_client_user_topic,
     verify_message_signature,
     device_uuid_from_push_notification,
-    build_device_request_topic,
+    build_device_request_topic, generate_app_id, generate_client_id,
 )
 from meross_iot.utilities.network import extract_domain
 
@@ -86,7 +85,6 @@ class MerossManager(object):
     def __init__(
             self,
             http_client: MerossHttpClient,
-            auto_reconnect: Optional[bool] = True,
             mqtt_skip_cert_validation: bool = False,
             ca_cert: Optional[str] = None,
             loop: Optional[AbstractEventLoop] = None,
@@ -100,8 +98,6 @@ class MerossManager(object):
         Constructor
         :param http_client: MerossHttpClient object that is used by the manager to query the HTTP API
                             (for device discovery, etc)
-        :param auto_reconnect: (Optional) When True, the mqtt client will automatically reconnect when the connection
-                               drops. Defaults to True.
         :param mqtt_skip_cert_validation: (Optional) When set the Manager will accept unverified SSL/TLS certificates
                                           from the remote MQTT server. Defaults to False.
         :param ca_cert: (Optional) Path to the PEM certificate to trust (Intermediate/CA)
@@ -117,9 +113,8 @@ class MerossManager(object):
         # Store local attributes
         self._http_client = http_client
         self._cloud_creds = self._http_client.cloud_credentials
-        self._auto_reconnect = auto_reconnect
         self._ca_cert = ca_cert
-        self._app_id, self._client_id = generate_client_and_app_id()
+        self._app_id = generate_app_id()
         self._pending_messages_futures = {}
         self._device_registry = DeviceRegistry()
         self._push_coros = []
@@ -208,7 +203,8 @@ class MerossManager(object):
 
     def _new_mqtt_client(self) -> mqtt.Client:
         # Setup mqtt client
-        client = mqtt.Client(client_id=self._client_id, protocol=mqtt.MQTTv311, clean_session=False)
+        client_id = generate_client_id()
+        client = mqtt.Client(client_id=client_id, protocol=mqtt.MQTTv311, clean_session=False)
         client.username_pw_set(username=self._cloud_creds.user_id, password=self._mqtt_password)
 
         # Certificate validation setup
@@ -515,7 +511,7 @@ class MerossManager(object):
             self._notify_connection_drop(), loop=self._loop
         )
 
-        conn_evt = self._mqtt_connected_and_subscribed.get(userdata) # type: asyncio.Event
+        conn_evt = self._mqtt_connected_and_subscribed.get(userdata)  # type: asyncio.Event
         conn_evt.clear()
 
     def _on_unsubscribe(self):

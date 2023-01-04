@@ -40,19 +40,26 @@ def device_uuid_from_push_notification(from_topic: str):
     return from_topic.split('/')[2]
 
 
-def generate_client_and_app_id():
+def generate_app_id():
     """
-    Generates a new app-id.
+    Generate a new app-id.
     :return:
     """
-    # TODO: Talk to the Meross engineer and check if the APPID should be the same or if we
-    #  need to use a convention to discriminate MerossIot python clients.
     md5_hash = md5()
     rnd_uuid = UUID.uuid4()
-    md5_hash.update(f"API{rnd_uuid}".encode("utf8"))
-    app_id = md5_hash.hexdigest()
-    client_id = 'app:%s' % md5_hash.hexdigest()
-    return app_id, client_id
+    md5_hash.update(rnd_uuid.bytes)
+    return md5_hash.hexdigest()
+
+
+def generate_client_id():
+    """
+    Generate a new client-id.
+    :return:
+    """
+    md5_hash = md5()
+    rnd_uuid = UUID.uuid4()
+    md5_hash.update(rnd_uuid.bytes)
+    return 'app:%s' % md5_hash.hexdigest()
 
 
 def generate_mqtt_password(user_id: str, key: str):
