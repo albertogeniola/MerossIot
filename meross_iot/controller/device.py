@@ -32,6 +32,7 @@ class BaseDevice(object):
         self._manager = manager
 
         self._cached_http_info = None
+        self._channels = []
 
         # Parse device info, if any
         if 'http_device_info' in kwargs:
