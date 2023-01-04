@@ -43,7 +43,7 @@ from meross_iot.utilities.mqtt import (
     build_client_user_topic,
     verify_message_signature,
     device_uuid_from_push_notification,
-    build_device_request_topic, generate_app_id,
+    build_device_request_topic, generate_app_id, generate_client_id,
 )
 from meross_iot.utilities.network import extract_domain
 
@@ -146,6 +146,20 @@ class MerossManager(object):
         self._user_topic = build_client_user_topic(user_id=self._cloud_creds.user_id)
         self._override_mqtt_server = mqtt_override_server
 
+    def _check_all_clients_down(self) -> bool:
+        all_down = True
+        for c in self._mqtt_clients.values():
+            if c.is_connected():
+                all_down = False
+                break
+        return all_down
+
+    def _regenerate_app_id(self):
+        self._app_id = generate_app_id()
+        self._client_response_topic = build_client_response_topic(
+            user_id=self._cloud_creds.user_id, app_id=self._app_id
+        )
+
     @property
     def auto_discovery_on_connection(self) -> bool:
         """When set, tells the manager to automatically issue a discovery after a successful connection"""
@@ -193,17 +207,25 @@ class MerossManager(object):
             if conn_evt is None:
                 conn_evt = asyncio.Event()
                 _LOGGER.debug("MQTT client connecting to %s:%d", domain, port)
-                client.connect(host=domain, port=port, keepalive=self._mqtt_keep_alive_seconds)
                 self._mqtt_connected_and_subscribed[dict_key] = conn_evt
-            # Start the client looper
-            client.loop_start()
-            # Wait for the client to connect
-            await conn_evt.wait()
+                # Start the client looper: we only need to start it if the connection event is None,
+                #  as this means it's the first time we start the loop for this client
+                client.loop_start()
+            client.connect(host=domain, port=port, keepalive=self._mqtt_keep_alive_seconds)
+
+            try:
+                # Wait for the client to connect
+                await asyncio.wait_for(conn_evt.wait(), timeout=5)
+            except TimeoutError as e:
+                _LOGGER.error(
+                    "Could not establish a new connection to the MQTT broker. Check your internet connection.")
+                raise
+
         return client
 
     def _new_mqtt_client(self) -> mqtt.Client:
         # Setup mqtt client
-        client = mqtt.Client(protocol=mqtt.MQTTv311, clean_session=True)
+        client = mqtt.Client(protocol=mqtt.MQTTv311, clean_session=True, client_id=generate_client_id(self._app_id))
         client.username_pw_set(username=self._cloud_creds.user_id, password=self._mqtt_password)
 
         # Certificate validation setup
@@ -510,8 +532,23 @@ class MerossManager(object):
             self._notify_connection_drop(), loop=self._loop
         )
 
-        conn_evt = self._mqtt_connected_and_subscribed.get(userdata)  # type: asyncio.Event
-        conn_evt.clear()
+        if userdata in self._mqtt_connected_and_subscribed:
+            conn_evt = self._mqtt_connected_and_subscribed.get(userdata)  # type: asyncio.Event
+            conn_evt.clear()
+
+        # Stop the client loop
+        if client is not None:
+            client.loop_stop()
+
+        # Dispose unused objects
+        if userdata in self._mqtt_clients:
+            del self._mqtt_clients[userdata]
+        if userdata in self._mqtt_connected_and_subscribed:
+            del self._mqtt_connected_and_subscribed[userdata]
+
+        # If no more clients are connected, regenerate the appid
+        if len(self._mqtt_connected_and_subscribed.keys()) == 0:
+            self._regenerate_app_id()
 
     def _on_unsubscribe(self):
         # NOTE! This method is called by the paho-mqtt thread, thus any invocation to the
@@ -617,9 +654,7 @@ class MerossManager(object):
         # Dispatch the message.
         # Check case 2: COMMAND_ACKS. In this case, we don't check the source topic address, as we trust it's
         # originated by a device on this network that we contacted previously.
-        if destination_topic == build_client_response_topic(
-                self._cloud_creds.user_id, self._app_id
-        ) and message_method in ["SETACK", "GETACK", "ERROR"]:
+        if destination_topic == self._client_response_topic and message_method in ["SETACK", "GETACK", "ERROR"]:
             _LOGGER.debug("This message is an ACK to a command this client has send.")
 
             # If the message is a PUSHACK/GETACK/ERROR, check if there is any pending command waiting for it and, if so,
@@ -633,14 +668,16 @@ class MerossManager(object):
                     if not self._loop.is_closed():
                         self._loop.call_soon_threadsafe(_handle_future, future, None, err)
                     else:
-                        _LOGGER.warning("Could not return message %s to caller as the event loop has been closed already", message)
+                        _LOGGER.warning(
+                            "Could not return message %s to caller as the event loop has been closed already", message)
                 elif message_method in ("SETACK", "GETACK"):
                     if not self._loop.is_closed():
                         self._loop.call_soon_threadsafe(
                             _handle_future, future, message, None
                         )  # future.set_exception
                     else:
-                        _LOGGER.warning("Could not return message %s to caller as the event loop has been closed already", message)
+                        _LOGGER.warning(
+                            "Could not return message %s to caller as the event loop has been closed already", message)
                 else:
                     _LOGGER.error(
                         f"Unhandled message method {message_method}. Please report it to the developer."
@@ -814,22 +851,34 @@ class MerossManager(object):
             # Check if the LocalIP is available for the given device
             device = self._device_registry.lookup_base_by_uuid(destination_device_uuid)
             if device is None:
-                _LOGGER.debug("Cannot issue command via LAN (http) against device with uuid %s as the device is not yet available on the registry", destination_device_uuid)
+                _LOGGER.debug(
+                    "Cannot issue command via LAN (http) against device with uuid %s as the device is not yet available on the registry",
+                    destination_device_uuid)
                 attempt_lan = False
             elif device.lan_ip is None:
-                _LOGGER.debug("Cannot issue command via LAN (http) against device with uuid %s as the device has not reported any internal LAN ip.", destination_device_uuid)
+                _LOGGER.debug(
+                    "Cannot issue command via LAN (http) against device with uuid %s as the device has not reported any internal LAN ip.",
+                    destination_device_uuid)
                 attempt_lan = False
             elif self._error_budget_manager.is_out_of_budget(destination_device_uuid):
-                _LOGGER.debug("Cannot issue command via LAN (http) against device with uuid %s as the device has no more error budget left.", destination_device_uuid)
+                _LOGGER.debug(
+                    "Cannot issue command via LAN (http) against device with uuid %s as the device has no more error budget left.",
+                    destination_device_uuid)
                 attempt_lan = False
             if attempt_lan:
                 try:
                     # In case we succeed here, return the data we got.
                     # Otherwise, try again with MQTT.
-                    _LOGGER.debug("Sending %s-%s command via HTTP to %s via %s", method, str(namespace), destination_device_uuid, device.lan_ip)
-                    return await self._async_execute_cmd_http(device_ip=device.lan_ip,destination_device_uuid=destination_device_uuid,method=method,namespace=namespace,payload=payload,timeout=min(timeout, 1.0))
+                    _LOGGER.debug("Sending %s-%s command via HTTP to %s via %s", method, str(namespace),
+                                  destination_device_uuid, device.lan_ip)
+                    return await self._async_execute_cmd_http(device_ip=device.lan_ip,
+                                                              destination_device_uuid=destination_device_uuid,
+                                                              method=method, namespace=namespace, payload=payload,
+                                                              timeout=min(timeout, 1.0))
                 except Exception as e:
-                    _LOGGER.exception("An error occurred while attempting to send a message over internal LAN to device %s. Retrying with MQTT transport.", destination_device_uuid)
+                    _LOGGER.exception(
+                        "An error occurred while attempting to send a message over internal LAN to device %s. Retrying with MQTT transport.",
+                        destination_device_uuid)
                     self._error_budget_manager.notify_error(destination_device_uuid)
 
         # Retrieve the mqtt client for the given domain:port broker
@@ -860,7 +909,8 @@ class MerossManager(object):
         message, message_id = self._build_mqtt_message(method, namespace, payload, destination_device_uuid)
 
         async with ClientSession() as session:
-            async with session.post(f"http://{device_ip}/config", json=json.loads(message.decode()), timeout=timeout) as response:
+            async with session.post(f"http://{device_ip}/config", json=json.loads(message.decode()),
+                                    timeout=timeout) as response:
                 data = await response.json()
                 return data.get("payload")
 
@@ -963,7 +1013,7 @@ class MerossManager(object):
             "payload": payload,
         }
 
-        strdata = json.dumps(data,separators=(',', ':'))
+        strdata = json.dumps(data, separators=(',', ':'))
         return strdata.encode("utf-8"), messageId
 
     def set_proxy(self, proxy_type, proxy_addr, proxy_port):
@@ -1001,11 +1051,14 @@ class DeviceRegistry(object):
         for devid in ids:
             self.relinquish_device(devid)
 
-    def dump_to_file(self, filename: str)->None:
+    def dump_to_file(self, filename: str) -> None:
         """Dump the current device list to a file"""
-        dumped_base_devices = [{'abilities': x.abilities, 'info': x.cached_http_info.to_dict()} for x in self._devices_by_internal_id.values() if not isinstance(x, GenericSubDevice)]
+        dumped_base_devices = [{'abilities': x.abilities, 'info': x.cached_http_info.to_dict()} for x in
+                               self._devices_by_internal_id.values() if not isinstance(x, GenericSubDevice)]
         with open(filename, "wt") as f:
-            json.dump(dumped_base_devices, f, default=lambda x: x.isoformat() if isinstance(x, datetime) else x.value if(isinstance(x,OnlineStatus)) else 'Not-Serializable')
+            json.dump(dumped_base_devices, f,
+                      default=lambda x: x.isoformat() if isinstance(x, datetime) else x.value if (
+                          isinstance(x, OnlineStatus)) else 'Not-Serializable')
 
     def load_from_dump(self, filename: str, manager: MerossManager) -> None:
         """Load the device registry from a file"""
@@ -1016,7 +1069,8 @@ class DeviceRegistry(object):
         for deviced in dumped_json_data:
             device_abilities = deviced['abilities']
             device_info = HttpDeviceInfo.from_dict(deviced['info'])
-            device = build_meross_device_from_abilities(http_device_info=device_info, device_abilities=device_abilities, manager=manager)
+            device = build_meross_device_from_abilities(http_device_info=device_info, device_abilities=device_abilities,
+                                                        manager=manager)
             self.enroll_device(device)
 
     def relinquish_device(self, device_internal_id: str):

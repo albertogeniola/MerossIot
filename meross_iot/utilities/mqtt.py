@@ -51,6 +51,14 @@ def generate_app_id():
     return md5_hash.hexdigest()
 
 
+def generate_client_id(app_id: str):
+    """
+    Generate a new client-id.
+    :return:
+    """
+    return f"app:{app_id}"
+
+
 def generate_mqtt_password(user_id: str, key: str):
     """
     Generates the MQTT password that the APP uses to connect to the mqtt server.
