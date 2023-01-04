@@ -184,12 +184,15 @@ Anyway, feel free to contribute via donations!
 </p>
 
 ## Changelog
+#### 0.4.5.4
+- Fix #274, due to Meross API change
+
+<details>
+    <summary>Older</summary>
 #### 0.4.5.4-rc1
 - Fix tests
 - Implement auto-discovery control parameter for the `MerossManager`
 
-<details>
-    <summary>Older</summary>
 #### 0.4.5.3
 - Implement device registry dumper (#255)
 
