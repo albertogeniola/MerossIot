@@ -11,7 +11,6 @@ from meross_iot.model.constants import DEFAULT_MQTT_PORT, DEFAULT_MQTT_HOST, DEF
 from meross_iot.model.enums import OnlineStatus, Namespace
 from meross_iot.model.http.device import HttpDeviceInfo
 from meross_iot.model.plugin.hub import BatteryInfo
-from meross_iot.model.shared import BaseDictPayload
 from meross_iot.utilities.network import extract_domain, extract_port
 
 _LOGGER = logging.getLogger(__name__)
@@ -24,9 +23,17 @@ class BaseDevice(object):
     name, type (i.e. device specific model), firmware/hardware version, a Meross internal
     identifier, a library assigned internal identifier.
     """
+    _name: str = "unknown"
+    _type: str = "unknown"
+    _fwversion: str = "unknown"
+    _hwversion: str = "unknown"
+    _online: OnlineStatus = OnlineStatus.UNKNOWN
+    _inner_ip: Optional[str] = None
+    _mqtt_host: str = DEFAULT_MQTT_HOST
+    _mqtt_port: int = DEFAULT_MQTT_PORT
 
     def __init__(self, device_uuid: str,
-                 manager,  # TODO: type hinting "manager"
+                 manager,
                  **kwargs):
         self._uuid = device_uuid
         self._manager = manager
