@@ -1,12 +1,15 @@
+import asyncio
 import json
 from hashlib import md5
+from typing import Dict
 from uuid import uuid4
 from threading import Event
 from paho.mqtt import client as mqtt
 
-from paho.mqtt.client import ssl
+from paho.mqtt.client import ssl, MQTTMessage
 
 from meross_iot.utilities.mqtt import build_device_request_topic, build_client_response_topic, build_client_user_topic
+from utilities.mixedqueue import MixedQueue
 
 
 class AppSniffer(object):
@@ -48,6 +51,8 @@ class AppSniffer(object):
                                   tls_version=ssl.PROTOCOL_TLS_CLIENT,
                                   ciphers=None)
 
+        self._push_queue = MixedQueue(asyncio.get_running_loop())
+
     def _on_connect(self, client, userdata, rc, other):
         self.l.debug("Connected to MQTT Broker")
         self.connect_event.set()
@@ -88,6 +93,7 @@ class AppSniffer(object):
 
     def stop(self):
         self._mqtt_client.disconnect()
+        self._mqtt_client.loop_stop()
 
     def _on_subscribe(self, client, userdata, mid, granted_qos):
         self.l.debug("Subscribed correctly")
@@ -106,6 +112,11 @@ class AppSniffer(object):
             topic_str = "DEVICE-TOPIC"
 
         self.l.info("%s (%s) <- %s" % (topic_str, msg.topic, message))
+        if header['method'].upper() == 'PUSH':
+            self._push_queue.sync_put(message)
 
     def _on_disconnect(self, client, userdata, rc):
-        self.l.debug("Disconnected from MQTT brocker")
+        self.l.debug("Disconnected from MQTT broker")
+
+    async def async_wait_push_notification(self) -> Dict:
+        return await self._push_queue.async_get()

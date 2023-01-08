@@ -132,7 +132,8 @@ async def _async_start_fake_device_sniffer(cloud_credentials: MerossCloudCreds, 
                                             meross_user_id=cloud_credentials.user_id,
                                             meross_cloud_key=cloud_credentials.key,
                                             mqtt_host=selected_device.get_mqtt_host(),
-                                            mqtt_port=selected_device.get_mqtt_port())
+                                            mqtt_port=selected_device.get_mqtt_port(),
+                                            logger=l)
     await fake_device_sniffer.async_start(timeout=5.0)
     return fake_device_sniffer
 
@@ -202,14 +203,22 @@ async def _async_phase_1(device_sniffer: FakeDeviceSniffer, zip_obj: ZipFile):
             zip_obj.write(f.name, f"{command_iterations}_command.txt")
 
 
-async def _async_phase_2():
+async def _async_phase_2(app_sniffer: AppSniffer):
     print("PHASE 2: device commands.\n"
           "It's now time to 'collect' the commands as they are received from the device.\n"
           "First sure the Meross device is now connected to the power line."
           "Then, send commands from the Meross App to the target device.\n")
-    # TODO: print hint when a push notification is received
-    input("Waiting for you to perform actions on the device.\n"
-          "When DONE, press ENTER to finish.\n")
+
+    print("Waiting for you to perform actions on the device.\n"
+          "When DONE, press CTRL+C to finish.\n")
+    message_count = 0
+    while True:
+        try:
+            push_notification = await app_sniffer.async_wait_push_notification()
+            print(f"Push notification received [{message_count}]: {push_notification}")
+            message_count += 1
+        except KeyboardInterrupt as e:
+            break
 
 
 async def _main():
@@ -233,7 +242,7 @@ async def _main():
     await _async_phase_1(device_sniffer, zip_obj)
     await device_sniffer.async_stop()
     # Start the PUSH notification catching (phase 2)
-    await _async_phase_2()
+    await _async_phase_2(app_sniffer)
     app_sniffer.stop()
 
     # Invalidate the HTTP token

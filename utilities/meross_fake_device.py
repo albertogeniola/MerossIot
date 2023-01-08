@@ -3,47 +3,22 @@ import json
 import logging
 import ssl
 from hashlib import md5
-from typing import Any, List, Dict, Tuple
-from paho.mqtt.client import Client, MQTTv311, MQTTMessage
-from meross_iot.controller.device import BaseDevice
-from meross_iot.http_api import MerossHttpClient
-from meross_iot.model.enums import OnlineStatus
-from meross_iot.model.http.device import HttpDeviceInfo
-from meross_iot.utilities.mqtt import build_device_request_topic
+from typing import Any, Dict, Tuple
 
+from paho.mqtt.client import Client, MQTTv311, MQTTMessage
+
+from meross_iot.utilities.mqtt import build_device_request_topic
+from utilities.mixedqueue import MixedQueue
 
 _LOGGER = logging.getLogger()
-
-
-class MixedQueue:
-    def __init__(self, loop):
-        self._queue = asyncio.Queue()
-        self._loop = loop
-
-    def sync_put_nowait(self, item):
-        self._loop.call_soon(self._queue.put_nowait, item)
-
-    def sync_put(self, item):
-        asyncio.run_coroutine_threadsafe(self._queue.put(item), self._loop).result()
-
-    def sync_get(self):
-        return asyncio.run_coroutine_threadsafe(self._queue.get(), self._loop).result()
-
-    def async_put_nowait(self, item):
-        self._queue.put_nowait(item)
-
-    async def async_put(self, item):
-        await self._queue.put(item)
-
-    async def async_get(self):
-        return await self._queue.get()
 
 
 class FakeDeviceSniffer:
     _mqtt_client: Client
 
-    def __init__(self, uuid: str, mac_address: str, meross_user_id: str, meross_cloud_key: str, mqtt_host: str, mqtt_port: int):
+    def __init__(self, uuid: str, mac_address: str, meross_user_id: str, meross_cloud_key: str, mqtt_host: str, mqtt_port: int, logger: logging.Logger):
         """Constructor"""
+        self._l = logger
         self._uuid = uuid.lower()
         self._mac_address = mac_address
         self._meross_user_id = meross_user_id
@@ -83,6 +58,7 @@ class FakeDeviceSniffer:
     async def async_start(self, timeout: float) -> None:
         """Starts the emulation"""
         if self._started or self._starting:
+            self._l.error("The fake device has been already started")
             raise RuntimeError("Already Started.")
 
         self._starting = True
@@ -105,26 +81,32 @@ class FakeDeviceSniffer:
         self._started = False
 
     def _on_connect(self, client: Client, userdata: Any, flags, rc):
+        self._l.debug("Fake device connected to mqtt broker successfully")
         self._connected_event.set()
 
     def _on_subscribe(self, client: Client, userdata: Any, mid, granted_qos):
+        self._l.debug("Fake device subscribed to mqtt topics successfully")
         self._subscribed_event.set()
         self._starting = False
         self._started = True
 
     def _on_connection_fail(self, client: Client, userdata):
+        self._l.error("Fake device failed to connect to MQTT broker")
         self._connected_event.clear()
         self._starting = False
         self._started = False
 
     def _on_disconnect(self, client: Client, userdata, rc):
+        self._l.info("Fake device disconnected from MQTT broker")
         self._connected_event.clear()
         self._disconnected_event.set()
 
     def _on_unsubscribe(self, client: Client, userdata, mid):
+        self._l.info("Fake device unsubscribed from MQTT topics")
         self._subscribed_event.clear()
 
-    def _on_message(self, client: Client, userdata, message):
+    def _on_message(self, client: Client, userdata, message: MQTTMessage):
+        self._l.info("Fake device received message: %s from topic %s", str(message.payload), str(message.topic))
         _LOGGER.info(msg=str(message.payload))
         self._msg_queue.sync_put(message)
 
