@@ -4,7 +4,7 @@ import logging
 import ssl
 from hashlib import md5
 from typing import Any, List, Dict, Tuple
-from paho.mqtt.client import Client, MQTTv311
+from paho.mqtt.client import Client, MQTTv311, MQTTMessage
 from meross_iot.controller.device import BaseDevice
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.model.enums import OnlineStatus
@@ -128,11 +128,14 @@ class FakeDeviceSniffer:
         _LOGGER.info(msg=str(message.payload))
         self._msg_queue.sync_put(message)
 
-    async def async_wait_for_message(self) -> Tuple[str, str, str, Dict]:
-        raw_message = await self._msg_queue.async_get()
-        parsed_message = json.loads(str(raw_message.payload, "utf8"))
-        namespace = parsed_message['header']['namespace']
-        method = parsed_message['header']['method']
-        payload = parsed_message['payload']
-        return raw_message, namespace, method, payload
+    async def async_wait_for_message(self, valid_methods=('SET', 'GET')) -> Tuple[MQTTMessage, str, str, Dict]:
+        while True:
+            raw_message: MQTTMessage = await self._msg_queue.async_get()
+            parsed_message = json.loads(str(raw_message.payload, "utf8"))
+            namespace = parsed_message['header']['namespace']
+            method = parsed_message['header']['method']
+            payload = parsed_message['payload']
 
+            # Discard ACKs and PUSH notifications
+            if method in valid_methods:
+                return raw_message, namespace, method, payload
