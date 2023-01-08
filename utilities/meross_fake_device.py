@@ -1,8 +1,10 @@
 import asyncio
+import json
 import logging
-from typing import Any, List
+import ssl
+from hashlib import md5
+from typing import Any, List, Dict, Tuple
 from paho.mqtt.client import Client, MQTTv311
-
 from meross_iot.controller.device import BaseDevice
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.model.enums import OnlineStatus
@@ -11,6 +13,30 @@ from meross_iot.utilities.mqtt import build_device_request_topic
 
 
 _LOGGER = logging.getLogger()
+
+
+class MixedQueue:
+    def __init__(self, loop):
+        self._queue = asyncio.Queue()
+        self._loop = loop
+
+    def sync_put_nowait(self, item):
+        self._loop.call_soon(self._queue.put_nowait, item)
+
+    def sync_put(self, item):
+        asyncio.run_coroutine_threadsafe(self._queue.put(item), self._loop).result()
+
+    def sync_get(self):
+        return asyncio.run_coroutine_threadsafe(self._queue.get(), self._loop).result()
+
+    def async_put_nowait(self, item):
+        self._queue.put_nowait(item)
+
+    async def async_put(self, item):
+        await self._queue.put(item)
+
+    async def async_get(self):
+        return await self._queue.get()
 
 
 class FakeDeviceSniffer:
@@ -24,6 +50,7 @@ class FakeDeviceSniffer:
         self._meross_cloud_key = meross_cloud_key
         self._mqtt_host = mqtt_host
         self._mqtt_port = mqtt_port
+        self._msg_queue = MixedQueue(asyncio.get_running_loop())
 
         # Build the client-id
         self._client_id = f"fmware:{self._uuid}_random"
@@ -31,6 +58,9 @@ class FakeDeviceSniffer:
         # Start the mqtt client and connect
         self._mqtt_client = Client(client_id=self._client_id, clean_session=True, userdata=None,
                                           protocol=MQTTv311, transport="tcp", reconnect_on_failure=False)
+        mac_key_digest = md5(f"{self._mac_address}{self._meross_cloud_key}".encode("utf8")).hexdigest().lower()
+        device_password = f"{self._meross_user_id}_{mac_key_digest}"
+        self._mqtt_client.username_pw_set(username=self._mac_address, password=device_password)
 
         # Set up the handlers
         self._mqtt_client.on_connect = self._on_connect
@@ -54,8 +84,13 @@ class FakeDeviceSniffer:
         """Starts the emulation"""
         if self._started or self._starting:
             raise RuntimeError("Already Started.")
-        self._mqtt_client.connect_async(host=self._mqtt_host, port=self._mqtt_port)
+
         self._starting = True
+        self._mqtt_client.tls_set(ca_certs=None, certfile=None,
+                                  keyfile=None, cert_reqs=ssl.CERT_REQUIRED,
+                                  tls_version=ssl.PROTOCOL_TLS_CLIENT,
+                                  ciphers=None)
+        self._mqtt_client.connect(host=self._mqtt_host, port=self._mqtt_port)
         self._mqtt_client.loop_start()
         await asyncio.wait_for(self._connected_event.wait(), timeout)
         self._mqtt_client.subscribe(topic=self._device_topic)
@@ -90,4 +125,14 @@ class FakeDeviceSniffer:
         self._subscribed_event.clear()
 
     def _on_message(self, client: Client, userdata, message):
-        _LOGGER.info(msg=str(message))
+        _LOGGER.info(msg=str(message.payload))
+        self._msg_queue.sync_put(message)
+
+    async def async_wait_for_message(self) -> Tuple[str, str, str, Dict]:
+        raw_message = await self._msg_queue.async_get()
+        parsed_message = json.loads(str(raw_message.payload, "utf8"))
+        namespace = parsed_message['header']['namespace']
+        method = parsed_message['header']['method']
+        payload = parsed_message['payload']
+        return raw_message, namespace, method, payload
+

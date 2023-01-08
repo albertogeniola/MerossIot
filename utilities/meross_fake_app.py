@@ -1,7 +1,7 @@
 import json
 from hashlib import md5
 from uuid import uuid4
-from asyncio import Event
+from threading import Event
 from paho.mqtt import client as mqtt
 
 from paho.mqtt.client import ssl

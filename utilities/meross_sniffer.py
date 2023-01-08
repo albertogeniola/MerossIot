@@ -5,34 +5,37 @@ import os
 import sys
 from hashlib import md5
 from os import path, environ
+from typing import List, Dict
 from zipfile import ZipFile
-
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
+from meross_iot.model.credentials import MerossCloudCreds
 from meross_iot.model.enums import Namespace, OnlineStatus
-from meross_iot.utilities.network import extract_domain
+from meross_iot.model.http.device import HttpDeviceInfo
 from utilities.meross_fake_app import AppSniffer
 from utilities.meross_fake_device import FakeDeviceSniffer
 
 SNIFF_LOG_FILE = 'sniff.log'
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-l = logging.getLogger().getChild("Sniffer")
-l.setLevel(logging.DEBUG)
-lhandler = logging.FileHandler(mode='w', filename=SNIFF_LOG_FILE)
-lhandler.setFormatter(formatter)
-l.addHandler(lhandler)
 
-ROOT_LOG_FILE = 'root.log'
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-r = logging.getLogger()
-r.setLevel(logging.DEBUG)
-rhandler = logging.FileHandler(mode='w', filename=ROOT_LOG_FILE)
-rhandler.setFormatter(formatter)
-r.addHandler(rhandler)
-r.setLevel(logging.DEBUG)
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+l = logging.getLogger()
+l.handlers.clear()
+
+# Debug file handler
+file_handler = logging.FileHandler(filename='sniff.log', mode='w+')
+file_handler.setFormatter(formatter)
+file_handler.setLevel(logging.DEBUG)
+l.addHandler(file_handler)
+
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(formatter)
+stream_handler.setLevel(logging.ERROR)
+l.addHandler(stream_handler)
 
 
-async def _main():
+def _print_welcom_message():
     print("Welcome to the Sniffer utility. This python script will gather some useful information about your "
           "Meross devices. All the collected information will be zipped into a zip archive. "
           "You could share such zip file with the developers to help them add support for your device. "
@@ -40,6 +43,9 @@ async def _main():
           "your Meross account password to a temporary one before using this software. Once you are done, "
           "you can restore back your original password. By doing so, you are 100% sure you are not leaking any "
           "real password to the developers.")
+
+
+async def _async_gather_http_client() -> MerossHttpClient:
     email = environ.get("MEROSS_EMAIL")
     if email is None:
         email = input("Please specify your meross email: ")
@@ -48,52 +54,57 @@ async def _main():
     password = environ.get("MEROSS_PASSWORD")
     if password is None:
         password = getpass.getpass(prompt='Please specify your Meross password: ', stream=sys.stdout).strip()
+    try:
+        return await MerossHttpClient.async_from_user_password(email, password)
+    except Exception:
+        print("An error occurred while gathering MerossAPI Client. Make sure your email-password credentials are valid.")
+        exit(1)
 
-    devices = []
-    http = None
 
+async def _async_print_device_list(client: MerossHttpClient) -> List[HttpDeviceInfo]:
     # Gather HTTP devices
     try:
-        http = await MerossHttpClient.async_from_user_password(email, password)
         print("# Collecting devices via HTTP api...")
-        devices = await http.async_list_devices()
+        devices = await client.async_list_devices()
+        for i, d in enumerate(devices):
+            print(f"[{i}] - {d.dev_name} ({d.device_type}) - {d.online_status.name}")
+        return devices
     except:
         print("An error occurred while retrieving Meross devices.")
         exit(1)
 
-    for i, d in enumerate(devices):
-        print(f"[{i}] - {d.dev_name} ({d.device_type}) - {d.online_status.name}")
 
+async def _async_select_device(devices: List[HttpDeviceInfo]) -> HttpDeviceInfo:
     print("Please note that some devices rely on a HUB. Those devices won't be listed: in such cases, you need"
           "to select the corresponding HUB device.")
-
     while True:
         selection = input("Select the device you want to study (numeric index): ")
         selection = int(selection.strip())
         selected_device = devices[selection]
         if selected_device is not None:
             break
-
     print(f"You have selected {selected_device.dev_name}.")
     if selected_device.online_status != OnlineStatus.ONLINE:
         print("!! WARNING !! You selected a device that has not been reported as online. ")
+    return selected_device
 
-    # Retrieve device data
+
+async def _async_collect_device_base_data(client: MerossHttpClient, selected_device: HttpDeviceInfo) -> Dict:
     print("Collecting devices info...")
-    manager = MerossManager(http_client=http)
+    manager = MerossManager(http_client=client)
     await manager.async_init()
     mqtt_host = selected_device.get_mqtt_host()
     mqtt_port = selected_device.get_mqtt_port()
 
     # Manually get device abilities
     print(f"Collecting {Namespace.SYSTEM_ALL} info...")
-    response_all = await manager.async_execute_cmd(destination_device_uuid=selected_device.uuid,
+    system_data = await manager.async_execute_cmd(destination_device_uuid=selected_device.uuid,
                                                    method="GET",
                                                    namespace=Namespace.SYSTEM_ALL,
                                                    payload={},
                                                    mqtt_hostname=mqtt_host,
                                                    mqtt_port=mqtt_port)
-    l.info(f"Sysdata for {selected_device.dev_name} ({selected_device.uuid}): {response_all}")
+    l.info(f"Sysdata for {selected_device.dev_name} ({selected_device.uuid}): {system_data}")
 
     try:
         print(f"Collecting {Namespace.SYSTEM_ABILITY} info...")
@@ -110,42 +121,102 @@ async def _main():
         l.exception(f"Could not collect sysdata/abilities for {selected_device.uuid}")
 
     # Close the manager as we won't need it any longer
-    if manager is not None:
-        manager.close()
+    manager.close()
+    return system_data
 
-    # Start the device sniffer
-    fake_device = FakeDeviceSniffer(uuid=selected_device.uuid, mac_address=, meross_user_id=,meross_cloud_key=,)
 
-    # Start the app-sniffer manager
-    creds = http.cloud_credentials
+async def _async_start_fake_device_sniffer(cloud_credentials: MerossCloudCreds, selected_device: HttpDeviceInfo, mac_address: str) -> FakeDeviceSniffer:
+    print("Starting the fake device emulator...")
+    fake_device_sniffer = FakeDeviceSniffer(uuid=selected_device.uuid, mac_address=mac_address,
+                                            meross_user_id=cloud_credentials.user_id,
+                                            meross_cloud_key=cloud_credentials.key,
+                                            mqtt_host=selected_device.get_mqtt_host(),
+                                            mqtt_port=selected_device.get_mqtt_port())
+    await fake_device_sniffer.async_start(timeout=5.0)
+    return fake_device_sniffer
+
+
+def _start_app_sniffer(cloud_credentials: MerossCloudCreds, selected_device: HttpDeviceInfo) -> AppSniffer:
     md5_hash = md5()
-    clearpwd = "%s%s" % (creds.user_id, creds.key)
+    clearpwd = "%s%s" % (cloud_credentials.user_id, cloud_credentials.key)
     md5_hash.update(clearpwd.encode("utf8"))
     hashed_password = md5_hash.hexdigest()
     app_sniffer = AppSniffer(
         l,
-        creds.user_id,
+        cloud_credentials.user_id,
         hashed_password,
         selected_device.uuid,
         ca_cert=None,
-        mqtt_host=extract_domain(selected_device.domain) or "iot.meross.com"
+        mqtt_host=selected_device.get_mqtt_host(),
+        mqtt_port=selected_device.get_mqtt_port()
     )
 
     print("Starting the app-simulator sniffer...")
     app_sniffer.start()
-    print("PHASE 1: device abilities, system info and push notifications.\n"
-          "Please start manipulating the physical device. If the device has buttons, press them.\n"
-          "If the device has sensors, make sure to activate some sensors state change (in case of power "
-          "meters, connect a load).\n"
-          "You can also issue commands via the Meross Official App, so that the utility catches the"
-          "push notifications, if any is generated.\n\n")
+    return app_sniffer
 
-    input("Waiting for you to perform actions on the device.\n"
-          "When DONE, press ENTER to proceed to PHASE2.\n")
+
+async def _async_phase_1(device_sniffer: FakeDeviceSniffer):
+    print("--------------------------------------\n"
+          "PHASE 1: intercepting device commands.\n"
+          "--------------------------------------\n"
+          "The goal of this phase is to 'intercept' the commands that the APP sends to the device, pretending to"
+          "be that specific device. In other words, we will 'spoof' the device connection so that the commands "
+          "sent by the official APP are instead routed to this utility.\n\n"
+          "To do so, you need to disconnect the real device from the 'power outlet', so that it gets cut out from "
+          "the Meross cloud, then issue the command you want to inspect from the Meross App. This command will FAIL,"
+          "as the message will not reach the real Meross Device, but this utility instead. When the command is "
+          "received, it will be printed out.\n"
+          "If you need to test multiple states/commands, you can always re-attach the power to the real Meross device,"
+          "perform adjust its original state and then cut off the power and issue the command you want to get info.\n"
+          "To simplify this process, the utility will guide you throughout the process.\n\n")
+
+    while True:
+        try:
+            note = input("1. Describe command are you going to issue via the Meross or leave empty and press ENTER to "
+                     "finish. [e.g. 'Turnining ON the plug']: ")
+        except InterruptedError as e:
+            note = ""
+        if note.strip()=="":
+            print("Finished.")
+            return
+        print(f"2. Now disconnect the Meross device from the power, so that it cannot receive the real message. "
+              f"When ready, issue the command via the Meross APP.\n")
+        print(f"Waiting for commands. When you are done, press CTRL+C to proceed.")
+        message_count = 0
+        while True:
+            try:
+                raw_message, namespace, method, payload = await device_sniffer.async_wait_for_message()
+                if raw_message is None:
+                    continue
+                message_count+=1
+                print(f"--> !Message! <-- {method} {namespace}: {payload}")
+            except InterruptedError as e:
+                break
+
+
+async def _main():
+    _print_welcom_message()
+    client = await _async_gather_http_client()
+    devices = await _async_print_device_list(client)
+    selected_device = await _async_select_device(devices)
+
+    # Log/Collect device data device data
+    system_data = await _async_collect_device_base_data(client, selected_device)
+    device_mac_address = system_data["all"]["system"]["hardware"]["macAddress"]
+
+    # Start the device sniffer
+    device_sniffer = await _async_start_fake_device_sniffer(client.cloud_credentials, selected_device, device_mac_address)
+
+    # Start the app sniffer
+    app_sniffer = _start_app_sniffer(client.cloud_credentials, selected_device)
+
+    # Start simulation and sniffing
+    await _async_phase_1(device_sniffer)
     app_sniffer.stop()
 
     # Start the Phase 2
-    print("Allocating device sniffer...")
+
 
     print("PHASE 2: device commands.\n"
           "It's now time to 'collect' the commands as they are received from the device.\n"
@@ -153,13 +224,16 @@ async def _main():
           "Most probably, the device will not answer correctly and the App will report errors.\n"
           "That's fine, just ignore them and keep issuing different commands to the device.\n\n")
 
+    input("Waiting for you to perform actions on the device.\n"
+          "When DONE, press ENTER to finish.\n")
+
+    await device_sniffer.async_stop()
     # Invalidate the HTTP token
-    await http.async_logout()
+    await client.async_logout()
 
     print("Collecting logs...")
     zip_obj = ZipFile('data.zip', 'w')
     zip_obj.write(SNIFF_LOG_FILE)
-    zip_obj.write(ROOT_LOG_FILE)
     zip_obj.close()
 
     print("A zipfile has been created containing the logs collected during this execution. "
