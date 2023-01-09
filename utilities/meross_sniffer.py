@@ -1,13 +1,16 @@
 import asyncio
+import datetime
 import getpass
 import logging
 import os
 import sys
 import tempfile
+from concurrent.futures import ThreadPoolExecutor
 from hashlib import md5
 from os import path, environ
 from typing import List, Dict
 from zipfile import ZipFile
+
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
 from meross_iot.model.credentials import MerossCloudCreds
@@ -32,7 +35,7 @@ l.addHandler(file_handler)
 
 stream_handler = logging.StreamHandler()
 stream_handler.setFormatter(formatter)
-stream_handler.setLevel(logging.ERROR)
+stream_handler.setLevel(logging.CRITICAL)
 l.addHandler(stream_handler)
 
 
@@ -171,90 +174,91 @@ async def _async_phase_1(device_sniffer: FakeDeviceSniffer, zip_obj: ZipFile):
           "received, it will be printed out.\n"
           "If you need to test multiple states/commands, you can always re-attach the power to the real Meross device,"
           "perform adjust its original state and then cut off the power and issue the command you want to get info.\n"
-          "To simplify this process, the utility will guide you throughout the process.\n\n")
+          "To simplify this process, the utility will guide you throughout the process.\n"
+          "\nXXXXXXXXXXXXXX ATTENTION XXXXXXXXXXXXXX\n"
+          "XXX MAKE SURE THE APP IS NOT CONNECTED TO THE SAME WIFI OF THE MEROSS DEVICE."
+          "XXX If both the APP and the Meross device are on the same WiFi network, their communication will not "
+          "XXX be intercepted. So, it's BETTER to disable the WiFi completely on the smartphone and rely on 3g/4g/5g "
+          "XXX connectivity. That will make sure the APP uses the MQTT channel to talk to the device, and so the "
+          "XXX communication will be intercepted by this sniffer."
+          "\nXXXXXXXXXXXXXX ATTENTION XXXXXXXXXXXXXX\n\n"
+          )
 
     command_iterations = 0
-    while True:
-        try:
-            note = input("1. Describe command are you going to issue via the Meross or leave empty and press ENTER to "
-                     "finish. [e.g. 'Turnining ON the plug']: ")
-        except KeyboardInterrupt as e:
-            note = ""
-        if note.strip()=="":
-            print("Finished.")
-            return
+    messages = set()
+    executor = ThreadPoolExecutor(2)
 
-        command_iterations += 1
-        print(f"2. Now disconnect the Meross device from the power, so that it cannot receive the real message. "
-              f"When ready, issue the command via the Meross APP.\n")
-        print(f"Waiting for commands. When you are done, press CTRL+C to proceed.")
-        message_count = 0
-        with tempfile.NamedTemporaryFile(mode="w+t", encoding="utf8", prefix=f"{command_iterations}_command", suffix=".txt", delete=True) as f:
-            f.write(f"Description: {note}\n\n")
-            while True:
-                try:
-                    raw_message, namespace, method, payload = await device_sniffer.async_wait_for_message()
-                    print(f"Message received [{message_count}]: {method} {namespace}: {payload}")
-                    f.write(raw_message.payload.decode('utf8'))
-                    message_count += 1
-                except KeyboardInterrupt as e:
+    with tempfile.NamedTemporaryFile(mode="w+t", encoding="utf8", prefix=f"{command_iterations}_command", suffix=".txt", delete=False) as f:
+        residual_timeout = 30.0
+        print(f"Waiting up to 30 seconds for messages...")
+        while True:
+            try:
+                before = datetime.datetime.now().timestamp()
+                raw_message, namespace, method, payload = await asyncio.wait_for(device_sniffer.async_wait_for_message(), timeout=residual_timeout)
+                after = datetime.datetime.now().timestamp()
+                key = f"{method}{namespace}{payload}"
+                if key in messages:
+                    # This message type was already intercepted
+                    residual_timeout -= (after - before)
+                    if residual_timeout > 0:
+                        continue
+                    else:
+                        raise TimeoutError()
+            except asyncio.exceptions.TimeoutError:
+                resp = input("Timeout: no message received. Do you want to wait more? [y/N]:").strip().lower()
+                if resp in ('y','yes'):
+                    residual_timeout = 30
+                    print(f"Waiting up to 30 seconds for messages...")
+                    continue
+                else:
                     break
+
+            messages.add(key)
+            print(f"New message type received: {method} {namespace}: {payload}")
+            note = input("Describe the command you issued on the APP which caused this message. If unsure, just type \"?\" or \"IDK\": ")
+            f.write(f"Command Description: {note}\n\n")
+            f.write(raw_message.payload.decode('utf8'))
             f.flush()
-            zip_obj.write(f.name, f"{command_iterations}_command.txt")
-
-
-async def _async_phase_2(app_sniffer: AppSniffer):
-    print("PHASE 2: device commands.\n"
-          "It's now time to 'collect' the commands as they are received from the device.\n"
-          "First sure the Meross device is now connected to the power line."
-          "Then, send commands from the Meross App to the target device.\n")
-
-    print("Waiting for you to perform actions on the device.\n"
-          "When DONE, press CTRL+C to finish.\n")
-    message_count = 0
-    while True:
-        try:
-            push_notification = await app_sniffer.async_wait_push_notification()
-            print(f"Push notification received [{message_count}]: {push_notification}")
-            message_count += 1
-        except KeyboardInterrupt as e:
-            break
+            print(f"Waiting up to 30 seconds for messages...")
+        zip_obj.write(f.name, f"{command_iterations}_command.txt")
 
 
 async def _main():
     zip_obj = ZipFile('data.zip', 'w')
     _print_welcom_message()
     client = await _async_gather_http_client()
-    devices = await _async_print_device_list(client)
-    selected_device = await _async_select_device(devices)
+    try:
+        devices = await _async_print_device_list(client)
+        selected_device = await _async_select_device(devices)
 
-    # Log/Collect device data device data
-    system_data = await _async_collect_device_base_data(client, selected_device)
-    device_mac_address = system_data["all"]["system"]["hardware"]["macAddress"]
+        # Log/Collect device data device data
+        system_data = await _async_collect_device_base_data(client, selected_device)
+        device_mac_address = system_data["all"]["system"]["hardware"]["macAddress"]
 
-    # Start the device sniffer
-    device_sniffer = await _async_start_fake_device_sniffer(client.cloud_credentials, selected_device, device_mac_address)
+        # Start the device sniffer
+        device_sniffer = await _async_start_fake_device_sniffer(client.cloud_credentials, selected_device, device_mac_address)
 
-    # Start the app sniffer
-    app_sniffer = _start_app_sniffer(client.cloud_credentials, selected_device)
+        # Start the app sniffer
+        app_sniffer = _start_app_sniffer(client.cloud_credentials, selected_device)
 
-    # Start simulation and sniffing (phase 1)
-    await _async_phase_1(device_sniffer, zip_obj)
-    await device_sniffer.async_stop()
-    # Start the PUSH notification catching (phase 2)
-    await _async_phase_2(app_sniffer)
-    app_sniffer.stop()
+        # Start simulation and sniffing (phase 1)
+        await _async_phase_1(device_sniffer, zip_obj)
+        await device_sniffer.async_stop()
+        # Start the PUSH notification catching (phase 2)
+        app_sniffer.stop()
 
-    # Invalidate the HTTP token
-    await client.async_logout()
+    finally:
+        if client is not None:
+            await client.async_logout()
 
-    print("Collecting logs...")
-    zip_obj.write(SNIFF_LOG_FILE, 'sniff_log.txt')
-    zip_obj.close()
+        print("Collecting logs...")
+        zip_obj.write(SNIFF_LOG_FILE, 'sniff_log.txt')
+        zip_obj.close()
 
-    print("A zipfile has been created containing the logs collected during this execution. "
-          "It is located in {path}.".format(path=path.abspath(zip_obj.filename)))
-    print("Thanks for helping the Meross community!")
+        print("A zipfile has been created containing the logs collected during this execution. "
+              "It is located in {path}.".format(path=path.abspath(zip_obj.filename)))
+        print("Thanks for helping the Meross community!")
+
 
 
 def main():

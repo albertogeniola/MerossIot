@@ -67,7 +67,7 @@ class AppSniffer(object):
 
         # Starts a new thread that handles mqtt protocol and calls us back via callbacks
         self.l.debug("(Re)Starting the MQTT loop.")
-        self._mqtt_client.loop_stop(True)
+        self._mqtt_client.loop_stop(force=True)
         self._mqtt_client.loop_start()
         self.connect_event.wait()
 
@@ -93,7 +93,7 @@ class AppSniffer(object):
 
     def stop(self):
         self._mqtt_client.disconnect()
-        self._mqtt_client.loop_stop()
+        self._mqtt_client.loop_stop(force=True)
 
     def _on_subscribe(self, client, userdata, mid, granted_qos):
         self.l.debug("Subscribed correctly")

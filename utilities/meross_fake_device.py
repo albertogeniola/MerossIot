@@ -18,6 +18,7 @@ class FakeDeviceSniffer:
 
     def __init__(self, uuid: str, mac_address: str, meross_user_id: str, meross_cloud_key: str, mqtt_host: str, mqtt_port: int, logger: logging.Logger):
         """Constructor"""
+        self._loop = asyncio.get_running_loop()
         self._l = logger
         self._uuid = uuid.lower()
         self._mac_address = mac_address
@@ -25,7 +26,7 @@ class FakeDeviceSniffer:
         self._meross_cloud_key = meross_cloud_key
         self._mqtt_host = mqtt_host
         self._mqtt_port = mqtt_port
-        self._msg_queue = MixedQueue(asyncio.get_running_loop())
+        self._msg_queue = MixedQueue(self._loop)
 
         # Build the client-id
         self._client_id = f"fmware:{self._uuid}_random"
@@ -72,7 +73,7 @@ class FakeDeviceSniffer:
         self._mqtt_client.subscribe(topic=self._device_topic)
 
     async def async_stop(self):
-        if not self._started or not self._starting:
+        if not self._started and not self._starting:
             raise RuntimeError("Not running.")
         if self._mqtt_client.is_connected():
             self._mqtt_client.disconnect()
@@ -82,28 +83,34 @@ class FakeDeviceSniffer:
 
     def _on_connect(self, client: Client, userdata: Any, flags, rc):
         self._l.debug("Fake device connected to mqtt broker successfully")
-        self._connected_event.set()
+        self._loop.call_soon_threadsafe(self._connected_event.set)
 
     def _on_subscribe(self, client: Client, userdata: Any, mid, granted_qos):
         self._l.debug("Fake device subscribed to mqtt topics successfully")
-        self._subscribed_event.set()
-        self._starting = False
-        self._started = True
+        def _cb():
+            self._subscribed_event.set()
+            self._starting = False
+            self._started = True
+        self._loop.call_soon_threadsafe(_cb)
 
     def _on_connection_fail(self, client: Client, userdata):
+        def _cb():
+            self._connected_event.clear()
+            self._starting = False
+            self._started = False
         self._l.error("Fake device failed to connect to MQTT broker")
-        self._connected_event.clear()
-        self._starting = False
-        self._started = False
+        self._loop.call_soon_threadsafe(_cb)
 
     def _on_disconnect(self, client: Client, userdata, rc):
+        def _cb():
+            self._connected_event.clear()
+            self._disconnected_event.set()
         self._l.info("Fake device disconnected from MQTT broker")
-        self._connected_event.clear()
-        self._disconnected_event.set()
+        self._loop.call_soon_threadsafe(_cb)
 
     def _on_unsubscribe(self, client: Client, userdata, mid):
         self._l.info("Fake device unsubscribed from MQTT topics")
-        self._subscribed_event.clear()
+        self._loop.call_soon_threadsafe(self._subscribed_event.clear)
 
     def _on_message(self, client: Client, userdata, message: MQTTMessage):
         self._l.info("Fake device received message: %s from topic %s", str(message.payload), str(message.topic))
