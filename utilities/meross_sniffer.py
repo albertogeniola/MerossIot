@@ -1,6 +1,7 @@
 import asyncio
 import datetime
 import getpass
+import json
 import logging
 import os
 import sys
@@ -8,11 +9,12 @@ import tempfile
 from concurrent.futures import ThreadPoolExecutor
 from hashlib import md5
 from os import path, environ
-from typing import List, Dict
+from typing import List, Dict, Tuple
 from zipfile import ZipFile
 
+from meross_iot.controller.device import BaseDevice
 from meross_iot.http_api import MerossHttpClient
-from meross_iot.manager import MerossManager
+from meross_iot.manager import MerossManager, TransportMode
 from meross_iot.model.credentials import MerossCloudCreds
 from meross_iot.model.enums import Namespace, OnlineStatus
 from meross_iot.model.http.device import HttpDeviceInfo
@@ -93,7 +95,7 @@ async def _async_select_device(devices: List[HttpDeviceInfo]) -> HttpDeviceInfo:
     return selected_device
 
 
-async def _async_collect_device_base_data(client: MerossHttpClient, selected_device: HttpDeviceInfo) -> Dict:
+async def _async_collect_device_base_data(client: MerossHttpClient, selected_device: HttpDeviceInfo) -> Tuple[Dict, MerossManager]:
     print("Collecting devices info...")
     manager = MerossManager(http_client=client)
     await manager.async_init()
@@ -124,9 +126,7 @@ async def _async_collect_device_base_data(client: MerossHttpClient, selected_dev
     except:
         l.exception(f"Could not collect sysdata/abilities for {selected_device.uuid}")
 
-    # Close the manager as we won't need it any longer
-    manager.close()
-    return system_data
+    return system_data, manager
 
 
 async def _async_start_fake_device_sniffer(cloud_credentials: MerossCloudCreds, selected_device: HttpDeviceInfo, mac_address: str) -> FakeDeviceSniffer:
@@ -161,7 +161,7 @@ def _start_app_sniffer(cloud_credentials: MerossCloudCreds, selected_device: Htt
     return app_sniffer
 
 
-async def _async_phase_1(device_sniffer: FakeDeviceSniffer, zip_obj: ZipFile):
+async def _async_sniff(device_sniffer: FakeDeviceSniffer, zip_obj: ZipFile, meross_manager: MerossManager, selected_device: HttpDeviceInfo):
     print("--------------------------------------\n"
           "PHASE 1: intercepting device commands.\n"
           "--------------------------------------\n"
@@ -184,11 +184,10 @@ async def _async_phase_1(device_sniffer: FakeDeviceSniffer, zip_obj: ZipFile):
           "\nXXXXXXXXXXXXXX ATTENTION XXXXXXXXXXXXXX\n\n"
           )
 
-    command_iterations = 0
     messages = set()
     executor = ThreadPoolExecutor(2)
 
-    with tempfile.NamedTemporaryFile(mode="w+t", encoding="utf8", prefix=f"{command_iterations}_command", suffix=".txt", delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w+t", encoding="utf8", prefix=f"sniffed_commands", suffix=".txt", delete=False) as f:
         residual_timeout = 30.0
         print(f"Waiting up to 30 seconds for messages...")
         while True:
@@ -217,22 +216,39 @@ async def _async_phase_1(device_sniffer: FakeDeviceSniffer, zip_obj: ZipFile):
             print(f"New message type received: {method} {namespace}: {payload}")
             note = input("Describe the command you issued on the APP which caused this message. If unsure, just type \"?\" or \"IDK\": ")
             f.write(f"Command Description: {note}\n\n")
+            f.write(f"Request: \n")
             f.write(raw_message.payload.decode('utf8'))
             f.flush()
+
+            # Attempt now to retrieve a response simulating that command to the real device
+            print("Replicating the same message to the device in order to catch the real response...")
+            response = await meross_manager.async_execute_cmd(
+                mqtt_hostname=selected_device.get_mqtt_host(),
+                mqtt_port=selected_device.get_mqtt_port(),
+                destination_device_uuid=selected_device.uuid,
+                method=method,
+                namespace=Namespace(namespace),
+                payload=payload,
+                timeout=5.0,
+                override_transport_mode=TransportMode.MQTT_ONLY
+            )
+            f.write(f"\nResponse: \n")
+            f.write(json.dumps(response))
             print(f"Waiting up to 30 seconds for messages...")
-        zip_obj.write(f.name, f"{command_iterations}_command.txt")
+        zip_obj.write(f.name, f"sniffed_commands.txt")
 
 
 async def _main():
     zip_obj = ZipFile('data.zip', 'w')
     _print_welcom_message()
     client = await _async_gather_http_client()
+    manager = None
     try:
         devices = await _async_print_device_list(client)
         selected_device = await _async_select_device(devices)
 
         # Log/Collect device data device data
-        system_data = await _async_collect_device_base_data(client, selected_device)
+        system_data, manager = await _async_collect_device_base_data(client, selected_device)
         device_mac_address = system_data["all"]["system"]["hardware"]["macAddress"]
 
         # Start the device sniffer
@@ -242,7 +258,7 @@ async def _main():
         app_sniffer = _start_app_sniffer(client.cloud_credentials, selected_device)
 
         # Start simulation and sniffing (phase 1)
-        await _async_phase_1(device_sniffer, zip_obj)
+        await _async_sniff(device_sniffer, zip_obj, manager, selected_device)
         await device_sniffer.async_stop()
         # Start the PUSH notification catching (phase 2)
         app_sniffer.stop()
@@ -250,6 +266,8 @@ async def _main():
     finally:
         if client is not None:
             await client.async_logout()
+        if manager is not None:
+            manager.close()
 
         print("Collecting logs...")
         zip_obj.write(SNIFF_LOG_FILE, 'sniff_log.txt')
