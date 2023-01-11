@@ -133,7 +133,7 @@ When not passed, the manager will issue the HTTP API call to retrieve the latest
 
 <dl class="method">
 <dt id="meross_iot.manager.MerossManager.async_execute_cmd">
-<em class="property">async </em><code class="sig-name descname">async_execute_cmd</code><span class="sig-paren">(</span><em class="sig-param">mqtt_hostname: str</em>, <em class="sig-param">mqtt_port: int</em>, <em class="sig-param">destination_device_uuid: str</em>, <em class="sig-param">method: str</em>, <em class="sig-param">namespace: meross_iot.model.enums.Namespace</em>, <em class="sig-param">payload: dict</em>, <em class="sig-param">timeout: float = 10.0</em>, <em class="sig-param">override_transport_mode: meross_iot.manager.TransportMode = None</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.manager.MerossManager.async_execute_cmd" title="Permalink to this definition">¶</a></dt>
+<em class="property">async </em><code class="sig-name descname">async_execute_cmd</code><span class="sig-paren">(</span><em class="sig-param">mqtt_hostname: str, mqtt_port: int, destination_device_uuid: str, method: str, namespace: Union[meross_iot.model.enums.Namespace, str], payload: dict, timeout: float = 10.0, override_transport_mode: meross_iot.manager.TransportMode = None</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.manager.MerossManager.async_execute_cmd" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method sends a command to the device, locally via HTTP or via the MQTT Meross broker.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
