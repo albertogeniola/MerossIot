@@ -791,7 +791,7 @@ class MerossManager(object):
             mqtt_port: int,
             destination_device_uuid: str,
             method: str,
-            namespace: Namespace,
+            namespace: Union[Namespace, str],
             payload: dict,
             timeout: float = DEFAULT_COMMAND_TIMEOUT,
             override_transport_mode: TransportMode = None
@@ -855,7 +855,7 @@ class MerossManager(object):
                                       device_ip: str,
                                       destination_device_uuid: str,
                                       method: str,
-                                      namespace: Namespace,
+                                      namespace: Union[Namespace,str],
                                       payload: dict,
                                       timeout: float = 10.0):
         # Send the message over the network
@@ -921,7 +921,7 @@ class MerossManager(object):
             pushn = OnlinePushNotification(originating_device_uuid=d.uuid, raw_data={'online': {'status': -1}})
             await self._handle_and_dispatch_push_notification(pushn)
 
-    def _build_mqtt_message(self, method: str, namespace: Namespace, payload: dict, destination_device_uuid: str):
+    def _build_mqtt_message(self, method: str, namespace: Union[Namespace, str], payload: dict, destination_device_uuid: str):
         """
         Sends a message to the Meross MQTT broker, respecting the protocol payload.
 
@@ -951,12 +951,16 @@ class MerossManager(object):
         md5_hash.update(strtohash.encode("utf8"))
         signature = md5_hash.hexdigest().lower()
 
+        if not isinstance(namespace, Namespace) and not isinstance(namespace, str):
+            raise ValueError("Namespace parameter must be a Namespace enum or a string.")
+        namespace_val = namespace.value if isinstance(namespace, Namespace) else namespace
+
         data = {
             "header": {
                 "from": self._client_response_topic,
                 "messageId": messageId,  # Example: "122e3e47835fefcd8aaf22d13ce21859"
                 "method": method,  # Example: "GET",
-                "namespace": namespace.value,  # Example: "Appliance.System.All",
+                "namespace": namespace_val,  # Example: "Appliance.System.All",
                 "payloadVersion": 1,
                 "sign": signature,  # Example: "b4236ac6fb399e70c3d61e98fcb68b74",
                 "timestamp": timestamp,

@@ -222,18 +222,22 @@ async def _async_sniff(device_sniffer: FakeDeviceSniffer, zip_obj: ZipFile, mero
 
             # Attempt now to retrieve a response simulating that command to the real device
             print("Replicating the same message to the device in order to catch the real response...")
-            response = await meross_manager.async_execute_cmd(
-                mqtt_hostname=selected_device.get_mqtt_host(),
-                mqtt_port=selected_device.get_mqtt_port(),
-                destination_device_uuid=selected_device.uuid,
-                method=method,
-                namespace=Namespace(namespace),
-                payload=payload,
-                timeout=5.0,
-                override_transport_mode=TransportMode.MQTT_ONLY
-            )
-            f.write(f"\nResponse: \n")
-            f.write(json.dumps(response))
+            try:
+                response = await meross_manager.async_execute_cmd(
+                    mqtt_hostname=selected_device.get_mqtt_host(),
+                    mqtt_port=selected_device.get_mqtt_port(),
+                    destination_device_uuid=selected_device.uuid,
+                    method=method,
+                    namespace=namespace,
+                    payload=payload,
+                    timeout=5.0,
+                    override_transport_mode=TransportMode.MQTT_ONLY
+                )
+                f.write(f"\nResponse: \n")
+                f.write(json.dumps(response))
+            except Exception as e:
+                l.exception("An error occurred while collecting a response from the device simulating the latest message. No response will be catched.")
+                print("Skipping response collection.")
             print(f"Waiting up to 30 seconds for messages...")
         zip_obj.write(f.name, f"sniffed_commands.txt")
 
