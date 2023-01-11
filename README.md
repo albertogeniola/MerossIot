@@ -32,7 +32,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```bash
-pip install meross_iot==0.4.5.7
+pip install meross_iot==0.4.5.8
 ```
 
 ## Usage & Full Documentation
@@ -190,11 +190,14 @@ Anyway, feel free to contribute via donations!
 </p>
 
 ## Changelog
-#### 0.4.5.7
-- Fix regression introduced with the latest refactor: missing properties on SubDevices.
+#### 0.4.5.8
+- Improve meross_sniffer utility: add support to collect messages spoofing the hardware device on meross cloud.
 
 <details>
     <summary>Older</summary>
+#### 0.4.5.7
+- Fix regression introduced with the latest refactor: missing properties on SubDevices.
+
 #### 0.4.5.4
 - Fix #274, due to Meross API change
 
