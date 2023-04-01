@@ -28,11 +28,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search"  style="background: white" >
-            <a href="index.html" class="icon icon-home"> MerossIot Library
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            MerossIot Library
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -69,7 +73,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a></li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
       <li class="breadcrumb-item active">Quick start</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/quick-start.rst.txt" rel="nofollow"> View page source</a>
@@ -572,14 +576,14 @@ absolving the author of this library of all responsibility.</p>
 
         <span class="c1"># To open the door, uncomment the following:</span>
         <span class="c1">#print(f&quot;Opening door {dev.name}...&quot;)</span>
-        <span class="c1">#await dev.open(channel=0)</span>
+        <span class="c1">#await dev.async_open(channel=0)</span>
         <span class="c1">#print(&quot;Door opened!&quot;)</span>
         <span class="c1">#</span>
         <span class="c1"># Wait a bit before closing it again</span>
         <span class="c1">#await asyncio.sleep(5)</span>
         <span class="c1">#</span>
         <span class="c1">#print(f&quot;Closing door {dev.name}...&quot;)</span>
-        <span class="c1">#await dev.close()</span>
+        <span class="c1">#await dev.async_close()</span>
         <span class="c1"># print(f&quot;Door closed!&quot;)</span>
 
     <span class="c1"># Close the manager and logout from http_api</span>
