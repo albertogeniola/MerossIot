@@ -39,14 +39,14 @@ async def main():
 
         # To open the door, uncomment the following:
         #print(f"Opening door {dev.name}...")
-        #await dev.open(channel=0)
+        #await dev.async_open(channel=0)
         #print("Door opened!")
         #
         # Wait a bit before closing it again
         #await asyncio.sleep(5)
         #
         #print(f"Closing door {dev.name}...")
-        #await dev.close()
+        #await dev.async_close()
         # print(f"Door closed!")
 
     # Close the manager and logout from http_api
