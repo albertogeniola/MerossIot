@@ -19,7 +19,7 @@ async def main():
 
     # Retrieve all the devices that implement the garage-door opening mixin
     await manager.async_device_discovery()
-    openers = manager.find_devices(device_class=GarageOpenerMixin)
+    openers = manager.find_devices(device_class=GarageOpenerMixin, device_type="msg100")
 
     if len(openers) < 1:
         print("No garage opener found...")

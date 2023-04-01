@@ -215,7 +215,7 @@ async def _async_sniff(device_sniffer: FakeDeviceSniffer, zip_obj: ZipFile, mero
             messages.add(key)
             print(f"New message type received: {method} {namespace}: {payload}")
             note = input("Describe the command you issued on the APP which caused this message. If unsure, just type \"?\" or \"IDK\": ")
-            f.write(f"Command Description: {note}\n\n")
+            f.write(f"\n\nCommand Description: {note}\n\n")
             f.write(f"Request: \n")
             f.write(raw_message.payload.decode('utf8'))
             f.flush()

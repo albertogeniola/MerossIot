@@ -29,6 +29,7 @@ class BaseDevice(object):
     _hwversion: str = "unknown"
     _online: OnlineStatus = OnlineStatus.UNKNOWN
     _inner_ip: Optional[str] = None
+    _mac_address: Optional[str] = None
     _mqtt_host: str = DEFAULT_MQTT_HOST
     _mqtt_port: int = DEFAULT_MQTT_PORT
 
@@ -86,6 +87,10 @@ class BaseDevice(object):
     @property
     def lan_ip(self):
         return self._inner_ip
+
+    @property
+    def mac_address(self):
+        return self._mac_address
 
     @property
     def mqtt_host(self):
@@ -240,6 +245,7 @@ class BaseDevice(object):
             # TODO: we might update name/uuid/other stuff in here...
             system = data.get('all', {}).get('system', {})
             self._inner_ip = system.get('firmware', {}).get('innerIp')
+            self._mac_address = system.get('hardware', {}).get('macAddress', None)
 
         await self._fire_push_notification_event(namespace=namespace, data=data, device_internal_id=self.internal_id)
         self._last_full_update_ts = time.time() * 1000
