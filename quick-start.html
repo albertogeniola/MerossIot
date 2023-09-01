@@ -556,7 +556,7 @@ absolving the author of this library of all responsibility.</p>
 
     <span class="c1"># Retrieve all the devices that implement the garage-door opening mixin</span>
     <span class="k">await</span> <span class="n">manager</span><span class="o">.</span><span class="n">async_device_discovery</span><span class="p">()</span>
-    <span class="n">openers</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">find_devices</span><span class="p">(</span><span class="n">device_class</span><span class="o">=</span><span class="n">GarageOpenerMixin</span><span class="p">)</span>
+    <span class="n">openers</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">find_devices</span><span class="p">(</span><span class="n">device_class</span><span class="o">=</span><span class="n">GarageOpenerMixin</span><span class="p">,</span> <span class="n">device_type</span><span class="o">=</span><span class="s2">&quot;msg100&quot;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">openers</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No garage opener found...&quot;</span><span class="p">)</span>
