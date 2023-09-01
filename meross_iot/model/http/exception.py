@@ -14,6 +14,12 @@ class HttpApiError(AuthenticatedPostException):
 class BadLoginException(Exception):
     pass
 
+class BadDomainException(Exception):
+    def __init__(self, msg: str, api_domain: str, mqtt_domain:str):
+        super().__init__(msg)
+        self.api_domain = api_domain
+        self.mqtt_domain = mqtt_domain
+
 
 class UnauthorizedException(Exception):
     pass

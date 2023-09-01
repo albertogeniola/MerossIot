@@ -57,6 +57,9 @@ class ErrorCodes(Enum):
     CODE_UNKNOWN_FAILURE_1028 = 1028
     """Unknown error"""
 
+    CODE_REDIRECT_REGION = 1030
+    """Wrong login region"""
+
     CODE_TOKEN_EXPIRED = 1200
     """Token has expired"""
 

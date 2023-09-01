@@ -21,7 +21,7 @@ from meross_iot.model.credentials import MerossCloudCreds
 from meross_iot.model.http.device import HttpDeviceInfo
 from meross_iot.model.http.error_codes import ErrorCodes
 from meross_iot.model.http.exception import TooManyTokensException, TokenExpiredException, AuthenticatedPostException, \
-    HttpApiError, BadLoginException
+    HttpApiError, BadLoginException, BadDomainException
 from meross_iot.model.http.subdevice import HttpSubdeviceInfo
 from meross_iot.utilities.misc import current_version
 from meross_iot.utilities.stats import HttpStatsCounter
@@ -29,7 +29,7 @@ from meross_iot.utilities.stats import HttpStatsCounter
 _LOGGER = logging.getLogger(__name__)
 
 _SECRET = "23x17ahWarFH6w29"
-_LOGIN_URL = "%s/v1/Auth/Login"
+_LOGIN_URL = "%s/v1/Auth/signIn"
 _LOG_URL = "%s/v1/log/user"
 _DEV_LIST = "%s/v1/Device/devList"
 _HUB_DUBDEV_LIST = "%s/v1/Hub/getSubDevices"
@@ -166,11 +166,15 @@ class MerossHttpClient(object):
                           app_type: str = _DEFAULT_APP_TYPE,
                           app_version: str = _MODULE_VERSION,
                           log_identifier: str = _DEFAULT_LOG_IDENTIFIER,
+                          country_code: str = "us",
+                          agree_to_terms: int = 0,
+                          mfa_code: str = None,
                           stats_counter: HttpStatsCounter = None,
-                          *args, **kwargs) -> MerossCloudCreds:
+        *args, **kwargs) -> MerossCloudCreds:
         """
         Performs the login against the Meross HTTP endpoint.
-        This api returns a MerossCloudCreds object, which contains a token.
+        This api returns a MerossCloudCreds object, which contains the API endpooint, the mqtt endpoint and the
+        authorization token to use the various API/MQTT services.
         Be cautious when invoking this API: asking for too many tokens as the Meross HTTP API might refuse
         to issue more tokens. Instead, you should keep using the same issued token when possible, possibly
         storing it across sessions. When you are done using a specific token, be sure to invoke logout
@@ -186,11 +190,21 @@ class MerossHttpClient(object):
         :param stats_counter: Stats counter object
         :param app_type: App Type header parameter to use
         :param app_version:  App Version header parameter to use
+        :param country_code: (experimental) The country code you are connecting from
+        :param agree_to_terms: (optional) if 1 means we agree, if 0 or omitted, means we do not agree to terms
+        :mfa_code: (optional) MFA code
 
         :return: a `MerossCloudCreds` object
         """
+        # Calculate password's md5
+        m = hashlib.md5()
+        m.update(password.encode("utf8"))
+        hashed_password = m.hexdigest()
         data = { "email": email,
-                 "password": password,
+                 "password": hashed_password,
+                 "accountCountryCode": country_code,
+                 "encryption": 1,
+                 "agree": 1 if agree_to_terms else 0,
                  "mobileInfo": {
                      "deviceModel": platform.machine(),
                      "mobileOsVersion": platform.version(),
@@ -199,20 +213,33 @@ class MerossHttpClient(object):
                      "carrier":""
                  }
              }
+
+        # MFACode is optional
+        if mfa_code is not None:
+            data["mfaCode"] = mfa_code
+
         url = _LOGIN_URL % api_base_url
-        response_data = await MerossHttpClient._async_authenticated_post(url=url,
-                                                                         params_data=data,
-                                                                         mask_params_in_log=True,
-                                                                         http_proxy=http_proxy,
-                                                                         ua_header=ua_header,
-                                                                         app_type=app_type,
-                                                                         app_version=app_version,
-                                                                         stats_counter=stats_counter)
+        try:
+            response_data = await MerossHttpClient._async_authenticated_post(url=url,
+                                                                             params_data=data,
+                                                                             mask_params_in_log=True,
+                                                                             http_proxy=http_proxy,
+                                                                             ua_header=ua_header,
+                                                                             app_type=app_type,
+                                                                             app_version=app_version,
+                                                                             stats_counter=stats_counter)
+        except BadDomainException as e:
+            _LOGGER.error(f"Login API redirected to different region: {e.api_domain}. Login will be re-attempted")
+            return await MerossHttpClient.async_login(email=email, password=password, creds_env_var_name=creds_env_var_name, api_base_url=e.api_domain,http_proxy=http_proxy,ua_header=ua_header,app_type=app_type,app_version=app_version,log_identifier=log_identifier,country_code=country_code,agree_to_terms=agree_to_terms,mfa_code=mfa_code,stats_counter=stats_counter,*args, **kwargs)
+
         creds = MerossCloudCreds(
             token=response_data["token"],
             key=response_data["key"],
             user_id=response_data["userid"],
             user_email=response_data["email"],
+            domain=response_data["domain"],
+            mqtt_domain=response_data["mqttDomain"],
+            mfa_lock_expire=response_data["mfaLockExpire"],
             issued_on=datetime.utcnow()
         )
         if creds_env_var_name is not None:
@@ -313,6 +340,10 @@ class MerossHttpClient(object):
                                                      "account might have been temporarly disabled.")
                     elif error in [ErrorCodes.CODE_WRONG_CREDENTIALS, ErrorCodes.CODE_UNEXISTING_ACCOUNT]:
                         raise BadLoginException("Invalid username/Password combination")
+                    elif error == ErrorCodes.CODE_REDIRECT_REGION:
+                        api_domain = jsondata.get("data").get("domain")
+                        mqtt_domain = jsondata.get("data").get("mqttDomain")
+                        raise BadDomainException(f"Invalid URL/API Endpoint used. Use: {api_domain} instead.", api_domain, mqtt_domain)
                     else:
                         _LOGGER.error(f"Received non-ok API status code: {error.name}. "
                                       f"Failed request to API. Response was: {jsondata}")
