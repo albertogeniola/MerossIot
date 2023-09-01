@@ -190,12 +190,18 @@ Anyway, feel free to contribute via donations!
 </p>
 
 ## Changelog
+#### 0.4.6.0rc0
+- Switched the login API to the new signIn path as old /Auth/login is being deprecated
+- Improved CloudCreds to carry also API and MQTT endpoints
+- Handled auto-retry in case of wrong endpoint being used for login
+- Added mac-address attribute to BaseDevice class
+
+<details>
+    <summary>Older</summary>
 #### 0.4.5.9
 - Improve meross_sniffer utility: add support to collect messages spoofing the hardware device on meross cloud.
 - Allow string namespace value for execute_command within manager.
 
-<details>
-    <summary>Older</summary>
 #### 0.4.5.7
 - Fix regression introduced with the latest refactor: missing properties on SubDevices.
 

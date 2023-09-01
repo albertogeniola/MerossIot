@@ -232,6 +232,8 @@ class MerossHttpClient(object):
             _LOGGER.error(f"Login API redirected to different region: {e.api_domain}. Login will be re-attempted")
             return await MerossHttpClient.async_login(email=email, password=password, creds_env_var_name=creds_env_var_name, api_base_url=e.api_domain,http_proxy=http_proxy,ua_header=ua_header,app_type=app_type,app_version=app_version,log_identifier=log_identifier,country_code=country_code,agree_to_terms=agree_to_terms,mfa_code=mfa_code,stats_counter=stats_counter,*args, **kwargs)
 
+        _LOGGER.info(f"Login successful against {api_base_url}")
+
         creds = MerossCloudCreds(
             token=response_data["token"],
             key=response_data["key"],
