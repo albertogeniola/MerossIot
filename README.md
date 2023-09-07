@@ -32,7 +32,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```bash
-pip install meross_iot==0.4.5.9
+pip install meross_iot==0.4.6.0
 ```
 
 ## Usage & Full Documentation
@@ -55,7 +55,13 @@ PASSWORD = os.environ.get('MEROSS_PASSWORD') or "YOUR_MEROSS_CLOUD_PASSWORD"
 
 async def main():
     # Setup the HTTP client API from user-password
-    http_api_client = await MerossHttpClient.async_from_user_password(email=EMAIL, password=PASSWORD)
+    # When choosing the API_BASE_URL env var, choose from one of the above based on your location.
+    # Asia-Pacific: "iotx-ap.meross.com"
+    # Europe: "iotx-eu.meross.com"
+    # US: "iotx-us.meross.com"
+    http_api_client = await MerossHttpClient.async_from_user_password(api_base_url='https://iotx-eu.meross.com',
+                                                                      email=EMAIL, 
+                                                                      password=PASSWORD)
 
     # Setup and start the device manager
     manager = MerossManager(http_client=http_api_client)
@@ -190,7 +196,9 @@ Anyway, feel free to contribute via donations!
 </p>
 
 ## Changelog
-#### 0.4.6.0rc0
+#### 0.4.6.0rc1
+- NOTE: this API version breaks backward compatibility with LOGIN method. When upgrading to this version, 
+make sure to pass the new api_base_url value correctly as described in the documentation.
 - Switched the login API to the new signIn path as old /Auth/login is being deprecated
 - Improved CloudCreds to carry also API and MQTT endpoints
 - Handled auto-retry in case of wrong endpoint being used for login

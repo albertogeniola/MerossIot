@@ -4,8 +4,8 @@ from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
 from meross_iot.http_api import MerossHttpClient
-from meross_iot.model.http.exception import BadLoginException
-from tests import async_get_client
+from meross_iot.model.http.exception import BadLoginException, BadDomainException
+from tests import async_get_client, _TEST_EMAIL, _TEST_PASSWORD, _TEST_API_BASE_URL
 
 if os.name == 'nt':
     import asyncio
@@ -47,7 +47,8 @@ class TestHttpMethods(AioHTTPTestCase):
     @unittest_run_loop
     async def test_bad_login(self):
         with self.assertRaises(BadLoginException):
-            return await MerossHttpClient.async_from_user_password(email="albertogeniola@gmail.com",
+            return await MerossHttpClient.async_from_user_password(api_base_url=_TEST_API_BASE_URL,
+                                                                   email="albertogeniola@gmail.com",
                                                                    password="thisIzWRONG!")
 
     @unittest_run_loop
@@ -55,6 +56,13 @@ class TestHttpMethods(AioHTTPTestCase):
         devices = await self.meross_client.async_list_devices()
         assert devices is not None
         assert len(devices) > 0
+
+
+    @unittest_run_loop
+    async def test_bad_domain(self):
+        with self.assertRaises(BadDomainException):
+            return await MerossHttpClient.async_from_user_password(api_base_url=_TEST_API_BASE_URL, email=_TEST_EMAIL, password=_TEST_PASSWORD, auto_retry_on_bad_domain=False)
+
 
     @unittest_run_loop
     async def test_subdevice_listing(self):

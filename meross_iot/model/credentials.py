@@ -2,6 +2,8 @@ import json
 from datetime import datetime
 from typing import Union
 
+from meross_iot.model.constants import DEFAULT_MQTT_HOST
+
 
 class MerossCloudCreds(object):
     """
@@ -45,7 +47,14 @@ class MerossCloudCreds(object):
         :return:
         """
         data = json.loads(json_string)
-        return MerossCloudCreds(**data)
+        # The old version of this object did not store the domain and mqttDomain.
+        # We add in here the logic we need to ensure backward compatibility.
+        if 'mqtt_domain' not in data:
+            data['mqtt_domain'] = DEFAULT_MQTT_HOST
+        if 'domain' not in data:
+            data['domain'] = "http://iot.meross.com"
+        res = MerossCloudCreds(**data)
+        return res
 
     def __repr__(self):
         return self.to_json()
