@@ -6,11 +6,6 @@
 [![Downloads](https://pepy.tech/badge/meross-iot)](https://pepy.tech/project/meross-iot)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/meross-iot.svg?label=Pypi%20Downloads)
 
-### 💣💣 BREAKING CHANGES FROM MEROSS API 💣💣
-In the past 24 hours, Meross has changed the signature of its HTTP API version (keeping the same API version in place).
-**That did break any MerossIot library below v0.4.5.3 (included).**
-The latest version, v0.4.5.4, includes the necessary adjustments to the new API signature. 
-**Make sure to upgrade your MerossIot library to v0.4.5.4** as soon as you can.
 
 # Meross IoT library
 A pure-python based library providing API for controlling Meross IoT devices over the internet.
