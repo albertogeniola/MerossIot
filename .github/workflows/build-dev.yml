@@ -95,7 +95,7 @@ jobs:
       run: |
         pip install .
         # Set credentials into memory
-        TOKEN=$(meross_api_cli auth login --email $MEROSS_EMAIL --password "$MEROSS_PASSWORD" | base64 -w0)
+        TOKEN=$(meross_api_cli auth login --email $MEROSS_EMAIL --password "$MEROSS_PASSWORD" --api-base-url "https://iotx-us.meross.com" | base64 -w0)
         # Run test
         __MEROSS_CREDS=$TOKEN pytest tests --suppress-tests-failed-exit-code --json-report --doctest-modules --junitxml=junit/test-results.xml --cov=. --cov-report=xml --cov-report=html --html=junit/test-results.html --self-contained-html
         # Invalidate token
