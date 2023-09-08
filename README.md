@@ -191,13 +191,14 @@ Anyway, feel free to contribute via donations!
 </p>
 
 ## Changelog
-#### 0.4.6.0rc1
+#### 0.4.6.0rc2
 - NOTE: this API version breaks backward compatibility with LOGIN method. When upgrading to this version, 
 make sure to pass the new api_base_url value correctly as described in the documentation.
 - Switched the login API to the new signIn path as old /Auth/login is being deprecated
 - Improved CloudCreds to carry also API and MQTT endpoints
 - Handled auto-retry in case of wrong endpoint being used for login
 - Added mac-address attribute to BaseDevice class
+- Fix recursive import error for CLI utility and updated help command for API-BASE-URL parameter
 
 <details>
     <summary>Older</summary>
