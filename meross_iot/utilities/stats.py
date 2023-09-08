@@ -3,7 +3,7 @@ from collections import deque
 from datetime import timedelta
 from typing import Optional, Deque, Dict, ItemsView
 
-from meross_iot.http_api import ErrorCodes
+from meross_iot.model.http.error_codes import ErrorCodes
 
 
 class HttpRequestSample:
