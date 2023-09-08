@@ -42,7 +42,7 @@ jobs:
       TPLINK_PASS: ${{ secrets.TPLINK_PASS }}
     steps:
       - name: Setup Node.js environment
-        uses: actions/setup-node@v2-beta
+        uses: actions/setup-node@v3.8.1
         with:
           node-version: 11.x
       - uses: actions/checkout@v2
@@ -154,7 +154,7 @@ jobs:
       TPLINK_PASS: ${{ secrets.TPLINK_PASS }}
     steps:
       - name: Setup Node.js environment
-        uses: actions/setup-node@v2-beta
+        uses: actions/setup-node@v3.8.1
         with:
           node-version: 11.x
       - uses: actions/checkout@v2
