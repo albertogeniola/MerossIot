@@ -579,7 +579,7 @@ def main():
     # auth login
     auth_login = auth_subparsers.add_parser('login',
                                             description="Logs in into meross HTTP api and prints out the credentials")
-    auth_login.add_argument('--api-base-url', type=str, required=True, help='Account username/email')
+    auth_login.add_argument('--api-base-url', type=str, required=True, help='Api base URL to login against. Should be one among: https://iotx-eu.meross.com, https://iotx-us.meross.com, https://iotx-ap.meross.com')
     auth_login.add_argument('--email', type=str, required=True, help='Account username/email')
     auth_login.add_argument('--password', type=str, required=True, help='Account password')
     auth_login.add_argument('--creds-env-var-name', type=str, required=False,
