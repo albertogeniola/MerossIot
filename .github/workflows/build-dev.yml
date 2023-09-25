@@ -129,7 +129,7 @@ jobs:
     steps:
       - name: Powering on the dev-environment
         run: |
-          curl -X POST -k --header "Content-Type: application/json" --header "Authorization: Bearer $HOMEASSISTANT_TOKEN" https://milano.geniola.it/api/services/switch/turn_on -d "{\"entity_id\":\"switch.meross_lab\"}"
+          curl -X POST -k --header "Content-Type: application/json" --header "Authorization: Bearer $HOMEASSISTANT_TOKEN" https://milano.geniola.it/api/services/switch/turn_off -d "{\"entity_id\":\"switch.meross_lab\"}"
     name: Turn off test environment
     if: ${{ always() }}
 
