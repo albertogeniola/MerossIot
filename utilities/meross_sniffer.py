@@ -61,7 +61,7 @@ async def _async_gather_http_client() -> MerossHttpClient:
     if password is None:
         password = getpass.getpass(prompt='Please specify your Meross password: ', stream=sys.stdout).strip()
     try:
-        return await MerossHttpClient.async_from_user_password(email, password)
+        return await MerossHttpClient.async_from_user_password(email=email, password=password)
     except Exception:
         print("An error occurred while gathering MerossAPI Client. Make sure your email-password credentials are valid.")
         exit(1)
