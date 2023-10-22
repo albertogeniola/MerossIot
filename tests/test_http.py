@@ -4,7 +4,8 @@ from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
 from meross_iot.http_api import MerossHttpClient
-from meross_iot.model.http.exception import BadLoginException, BadDomainException
+from meross_iot.model.http.error_codes import ErrorCodes
+from meross_iot.model.http.exception import BadLoginException, BadDomainException, HttpApiError
 from tests import async_get_client, _TEST_EMAIL, _TEST_PASSWORD, _TEST_API_BASE_URL
 
 if os.name == 'nt':
@@ -48,8 +49,30 @@ class TestHttpMethods(AioHTTPTestCase):
     async def test_bad_login(self):
         with self.assertRaises(BadLoginException):
             return await MerossHttpClient.async_from_user_password(api_base_url=_TEST_API_BASE_URL,
-                                                                   email="albertogeniola@gmail.com",
+                                                                   email=_TEST_EMAIL,
                                                                    password="thisIzWRONG!")
+
+    @unittest_run_loop
+    async def test_not_existing_email(self):
+        with self.assertRaises(HttpApiError):
+            try:
+                return await MerossHttpClient.async_from_user_password(api_base_url=_TEST_API_BASE_URL,
+                                                                       email="thisDoesNotExistIGuess@gmail.com",
+                                                                       password="thisIzWRONG!")
+            except HttpApiError as e:
+                self.assertEqual(e.error_code, ErrorCodes.CODE_WRONG_EMAIL)
+                raise e
+
+    @unittest_run_loop
+    async def test_bad_email(self):
+        with self.assertRaises(HttpApiError):
+            try:
+                return await MerossHttpClient.async_from_user_password(api_base_url=_TEST_API_BASE_URL,
+                                                                       email="invalidemail",
+                                                                       password="somePassword")
+            except HttpApiError as e:
+                self.assertEqual(e.error_code, ErrorCodes.CODE_WRONG_EMAIL)
+                raise e
 
     @unittest_run_loop
     async def test_device_listing(self):
