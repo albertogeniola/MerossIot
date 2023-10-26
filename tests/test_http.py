@@ -5,8 +5,8 @@ from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.model.http.error_codes import ErrorCodes
-from meross_iot.model.http.exception import BadLoginException, BadDomainException, HttpApiError
-from tests import async_get_client, _TEST_EMAIL, _TEST_PASSWORD, _TEST_API_BASE_URL
+from meross_iot.model.http.exception import BadLoginException, BadDomainException, HttpApiError, MissingMFA, WrongMFA
+from tests import async_get_client, _TEST_EMAIL, _TEST_PASSWORD, _TEST_API_BASE_URL, _TEST_EMAIL_MFA
 
 if os.name == 'nt':
     import asyncio
@@ -75,6 +75,21 @@ class TestHttpMethods(AioHTTPTestCase):
                 raise e
 
     @unittest_run_loop
+    async def test_missing_mfa(self):
+        with self.assertRaises(MissingMFA):
+            return await MerossHttpClient.async_from_user_password(api_base_url=_TEST_API_BASE_URL,
+                                                                   email=_TEST_EMAIL_MFA,
+                                                                   password=_TEST_PASSWORD)
+
+    @unittest_run_loop
+    async def test_wrong_mfa(self):
+        with self.assertRaises(WrongMFA):
+            return await MerossHttpClient.async_from_user_password(api_base_url=_TEST_API_BASE_URL,
+                                                                   email=_TEST_EMAIL_MFA,
+                                                                   password=_TEST_PASSWORD,
+                                                                   mfa_code="invalid")
+
+    @unittest_run_loop
     async def test_device_listing(self):
         devices = await self.meross_client.async_list_devices()
         assert devices is not None
@@ -84,7 +99,7 @@ class TestHttpMethods(AioHTTPTestCase):
     @unittest_run_loop
     async def test_bad_domain(self):
         with self.assertRaises(BadDomainException):
-            return await MerossHttpClient.async_from_user_password(api_base_url=_TEST_API_BASE_URL, email=_TEST_EMAIL, password=_TEST_PASSWORD, auto_retry_on_bad_domain=False)
+            return await MerossHttpClient.async_from_user_password(api_base_url="iot.meross.com", email=_TEST_EMAIL, password=_TEST_PASSWORD, auto_retry_on_bad_domain=False)
 
 
     @unittest_run_loop
