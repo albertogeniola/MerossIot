@@ -12,7 +12,7 @@ from os import path, environ
 from typing import List, Dict, Tuple
 from zipfile import ZipFile
 
-from meross_iot.controller.device import BaseDevice
+
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager, TransportMode
 from meross_iot.model.credentials import MerossCloudCreds
@@ -20,6 +20,7 @@ from meross_iot.model.enums import Namespace, OnlineStatus
 from meross_iot.model.http.device import HttpDeviceInfo
 from utilities.meross_fake_app import AppSniffer
 from utilities.meross_fake_device import FakeDeviceSniffer
+from urllib.parse import urlparse
 
 SNIFF_LOG_FILE = 'sniff.log'
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -48,10 +49,24 @@ def _print_welcom_message():
           "Although this utility won't collect your email/password, we recommend you to change "
           "your Meross account password to a temporary one before using this software. Once you are done, "
           "you can restore back your original password. By doing so, you are 100% sure you are not leaking any "
-          "real password to the developers.")
+          "real password to the developers.\n\n"
+          "ATTENTION: The sniffer does not support MFA login. Please disable MFA if willing to use this script.\n\n")
 
 
 async def _async_gather_http_client() -> MerossHttpClient:
+    api_base_url = environ.get("MEROSS_API_URL", "https://iotx-us.meross.com")
+    if api_base_url is None:
+        api_base_url = input("Please specify the meross API base url. It should be 'https://iotx-us.meross.com' or 'https://iotx-eu.meross.com' or 'https://iotx-ap.meross.com'. "
+                             "Leave blank if unsure: ")
+        api_base_url = api_base_url.strip()
+        if api_base_url is None:
+            api_base_url = "https://iotx-us.meross.com"
+            print(f"Assuming API Base URL: {api_base_url}")
+        try:
+            urlparse(api_base_url)
+        except:
+            print("Invalid API/URL provided.")
+            exit(2)
     email = environ.get("MEROSS_EMAIL")
     if email is None:
         email = input("Please specify your meross email: ")
@@ -61,7 +76,7 @@ async def _async_gather_http_client() -> MerossHttpClient:
     if password is None:
         password = getpass.getpass(prompt='Please specify your Meross password: ', stream=sys.stdout).strip()
     try:
-        return await MerossHttpClient.async_from_user_password(email, password)
+        return await MerossHttpClient.async_from_user_password(api_base_url=api_base_url, email=email, password=password)
     except Exception:
         print("An error occurred while gathering MerossAPI Client. Make sure your email-password credentials are valid.")
         exit(1)
