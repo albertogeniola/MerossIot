@@ -7,8 +7,9 @@ from typing import Tuple
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.model.credentials import MerossCloudCreds
 
-_TEST_API_BASE_URL = os.environ.get('MEROSS_API_URL', "https://iot.meross.com")
+_TEST_API_BASE_URL = os.environ.get('MEROSS_API_URL', "https://iotx-us.meross.com")
 _TEST_EMAIL = os.environ.get('MEROSS_EMAIL')
+_TEST_EMAIL_MFA = os.environ.get('MEROSS_EMAIL_MFA')
 _TEST_PASSWORD = os.environ.get('MEROSS_PASSWORD')
 _TEST_CREDS = os.getenv("__MEROSS_CREDS")
 
@@ -24,7 +25,7 @@ async def async_get_client() -> Tuple[MerossHttpClient, bool]:
     if _TEST_API_BASE_URL is not None:
         api_base_url = _TEST_API_BASE_URL
     else:
-        api_base_url = "https://iotx-eu.meross.com"
+        api_base_url = "https://iotx-us.meross.com"
 
     if _TEST_CREDS is not None:
         _LOGGER.info("Found cached credentials. Using them.")

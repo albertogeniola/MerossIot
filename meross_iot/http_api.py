@@ -20,7 +20,7 @@ from meross_iot.model.credentials import MerossCloudCreds
 from meross_iot.model.http.device import HttpDeviceInfo
 from meross_iot.model.http.error_codes import ErrorCodes
 from meross_iot.model.http.exception import TooManyTokensException, TokenExpiredException, AuthenticatedPostException, \
-    HttpApiError, BadLoginException, BadDomainException
+    HttpApiError, BadLoginException, BadDomainException, MissingMFA, WrongMFA
 from meross_iot.model.http.subdevice import HttpSubdeviceInfo
 from meross_iot.utilities.misc import current_version
 from meross_iot.utilities.stats import HttpStatsCounter
@@ -97,6 +97,7 @@ class MerossHttpClient(object):
                                        app_version: str = _MODULE_VERSION,
                                        log_identifier: str = _DEFAULT_LOG_IDENTIFIER,
                                        auto_retry_on_bad_domain: bool=True,
+                                       mfa_code: string = None,
                                        *args, **kwargs) -> MerossHttpClient:
         """
         Builds a MerossHttpClient using username/password combination.
@@ -110,6 +111,7 @@ class MerossHttpClient(object):
         :param app_version:  App Version header parameter to use
         :param log_identifier: Log identifier to use
         :param auto_retry_on_bad_domain: when set, it enables auto-retry when BadDomain exception occurs.
+        :param mfa_code: multi-factor authentication code (optional)
 
         :return: an instance of `MerossHttpClient`
         """
@@ -122,7 +124,8 @@ class MerossHttpClient(object):
                                       app_type=app_type,
                                       app_version=app_version,
                                       log_identifier=log_identifier,
-                                      auto_retry_on_bad_domain=auto_retry_on_bad_domain)
+                                      auto_retry_on_bad_domain=auto_retry_on_bad_domain,
+                                      mfa_code=mfa_code)
         # Call log
         await cls._async_log(creds=creds,
                              api_base_url=api_base_url,
@@ -258,6 +261,12 @@ class MerossHttpClient(object):
             else:
                 _LOGGER.exception(f"Login failed against {api_base_url}")
                 raise e
+        except HttpApiError as e:
+            if e.error_code == ErrorCodes.MFA_CODE_REQUIRED:
+                raise MissingMFA() from e
+            elif e.error_code == ErrorCodes.WRONG_MFA_CODE:
+                raise WrongMFA() from e
+            raise e
 
         _LOGGER.info(f"Login successful against {api_base_url}")
 
