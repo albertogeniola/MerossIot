@@ -27,7 +27,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```bash
-pip install meross_iot==0.4.6.0rc1
+pip install meross_iot==0.4.6.0rc3
 ```
 
 ## Usage & Full Documentation
@@ -191,7 +191,7 @@ Anyway, feel free to contribute via donations!
 </p>
 
 ## Changelog
-#### 0.4.6.0rc2
+#### 0.4.6.0rc3
 - NOTE: this API version breaks backward compatibility with LOGIN method. When upgrading to this version, 
 make sure to pass the new api_base_url value correctly as described in the documentation.
 - Switched the login API to the new signIn path as old /Auth/login is being deprecated
@@ -199,6 +199,7 @@ make sure to pass the new api_base_url value correctly as described in the docum
 - Handled auto-retry in case of wrong endpoint being used for login
 - Added mac-address attribute to BaseDevice class
 - Fix recursive import error for CLI utility and updated help command for API-BASE-URL parameter
+- Handling MFA code errors
 
 <details>
     <summary>Older</summary>
