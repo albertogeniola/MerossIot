@@ -12,7 +12,7 @@ PASSWORD = os.environ.get('MEROSS_PASSWORD') or "YOUR_MEROSS_CLOUD_PASSWORD"
 
 async def main():
     # Setup the HTTP client API from user-password
-    http_api_client = await MerossHttpClient.async_from_user_password(email=EMAIL, password=PASSWORD)
+    http_api_client = await MerossHttpClient.async_from_user_password(email=EMAIL, password=PASSWORD, api_base_url="https://iot.meross.com")
 
     # Setup and start the device manager
     manager = MerossManager(http_client=http_api_client)
