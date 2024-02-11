@@ -27,7 +27,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```bash
-pip install meross_iot==0.4.6.0
+pip install meross_iot==0.4.6.1
 ```
 
 ## Usage & Full Documentation
