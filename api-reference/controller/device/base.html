@@ -1,19 +1,24 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BaseDevice &mdash; MerossIot Library  documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <title>BaseDevice &mdash; MerossIot Library  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
 
   <!--[if lt IE 9]>
     <script src="../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/language_data.js"></script>
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=b3ba4146"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../../../_static/js/theme.js"></script>
         <script data-ad-client="ca-pub-9110025741700767" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 
@@ -42,7 +47,7 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../quick-start.html">Quick start</a></li>
@@ -53,7 +58,25 @@
 <li class="toctree-l2"><a class="reference internal" href="../../http.html">HTTP Client</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../manager.html">MerossManager</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../creds.html">MerossCloudCredentials</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">BaseDevice</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">BaseDevice</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#meross_iot.controller.device.BaseDevice"><code class="docutils literal notranslate"><span class="pre">BaseDevice</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#meross_iot.controller.device.BaseDevice.async_update"><code class="docutils literal notranslate"><span class="pre">BaseDevice.async_update()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#meross_iot.controller.device.BaseDevice.channels"><code class="docutils literal notranslate"><span class="pre">BaseDevice.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#meross_iot.controller.device.BaseDevice.default_command_timeout"><code class="docutils literal notranslate"><span class="pre">BaseDevice.default_command_timeout</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#meross_iot.controller.device.BaseDevice.firmware_version"><code class="docutils literal notranslate"><span class="pre">BaseDevice.firmware_version</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#meross_iot.controller.device.BaseDevice.hardware_version"><code class="docutils literal notranslate"><span class="pre">BaseDevice.hardware_version</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#meross_iot.controller.device.BaseDevice.internal_id"><code class="docutils literal notranslate"><span class="pre">BaseDevice.internal_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#meross_iot.controller.device.BaseDevice.lookup_channel"><code class="docutils literal notranslate"><span class="pre">BaseDevice.lookup_channel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#meross_iot.controller.device.BaseDevice.name"><code class="docutils literal notranslate"><span class="pre">BaseDevice.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#meross_iot.controller.device.BaseDevice.online_status"><code class="docutils literal notranslate"><span class="pre">BaseDevice.online_status</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#meross_iot.controller.device.BaseDevice.register_push_notification_handler_coroutine"><code class="docutils literal notranslate"><span class="pre">BaseDevice.register_push_notification_handler_coroutine()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#meross_iot.controller.device.BaseDevice.type"><code class="docutils literal notranslate"><span class="pre">BaseDevice.type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#meross_iot.controller.device.BaseDevice.unregister_push_notification_handler_coroutine"><code class="docutils literal notranslate"><span class="pre">BaseDevice.unregister_push_notification_handler_coroutine()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#meross_iot.controller.device.BaseDevice.uuid"><code class="docutils literal notranslate"><span class="pre">BaseDevice.uuid</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="channel.html">ChannelInfo</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../mixins/consumption.html">ConsumptionXMixin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../mixins/diffuserlight.html">DiffuserLightMixin</a></li>
@@ -105,18 +128,18 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="basedevice">
-<h1>BaseDevice<a class="headerlink" href="#basedevice" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="meross_iot.controller.device.BaseDevice">
-<em class="property">class </em><code class="sig-prename descclassname">meross_iot.controller.device.</code><code class="sig-name descname">BaseDevice</code><span class="sig-paren">(</span><em class="sig-param">device_uuid: str</em>, <em class="sig-param">manager</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.controller.device.BaseDevice" title="Permalink to this definition">¶</a></dt>
+  <section id="basedevice">
+<h1>BaseDevice<a class="headerlink" href="#basedevice" title="Permalink to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="meross_iot.controller.device.BaseDevice">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">meross_iot.controller.device.</span></span><span class="sig-name descname"><span class="pre">BaseDevice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device_uuid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manager</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.controller.device.BaseDevice" title="Permalink to this definition"></a></dt>
 <dd><p>A <cite>BaseDevice</cite> is a generic representation of a Meross device.
 Any BaseDevice is characterized by some generic information, such as user’s defined
 name, type (i.e. device specific model), firmware/hardware version, a Meross internal
 identifier, a library assigned internal identifier.</p>
-<dl class="method">
-<dt id="meross_iot.controller.device.BaseDevice.async_update">
-<em class="property">async </em><code class="sig-name descname">async_update</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.device.BaseDevice.async_update" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="meross_iot.controller.device.BaseDevice.async_update">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">async_update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.async_update" title="Permalink to this definition"></a></dt>
 <dd><p>Forces a full data update on the device. If your network bandwidth is limited or you are running
 this program on an embedded device, try to invoke this method only when strictly needed.
 Most of the parameters of a device are updated automatically upon push-notification received
@@ -124,69 +147,69 @@ by the meross MQTT cloud.
 :return: None</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="meross_iot.controller.device.BaseDevice.channels">
-<em class="property">property </em><code class="sig-name descname">channels</code><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.channels" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="meross_iot.controller.device.BaseDevice.channels">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="channel.html#meross_iot.controller.device.ChannelInfo" title="meross_iot.controller.device.ChannelInfo"><span class="pre">ChannelInfo</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.channels" title="Permalink to this definition"></a></dt>
 <dd><p>List of channels exposed by this device. Multi-channel devices might expose a master
 switch at index 0.
 :return:</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="meross_iot.controller.device.BaseDevice.default_command_timeout">
-<em class="property">property </em><code class="sig-name descname">default_command_timeout</code><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.default_command_timeout" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="meross_iot.controller.device.BaseDevice.default_command_timeout">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">default_command_timeout</span></span><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.default_command_timeout" title="Permalink to this definition"></a></dt>
 <dd><p>Represents the default timeout that is applied to command execution against this device.
 Usually, every method allows to override this timeout via an appropriate timeout argument: that argument
 takes precedence over this default.</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="meross_iot.controller.device.BaseDevice.firmware_version">
-<em class="property">property </em><code class="sig-name descname">firmware_version</code><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.firmware_version" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="meross_iot.controller.device.BaseDevice.firmware_version">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">firmware_version</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.firmware_version" title="Permalink to this definition"></a></dt>
 <dd><p>Device firmware version. When unavailable, ‘unknown’ is returned
 :return:</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="meross_iot.controller.device.BaseDevice.hardware_version">
-<em class="property">property </em><code class="sig-name descname">hardware_version</code><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.hardware_version" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="meross_iot.controller.device.BaseDevice.hardware_version">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">hardware_version</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.hardware_version" title="Permalink to this definition"></a></dt>
 <dd><p>Device hardware revision
 :return:</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="meross_iot.controller.device.BaseDevice.internal_id">
-<em class="property">property </em><code class="sig-name descname">internal_id</code><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.internal_id" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="meross_iot.controller.device.BaseDevice.internal_id">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">internal_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.internal_id" title="Permalink to this definition"></a></dt>
 <dd><p>Internal ID used by this library to identify meross devices. It’s basically composed by
 the Meross ID plus some prefix/suffix.
 :return:</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="meross_iot.controller.device.BaseDevice.lookup_channel">
-<code class="sig-name descname">lookup_channel</code><span class="sig-paren">(</span><em class="sig-param">channel_id_or_name: Union[int, str]</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.lookup_channel" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="meross_iot.controller.device.BaseDevice.lookup_channel">
+<span class="sig-name descname"><span class="pre">lookup_channel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_id_or_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.lookup_channel" title="Permalink to this definition"></a></dt>
 <dd><p>Looks up a channel by channel id or channel name
 :param channel_id_or_name:
 :return:</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="meross_iot.controller.device.BaseDevice.name">
-<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.name" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="meross_iot.controller.device.BaseDevice.name">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.name" title="Permalink to this definition"></a></dt>
 <dd><p>User’s defined name of the device
 :return:</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="meross_iot.controller.device.BaseDevice.online_status">
-<em class="property">property </em><code class="sig-name descname">online_status</code><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.online_status" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="meross_iot.controller.device.BaseDevice.online_status">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">online_status</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">OnlineStatus</span></em><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.online_status" title="Permalink to this definition"></a></dt>
 <dd><p>Current device online status
 :return:</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="meross_iot.controller.device.BaseDevice.register_push_notification_handler_coroutine">
-<code class="sig-name descname">register_push_notification_handler_coroutine</code><span class="sig-paren">(</span><em class="sig-param">coro: Callable[[meross_iot.model.enums.Namespace, dict, str], Awaitable]</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.device.BaseDevice.register_push_notification_handler_coroutine" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="meross_iot.controller.device.BaseDevice.register_push_notification_handler_coroutine">
+<span class="sig-name descname"><span class="pre">register_push_notification_handler_coroutine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coro</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Namespace</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Awaitable</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.register_push_notification_handler_coroutine" title="Permalink to this definition"></a></dt>
 <dd><p>Registers a coroutine so that it gets invoked whenever a push notification is
 delivered to this device or when the device state is changed.
 This allows the developer to “react” to notifications state change due to other users operating the device.
@@ -195,32 +218,32 @@ Its signature must be (namespace: Namespace, data: dict, device_internal_id: str
 :return:</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="meross_iot.controller.device.BaseDevice.type">
-<em class="property">property </em><code class="sig-name descname">type</code><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.type" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="meross_iot.controller.device.BaseDevice.type">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.type" title="Permalink to this definition"></a></dt>
 <dd><p>Device model type
 :return:</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="meross_iot.controller.device.BaseDevice.unregister_push_notification_handler_coroutine">
-<code class="sig-name descname">unregister_push_notification_handler_coroutine</code><span class="sig-paren">(</span><em class="sig-param">coro: Callable[[meross_iot.model.enums.Namespace, dict, str], Awaitable]</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.device.BaseDevice.unregister_push_notification_handler_coroutine" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="meross_iot.controller.device.BaseDevice.unregister_push_notification_handler_coroutine">
+<span class="sig-name descname"><span class="pre">unregister_push_notification_handler_coroutine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coro</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Namespace</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Awaitable</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.unregister_push_notification_handler_coroutine" title="Permalink to this definition"></a></dt>
 <dd><p>Unregisters the event handler
 :param coro: coroutine-function: a function that, when invoked, returns a Coroutine object that can be awaited.
 This coroutine function should have been previously registered
 :return:</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="meross_iot.controller.device.BaseDevice.uuid">
-<em class="property">property </em><code class="sig-name descname">uuid</code><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.uuid" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="meross_iot.controller.device.BaseDevice.uuid">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">uuid</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#meross_iot.controller.device.BaseDevice.uuid" title="Permalink to this definition"></a></dt>
 <dd><p>Meross identifier of the device.
 :return:</p>
 </dd></dl>
 
 </dd></dl>
 
-</div>
+</section>
 
 
            </div>

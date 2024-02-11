@@ -1,19 +1,24 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Advanced topics &mdash; MerossIot Library  documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <title>Advanced topics &mdash; MerossIot Library  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
 
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b3ba4146"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="_static/js/theme.js"></script>
         <script data-ad-client="ca-pub-9110025741700767" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 
@@ -42,7 +47,7 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quick-start.html">Quick start</a></li>
@@ -82,10 +87,10 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="advanced-topics">
-<h1>Advanced topics<a class="headerlink" href="#advanced-topics" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="push-notification-handling">
-<h2>Push notification handling<a class="headerlink" href="#push-notification-handling" title="Permalink to this headline">¶</a></h2>
+  <section id="advanced-topics">
+<h1>Advanced topics<a class="headerlink" href="#advanced-topics" title="Permalink to this heading"></a></h1>
+<section id="push-notification-handling">
+<h2>Push notification handling<a class="headerlink" href="#push-notification-handling" title="Permalink to this heading"></a></h2>
 <p>The current library allows a developer to catch and react to events that occur on a specific device.
 The <code class="code docutils literal notranslate"><span class="pre">BaseDevice</span></code> class exposes the <code class="code docutils literal notranslate"><span class="pre">register_push_notification_handler_coroutine()</span></code> method, which
 allows to register an async coroutine to be executed when an push notification is received for that device.
@@ -120,9 +125,9 @@ Be sure to stick with the exact method signature.</p>
 <p>For long-running and deamon like scripts, you should limit the number of registered push notificaiton handlers
 and you should unregister when they are no more needed.</p>
 </div>
-</div>
-<div class="section" id="logging">
-<h2>Logging<a class="headerlink" href="#logging" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="logging">
+<h2>Logging<a class="headerlink" href="#logging" title="Permalink to this heading"></a></h2>
 <p>This library relies on the standard Python’s logging module.
 It is possible to control the logging verbosity by modifying the severity of meross_iot log level, as shown
 in the following example.</p>
@@ -138,9 +143,9 @@ in the following example.</p>
 </pre></div>
 </div>
 <p>That code snippet will raise the log-level to WARNING, so DEBUG and INFO messages are not logged any longer.</p>
-</div>
-<div class="section" id="cache-device-registry-information">
-<h2>Cache device registry information<a class="headerlink" href="#cache-device-registry-information" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="cache-device-registry-information">
+<h2>Cache device registry information<a class="headerlink" href="#cache-device-registry-information" title="Permalink to this heading"></a></h2>
 <p>The <cite>MerossManager</cite> instance holds a device registry which keeps track of discovered devices.
 Sometimes it might be useful to dump the information contained into the registry to reload it
 when necessary. For instance, the usage of a dumped registry file can reduce the number of calls to
@@ -165,9 +170,9 @@ in the <cite>examples\dump.py</cite></p>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Registry dump loaded.&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="sniff-device-data">
-<h2>Sniff device data<a class="headerlink" href="#sniff-device-data" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="sniff-device-data">
+<h2>Sniff device data<a class="headerlink" href="#sniff-device-data" title="Permalink to this heading"></a></h2>
 <p>Meross is continuously releasing new smart devices on the market.
 The library has been developed in order to automatically discover and support most of the basic
 functions that such devices expose. However, as new devices are released by Meross, also new feature may arise.
@@ -205,8 +210,8 @@ you want to sniff from your original account and add it to your new account, whi
 <li><p>Once done, press ENTER</p></li>
 <li><p>Upload the <em>data.zip</em> file that was generated in the directory where the utility has been run</p></li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

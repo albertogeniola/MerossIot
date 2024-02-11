@@ -1,19 +1,24 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MerossCloudCredentials &mdash; MerossIot Library  documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <title>MerossCloudCredentials &mdash; MerossIot Library  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
 
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script src="../_static/language_data.js"></script>
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b3ba4146"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../_static/js/theme.js"></script>
         <script data-ad-client="ca-pub-9110025741700767" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 
@@ -42,7 +47,7 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../quick-start.html">Quick start</a></li>
@@ -52,7 +57,14 @@
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="http.html">HTTP Client</a></li>
 <li class="toctree-l2"><a class="reference internal" href="manager.html">MerossManager</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">MerossCloudCredentials</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">MerossCloudCredentials</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#meross_iot.model.credentials.MerossCloudCreds"><code class="docutils literal notranslate"><span class="pre">MerossCloudCreds</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#meross_iot.model.credentials.MerossCloudCreds.from_json"><code class="docutils literal notranslate"><span class="pre">MerossCloudCreds.from_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#meross_iot.model.credentials.MerossCloudCreds.to_json"><code class="docutils literal notranslate"><span class="pre">MerossCloudCreds.to_json()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="controller/device/base.html">BaseDevice</a></li>
 <li class="toctree-l2"><a class="reference internal" href="controller/device/channel.html">ChannelInfo</a></li>
 <li class="toctree-l2"><a class="reference internal" href="controller/mixins/consumption.html">ConsumptionXMixin</a></li>
@@ -105,30 +117,30 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="module-meross_iot.model.credentials">
-<span id="merosscloudcredentials"></span><h1>MerossCloudCredentials<a class="headerlink" href="#module-meross_iot.model.credentials" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="meross_iot.model.credentials.MerossCloudCreds">
-<em class="property">class </em><code class="sig-prename descclassname">meross_iot.model.credentials.</code><code class="sig-name descname">MerossCloudCreds</code><span class="sig-paren">(</span><em class="sig-param">token: str, key: str, user_id: str, user_email: str, issued_on: Union[datetime.datetime, str], domain: str, mqtt_domain: str, mfa_lock_expire: int</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.model.credentials.MerossCloudCreds" title="Permalink to this definition">¶</a></dt>
+  <section id="module-meross_iot.model.credentials">
+<span id="merosscloudcredentials"></span><h1>MerossCloudCredentials<a class="headerlink" href="#module-meross_iot.model.credentials" title="Permalink to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="meross_iot.model.credentials.MerossCloudCreds">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">meross_iot.model.credentials.</span></span><span class="sig-name descname"><span class="pre">MerossCloudCreds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">token</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_email</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">issued_on</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datetime</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">domain</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mqtt_domain</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mfa_lock_expire</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.model.credentials.MerossCloudCreds" title="Permalink to this definition"></a></dt>
 <dd><p>Utility class that holds Meross Cloud credentials for a given user.</p>
-<dl class="method">
-<dt id="meross_iot.model.credentials.MerossCloudCreds.from_json">
-<em class="property">classmethod </em><code class="sig-name descname">from_json</code><span class="sig-paren">(</span><em class="sig-param">json_string: str</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.model.credentials.MerossCloudCreds.from_json" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="meross_iot.model.credentials.MerossCloudCreds.from_json">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">json_string</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.model.credentials.MerossCloudCreds.from_json" title="Permalink to this definition"></a></dt>
 <dd><p>Builds a MerossCloudCreds instance from a previously serialized json string
 :param json_string:
 :return:</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="meross_iot.model.credentials.MerossCloudCreds.to_json">
-<code class="sig-name descname">to_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#meross_iot.model.credentials.MerossCloudCreds.to_json" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="meross_iot.model.credentials.MerossCloudCreds.to_json">
+<span class="sig-name descname"><span class="pre">to_json</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#meross_iot.model.credentials.MerossCloudCreds.to_json" title="Permalink to this definition"></a></dt>
 <dd><p>Serializes the current object to a json string
 :return:</p>
 </dd></dl>
 
 </dd></dl>
 
-</div>
+</section>
 
 
            </div>

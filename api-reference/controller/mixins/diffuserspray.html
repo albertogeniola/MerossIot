@@ -1,19 +1,24 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DiffuserSprayMixin &mdash; MerossIot Library  documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <title>DiffuserSprayMixin &mdash; MerossIot Library  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
 
   <!--[if lt IE 9]>
     <script src="../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/language_data.js"></script>
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=b3ba4146"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../../../_static/js/theme.js"></script>
         <script data-ad-client="ca-pub-9110025741700767" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 
@@ -42,7 +47,7 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../quick-start.html">Quick start</a></li>
@@ -57,7 +62,14 @@
 <li class="toctree-l2"><a class="reference internal" href="../device/channel.html">ChannelInfo</a></li>
 <li class="toctree-l2"><a class="reference internal" href="consumption.html">ConsumptionXMixin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="diffuserlight.html">DiffuserLightMixin</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">DiffuserSprayMixin</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">DiffuserSprayMixin</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#meross_iot.controller.mixins.diffuser_spray.DiffuserSprayMixin"><code class="docutils literal notranslate"><span class="pre">DiffuserSprayMixin</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#meross_iot.controller.mixins.diffuser_spray.DiffuserSprayMixin.async_set_spray_mode"><code class="docutils literal notranslate"><span class="pre">DiffuserSprayMixin.async_set_spray_mode()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#meross_iot.controller.mixins.diffuser_spray.DiffuserSprayMixin.get_current_spray_mode"><code class="docutils literal notranslate"><span class="pre">DiffuserSprayMixin.get_current_spray_mode()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="dnd.html">DNDMixin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="electricity.html">ElectricityMixin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cover.html">GarageOpenerMixin</a></li>
@@ -105,14 +117,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="diffuserspraymixin">
-<h1>DiffuserSprayMixin<a class="headerlink" href="#diffuserspraymixin" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="meross_iot.controller.mixins.diffuser_spray.DiffuserSprayMixin">
-<em class="property">class </em><code class="sig-prename descclassname">meross_iot.controller.mixins.diffuser_spray.</code><code class="sig-name descname">DiffuserSprayMixin</code><span class="sig-paren">(</span><em class="sig-param">device_uuid: str</em>, <em class="sig-param">manager</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.controller.mixins.diffuser_spray.DiffuserSprayMixin" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="meross_iot.controller.mixins.diffuser_spray.DiffuserSprayMixin.async_set_spray_mode">
-<em class="property">async </em><code class="sig-name descname">async_set_spray_mode</code><span class="sig-paren">(</span><em class="sig-param">mode: meross_iot.model.enums.DiffuserSprayMode</em>, <em class="sig-param">channel: int = 0</em>, <em class="sig-param">timeout: Optional[float] = None</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.mixins.diffuser_spray.DiffuserSprayMixin.async_set_spray_mode" title="Permalink to this definition">¶</a></dt>
+  <section id="diffuserspraymixin">
+<h1>DiffuserSprayMixin<a class="headerlink" href="#diffuserspraymixin" title="Permalink to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="meross_iot.controller.mixins.diffuser_spray.DiffuserSprayMixin">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">meross_iot.controller.mixins.diffuser_spray.</span></span><span class="sig-name descname"><span class="pre">DiffuserSprayMixin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device_uuid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manager</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.controller.mixins.diffuser_spray.DiffuserSprayMixin" title="Permalink to this definition"></a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="meross_iot.controller.mixins.diffuser_spray.DiffuserSprayMixin.async_set_spray_mode">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">async_set_spray_mode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DiffuserSprayMode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#meross_iot.controller.mixins.diffuser_spray.DiffuserSprayMixin.async_set_spray_mode" title="Permalink to this definition"></a></dt>
 <dd><p>Changes the operating mode for this device
 :param mode: mode to set
 :param channel: channel to handle
@@ -120,9 +132,9 @@
 :return:</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="meross_iot.controller.mixins.diffuser_spray.DiffuserSprayMixin.get_current_spray_mode">
-<code class="sig-name descname">get_current_spray_mode</code><span class="sig-paren">(</span><em class="sig-param">channel: int = 0</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; Optional[meross_iot.model.enums.DiffuserSprayMode]<a class="headerlink" href="#meross_iot.controller.mixins.diffuser_spray.DiffuserSprayMixin.get_current_spray_mode" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="meross_iot.controller.mixins.diffuser_spray.DiffuserSprayMixin.get_current_spray_mode">
+<span class="sig-name descname"><span class="pre">get_current_spray_mode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DiffuserSprayMode</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#meross_iot.controller.mixins.diffuser_spray.DiffuserSprayMixin.get_current_spray_mode" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the current spray mode
 :param channel: channel to fetch info from
 :param args:
@@ -132,7 +144,7 @@
 
 </dd></dl>
 
-</div>
+</section>
 
 
            </div>

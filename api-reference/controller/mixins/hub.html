@@ -1,19 +1,24 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HubMixn &mdash; MerossIot Library  documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <title>HubMixn &mdash; MerossIot Library  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
 
   <!--[if lt IE 9]>
     <script src="../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/language_data.js"></script>
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=b3ba4146"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../../../_static/js/theme.js"></script>
         <script data-ad-client="ca-pub-9110025741700767" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 
@@ -42,7 +47,7 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../quick-start.html">Quick start</a></li>
@@ -62,8 +67,14 @@
 <li class="toctree-l2"><a class="reference internal" href="electricity.html">ElectricityMixin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cover.html">GarageOpenerMixin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../device/generic.html">GenericSubDevice</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">HubMixn</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#hubmts100mixin">HubMts100Mixin</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">HubMixn</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#meross_iot.controller.mixins.hub.HubMixn"><code class="docutils literal notranslate"><span class="pre">HubMixn</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#hubmts100mixin">HubMts100Mixin</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#meross_iot.controller.mixins.hub.HubMts100Mixin"><code class="docutils literal notranslate"><span class="pre">HubMts100Mixin</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../device/hub.html">HubDevice</a></li>
 <li class="toctree-l2"><a class="reference internal" href="light.html">LightMixin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rollershutter.html">RollerShutterMixin</a></li>
@@ -105,22 +116,22 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="hubmixn">
-<h1>HubMixn<a class="headerlink" href="#hubmixn" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="meross_iot.controller.mixins.hub.HubMixn">
-<em class="property">class </em><code class="sig-prename descclassname">meross_iot.controller.mixins.hub.</code><code class="sig-name descname">HubMixn</code><span class="sig-paren">(</span><em class="sig-param">device_uuid: str</em>, <em class="sig-param">manager</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.controller.mixins.hub.HubMixn" title="Permalink to this definition">¶</a></dt>
+  <section id="hubmixn">
+<h1>HubMixn<a class="headerlink" href="#hubmixn" title="Permalink to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="meross_iot.controller.mixins.hub.HubMixn">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">meross_iot.controller.mixins.hub.</span></span><span class="sig-name descname"><span class="pre">HubMixn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device_uuid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manager</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.controller.mixins.hub.HubMixn" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-</div>
-<div class="section" id="hubmts100mixin">
-<h1>HubMts100Mixin<a class="headerlink" href="#hubmts100mixin" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="meross_iot.controller.mixins.hub.HubMts100Mixin">
-<em class="property">class </em><code class="sig-prename descclassname">meross_iot.controller.mixins.hub.</code><code class="sig-name descname">HubMts100Mixin</code><span class="sig-paren">(</span><em class="sig-param">device_uuid: str</em>, <em class="sig-param">manager</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.controller.mixins.hub.HubMts100Mixin" title="Permalink to this definition">¶</a></dt>
+</section>
+<section id="hubmts100mixin">
+<h1>HubMts100Mixin<a class="headerlink" href="#hubmts100mixin" title="Permalink to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="meross_iot.controller.mixins.hub.HubMts100Mixin">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">meross_iot.controller.mixins.hub.</span></span><span class="sig-name descname"><span class="pre">HubMts100Mixin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device_uuid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manager</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.controller.mixins.hub.HubMts100Mixin" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-</div>
+</section>
 
 
            </div>

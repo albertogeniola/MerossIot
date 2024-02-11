@@ -1,19 +1,24 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>API Reference &mdash; MerossIot Library  documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <title>API Reference &mdash; MerossIot Library  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
 
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script src="../_static/language_data.js"></script>
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b3ba4146"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../_static/js/theme.js"></script>
         <script data-ad-client="ca-pub-9110025741700767" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 
@@ -42,7 +47,7 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../quick-start.html">Quick start</a></li>
@@ -104,40 +109,115 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="api-reference">
-<h1>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h1>
+  <section id="api-reference">
+<h1>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this heading"></a></h1>
 <div class="toctree-wrapper compound">
-<p class="caption"><span class="caption-text">Api Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">Api Reference</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="http.html">HTTP Client</a></li>
-<li class="toctree-l1"><a class="reference internal" href="manager.html">MerossManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="creds.html">MerossCloudCredentials</a></li>
-<li class="toctree-l1"><a class="reference internal" href="controller/device/base.html">BaseDevice</a></li>
-<li class="toctree-l1"><a class="reference internal" href="controller/device/channel.html">ChannelInfo</a></li>
-<li class="toctree-l1"><a class="reference internal" href="controller/mixins/consumption.html">ConsumptionXMixin</a></li>
-<li class="toctree-l1"><a class="reference internal" href="controller/mixins/diffuserlight.html">DiffuserLightMixin</a></li>
-<li class="toctree-l1"><a class="reference internal" href="controller/mixins/diffuserspray.html">DiffuserSprayMixin</a></li>
-<li class="toctree-l1"><a class="reference internal" href="controller/mixins/dnd.html">DNDMixin</a></li>
-<li class="toctree-l1"><a class="reference internal" href="controller/mixins/electricity.html">ElectricityMixin</a></li>
-<li class="toctree-l1"><a class="reference internal" href="controller/mixins/cover.html">GarageOpenerMixin</a></li>
-<li class="toctree-l1"><a class="reference internal" href="controller/device/generic.html">GenericSubDevice</a></li>
-<li class="toctree-l1"><a class="reference internal" href="controller/mixins/hub.html">HubMixn</a></li>
-<li class="toctree-l1"><a class="reference internal" href="controller/mixins/hub.html#hubmts100mixin">HubMts100Mixin</a></li>
-<li class="toctree-l1"><a class="reference internal" href="controller/device/hub.html">HubDevice</a></li>
-<li class="toctree-l1"><a class="reference internal" href="controller/mixins/light.html">LightMixin</a></li>
-<li class="toctree-l1"><a class="reference internal" href="controller/mixins/rollershutter.html">RollerShutterMixin</a></li>
-<li class="toctree-l1"><a class="reference internal" href="controller/mixins/runtime.html">System`RuntimeMixin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="http.html">HTTP Client</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="http.html#meross_iot.http_api.MerossHttpClient"><code class="docutils literal notranslate"><span class="pre">MerossHttpClient</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="manager.html">MerossManager</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="manager.html#meross_iot.manager.MerossManager"><code class="docutils literal notranslate"><span class="pre">MerossManager</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="manager.html#meross_iot.manager.MqttConnectionStatus"><code class="docutils literal notranslate"><span class="pre">MqttConnectionStatus</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="manager.html#meross_iot.manager.TransportMode"><code class="docutils literal notranslate"><span class="pre">TransportMode</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="creds.html">MerossCloudCredentials</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="creds.html#meross_iot.model.credentials.MerossCloudCreds"><code class="docutils literal notranslate"><span class="pre">MerossCloudCreds</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="controller/device/base.html">BaseDevice</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="controller/device/base.html#meross_iot.controller.device.BaseDevice"><code class="docutils literal notranslate"><span class="pre">BaseDevice</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="controller/device/channel.html">ChannelInfo</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="controller/device/channel.html#meross_iot.controller.device.ChannelInfo"><code class="docutils literal notranslate"><span class="pre">ChannelInfo</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="controller/mixins/consumption.html">ConsumptionXMixin</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/consumption.html#meross_iot.controller.mixins.consumption.ConsumptionXMixin"><code class="docutils literal notranslate"><span class="pre">ConsumptionXMixin</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="controller/mixins/diffuserlight.html">DiffuserLightMixin</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/diffuserlight.html#meross_iot.controller.mixins.diffuser_light.DiffuserLightMixin"><code class="docutils literal notranslate"><span class="pre">DiffuserLightMixin</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="controller/mixins/diffuserspray.html">DiffuserSprayMixin</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/diffuserspray.html#meross_iot.controller.mixins.diffuser_spray.DiffuserSprayMixin"><code class="docutils literal notranslate"><span class="pre">DiffuserSprayMixin</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="controller/mixins/dnd.html">DNDMixin</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/dnd.html#meross_iot.controller.mixins.dnd.SystemDndMixin"><code class="docutils literal notranslate"><span class="pre">SystemDndMixin</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="controller/mixins/electricity.html">ElectricityMixin</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/electricity.html#meross_iot.controller.mixins.electricity.ElectricityMixin"><code class="docutils literal notranslate"><span class="pre">ElectricityMixin</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="controller/mixins/cover.html">GarageOpenerMixin</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/cover.html#meross_iot.controller.mixins.garage.GarageOpenerMixin"><code class="docutils literal notranslate"><span class="pre">GarageOpenerMixin</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="controller/device/generic.html">GenericSubDevice</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="controller/device/generic.html#meross_iot.controller.device.GenericSubDevice"><code class="docutils literal notranslate"><span class="pre">GenericSubDevice</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="controller/mixins/hub.html">HubMixn</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/hub.html#meross_iot.controller.mixins.hub.HubMixn"><code class="docutils literal notranslate"><span class="pre">HubMixn</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="controller/mixins/hub.html#hubmts100mixin">HubMts100Mixin</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/hub.html#meross_iot.controller.mixins.hub.HubMts100Mixin"><code class="docutils literal notranslate"><span class="pre">HubMts100Mixin</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="controller/device/hub.html">HubDevice</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="controller/device/hub.html#meross_iot.controller.device.HubDevice"><code class="docutils literal notranslate"><span class="pre">HubDevice</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="controller/mixins/light.html">LightMixin</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/light.html#meross_iot.controller.mixins.light.LightMixin"><code class="docutils literal notranslate"><span class="pre">LightMixin</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="controller/mixins/rollershutter.html">RollerShutterMixin</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/rollershutter.html#meross_iot.controller.mixins.roller_shutter.RollerShutterTimerMixin"><code class="docutils literal notranslate"><span class="pre">RollerShutterTimerMixin</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="controller/mixins/runtime.html">System`RuntimeMixin</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/runtime.html#meross_iot.controller.mixins.runtime.SystemRuntimeMixin"><code class="docutils literal notranslate"><span class="pre">SystemRuntimeMixin</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="controller/subdevice/sensor.html">Ms100Sensor</a></li>
-<li class="toctree-l1"><a class="reference internal" href="controller/mixins/spray.html">SprayMixin</a></li>
-<li class="toctree-l1"><a class="reference internal" href="controller/mixins/system.html">SystemAllMixin</a></li>
-<li class="toctree-l1"><a class="reference internal" href="controller/mixins/system.html#systemonlinemixin">SystemOnlineMixin</a></li>
-<li class="toctree-l1"><a class="reference internal" href="controller/mixins/thermostat.html">ThermostatMixin</a></li>
-<li class="toctree-l1"><a class="reference internal" href="controller/mixins/toggle.html">ToggleXMixin</a></li>
-<li class="toctree-l1"><a class="reference internal" href="controller/mixins/toggle.html#togglemixin">ToggleMixin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="controller/mixins/spray.html">SprayMixin</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/spray.html#meross_iot.controller.mixins.spray.SprayMixin"><code class="docutils literal notranslate"><span class="pre">SprayMixin</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="controller/mixins/system.html">SystemAllMixin</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/system.html#meross_iot.controller.mixins.system.SystemAllMixin"><code class="docutils literal notranslate"><span class="pre">SystemAllMixin</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="controller/mixins/system.html#systemonlinemixin">SystemOnlineMixin</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/system.html#meross_iot.controller.mixins.system.SystemOnlineMixin"><code class="docutils literal notranslate"><span class="pre">SystemOnlineMixin</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="controller/mixins/thermostat.html">ThermostatMixin</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/thermostat.html#meross_iot.controller.mixins.thermostat.ThermostatModeMixin"><code class="docutils literal notranslate"><span class="pre">ThermostatModeMixin</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/thermostat.html#meross_iot.controller.mixins.thermostat.ThermostatState"><code class="docutils literal notranslate"><span class="pre">ThermostatState</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="controller/mixins/toggle.html">ToggleXMixin</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/toggle.html#meross_iot.controller.mixins.toggle.ToggleXMixin"><code class="docutils literal notranslate"><span class="pre">ToggleXMixin</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="controller/mixins/toggle.html#togglemixin">ToggleMixin</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="controller/mixins/toggle.html#meross_iot.controller.mixins.toggle.ToggleMixin"><code class="docutils literal notranslate"><span class="pre">ToggleMixin</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="controller/subdevice/valve.html">Mts100v3Valve</a></li>
 </ul>
 </div>
-</div>
+</section>
 
 
            </div>

@@ -1,19 +1,24 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LightMixin &mdash; MerossIot Library  documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <title>LightMixin &mdash; MerossIot Library  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
 
   <!--[if lt IE 9]>
     <script src="../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/language_data.js"></script>
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=b3ba4146"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../../../_static/js/theme.js"></script>
         <script data-ad-client="ca-pub-9110025741700767" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 
@@ -42,7 +47,7 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../quick-start.html">Quick start</a></li>
@@ -65,7 +70,20 @@
 <li class="toctree-l2"><a class="reference internal" href="hub.html">HubMixn</a></li>
 <li class="toctree-l2"><a class="reference internal" href="hub.html#hubmts100mixin">HubMts100Mixin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../device/hub.html">HubDevice</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">LightMixin</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">LightMixin</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#meross_iot.controller.mixins.light.LightMixin"><code class="docutils literal notranslate"><span class="pre">LightMixin</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#meross_iot.controller.mixins.light.LightMixin.async_set_light_color"><code class="docutils literal notranslate"><span class="pre">LightMixin.async_set_light_color()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#meross_iot.controller.mixins.light.LightMixin.get_color_temperature"><code class="docutils literal notranslate"><span class="pre">LightMixin.get_color_temperature()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#meross_iot.controller.mixins.light.LightMixin.get_light_is_on"><code class="docutils literal notranslate"><span class="pre">LightMixin.get_light_is_on()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#meross_iot.controller.mixins.light.LightMixin.get_luminance"><code class="docutils literal notranslate"><span class="pre">LightMixin.get_luminance()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#meross_iot.controller.mixins.light.LightMixin.get_rgb_color"><code class="docutils literal notranslate"><span class="pre">LightMixin.get_rgb_color()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#meross_iot.controller.mixins.light.LightMixin.get_supports_luminance"><code class="docutils literal notranslate"><span class="pre">LightMixin.get_supports_luminance()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#meross_iot.controller.mixins.light.LightMixin.get_supports_rgb"><code class="docutils literal notranslate"><span class="pre">LightMixin.get_supports_rgb()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#meross_iot.controller.mixins.light.LightMixin.get_supports_temperature"><code class="docutils literal notranslate"><span class="pre">LightMixin.get_supports_temperature()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="rollershutter.html">RollerShutterMixin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="runtime.html">System`RuntimeMixin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../subdevice/sensor.html">Ms100Sensor</a></li>
@@ -105,19 +123,19 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="lightmixin">
-<h1>LightMixin<a class="headerlink" href="#lightmixin" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="meross_iot.controller.mixins.light.LightMixin">
-<em class="property">class </em><code class="sig-prename descclassname">meross_iot.controller.mixins.light.</code><code class="sig-name descname">LightMixin</code><span class="sig-paren">(</span><em class="sig-param">device_uuid: str</em>, <em class="sig-param">manager</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.controller.mixins.light.LightMixin" title="Permalink to this definition">¶</a></dt>
+  <section id="lightmixin">
+<h1>LightMixin<a class="headerlink" href="#lightmixin" title="Permalink to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="meross_iot.controller.mixins.light.LightMixin">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">meross_iot.controller.mixins.light.</span></span><span class="sig-name descname"><span class="pre">LightMixin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device_uuid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manager</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#meross_iot.controller.mixins.light.LightMixin" title="Permalink to this definition"></a></dt>
 <dd><p>Mixin class that enables light control.</p>
-<dl class="method">
-<dt id="meross_iot.controller.mixins.light.LightMixin.async_set_light_color">
-<em class="property">async </em><code class="sig-name descname">async_set_light_color</code><span class="sig-paren">(</span><em class="sig-param">channel: int = 0</em>, <em class="sig-param">onoff: Optional[bool] = None</em>, <em class="sig-param">rgb: Optional[Tuple[int</em>, <em class="sig-param">int</em>, <em class="sig-param">int]] = None</em>, <em class="sig-param">luminance: Optional[int] = None</em>, <em class="sig-param">temperature: Optional[int] = None</em>, <em class="sig-param">timeout: Optional[float] = None</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#meross_iot.controller.mixins.light.LightMixin.async_set_light_color" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="meross_iot.controller.mixins.light.LightMixin.async_set_light_color">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">async_set_light_color</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">onoff</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rgb</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">luminance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#meross_iot.controller.mixins.light.LightMixin.async_set_light_color" title="Permalink to this definition"></a></dt>
 <dd><p>Controls the light color of the given bulb. Please note that the __onoff parameter is ignored if the
 device supports Toggle or ToggleX <a href="#id1"><span class="problematic" id="id2">operations__</span></a>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>channel</strong> – channel to control (for bulbs it’s usually 0)</p></li>
 <li><p><strong>onoff</strong> – when True, the device will be turned on, when false, it will turned off. This parameter is ignored
@@ -127,105 +145,105 @@ if the operating device must be controlled via ToggleX or Toggle command.</p></l
 <li><p><strong>temperature</strong> – Light temperature. Can be used when rgb is not specified.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>None</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="meross_iot.controller.mixins.light.LightMixin.get_color_temperature">
-<code class="sig-name descname">get_color_temperature</code><span class="sig-paren">(</span><em class="sig-param">channel=0</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; Optional[int]<a class="headerlink" href="#meross_iot.controller.mixins.light.LightMixin.get_color_temperature" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="meross_iot.controller.mixins.light.LightMixin.get_color_temperature">
+<span class="sig-name descname"><span class="pre">get_color_temperature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#meross_iot.controller.mixins.light.LightMixin.get_color_temperature" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the current color_temperature</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>channel</strong> – channel to control, defaults to 0 (bulbs generally have only one channel)</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>an integer value from 0 to 100</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="meross_iot.controller.mixins.light.LightMixin.get_light_is_on">
-<code class="sig-name descname">get_light_is_on</code><span class="sig-paren">(</span><em class="sig-param">channel=0</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; Optional[bool]<a class="headerlink" href="#meross_iot.controller.mixins.light.LightMixin.get_light_is_on" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="meross_iot.controller.mixins.light.LightMixin.get_light_is_on">
+<span class="sig-name descname"><span class="pre">get_light_is_on</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#meross_iot.controller.mixins.light.LightMixin.get_light_is_on" title="Permalink to this definition"></a></dt>
 <dd><p>Returns True if the light is ON, False otherwise.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>channel</strong> – channel to control, defaults to 0 (bulbs generally have only one channel)</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>current onoff state</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="meross_iot.controller.mixins.light.LightMixin.get_luminance">
-<code class="sig-name descname">get_luminance</code><span class="sig-paren">(</span><em class="sig-param">channel=0</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; Optional[int]<a class="headerlink" href="#meross_iot.controller.mixins.light.LightMixin.get_luminance" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="meross_iot.controller.mixins.light.LightMixin.get_luminance">
+<span class="sig-name descname"><span class="pre">get_luminance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#meross_iot.controller.mixins.light.LightMixin.get_luminance" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the current brightness intensity of the bulb</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>channel</strong> – channel to control, defaults to 0 (bulbs generally have only one channel)</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>an integer value from 0 to 100</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="meross_iot.controller.mixins.light.LightMixin.get_rgb_color">
-<code class="sig-name descname">get_rgb_color</code><span class="sig-paren">(</span><em class="sig-param">channel=0</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; Optional[Tuple[int, int, int]]<a class="headerlink" href="#meross_iot.controller.mixins.light.LightMixin.get_rgb_color" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="meross_iot.controller.mixins.light.LightMixin.get_rgb_color">
+<span class="sig-name descname"><span class="pre">get_rgb_color</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#meross_iot.controller.mixins.light.LightMixin.get_rgb_color" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the current RGB configuration of the device.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>channel</strong> – channel to control, defaults to 0 (bulbs generally have only one channel)</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>a Tuple containing three integer 8bits values (red, green, blue)</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="meross_iot.controller.mixins.light.LightMixin.get_supports_luminance">
-<code class="sig-name descname">get_supports_luminance</code><span class="sig-paren">(</span><em class="sig-param">channel: int = 0</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#meross_iot.controller.mixins.light.LightMixin.get_supports_luminance" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="meross_iot.controller.mixins.light.LightMixin.get_supports_luminance">
+<span class="sig-name descname"><span class="pre">get_supports_luminance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#meross_iot.controller.mixins.light.LightMixin.get_supports_luminance" title="Permalink to this definition"></a></dt>
 <dd><p>Tells if the current device supports luminance capability</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>channel</strong> – channel to get info from, defaults to 0</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>True if the current device supports luminance mode, False otherwise.</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="meross_iot.controller.mixins.light.LightMixin.get_supports_rgb">
-<code class="sig-name descname">get_supports_rgb</code><span class="sig-paren">(</span><em class="sig-param">channel: int = 0</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#meross_iot.controller.mixins.light.LightMixin.get_supports_rgb" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="meross_iot.controller.mixins.light.LightMixin.get_supports_rgb">
+<span class="sig-name descname"><span class="pre">get_supports_rgb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#meross_iot.controller.mixins.light.LightMixin.get_supports_rgb" title="Permalink to this definition"></a></dt>
 <dd><p>Tells if the current device supports RGB capability</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>channel</strong> – channel to get info from, defaults to 0</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>True if the current device supports RGB color, False otherwise.</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="meross_iot.controller.mixins.light.LightMixin.get_supports_temperature">
-<code class="sig-name descname">get_supports_temperature</code><span class="sig-paren">(</span><em class="sig-param">channel: int = 0</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#meross_iot.controller.mixins.light.LightMixin.get_supports_temperature" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="meross_iot.controller.mixins.light.LightMixin.get_supports_temperature">
+<span class="sig-name descname"><span class="pre">get_supports_temperature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#meross_iot.controller.mixins.light.LightMixin.get_supports_temperature" title="Permalink to this definition"></a></dt>
 <dd><p>Tells if the current device supports temperature color capability</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>channel</strong> – channel to get info from, defaults to 0</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>True if the current device supports temperature mode, False otherwise.</p>
 </dd>
 </dl>
@@ -233,7 +251,7 @@ if the operating device must be controlled via ToggleX or Toggle command.</p></l
 
 </dd></dl>
 
-</div>
+</section>
 
 
            </div>
