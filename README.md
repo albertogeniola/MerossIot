@@ -27,7 +27,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```bash
-pip install meross_iot==0.4.6.1
+pip install meross_iot==0.4.6.2
 ```
 
 ## Usage & Full Documentation
@@ -191,7 +191,7 @@ Anyway, feel free to contribute via donations!
 </p>
 
 ## Changelog
-#### 0.4.6.1
+#### 0.4.6.2
 - Fix dependency specification for paho-mqtt and other libraries
 
 <details>
