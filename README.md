@@ -27,7 +27,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```bash
-pip install meross_iot==0.4.6.0
+pip install meross_iot==0.4.6.2
 ```
 
 ## Usage & Full Documentation
@@ -191,6 +191,11 @@ Anyway, feel free to contribute via donations!
 </p>
 
 ## Changelog
+#### 0.4.6.2
+- Fix dependency specification for paho-mqtt and other libraries
+
+<details>
+    <summary>Older</summary>
 #### 0.4.6.0
 - NOTE: this API version breaks backward compatibility with LOGIN method. When upgrading to this version, 
 make sure to pass the new api_base_url value correctly as described in the documentation.
@@ -202,8 +207,6 @@ make sure to pass the new api_base_url value correctly as described in the docum
 - Handling MFA code errors
 - Fix sniffer script and added MFA disable disclaimer
 
-<details>
-    <summary>Older</summary>
 #### 0.4.5.9
 - Improve meross_sniffer utility: add support to collect messages spoofing the hardware device on meross cloud.
 - Allow string namespace value for execute_command within manager.
