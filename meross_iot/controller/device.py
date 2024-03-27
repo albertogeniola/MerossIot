@@ -346,6 +346,45 @@ class BaseDevice(object):
             return res[0]
         raise ValueError(f"Could not find channel by id or name = {channel_id_or_name}")
 
+    def support_encryption(self) -> bool:
+        """
+        Returns true if encryption is supported by this device
+        :return:
+        """
+        return False
+
+    def is_encryption_key_set(self) -> bool:
+        """
+        Returns whether an encryption key has been already set
+        :return:
+        """
+        return False
+
+    def set_encryption_key(self, *args, **kwargs):
+        """
+        Sets the encryption key to be used for encryption and decryption
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        pass
+
+    def encrypt(self, message_data_bytes: bytes)->str:
+        """
+        Encrypts the message into a base64 string
+        :param message_data_bytes:
+        :return:
+        """
+        raise NotImplementedError("Encryption not supported by this device")
+
+    def decrypt(self, encrypted_message_bytes: bytes) -> bytes:
+        """
+        Decrypt the message and returns the war decrypted bytes
+        :param encrypted_message_bytes:
+        :return:
+        """
+        raise NotImplementedError("Encryption not supported by this device")
+
 
 class HubDevice(BaseDevice):
     # TODO: provide meaningful comment here describing what this class does

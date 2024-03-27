@@ -60,6 +60,8 @@ ManagerPushNotificationHandlerType = Callable[[GenericPushNotification, List[Bas
 
 _PENDING_FUTURES = []
 
+_DEFAULT_HEADERS = {"Content-Type": "application/json"}
+
 
 def _mqtt_key_from_domain_port(domain: str, port: int) -> str:
     return f"{domain}:{port}"
@@ -861,11 +863,28 @@ class MerossManager(object):
         # Send the message over the network
         # Build the mqtt message we will send to the broker
         message, message_id = self._build_mqtt_message(method, namespace, payload, destination_device_uuid)
+        device: BaseDevice = self._device_registry.lookup_base_by_uuid(destination_device_uuid)
 
         async with ClientSession() as session:
-            async with session.post(f"http://{device_ip}/config", json=json.loads(message.decode()), timeout=timeout) as response:
-                data = await response.json()
-                return data.get("payload")
+            message_data = message_id
+            decrypt_response = False
+            if device.support_encryption():
+                # Ensure we have correctly set the encryption key. If not, set it right away
+                if not device.is_encryption_key_set():
+                    device.set_encryption_key(uuid=device.uuid, mrskey=self._cloud_creds.key, mac=device.mac_address)
+                # Encrypt the data
+                message_data = device.encrypt(message)
+                decrypt_response = True
+
+            async with session.post(f"http://{device_ip}/config", data=message_data, timeout=timeout, headers=_DEFAULT_HEADERS) as response:
+                response_data = await response.text("utf8")
+
+            if decrypt_response:
+                response_data = device.decrypt(response_data.encode("utf8")).decode("utf8")
+                response_data = response_data.rstrip('\0')
+
+            data = json.loads(response_data)
+            return data.get("payload")
 
     async def async_execute_cmd_client(self,
                                        client: mqtt.Client,

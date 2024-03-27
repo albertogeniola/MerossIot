@@ -7,6 +7,7 @@ from meross_iot.controller.mixins.diffuser_light import DiffuserLightMixin
 from meross_iot.controller.mixins.diffuser_spray import DiffuserSprayMixin
 from meross_iot.controller.mixins.dnd import SystemDndMixin
 from meross_iot.controller.mixins.electricity import ElectricityMixin
+from meross_iot.controller.mixins.encryption import EncryptionSuiteMixin
 from meross_iot.controller.mixins.garage import GarageOpenerMixin
 from meross_iot.controller.mixins.hub import HubMts100Mixin, HubMixn, HubMs100Mixin
 from meross_iot.controller.mixins.light import LightMixin
@@ -36,6 +37,9 @@ _ABILITY_MATRIX = {
     Namespace.CONTROL_CONSUMPTIONX.value: ConsumptionXMixin,
     Namespace.CONTROL_CONSUMPTION.value: ConsumptionMixin,
     Namespace.CONTROL_ELECTRICITY.value: ElectricityMixin,
+
+    # Encryption
+    Namespace.SYSTEM_ENCRYPTION.value: EncryptionSuiteMixin,
 
     # Light abilities
     Namespace.CONTROL_LIGHT.value: LightMixin,

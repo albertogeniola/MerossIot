@@ -76,6 +76,9 @@ class Namespace(Enum):
     SYSTEM_DEBUG = 'Appliance.System.Debug'
     SYSTEM_RUNTIME = 'Appliance.System.Runtime'
 
+    SYSTEM_ENCRYPTION = 'Appliance.Encrypt.Suite'
+    SYSTEM_ENCRYPTION_ECDHE = 'Appliance.Encrypt.ECDHE'
+
     CONTROL_BIND = 'Appliance.Control.Bind'
     CONTROL_UNBIND = 'Appliance.Control.Unbind'
     CONTROL_TRIGGER = 'Appliance.Control.Trigger'
