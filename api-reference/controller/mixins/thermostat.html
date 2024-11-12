@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en">
 <head>
@@ -6,19 +8,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ThermostatMixin &mdash; MerossIot Library  documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
 
   
 
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=b3ba4146"></script>
-        <script src="../../../_static/doctools.js?v=888ff710"></script>
-        <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=b3ba4146"></script>
+      <script src="../../../_static/doctools.js?v=888ff710"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../../../_static/js/theme.js"></script>
         <script data-ad-client="ca-pub-9110025741700767" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 
@@ -92,9 +90,11 @@
 <li class="toctree-l4"><a class="reference internal" href="#meross_iot.controller.mixins.thermostat.ThermostatState.max_temperature_celsius"><code class="docutils literal notranslate"><span class="pre">ThermostatState.max_temperature_celsius</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#meross_iot.controller.mixins.thermostat.ThermostatState.min_temperature_celsius"><code class="docutils literal notranslate"><span class="pre">ThermostatState.min_temperature_celsius</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#meross_iot.controller.mixins.thermostat.ThermostatState.mode"><code class="docutils literal notranslate"><span class="pre">ThermostatState.mode</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#meross_iot.controller.mixins.thermostat.ThermostatState.state"><code class="docutils literal notranslate"><span class="pre">ThermostatState.state</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#meross_iot.controller.mixins.thermostat.ThermostatState.target_temperature_celsius"><code class="docutils literal notranslate"><span class="pre">ThermostatState.target_temperature_celsius</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#meross_iot.controller.mixins.thermostat.ThermostatState.update"><code class="docutils literal notranslate"><span class="pre">ThermostatState.update()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#meross_iot.controller.mixins.thermostat.ThermostatState.warning"><code class="docutils literal notranslate"><span class="pre">ThermostatState.warning</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#meross_iot.controller.mixins.thermostat.ThermostatState.workingMode"><code class="docutils literal notranslate"><span class="pre">ThermostatState.workingMode</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -206,6 +206,12 @@
 </dd></dl>
 
 <dl class="py property">
+<dt class="sig sig-object py" id="meross_iot.controller.mixins.thermostat.ThermostatState.state">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">state</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ThermostatModeBState</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#meross_iot.controller.mixins.thermostat.ThermostatState.state" title="Permalink to this definition"></a></dt>
+<dd><p>The current thermostat state</p>
+</dd></dl>
+
+<dl class="py property">
 <dt class="sig sig-object py" id="meross_iot.controller.mixins.thermostat.ThermostatState.target_temperature_celsius">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">target_temperature_celsius</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#meross_iot.controller.mixins.thermostat.ThermostatState.target_temperature_celsius" title="Permalink to this definition"></a></dt>
 <dd><p>The target temperature of the thermostat</p>
@@ -223,6 +229,12 @@
 <dt class="sig sig-object py" id="meross_iot.controller.mixins.thermostat.ThermostatState.warning">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">warning</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#meross_iot.controller.mixins.thermostat.ThermostatState.warning" title="Permalink to this definition"></a></dt>
 <dd><p>The warning state of the thermostat</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="meross_iot.controller.mixins.thermostat.ThermostatState.workingMode">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">workingMode</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ThermostatWorkingMode</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#meross_iot.controller.mixins.thermostat.ThermostatState.workingMode" title="Permalink to this definition"></a></dt>
+<dd><p>The current thermostat working mode</p>
 </dd></dl>
 
 </dd></dl>
