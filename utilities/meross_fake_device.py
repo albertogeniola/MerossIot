@@ -5,7 +5,7 @@ import ssl
 from hashlib import md5
 from typing import Any, Dict, Tuple
 
-from paho.mqtt.client import Client, MQTTv311, MQTTMessage
+from paho.mqtt.client import CallbackAPIVersion, Client, MQTTv311, MQTTMessage
 
 from meross_iot.utilities.mqtt import build_device_request_topic
 from utilities.mixedqueue import MixedQueue
@@ -33,7 +33,8 @@ class FakeDeviceSniffer:
 
         # Start the mqtt client and connect
         self._mqtt_client = Client(client_id=self._client_id, clean_session=True, userdata=None,
-                                          protocol=MQTTv311, transport="tcp", reconnect_on_failure=False)
+                                          protocol=MQTTv311, transport="tcp", reconnect_on_failure=False,
+                                          callback_api_version=CallbackAPIVersion.VERSION1)
         mac_key_digest = md5(f"{self._mac_address}{self._meross_cloud_key}".encode("utf8")).hexdigest().lower()
         device_password = f"{self._meross_user_id}_{mac_key_digest}"
         self._mqtt_client.username_pw_set(username=self._mac_address, password=device_password)

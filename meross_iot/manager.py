@@ -209,7 +209,8 @@ class MerossManager(object):
 
     def _new_mqtt_client(self) -> mqtt.Client:
         # Setup mqtt client
-        client = mqtt.Client(client_id=self._client_id, protocol=mqtt.MQTTv311, clean_session=False)
+        client = mqtt.Client(client_id=self._client_id, protocol=mqtt.MQTTv311, clean_session=False,
+                             callback_api_version=mqtt.CallbackAPIVersion.VERSION1)
         client.username_pw_set(username=self._cloud_creds.user_id, password=self._mqtt_password)
 
         # Certificate validation setup
