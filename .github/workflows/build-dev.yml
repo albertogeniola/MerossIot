@@ -40,6 +40,7 @@ jobs:
   # Turn on ENV
   # ------------------------------
   turn-on-env:
+    if: false
     name: Turn on test environment
     runs-on: ubuntu-20.04
     env:
