@@ -32,7 +32,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```bash
-pip install meross_iot==0.4.7.5
+pip install meross_iot==0.4.7.6
 ```
 
 ## Usage & Full Documentation
@@ -199,11 +199,14 @@ Anyway, feel free to contribute via donations!
 </p>
 
 ## Changelog
-### 0.4.7.5
-- Adds support for MTS960, addressing #337
+### 0.4.7.6
+- Address #410
 
 <details>
     <summary>Older</summary>
+
+### 0.4.7.5
+- Adds support for MTS960, addressing #337
 
 ### 0.4.7.3
 - Fixes missing `mfaLockExpire` key in login response data due to unexpected API changes from Meross 
