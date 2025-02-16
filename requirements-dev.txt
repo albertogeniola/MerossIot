@@ -10,4 +10,5 @@ pytest-aiohttp==0.3.0
 pytest-custom_exit_code==0.3.0
 proxy.py==2.3.1
 pysocks==1.7.1
-importlib_metadata>=6.0.0
+importlib_resources
+importlib_metadata
