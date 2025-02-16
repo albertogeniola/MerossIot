@@ -7,7 +7,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Advanced topics &mdash; MerossIot Library  documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
@@ -94,7 +94,7 @@ The <code class="code docutils literal notranslate"><span class="pre">BaseDevice
 allows to register an async coroutine to be executed when an push notification is received for that device.
 The registered coroutine signature must match the following signature:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># ... OMISSIS ...</span>
-<span class="k">async</span> <span class="k">def</span> <span class="nf">coro_name</span><span class="p">(</span><span class="n">namespace</span><span class="p">:</span> <span class="n">Namespace</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">device_internal_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">coro_name</span><span class="p">(</span><span class="n">namespace</span><span class="p">:</span> <span class="n">Namespace</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">device_internal_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
     <span class="c1"># TODO: do something with event data</span>
     <span class="k">pass</span>
 </pre></div>
@@ -106,7 +106,7 @@ notification coroutine handler to the <code class="code docutils literal notrans
 <code class="code docutils literal notranslate"><span class="pre">register_push_notification_handler_coroutine()</span></code> method and passing a coroutine definition that matches the
 following signature:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># ... OMISSIS ...</span>
-<span class="k">async</span> <span class="k">def</span> <span class="nf">evt_coro</span><span class="p">(</span><span class="n">namespace</span><span class="p">:</span> <span class="n">Namespace</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">device_internal_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">evt_coro</span><span class="p">(</span><span class="n">namespace</span><span class="p">:</span> <span class="n">Namespace</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">device_internal_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="c1"># TODO: do something with event data</span>
     <span class="k">pass</span>
 </pre></div>
@@ -129,11 +129,11 @@ and you should unregister when they are no more needed.</p>
 <p>This library relies on the standard Python’s logging module.
 It is possible to control the logging verbosity by modifying the severity of meross_iot log level, as shown
 in the following example.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">asyncio</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">meross_iot.http_api</span> <span class="kn">import</span> <span class="n">MerossHttpClient</span>
-<span class="kn">from</span> <span class="nn">meross_iot.manager</span> <span class="kn">import</span> <span class="n">MerossManager</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">meross_iot.http_api</span><span class="w"> </span><span class="kn">import</span> <span class="n">MerossHttpClient</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">meross_iot.manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">MerossManager</span>
 
 
 <span class="n">meross_root_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;meross_iot&quot;</span><span class="p">)</span>

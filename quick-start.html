@@ -7,7 +7,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Quick start &mdash; MerossIot Library  documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
@@ -102,17 +102,17 @@ gotchas. After all, someone has taken the effort of writing, why would you not r
 <h2>Listing devices<a class="headerlink" href="#listing-devices" title="Permalink to this heading"></a></h2>
 <div class="literal-block-wrapper docutils container" id="listing">
 <div class="code-block-caption"><span class="caption-text">Listing Meross devices</span><a class="headerlink" href="#listing" title="Permalink to this code"></a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span> <span class="nn">asyncio</span>
-<span class="linenos"> 2</span><span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="linenos"> 3</span>
-<span class="linenos"> 4</span><span class="kn">from</span> <span class="nn">meross_iot.http_api</span> <span class="kn">import</span> <span class="n">MerossHttpClient</span>
-<span class="linenos"> 5</span><span class="kn">from</span> <span class="nn">meross_iot.manager</span> <span class="kn">import</span> <span class="n">MerossManager</span>
+<span class="linenos"> 4</span><span class="kn">from</span><span class="w"> </span><span class="nn">meross_iot.http_api</span><span class="w"> </span><span class="kn">import</span> <span class="n">MerossHttpClient</span>
+<span class="linenos"> 5</span><span class="kn">from</span><span class="w"> </span><span class="nn">meross_iot.manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">MerossManager</span>
 <span class="linenos"> 6</span>
 <span class="linenos"> 7</span><span class="n">EMAIL</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;MEROSS_EMAIL&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;YOUR_MEROSS_CLOUD_EMAIL&quot;</span>
 <span class="linenos"> 8</span><span class="n">PASSWORD</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;MEROSS_PASSWORD&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;YOUR_MEROSS_CLOUD_PASSWORD&quot;</span>
 <span class="linenos"> 9</span>
 <span class="linenos">10</span>
-<span class="linenos">11</span><span class="k">async</span> <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<span class="linenos">11</span><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
 <span class="linenos">12</span>    <span class="c1"># Setup the HTTP client API from user-password</span>
 <span class="linenos">13</span>    <span class="n">http_api_client</span> <span class="o">=</span> <span class="k">await</span> <span class="n">MerossHttpClient</span><span class="o">.</span><span class="n">async_from_user_password</span><span class="p">(</span><span class="n">email</span><span class="o">=</span><span class="n">EMAIL</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="n">PASSWORD</span><span class="p">,</span> <span class="n">api_base_url</span><span class="o">=</span><span class="s2">&quot;https://iot.meross.com&quot;</span><span class="p">)</span>
 <span class="linenos">14</span>
@@ -157,17 +157,17 @@ the following method signature for more details.</p>
 <h2>Controlling switches<a class="headerlink" href="#controlling-switches" title="Permalink to this heading"></a></h2>
 <div class="literal-block-wrapper docutils container" id="toggling">
 <div class="code-block-caption"><span class="caption-text">Toggling smart switches</span><a class="headerlink" href="#toggling" title="Permalink to this code"></a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span> <span class="nn">asyncio</span>
-<span class="linenos"> 2</span><span class="kn">import</span> <span class="nn">os</span>
-<span class="linenos"> 3</span><span class="kn">import</span> <span class="nn">os</span>
-<span class="linenos"> 4</span><span class="kn">from</span> <span class="nn">meross_iot.http_api</span> <span class="kn">import</span> <span class="n">MerossHttpClient</span>
-<span class="linenos"> 5</span><span class="kn">from</span> <span class="nn">meross_iot.manager</span> <span class="kn">import</span> <span class="n">MerossManager</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="linenos"> 3</span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="linenos"> 4</span><span class="kn">from</span><span class="w"> </span><span class="nn">meross_iot.http_api</span><span class="w"> </span><span class="kn">import</span> <span class="n">MerossHttpClient</span>
+<span class="linenos"> 5</span><span class="kn">from</span><span class="w"> </span><span class="nn">meross_iot.manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">MerossManager</span>
 <span class="linenos"> 6</span>
 <span class="linenos"> 7</span><span class="n">EMAIL</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;MEROSS_EMAIL&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;YOUR_MEROSS_CLOUD_EMAIL&quot;</span>
 <span class="linenos"> 8</span><span class="n">PASSWORD</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;MEROSS_PASSWORD&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;YOUR_MEROSS_CLOUD_PASSWORD&quot;</span>
 <span class="linenos"> 9</span>
 <span class="linenos">10</span>
-<span class="linenos">11</span><span class="k">async</span> <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<span class="linenos">11</span><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
 <span class="linenos">12</span>    <span class="c1"># Setup the HTTP client API from user-password</span>
 <span class="linenos">13</span>    <span class="n">http_api_client</span> <span class="o">=</span> <span class="k">await</span> <span class="n">MerossHttpClient</span><span class="o">.</span><span class="n">async_from_user_password</span><span class="p">(</span><span class="n">email</span><span class="o">=</span><span class="n">EMAIL</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="n">PASSWORD</span><span class="p">,</span> <span class="n">api_base_url</span><span class="o">=</span><span class="s2">&quot;https://iot.meross.com&quot;</span><span class="p">)</span>
 <span class="linenos">14</span>
@@ -220,19 +220,19 @@ Both classes expose a number of methods to control these devices, such <code cla
 <h2>Controlling bulbs<a class="headerlink" href="#controlling-bulbs" title="Permalink to this heading"></a></h2>
 <div class="literal-block-wrapper docutils container" id="bulbs">
 <div class="code-block-caption"><span class="caption-text">Operating smart bulbs</span><a class="headerlink" href="#bulbs" title="Permalink to this code"></a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span> <span class="nn">asyncio</span>
-<span class="linenos"> 2</span><span class="kn">import</span> <span class="nn">os</span>
-<span class="linenos"> 3</span><span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">randint</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="linenos"> 3</span><span class="kn">from</span><span class="w"> </span><span class="nn">random</span><span class="w"> </span><span class="kn">import</span> <span class="n">randint</span>
 <span class="linenos"> 4</span>
-<span class="linenos"> 5</span><span class="kn">from</span> <span class="nn">meross_iot.http_api</span> <span class="kn">import</span> <span class="n">MerossHttpClient</span>
-<span class="linenos"> 6</span><span class="kn">from</span> <span class="nn">meross_iot.manager</span> <span class="kn">import</span> <span class="n">MerossManager</span>
-<span class="linenos"> 7</span><span class="kn">from</span> <span class="nn">meross_iot.model.enums</span> <span class="kn">import</span> <span class="n">OnlineStatus</span>
+<span class="linenos"> 5</span><span class="kn">from</span><span class="w"> </span><span class="nn">meross_iot.http_api</span><span class="w"> </span><span class="kn">import</span> <span class="n">MerossHttpClient</span>
+<span class="linenos"> 6</span><span class="kn">from</span><span class="w"> </span><span class="nn">meross_iot.manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">MerossManager</span>
+<span class="linenos"> 7</span><span class="kn">from</span><span class="w"> </span><span class="nn">meross_iot.model.enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">OnlineStatus</span>
 <span class="linenos"> 8</span>
 <span class="linenos"> 9</span><span class="n">EMAIL</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;MEROSS_EMAIL&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;YOUR_MEROSS_CLOUD_EMAIL&quot;</span>
 <span class="linenos">10</span><span class="n">PASSWORD</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;MEROSS_PASSWORD&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;YOUR_MEROSS_CLOUD_PASSWORD&quot;</span>
 <span class="linenos">11</span>
 <span class="linenos">12</span>
-<span class="linenos">13</span><span class="k">async</span> <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<span class="linenos">13</span><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
 <span class="linenos">14</span>    <span class="c1"># Setup the HTTP client API from user-password</span>
 <span class="linenos">15</span>    <span class="n">http_api_client</span> <span class="o">=</span> <span class="k">await</span> <span class="n">MerossHttpClient</span><span class="o">.</span><span class="n">async_from_user_password</span><span class="p">(</span><span class="n">email</span><span class="o">=</span><span class="n">EMAIL</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="n">PASSWORD</span><span class="p">,</span> <span class="n">api_base_url</span><span class="o">=</span><span class="s2">&quot;https://iot.meross.com&quot;</span><span class="p">)</span>
 <span class="linenos">16</span>
@@ -302,18 +302,18 @@ absolving the author of this library of all responsibility.</p>
 </div>
 <div class="literal-block-wrapper docutils container" id="garage-door">
 <div class="code-block-caption"><span class="caption-text">Operating door opener</span><a class="headerlink" href="#garage-door" title="Permalink to this code"></a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span> <span class="nn">asyncio</span>
-<span class="linenos"> 2</span><span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="linenos"> 3</span>
-<span class="linenos"> 4</span><span class="kn">from</span> <span class="nn">meross_iot.controller.mixins.garage</span> <span class="kn">import</span> <span class="n">GarageOpenerMixin</span>
-<span class="linenos"> 5</span><span class="kn">from</span> <span class="nn">meross_iot.http_api</span> <span class="kn">import</span> <span class="n">MerossHttpClient</span>
-<span class="linenos"> 6</span><span class="kn">from</span> <span class="nn">meross_iot.manager</span> <span class="kn">import</span> <span class="n">MerossManager</span>
+<span class="linenos"> 4</span><span class="kn">from</span><span class="w"> </span><span class="nn">meross_iot.controller.mixins.garage</span><span class="w"> </span><span class="kn">import</span> <span class="n">GarageOpenerMixin</span>
+<span class="linenos"> 5</span><span class="kn">from</span><span class="w"> </span><span class="nn">meross_iot.http_api</span><span class="w"> </span><span class="kn">import</span> <span class="n">MerossHttpClient</span>
+<span class="linenos"> 6</span><span class="kn">from</span><span class="w"> </span><span class="nn">meross_iot.manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">MerossManager</span>
 <span class="linenos"> 7</span>
 <span class="linenos"> 8</span><span class="n">EMAIL</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;MEROSS_EMAIL&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;YOUR_MEROSS_CLOUD_EMAIL&quot;</span>
 <span class="linenos"> 9</span><span class="n">PASSWORD</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;MEROSS_PASSWORD&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;YOUR_MEROSS_CLOUD_PASSWORD&quot;</span>
 <span class="linenos">10</span>
 <span class="linenos">11</span>
-<span class="linenos">12</span><span class="k">async</span> <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<span class="linenos">12</span><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
 <span class="linenos">13</span>    <span class="c1"># Setup the HTTP client API from user-password</span>
 <span class="linenos">14</span>    <span class="n">http_api_client</span> <span class="o">=</span> <span class="k">await</span> <span class="n">MerossHttpClient</span><span class="o">.</span><span class="n">async_from_user_password</span><span class="p">(</span><span class="n">email</span><span class="o">=</span><span class="n">EMAIL</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="n">PASSWORD</span><span class="p">,</span> <span class="n">api_base_url</span><span class="o">=</span><span class="s2">&quot;https://iot.meross.com&quot;</span><span class="p">)</span>
 <span class="linenos">15</span>
@@ -381,18 +381,18 @@ MSS310 plug, which implements both the <code class="code docutils literal notran
 <code class="code docutils literal notranslate"><span class="pre">meross_iot.controller.mixins.consumption.ConsumptionXMixin</span></code>.</p>
 <div class="literal-block-wrapper docutils container" id="power-consumption">
 <div class="code-block-caption"><span class="caption-text">Reading power consumption</span><a class="headerlink" href="#power-consumption" title="Permalink to this code"></a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span> <span class="nn">asyncio</span>
-<span class="linenos"> 2</span><span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="linenos"> 3</span>
-<span class="linenos"> 4</span><span class="kn">from</span> <span class="nn">meross_iot.controller.mixins.electricity</span> <span class="kn">import</span> <span class="n">ElectricityMixin</span>
-<span class="linenos"> 5</span><span class="kn">from</span> <span class="nn">meross_iot.http_api</span> <span class="kn">import</span> <span class="n">MerossHttpClient</span>
-<span class="linenos"> 6</span><span class="kn">from</span> <span class="nn">meross_iot.manager</span> <span class="kn">import</span> <span class="n">MerossManager</span>
+<span class="linenos"> 4</span><span class="kn">from</span><span class="w"> </span><span class="nn">meross_iot.controller.mixins.electricity</span><span class="w"> </span><span class="kn">import</span> <span class="n">ElectricityMixin</span>
+<span class="linenos"> 5</span><span class="kn">from</span><span class="w"> </span><span class="nn">meross_iot.http_api</span><span class="w"> </span><span class="kn">import</span> <span class="n">MerossHttpClient</span>
+<span class="linenos"> 6</span><span class="kn">from</span><span class="w"> </span><span class="nn">meross_iot.manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">MerossManager</span>
 <span class="linenos"> 7</span>
 <span class="linenos"> 8</span><span class="n">EMAIL</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;MEROSS_EMAIL&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;YOUR_MEROSS_CLOUD_EMAIL&quot;</span>
 <span class="linenos"> 9</span><span class="n">PASSWORD</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;MEROSS_PASSWORD&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;YOUR_MEROSS_CLOUD_PASSWORD&quot;</span>
 <span class="linenos">10</span>
 <span class="linenos">11</span>
-<span class="linenos">12</span><span class="k">async</span> <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<span class="linenos">12</span><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
 <span class="linenos">13</span>    <span class="c1"># Setup the HTTP client API from user-password</span>
 <span class="linenos">14</span>    <span class="n">http_api_client</span> <span class="o">=</span> <span class="k">await</span> <span class="n">MerossHttpClient</span><span class="o">.</span><span class="n">async_from_user_password</span><span class="p">(</span><span class="n">email</span><span class="o">=</span><span class="n">EMAIL</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="n">PASSWORD</span><span class="p">,</span> <span class="n">api_base_url</span><span class="o">=</span><span class="s2">&quot;https://iot.meross.com&quot;</span><span class="p">)</span>
 <span class="linenos">15</span>
@@ -436,17 +436,17 @@ available <a class="reference internal" href="api-reference/controller/mixins/el
 <p>For reading data from the MS100 temperature and humidity sensor, you can rely on the following snippet.</p>
 <div class="literal-block-wrapper docutils container" id="sensor">
 <div class="code-block-caption"><span class="caption-text">Reading from sensor</span><a class="headerlink" href="#sensor" title="Permalink to this code"></a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span> <span class="nn">asyncio</span>
-<span class="linenos"> 2</span><span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="linenos"> 3</span>
-<span class="linenos"> 4</span><span class="kn">from</span> <span class="nn">meross_iot.http_api</span> <span class="kn">import</span> <span class="n">MerossHttpClient</span>
-<span class="linenos"> 5</span><span class="kn">from</span> <span class="nn">meross_iot.manager</span> <span class="kn">import</span> <span class="n">MerossManager</span>
+<span class="linenos"> 4</span><span class="kn">from</span><span class="w"> </span><span class="nn">meross_iot.http_api</span><span class="w"> </span><span class="kn">import</span> <span class="n">MerossHttpClient</span>
+<span class="linenos"> 5</span><span class="kn">from</span><span class="w"> </span><span class="nn">meross_iot.manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">MerossManager</span>
 <span class="linenos"> 6</span>
 <span class="linenos"> 7</span><span class="n">EMAIL</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;MEROSS_EMAIL&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;YOUR_MEROSS_CLOUD_EMAIL&quot;</span>
 <span class="linenos"> 8</span><span class="n">PASSWORD</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;MEROSS_PASSWORD&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;YOUR_MEROSS_CLOUD_PASSWORD&quot;</span>
 <span class="linenos"> 9</span>
 <span class="linenos">10</span>
-<span class="linenos">11</span><span class="k">async</span> <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<span class="linenos">11</span><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
 <span class="linenos">12</span>    <span class="c1"># Setup the HTTP client API from user-password</span>
 <span class="linenos">13</span>    <span class="n">http_api_client</span> <span class="o">=</span> <span class="k">await</span> <span class="n">MerossHttpClient</span><span class="o">.</span><span class="n">async_from_user_password</span><span class="p">(</span><span class="n">email</span><span class="o">=</span><span class="n">EMAIL</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="n">PASSWORD</span><span class="p">,</span> <span class="n">api_base_url</span><span class="o">=</span><span class="s2">&quot;https://iot.meross.com&quot;</span><span class="p">)</span>
 <span class="linenos">14</span>
@@ -494,18 +494,18 @@ within the <a class="reference internal" href="api-reference/controller/subdevic
 <p>The Meross thermostat valve is operated via <cite>meross_iot.controller.subdevice.Mts100v3Valve</cite> class.</p>
 <div class="literal-block-wrapper docutils container" id="smart-valve">
 <div class="code-block-caption"><span class="caption-text">Operating the smart valve</span><a class="headerlink" href="#smart-valve" title="Permalink to this code"></a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span> <span class="nn">asyncio</span>
-<span class="linenos"> 2</span><span class="kn">import</span> <span class="nn">os</span>
-<span class="linenos"> 3</span><span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">randint</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="linenos"> 3</span><span class="kn">from</span><span class="w"> </span><span class="nn">random</span><span class="w"> </span><span class="kn">import</span> <span class="n">randint</span>
 <span class="linenos"> 4</span>
-<span class="linenos"> 5</span><span class="kn">from</span> <span class="nn">meross_iot.http_api</span> <span class="kn">import</span> <span class="n">MerossHttpClient</span>
-<span class="linenos"> 6</span><span class="kn">from</span> <span class="nn">meross_iot.manager</span> <span class="kn">import</span> <span class="n">MerossManager</span>
+<span class="linenos"> 5</span><span class="kn">from</span><span class="w"> </span><span class="nn">meross_iot.http_api</span><span class="w"> </span><span class="kn">import</span> <span class="n">MerossHttpClient</span>
+<span class="linenos"> 6</span><span class="kn">from</span><span class="w"> </span><span class="nn">meross_iot.manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">MerossManager</span>
 <span class="linenos"> 7</span>
 <span class="linenos"> 8</span><span class="n">EMAIL</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;MEROSS_EMAIL&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;YOUR_MEROSS_CLOUD_EMAIL&quot;</span>
 <span class="linenos"> 9</span><span class="n">PASSWORD</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;MEROSS_PASSWORD&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;YOUR_MEROSS_CLOUD_PASSWORD&quot;</span>
 <span class="linenos">10</span>
 <span class="linenos">11</span>
-<span class="linenos">12</span><span class="k">async</span> <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<span class="linenos">12</span><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
 <span class="linenos">13</span>    <span class="c1"># Setup the HTTP client API from user-password</span>
 <span class="linenos">14</span>    <span class="n">http_api_client</span> <span class="o">=</span> <span class="k">await</span> <span class="n">MerossHttpClient</span><span class="o">.</span><span class="n">async_from_user_password</span><span class="p">(</span><span class="n">email</span><span class="o">=</span><span class="n">EMAIL</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="n">PASSWORD</span><span class="p">,</span> <span class="n">api_base_url</span><span class="o">=</span><span class="s2">&quot;https://iot.meross.com&quot;</span><span class="p">)</span>
 <span class="linenos">15</span>
