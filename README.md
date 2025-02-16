@@ -23,7 +23,7 @@ This will help us to keep track of new devices and current support status of the
 This library is still work in progress, therefore use it with caution.
 
 ## Requirements
-This library requires __Python 3.7+__. Previous versions won't be supported by this library.
+This library requires __Python 3.8+__. Previous versions won't be supported by this library.
 In case working with previous versions of python is mandatory for your project, consider using 0.3.X.X versions
 of this library (although it's highly recommended to migrate to 0.4.X.X). 
 
@@ -32,7 +32,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```bash
-pip install meross_iot==0.4.7.6
+pip install meross_iot==0.4.8.0
 ```
 
 ## Usage & Full Documentation
@@ -190,7 +190,7 @@ Look at the test environment that ensures high quality code of the library!
 </p>
 <img src="ext-res/plugs/test-env.jpg" alt="Current test environemnt" width="400" />
 <p>When a pull-request is performed against this repository, a CI pipeline takes care of building the code,
-testing it on Python 3.5/3.6/3.7, relying on some junit tests and, if all the tests pass as expected, the library
+testing it on Python 3.8+, relying on some junit tests and, if all the tests pass as expected, the library
 is released on Pypi. However, to ensure that the code <i>really works</i>,
 the pipeline will issue on/off commands against real devices, that are dedicated 24/7 to the tests.
 Such devices have been bought by myself (with contributions received by donors).
@@ -199,7 +199,8 @@ Anyway, feel free to contribute via donations!
 </p>
 
 ## Changelog
-### 0.4.7.6
+### 0.4.8.0
+- Drops python 3.7 support
 - Address #410
 
 <details>
