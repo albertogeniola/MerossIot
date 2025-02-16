@@ -13,7 +13,7 @@ jobs:
     name: Build on node Python 3.9
     outputs: 
       tag: ${{steps.tag.outputs.tag}}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
@@ -42,7 +42,7 @@ jobs:
   turn-on-env:
     if: false
     name: Turn on test environment
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     env:
       HOMEASSISTANT_TOKEN: ${{ secrets.HOMEASSISTANT_TOKEN }}
     steps:
@@ -54,7 +54,7 @@ jobs:
   # ---------------------------------
   test:
     name: Testing
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs: [build, turn-on-env]
     outputs:
       failure_rate: ${{steps.pytest.outputs.failure_rate}}
@@ -124,7 +124,7 @@ jobs:
   # Turn off ENV
   # ------------------------------
   turn-off-env:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs: [test]
     env:
       HOMEASSISTANT_TOKEN: ${{ secrets.HOMEASSISTANT_TOKEN }}
@@ -141,7 +141,7 @@ jobs:
   # ------------------------------
   pre-release:
     name: Pre-Release on GitHub
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs: [build, test]
     # Only publish release if the failure rate is < 10 %
     if: needs.test.outputs.failure_rate < 10
