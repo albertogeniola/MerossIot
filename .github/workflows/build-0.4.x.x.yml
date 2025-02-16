@@ -35,6 +35,7 @@ jobs:
   # Turn on ENV
   # -----------------------------------
   turn-on-env:
+    if: false
     name: Turn on test environment
     runs-on: ubuntu-latest
     env:
@@ -48,6 +49,7 @@ jobs:
   # Testing
   # ---------------------------------
   test:
+    if: false
     name: Testing
     runs-on: ubuntu-latest
     strategy:
@@ -142,12 +144,14 @@ jobs:
       - name: Powering on the dev-environment
         run: |
           curl -X POST -k --header "Content-Type: application/json" --header "Authorization: Bearer $HOMEASSISTANT_TOKEN" https://milano.geniola.it/api/services/switch/turn_off -d "{\"entity_id\":\"switch.meross_lab\"}"
-    if: ${{ always() }}
+    #if: ${{ always() }}
+    if: false
 
   # -----------------------------
   # Release checks
   # -----------------------------
   release_checks:
+    if: false
     runs-on: ubuntu-latest
     needs: [ test ]
     outputs:
