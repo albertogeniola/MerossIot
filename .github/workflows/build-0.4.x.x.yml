@@ -12,7 +12,7 @@ jobs:
   # ----------------------------------
   build:
     name: Build on Python ${{matrix.python_version}}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         python_version: ['3.7', '3.8', '3.9', '3.10']
@@ -37,7 +37,7 @@ jobs:
   turn-on-env:
     if: false
     name: Turn on test environment
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       HOMEASSISTANT_TOKEN: ${{ secrets.HOMEASSISTANT_TOKEN }}
     steps:
@@ -51,7 +51,7 @@ jobs:
   test:
     if: false
     name: Testing
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         python_version: ['3.7', '3.8', '3.9', '3.10']
@@ -137,7 +137,7 @@ jobs:
   # ------------------------------
   turn-off-env:
     name: Turn off test environment
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       HOMEASSISTANT_TOKEN: ${{ secrets.HOMEASSISTANT_TOKEN }}
     steps:
@@ -152,7 +152,7 @@ jobs:
   # -----------------------------
   release_checks:
     if: false
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: [ test ]
     outputs:
       should_publish: ${{ steps.release_decision.outputs.should_release }}
@@ -192,7 +192,7 @@ jobs:
   # Build and Release
   # -----------------------------
   release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: [release_checks]
     if: ${{ success() }}
     steps:
