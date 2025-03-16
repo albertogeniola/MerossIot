@@ -200,8 +200,7 @@ Anyway, feel free to contribute via donations!
 
 ## Changelog
 ### 0.4.9.0
-- Upgrades paho-mqtt dependency to v2 but keeps backward compatibility
-- Address #410
+- Upgrades paho-mqtt dependency to v2 but keeps backward compatibility - Thanks @mmatuska
 
 <details>
     <summary>Older</summary>
