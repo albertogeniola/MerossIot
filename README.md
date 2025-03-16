@@ -199,12 +199,16 @@ Anyway, feel free to contribute via donations!
 </p>
 
 ## Changelog
-### 0.4.8.0
-- Drops python 3.7 support
+### 0.4.9.0
+- Upgrades paho-mqtt dependency to v2 but keeps backward compatibility
 - Address #410
 
 <details>
     <summary>Older</summary>
+
+### 0.4.8.0
+- Drops python 3.7 support
+- Address #410
 
 ### 0.4.7.5
 - Adds support for MTS960, addressing #337
