@@ -379,3 +379,24 @@ class ThermostatModeBMixin:
                                          timeout=timeout)
         mode_data = result.get('modeB')
         self._update_mode(mode_data)
+
+class ThermostatCalibrationMixin:
+    _execute_command: callable
+    check_full_update_done: callable
+    _thermostat_state_by_channel: Dict[int, ThermostatState]
+
+    def __init__(self, device_uuid: str,
+                 manager,
+                 **kwargs):
+        super().__init__(device_uuid=device_uuid, manager=manager, **kwargs)
+        self._thermostat_state_by_channel = {}
+
+    async def async_set_thermostat_calibration(self, temperature: float, channel: int = 0) -> None:
+        channel_conf = {
+            'channel': channel
+        }
+        payload = {'calibration': [channel_conf]}
+        channel_conf['value'] = self._align_temp(temperature, channel=channel)
+
+        result = await self._execute_command(method="SET", namespace=Namespace.CONTROL_THERMOSTAT_CALIBRATION, payload=payload)
+        

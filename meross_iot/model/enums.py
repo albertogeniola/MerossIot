@@ -148,6 +148,7 @@ class Namespace(Enum):
     # Thermostat / MTS200
     CONTROL_THERMOSTAT_MODE = 'Appliance.Control.Thermostat.Mode'
     CONTROL_THERMOSTAT_WINDOWOPENED = 'Appliance.Control.Thermostat.WindowOpened'
+    CONTROL_THERMOSTAT_CALIBRATION = 'Appliance.Control.Thermostat.Calibration'
 
     # Thermostat / MTS960
     CONTROL_THERMOSTAT_MODEB = 'Appliance.Control.Thermostat.ModeB'
