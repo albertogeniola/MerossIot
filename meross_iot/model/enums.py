@@ -61,8 +61,9 @@ class ThermostatWorkingMode(Enum):
 
 
 class ThermostatModeBState(Enum):
+    NOT_HEATING_COOLING = 0
     HEATING_COOLING = 1
-    NOT_HEATING_COOLING = 2
+    NOT_HEATING_COOLING_LEGACY = 2
 
 
 class RollerShutterState(Enum):
