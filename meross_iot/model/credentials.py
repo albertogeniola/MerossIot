@@ -15,7 +15,7 @@ class MerossCloudCreds(object):
         self.user_id = user_id
         self.user_email = user_email
         self.domain = domain
-        self.mqtt_domain = mqtt_domain,
+        self.mqtt_domain = mqtt_domain
 
         if isinstance(issued_on, datetime):
             self.issued_on = issued_on

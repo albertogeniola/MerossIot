@@ -199,11 +199,15 @@ Anyway, feel free to contribute via donations!
 </p>
 
 ## Changelog
-### 0.4.9.0
-- Upgrades paho-mqtt dependency to v2 but keeps backward compatibility - Thanks @mmatuska
+### 0.4.9.1
+- Fix credentials object's "mqtt_domain" attribute being created as tuple rather than string. This error cased varius
+issues also with Meross Homeassistant component.
 
 <details>
     <summary>Older</summary>
+
+### 0.4.9.0
+- Upgrades paho-mqtt dependency to v2 but keeps backward compatibility - Thanks @mmatuska
 
 ### 0.4.8.0
 - Drops python 3.7 support
