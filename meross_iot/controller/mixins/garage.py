@@ -1,13 +1,14 @@
 import logging
 from typing import Optional, List
 
+from meross_iot.controller.mixins.utilities import DynamicFilteringMixin
 from meross_iot.controller.device import ChannelInfo
 from meross_iot.model.enums import Namespace
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class GarageOpenerMixin:
+class GarageOpenerMixin(DynamicFilteringMixin):
     _channels: List[ChannelInfo]
     _execute_command: callable
     check_full_update_done: callable
@@ -24,7 +25,11 @@ class GarageOpenerMixin:
         for c in self._channels:
             self._door_open_state_by_channel[c.index] = None
             self._door_config_state_by_channel[c.index] = None
-
+    
+    @staticmethod
+    def filter(device_ability : str, device_name : str,**kwargs):
+        return device_ability == Namespace.GARAGE_DOOR_STATE.value
+    
     async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
 
@@ -60,10 +65,8 @@ class GarageOpenerMixin:
                     self._door_config_state_by_channel[channel_index] = door
                     locally_handled = True
 
-        # Always call the parent handler when done with local specific logic. This gives the opportunity to all
-        # ancestors to catch all events.
-        parent_handled = await super().async_handle_push_notification(namespace=namespace, data=data)
-        return locally_handled or parent_handled
+
+        return locally_handled
 
     async def async_handle_update(self, namespace: Namespace, data: dict) -> bool:
         _LOGGER.debug(f"Handling {self.__class__.__name__} mixin data update.")
@@ -76,8 +79,7 @@ class GarageOpenerMixin:
                 self._door_open_state_by_channel[channel_index] = state
             locally_handled = True
 
-        super_handled = await super().async_handle_update(namespace=namespace, data=data)
-        return super_handled or locally_handled
+        return locally_handled
 
     async def async_open(self, channel: Optional[int] = None, *args, **kwargs) -> None:
         """

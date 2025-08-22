@@ -1,15 +1,19 @@
 import logging
 from typing import Optional, Dict
 
+from meross_iot.controller.mixins.utilities import DynamicFilteringMixin
 from meross_iot.model.enums import Namespace, RollerShutterState, DNDMode
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class SystemDndMixin:
+class SystemDndMixin(DynamicFilteringMixin):
     _execute_command: callable
     check_full_update_done: callable
 
+    @staticmethod
+    def filter(device_ability : str, device_name : str,**kwargs):
+        return device_ability == Namespace.SYSTEM_DND_MODE.value
     ## It looks like the DND mode update/change does not trigger any PUSH notification update.
     ## This means we won't catch any "DND mode change" via push notifications.
 

@@ -1,6 +1,7 @@
 import logging
 from typing import Optional
 
+from meross_iot.controller.mixins.utilities import DynamicFilteringMixin
 from meross_iot.model.enums import Namespace, DiffuserLightMode
 from meross_iot.model.typing import RgbTuple
 from meross_iot.utilities.conversion import rgb_to_int, int_to_rgb
@@ -8,7 +9,7 @@ from meross_iot.utilities.conversion import rgb_to_int, int_to_rgb
 _LOGGER = logging.getLogger(__name__)
 
 
-class DiffuserLightMixin(object):
+class DiffuserLightMixin(DynamicFilteringMixin):
     _execute_command: callable
     check_full_update_done: callable
 
@@ -19,7 +20,11 @@ class DiffuserLightMixin(object):
 
         # Dictionary keeping the status for every channel
         self._channel_diffuser_light_status = {}
-
+    
+    @staticmethod
+    def filter(device_ability : str, device_name : str,**kwargs):
+        return device_ability == Namespace.DIFFUSER_LIGHT.value
+    
     async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
 
@@ -39,10 +44,7 @@ class DiffuserLightMixin(object):
 
                 locally_handled = True
 
-        # Always call the parent handler when done with local specific logic. This gives the opportunity to all
-        # ancestors to catch all events.
-        parent_handled = await super().async_handle_push_notification(namespace=namespace, data=data)
-        return locally_handled or parent_handled
+        return locally_handled
 
     def get_light_mode(self, channel: int = 0, *args, **kwargs) -> Optional[DiffuserLightMode]:
         """
@@ -67,8 +69,7 @@ class DiffuserLightMixin(object):
                 self._channel_diffuser_light_status[channel] = l
             locally_handled = True
 
-        super_handled = await super().async_handle_update(namespace=namespace, data=data)
-        return super_handled or locally_handled
+        return locally_handled
 
     def get_light_brightness(self, channel: int = 0, *args, **kwargs) -> Optional[int]:
         """

@@ -1,6 +1,5 @@
 from typing import Union, Tuple
 
-
 def rgb_to_int(rgb: Union[tuple, dict, int]) -> int:
     if isinstance(rgb, int):
         return rgb

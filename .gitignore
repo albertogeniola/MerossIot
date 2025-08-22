@@ -122,3 +122,6 @@ sniffed_data
 
 # Documentation
 docs/_static
+
+# Local configuration for Windows
+*.ps1

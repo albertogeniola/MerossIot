@@ -1,12 +1,13 @@
 import logging
 from typing import Optional
 
+from meross_iot.controller.mixins.utilities import DynamicFilteringMixin
 from meross_iot.model.enums import Namespace, SprayMode
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class SprayMixin(object):
+class SprayMixin(DynamicFilteringMixin):
     _execute_command: callable
     check_full_update_done: callable
     #async_handle_update: Callable[[Namespace, dict], Awaitable]
@@ -19,6 +20,10 @@ class SprayMixin(object):
         # Dictionary keeping the status for every channel
         self._channel_spray_status = {}
 
+    @staticmethod
+    def filter(device_ability : str, device_name : str,**kwargs):
+        return device_ability == Namespace.CONTROL_SPRAY.value
+    
     async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
 
@@ -40,10 +45,8 @@ class SprayMixin(object):
 
                 locally_handled = True
 
-        # Always call the parent handler when done with local specific logic. This gives the opportunity to all
-        # ancestors to catch all events.
-        parent_handled = await super().async_handle_push_notification(namespace=namespace, data=data)
-        return locally_handled or parent_handled
+
+        return locally_handled
 
     def get_current_mode(self, channel: int = 0, *args, **kwargs) -> Optional[SprayMode]:
         self.check_full_update_done()
@@ -61,8 +64,7 @@ class SprayMixin(object):
                 self._channel_spray_status[channel] = mode
             locally_handled = True
 
-        super_handled = await super().async_handle_update(namespace=namespace, data=data)
-        return super_handled or locally_handled
+        return locally_handled
 
     async def async_set_mode(self, mode: SprayMode, channel: int = 0, timeout: Optional[float] = None, *args, **kwargs) -> None:
         payload = {'spray': {'channel': channel, 'mode': mode.value}}

@@ -103,7 +103,8 @@ class MerossHttpClient(object):
         Builds a MerossHttpClient using username/password combination.
         In any case, the login will generate a token, which might expire at any time.
 
-        :param api_base_url: Https base endpoint to use for API calls. It should be one of "https://iotx-eu.meross.com", "https://iotx-ap.meross.com" or "https://iotx-us.meross.com", based on your public IP region.,
+        :param api_base_url: Https base endpoint to use for API calls. It should be one of "https://iotx-eu.meross.com", "https://iotx-ap.meross.com" or "https://iotx-us.meross.com", based on your public IP region. For bbsolar devices, 
+        should be one of  "https://iotx-ap.bbsolar.cc" or "https://iotx-us.bbsolar.cc". 
         :param email: Meross account email
         :param password: Meross account password
         :param http_proxy: Optional http proxy to use when issuing the requests
@@ -305,10 +306,11 @@ class MerossHttpClient(object):
         m.update(datatosign.encode("utf8"))
         md5hash = m.hexdigest()
 
+        # Note: We subtly change the vendor header - required to support bbheader devices. 
         headers = {
             "AppVersion": app_version,
             "Authorization": "Basic" if cloud_creds is None else "Basic %s" % cloud_creds.token,
-            "vender": "meross",
+            "vendor": "meross" if not "bbsolar.cc" in url.lower() else "bbsolar",
             "AppType": app_type,
             "AppLanguage": "EN",
             "User-Agent": ua_header,
@@ -446,7 +448,7 @@ class MerossHttpClient(object):
         """
         data = {
             "system":platform.system(),
-            "vendor":"meross",
+            "vendor": "meross" if not "bbsolar.cc" in creds.domain.lower() else "bbsolar",
             "uuid": log_identifier,
             "extra":"",
             "model":platform.machine(),

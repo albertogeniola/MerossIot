@@ -232,14 +232,47 @@ class BaseDevice(object):
         # TODO: fire some sort of events to let users see changed data?
         return self
 
-    async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
-        _LOGGER.debug(f"MerossBaseDevice {self.name} handling notification {namespace}")
+    async def async_call_mixin_visitor(self,func,*args,**kwargs):
+        # Import this within the function scope to prevent circular dependency warnings. 
+        from meross_iot.controller.mixins.utilities import DynamicFilteringMixin
+        # Call the relevant function for each of the direct base classes. The use of __bases__ instead of __mro__ is intentional;
+        # if we used MRO, we'd call the function for all potentially-obsoleted mixin parent classes (e.g. calling Toggle when we want ToggleX)
+        # Calling bases avoids this problems: if the device has a given mixin, it'll be set as a direct parent class and thus get called. 
+        # However, if the device is weird and the mixin inherits from multiple classes (e.g. the BBSolar lights), it'll call the single mixin
+        # function, which has to deal with it. 
+        returnStatus = None
+        for clazz in self.__class__.__bases__:
+            if issubclass(clazz,DynamicFilteringMixin):
+                try:
+                    visitor = getattr(clazz,func)
+                    mixinStatus = await visitor(self,*args,**kwargs)
+                    # Special case for functions which return bool - Warning, this is profoundly weird
+                    if isinstance(mixinStatus,bool):
+                        if returnStatus == None:
+                            returnStatus = mixinStatus
+                        else:
+                            returnStatus = returnStatus or mixinStatus
+                    _LOGGER.debug(f'Function: {func} called in {clazz} via {visitor}')
+                    
+                except AttributeError as e:
+                    _LOGGER.debug(f'Function: {func} not found in {clazz}: {e}')
+        
+        return returnStatus
 
+    # These functions handle mixins which inherit from one or more other mixins to work correctly. Prior to this change, the async_handle_push_notification
+    # function would call a parent function, which is supposed to be the next item in the class hierarchy. However, if the class is inherited, it'll
+    # call the parent mixin, which is bad. Secondly, if the class inherits from more than one mixin, the call to the parent class would have unexpected
+    # results. 
+    async def async_handle_all_push_notifications(self, namespace: Namespace, data: dict) -> bool:
+        _LOGGER.debug(f"MerossBaseDevice {self.name} handling notification {namespace}")
+        # Notify all base classes
+        retStatus = await self.async_call_mixin_visitor("async_handle_push_notification",namespace,data)
         # However, we want to notify any registered event handler
         await self._fire_push_notification_event(namespace=namespace, data=data, device_internal_id=self.internal_id)
-        return False
+        return retStatus
 
-    async def async_handle_update(self, namespace: Namespace, data: dict) -> bool:
+    async def async_handle_all_updates(self, namespace: Namespace, data: dict) -> bool:
+        _LOGGER.debug("Handling all updates")
         # Catch SYSTEM_ALL case and update the generic device info
         if namespace == Namespace.SYSTEM_ALL:
             # TODO: we might update name/uuid/other stuff in here...
@@ -247,12 +280,13 @@ class BaseDevice(object):
             self._inner_ip = system.get('firmware', {}).get('innerIp')
             self._mac_address = system.get('hardware', {}).get('macAddress', None)
 
+        # Call the function for all mixins
+        retStatus = await self.async_call_mixin_visitor("async_handle_update",namespace,data)
+
         await self._fire_push_notification_event(namespace=namespace, data=data, device_internal_id=self.internal_id)
         self._last_full_update_ts = time.time() * 1000
-
-        # Even though we handle the event, we return False as we did not handle the event in any way
-        # rather than updating the last_full_update_ts
-        return False
+        
+        return retStatus
 
     async def async_update(self,
                            *args,
@@ -270,10 +304,11 @@ class BaseDevice(object):
         # device type. For instance, wifi devices use GET System.Appliance.ALL while HUBs use a different one.
         # Implementing mixin should never call the super() implementation (as it happens
         # with _handle_update) as we want to use only an UPDATE_ALL method.
-        # Howe                               ver, we want to keep it within the MerossBaseDevice so that we expose a consistent
+        # However, we want to keep it within the MerossBaseDevice so that we expose a consistent
         # interface.
         """
-        pass
+        await self.async_call_mixin_visitor("_async_request_update",*args,**kwargs)
+
 
     def dismiss(self):
         # TODO: Should we do something here?
@@ -317,12 +352,11 @@ class BaseDevice(object):
         basic_info = f"{self.name} ({self.type}, HW {self.hardware_version}, FW {self.firmware_version}, class: {self.__class__.__name__})"
         return basic_info
 
-    @staticmethod
-    def _parse_channels(channel_data: List) -> List[ChannelInfo]:
+    def _parse_channels(self,channel_data: List) -> List[ChannelInfo]:
         res = []
         if channel_data is None:
             return res
-
+        
         for i, val in enumerate(channel_data):
             name = val.get('devName', 'Main channel')
             type = val.get('type')

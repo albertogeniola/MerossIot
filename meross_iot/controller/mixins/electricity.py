@@ -2,6 +2,7 @@ import logging
 from datetime import datetime
 from typing import Optional
 
+from meross_iot.controller.mixins.utilities import DynamicFilteringMixin
 from meross_iot.model.enums import Namespace
 from meross_iot.model.plugin.power import PowerInfo
 
@@ -11,7 +12,7 @@ _LOGGER = logging.getLogger(__name__)
 _DATE_FORMAT = '%Y-%m-%d'
 
 
-class ElectricityMixin(object):
+class ElectricityMixin(DynamicFilteringMixin):
     _execute_command: callable
 
     def __init__(self, device_uuid: str,
@@ -21,7 +22,11 @@ class ElectricityMixin(object):
 
         # We'll hold a dictionary of lastest samples, one per channel
         self.__channel_cached_samples = {}
-
+    
+    @staticmethod
+    def filter(device_ability : str, device_name : str,**kwargs):
+        return device_ability == Namespace.CONTROL_ELECTRICITY.value
+    
     async def async_get_instant_metrics(self,
                                         channel=0,
                                         timeout: Optional[float] = None,

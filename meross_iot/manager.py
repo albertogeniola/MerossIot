@@ -582,7 +582,7 @@ class MerossManager(object):
         if dev.online_status != old_status:
             _LOGGER.warning("Device %s changed its online status while manager was offline (was %s, now is %s). "
                             "Sending event manually.", dev, old_status, dev.online_status)
-            await dev.async_handle_push_notification(namespace=Namespace.SYSTEM_ONLINE,
+            await dev.async_handle_all_push_notifications(namespace=Namespace.SYSTEM_ONLINE,
                                                      data={'online': {'status': dev.online_status.value}})
 
     def _on_message(self, client, userdata, msg):
@@ -715,7 +715,7 @@ class MerossManager(object):
             for dev in target_devs:
                 try:
                     handled = (
-                            await dev.async_handle_push_notification(
+                            await dev.async_handle_all_push_notifications(
                                 namespace=push_notification.namespace,
                                 data=push_notification.raw_data,
                             )

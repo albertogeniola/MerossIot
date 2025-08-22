@@ -75,10 +75,8 @@ class Ms100Sensor(GenericSubDevice):
         else:
             _LOGGER.warning(f"Could not handle event %s in subdevice %s handler", namespace, self.name)
 
-        # Always call the parent handler when done with local specific logic. This gives the opportunity to all
-        # ancestors to catch all events.
-        parent_handled = await super().async_handle_push_notification(namespace=namespace, data=data)
-        return locally_handled or parent_handled
+
+        return locally_handled
 
     @property
     def last_sampled_temperature(self) -> Optional[float]:
@@ -199,10 +197,8 @@ class Mts100v3Valve(GenericSubDevice):
         else:
             _LOGGER.error(f"Could not handle event %s in subdevice %s handler", namespace, self.name)
 
-        # Always call the parent handler when done with local specific logic. This gives the opportunity to all
-        # ancestors to catch all events.
-        parent_handled = await super().async_handle_push_notification(namespace=namespace, data=data)
-        return locally_handled or parent_handled
+
+        return locally_handled
 
     def is_on(self) -> Optional[bool]:
         return self.__togglex.get('onoff') == 1

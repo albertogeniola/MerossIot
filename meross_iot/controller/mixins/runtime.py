@@ -2,6 +2,7 @@ import logging
 from datetime import datetime
 from typing import Optional
 
+from meross_iot.controller.mixins.utilities import DynamicFilteringMixin
 from meross_iot.model.enums import Namespace
 
 _LOGGER = logging.getLogger(__name__)
@@ -9,7 +10,7 @@ _LOGGER = logging.getLogger(__name__)
 _DATE_FORMAT = '%Y-%m-%d'
 
 
-class SystemRuntimeMixin(object):
+class SystemRuntimeMixin(DynamicFilteringMixin):
     _execute_command: callable
 
     def __init__(self, device_uuid: str,
@@ -18,6 +19,10 @@ class SystemRuntimeMixin(object):
         super().__init__(device_uuid=device_uuid, manager=manager, **kwargs)
         self._runtime_info = {}
 
+    @staticmethod
+    def filter(device_ability : str, device_name : str,**kwargs):
+        return device_ability == Namespace.SYSTEM_RUNTIME.value
+    
     async def async_update_runtime_info(self, timeout: Optional[float] = None, *args, **kwargs) -> dict:
         """
         Polls the device to gather the latest runtime information for this device.
@@ -42,9 +47,7 @@ class SystemRuntimeMixin(object):
         """
         return self._runtime_info
 
-    async def async_update(self,
+    async def _async_request_update(self,
                            *args,
                            **kwargs) -> None:
-        # call the superclass implementation first
-        await super().async_update(*args, **kwargs)
         await self.async_update_runtime_info()

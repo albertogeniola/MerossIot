@@ -1,22 +1,13 @@
 import logging
 from typing import Optional
+import inspect
+import sys
+import pkgutil
+from importlib import import_module
 
+from meross_iot.controller.mixins import *
+from meross_iot.controller.mixins.utilities import *
 from meross_iot.controller.device import BaseDevice, HubDevice, GenericSubDevice
-from meross_iot.controller.mixins.consumption import ConsumptionXMixin, ConsumptionMixin
-from meross_iot.controller.mixins.diffuser_light import DiffuserLightMixin
-from meross_iot.controller.mixins.diffuser_spray import DiffuserSprayMixin
-from meross_iot.controller.mixins.dnd import SystemDndMixin
-from meross_iot.controller.mixins.electricity import ElectricityMixin
-from meross_iot.controller.mixins.encryption import EncryptionSuiteMixin
-from meross_iot.controller.mixins.garage import GarageOpenerMixin
-from meross_iot.controller.mixins.hub import HubMts100Mixin, HubMixn, HubMs100Mixin
-from meross_iot.controller.mixins.light import LightMixin
-from meross_iot.controller.mixins.roller_shutter import RollerShutterTimerMixin
-from meross_iot.controller.mixins.runtime import SystemRuntimeMixin
-from meross_iot.controller.mixins.spray import SprayMixin
-from meross_iot.controller.mixins.system import SystemAllMixin, SystemOnlineMixin
-from meross_iot.controller.mixins.thermostat import ThermostatModeMixin, ThermostatModeBMixin
-from meross_iot.controller.mixins.toggle import ToggleXMixin, ToggleMixin
 from meross_iot.controller.subdevice import Mts100v3Valve, Ms100Sensor
 from meross_iot.model.enums import Namespace
 from meross_iot.model.exception import UnknownDeviceType
@@ -31,59 +22,6 @@ _KNOWN_DEV_TYPES_CLASSES = {
     "ms100f": Ms100Sensor
 }
 
-_ABILITY_MATRIX = {
-    # Power plugs abilities
-    Namespace.CONTROL_TOGGLEX.value: ToggleXMixin,
-    Namespace.CONTROL_TOGGLE.value: ToggleMixin,
-    Namespace.CONTROL_CONSUMPTIONX.value: ConsumptionXMixin,
-    Namespace.CONTROL_CONSUMPTION.value: ConsumptionMixin,
-    Namespace.CONTROL_ELECTRICITY.value: ElectricityMixin,
-
-    # Encryption
-    Namespace.SYSTEM_ENCRYPTION.value: EncryptionSuiteMixin,
-
-    # Light abilities
-    Namespace.CONTROL_LIGHT.value: LightMixin,
-
-    # Garage opener
-    Namespace.GARAGE_DOOR_STATE.value: GarageOpenerMixin,
-
-    # Roller shutter timer
-    Namespace.ROLLER_SHUTTER_STATE.value: RollerShutterTimerMixin,
-
-    # Spray
-    Namespace.CONTROL_SPRAY.value: SprayMixin,
-
-    # Oil diffuser
-    Namespace.DIFFUSER_LIGHT.value: DiffuserLightMixin,
-    Namespace.DIFFUSER_SPRAY.value: DiffuserSprayMixin,
-
-    # System
-    Namespace.SYSTEM_ALL.value: SystemAllMixin,
-    Namespace.SYSTEM_ONLINE.value: SystemOnlineMixin,
-    Namespace.SYSTEM_RUNTIME.value: SystemRuntimeMixin,
-
-    # Hub
-    Namespace.HUB_ONLINE.value: HubMixn,
-    Namespace.HUB_TOGGLEX.value: HubMixn,
-
-    Namespace.HUB_SENSOR_ALL.value: HubMs100Mixin,
-    Namespace.HUB_SENSOR_ALERT.value: HubMs100Mixin,
-    Namespace.HUB_SENSOR_TEMPHUM.value: HubMs100Mixin,
-
-    Namespace.HUB_MTS100_ALL.value: HubMts100Mixin,
-    Namespace.HUB_MTS100_MODE.value: HubMts100Mixin,
-    Namespace.HUB_MTS100_TEMPERATURE.value: HubMts100Mixin,
-
-    # DND
-    Namespace.SYSTEM_DND_MODE.value: SystemDndMixin,
-
-    # Thermostat
-    Namespace.CONTROL_THERMOSTAT_MODE.value: ThermostatModeMixin,
-    Namespace.CONTROL_THERMOSTAT_MODEB.value: ThermostatModeBMixin,
-
-    # TODO: BIND, UNBIND, ONLINE, WIFI, ETC!
-}
 
 _SUBDEVICE_MAPPING = {
     "mts100v3": Mts100v3Valve,
@@ -92,6 +30,7 @@ _SUBDEVICE_MAPPING = {
 }
 
 _dynamic_types = {}
+dynamic_plugins = {}
 
 
 def _caclulate_device_type_name(device_type: str, hardware_version: str, firmware_version: str) -> str:
@@ -116,8 +55,86 @@ def _lookup_cached_type(device_type: str, hardware_version: str, firmware_versio
     lookup_string = _caclulate_device_type_name(device_type, hardware_version, firmware_version).strip(":")
     return _dynamic_types.get(lookup_string)
 
+def _load_mixins(packageName = "meross_iot.controller.mixins"):
+    # Only do this once.
+    if len(dynamic_plugins) > 0:
+        return
+    
+    for moduleName in pkgutil.iter_modules(sys.modules[packageName].__path__):       
+        module = import_module(f'{packageName}.{moduleName.name}')
 
-def _build_cached_type(type_string: str, device_abilities: dict, base_class: type) -> type:
+        for name, obj in inspect.getmembers(module):
+            if inspect.isclass(obj):
+                # Ignore things in the utilities namespace
+                if obj.__module__ == "meross_iot.controller.mixins.utilities":
+                    continue
+
+                # Only load dynamically-filterable mixins
+                if issubclass(obj,DynamicFilteringMixin):
+                    dynamic_plugins[name] = obj
+
+def _add_classes_for_ability(device_ability : str,device_type : str, mixin_classes):
+     # Load dynamic modules - if required.
+    _load_mixins()
+    loadedClasses = False
+    for name,clazz in dynamic_plugins.items():
+        _LOGGER.debug(f'Testing mixin: {name} for {device_type}')
+        # Try filtering
+        if clazz.filter(device_ability,device_type) == True:
+            shouldAdd = True
+
+            # Some devices will expose the same ability like Tooggle and ToogleX. This loop confirms that we prefer the X version.
+            for existingClass in mixin_classes:
+                if clazz == existingClass:
+                    # We don't want to add the same class multiple times. In the case we do (due to an overly-permissive filter)
+                    # Drop out of this loop and carry on to the next plugin
+                    shouldAdd = False 
+                    # Lie and say we were successful on the return status
+                    loadedClasses = True 
+                else:
+                    # We need to first test if a we already have a subclassed mixin cached. This means the X version has already been found.
+                    if issubclass(existingClass,clazz):
+                        shouldAdd = False
+                        continue
+                    # We prefer the X version by testing if we have any parent classes of class returned by _dynamic_filter
+                    if issubclass(clazz,existingClass):
+                        # Erase old class
+                        mixin_classes.remove(existingClass)
+                        shouldAdd = True
+                        break
+            if shouldAdd: # Just add
+                mixin_classes.append(clazz)
+                _LOGGER.debug(f'Loaded mixin: {name} for {device_type}')
+
+                loadedClasses = True
+
+    return loadedClasses
+
+    """ 
+    def _add_mixin_class(clazz, mixin_classes):
+    shouldAdd = True
+
+    # Some devices will expose the same ability like Tooggle and ToogleX. This confirms that we prefer the X version.
+    for existingClass in mixin_classes:
+            # We need to first test if a we already have a subclassed mixin cached. This means the X version has already been found.
+            if issubclass(existingClass,clazz):
+                shouldAdd = False
+                continue
+            # We prefer the X version by testing if we have any parent classes of class returned by _dynamic_filter
+            if issubclass(clazz,existingClass):
+                # Erase old class
+                mixin_classes.remove(existingClass)
+                shouldAdd = True
+                break
+    if shouldAdd: # Just add
+        mixin_classes.add(clazz)
+        loadedClasses = True
+
+    return shouldAdd
+    """
+    
+
+def _build_cached_type(type_string: str, device_abilities: dict, base_class: type,device_type : str) -> type:
     """
     Builds a python type (class) dynamically by looking at the device abilities. In this way, we are able to
     "plugin" feature/mixins even for unknown new devices, given that they report abilities we already implemented.
@@ -126,31 +143,18 @@ def _build_cached_type(type_string: str, device_abilities: dict, base_class: typ
     :return:
     """
     # Build a specific type at runtime by mixing plugins on-demand
-    mixin_classes = set()
-
-    # Add plugins by abilities
-    for key, val in device_abilities.items():
-        # When a device exposes the same ability like Tooggle and ToogleX, prefer the X version by filtering
-        # out the non-X version.
-        clsx = None
-        cls = _ABILITY_MATRIX.get(key)
-
-        # Check if for this ability the device exposes the X version
-        x_key = f"{key}X"
-        x_version_ability = device_abilities.get(x_key)
-        if x_version_ability is not None:
-            clsx = _ABILITY_MATRIX.get(x_key)
-
-        # Now, if we have both the clsx and the cls, prefer the clsx, otherwise go for the cls
-        if clsx is not None:
-            mixin_classes.add(clsx)
-        elif cls is not None:
-            mixin_classes.add(cls)
+    mixin_classes = list()
+    # Add plugins via filtering
+    _load_mixins()
+    # We run through each plugin and try filtering on it until it matches. This allows us to prevent scanning to
+    # check if we've already loaded a plugin
+    for device_ability in device_abilities:
+        _add_classes_for_ability(device_ability,device_type,mixin_classes)
 
     # We must be careful when ordering the mixin and leaving the BaseMerossDevice as last class.
     # Messing up with that will cause MRO to not resolve inheritance correctly.
-    mixin_classes = list(mixin_classes)
     mixin_classes.append(base_class)
+
     m = type(type_string, tuple(mixin_classes), {"_abilities_spec": device_abilities})
     return m
 
@@ -201,7 +205,8 @@ def build_meross_device_from_abilities(http_device_info: HttpDeviceInfo,
 
         cached_type = _build_cached_type(type_string=device_type_name,
                                          device_abilities=device_abilities,
-                                         base_class=base_class)
+                                         base_class=base_class,
+                                         device_type = http_device_info.device_type)
         _dynamic_types[device_type_name] = cached_type
 
     #component = cached_type(device_uuid=http_device_info.uuid, manager=manager, **http_device_info.to_dict())

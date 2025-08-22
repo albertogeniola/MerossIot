@@ -1,6 +1,7 @@
 import logging
 from typing import Optional, Union
 
+from meross_iot.controller.mixins.utilities import DynamicFilteringMixin
 from meross_iot.controller.mixins.toggle import ToggleMixin, ToggleXMixin
 from meross_iot.model.enums import Namespace, LightMode
 from meross_iot.model.plugin.light import LightInfo
@@ -10,7 +11,7 @@ from meross_iot.utilities.conversion import rgb_to_int
 _LOGGER = logging.getLogger(__name__)
 
 
-class LightMixin(object):
+class LightMixin(DynamicFilteringMixin):
     """
     Mixin class that enables light control.
     """
@@ -27,6 +28,10 @@ class LightMixin(object):
         # Dictionary keeping the status for every channel
         self._channel_light_status = {}
 
+    @staticmethod
+    def filter(device_ability : str, device_name : str,**kwargs):
+        return device_ability == Namespace.CONTROL_LIGHT.value
+    
     async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
 
@@ -47,10 +52,8 @@ class LightMixin(object):
                                             temperature=payload.get('temperature'))
                 locally_handled = True
 
-        # Always call the parent handler when done with local specific logic. This gives the opportunity to all
-        # ancestors to catch all events.
-        parent_handled = await super().async_handle_push_notification(namespace=namespace, data=data)
-        return locally_handled or parent_handled
+
+        return locally_handled
 
     async def async_handle_update(self, namespace: Namespace, data: dict) -> bool:
         _LOGGER.debug(f"Handling {self.__class__.__name__} mixin data update.")
@@ -63,8 +66,7 @@ class LightMixin(object):
                                         temperature=light_data.get('temperature'),
                                         onoff=light_data.get('onoff'))
             locally_handled = True
-        super_handled = await super().async_handle_update(namespace=namespace, data=data)
-        return super_handled or locally_handled
+        return locally_handled
 
     def _supports_mode(self, mode: LightMode, channel: int = 0) -> bool:
         capacity = self.abilities.get(Namespace.CONTROL_LIGHT.value, {}).get('capacity')

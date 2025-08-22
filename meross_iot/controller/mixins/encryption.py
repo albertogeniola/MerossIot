@@ -4,7 +4,7 @@ import base64
 from Cryptodome.Cipher import AES
 from enum import Enum
 from typing import Dict
-
+from meross_iot.controller.mixins.utilities import DynamicFilteringMixin
 from meross_iot.model.enums import Namespace
 
 _LOGGER = logging.getLogger(__name__)
@@ -14,7 +14,7 @@ class EncryptionAlg(Enum):
     ECDHE256 = 0
 
 
-class EncryptionSuiteMixin(object):
+class EncryptionSuiteMixin(DynamicFilteringMixin):
     _execute_command: callable
     _DEFAULT_IV="0000000000000000".encode("utf8")
     _abilities: Dict[str, dict]
@@ -29,7 +29,11 @@ class EncryptionSuiteMixin(object):
             self._encryption_alg = EncryptionAlg.ECDHE256
         else:
             raise ValueError("Unsupported/undetected encryption method")
-
+        
+    @staticmethod
+    def filter(device_ability : str, device_name : str,**kwargs):
+        return device_ability == Namespace.SYSTEM_ENCRYPTION.value
+    
     def _pad_to_16_bytes(self, data):
         block_size = 16
         pad_length = block_size - (len(data) % block_size)
