@@ -32,7 +32,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```bash
-pip install meross_iot==0.4.8.0
+pip install meross_iot==0.4.9.2
 ```
 
 ## Usage & Full Documentation
@@ -199,12 +199,15 @@ Anyway, feel free to contribute via donations!
 </p>
 
 ## Changelog
-### 0.4.9.1
-- Fix credentials object's "mqtt_domain" attribute being created as tuple rather than string. This error cased varius
-issues also with Meross Homeassistant component.
+### 0.4.9.2
+- Partially Address #569, fix error when dealing with unknown sub-devices. Water leak sensor not supported yet.
 
 <details>
     <summary>Older</summary>
+
+### 0.4.9.1
+- Fix credentials object's "mqtt_domain" attribute being created as tuple rather than string. This error cased varius
+issues also with Meross Homeassistant component.
 
 ### 0.4.9.0
 - Upgrades paho-mqtt dependency to v2 but keeps backward compatibility - Thanks @mmatuska
