@@ -409,7 +409,6 @@ class HubDevice(BaseDevice):
 
 
 class GenericSubDevice(BaseDevice):
-    _UPDATE_ALL_NAMESPACE = None
 
     def __init__(self, hubdevice_uuid: str, subdevice_id: str, manager, **kwargs):
         hubs = manager.find_devices(device_uuids=(hubdevice_uuid,))  # type: List[HubDevice]
@@ -440,29 +439,12 @@ class GenericSubDevice(BaseDevice):
                            *args,
                            **kwargs) -> None:
         """
-        Perfoms a full device update of the device attributes.
+        Performs a full device update of the device attributes.
         """
-        if self._UPDATE_ALL_NAMESPACE is None:
-            _LOGGER.error("GenericSubDevice does not implement any GET_ALL namespace. Update won't be performed.")
-            pass
 
-        # When dealing with hubs, we need to "intercept" the UPDATE()
+        # The default implementation of the async_update for a GenericSubdevice will just issue an update
+        # at hub-level
         await super().async_update(*args, **kwargs)
-
-        # When issuing an update-all command to the hub,
-        # we need to query all sub-devices.
-        result = await self._hub._execute_command(method="GET",
-                                                  namespace=self._UPDATE_ALL_NAMESPACE,
-                                                  payload={'all': [{'id': self.subdevice_id}]},
-                                                  timeout=timeout)
-        subdevices_states = result.get('all')
-        for subdev_state in subdevices_states:
-            subdev_id = subdev_state.get('id')
-
-            if subdev_id != self.subdevice_id:
-                continue
-            await self.async_handle_subdevice_notification(namespace=self._UPDATE_ALL_NAMESPACE, data=subdev_state)
-            break
 
     async def async_get_battery_life(self,
                                      timeout: Optional[float] = None,

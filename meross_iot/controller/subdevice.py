@@ -14,7 +14,6 @@ class Ms100Sensor(GenericSubDevice):
     The MS100 offers temperature and humidity sensing.
     Moreover, this device is capable of triggering settable alerts.
     """
-    _UPDATE_ALL_NAMESPACE = Namespace.HUB_SENSOR_ALL
 
     def __init__(self, hubdevice_uuid: str, subdevice_id: str, manager, **kwargs):
         super().__init__(hubdevice_uuid, subdevice_id, manager, **kwargs)
@@ -22,8 +21,29 @@ class Ms100Sensor(GenericSubDevice):
         self.__humidity = {}
         self.__samples = []
 
-    async def _execute_command(self, method: str, namespace: Namespace, payload: dict, timeout: Optional[float] = None) -> dict:
-        raise NotImplementedError("This method should never be called directly for subdevices.")
+
+    async def async_update(self,
+                           timeout: Optional[float] = None,
+                           *args,
+                           **kwargs) -> None:
+
+        # Make sure we issue an update at HUB level first
+        await super().async_update()
+
+        # We also need to trigger an update request for this specific sub-device
+        result = await self._hub._execute_command(method="GET",
+                                                  namespace=Namespace.HUB_SENSOR_ALL,
+                                                  payload={'all': [{'id': self.subdevice_id}]},
+                                                  timeout=timeout)
+
+        # Retrieve the sub-device specific data and update the status
+        subdevices_states = result.get('all')
+        for subdev_state in subdevices_states:
+            subdev_id = subdev_state.get('id')
+            if subdev_id != self.subdevice_id:
+                continue
+            await self.async_handle_subdevice_notification(namespace=Namespace.HUB_SENSOR_ALL, data=subdev_state)
+            break
 
     async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
@@ -139,8 +159,6 @@ class Ms100Sensor(GenericSubDevice):
 
 
 class Mts100v3Valve(GenericSubDevice):
-    _UPDATE_ALL_NAMESPACE = Namespace.HUB_MTS100_ALL
-
     def __init__(self, hubdevice_uuid: str, subdevice_id: str, manager, **kwargs):
         super().__init__(hubdevice_uuid, subdevice_id, manager, **kwargs)
         self.__togglex = {}
@@ -151,8 +169,27 @@ class Mts100v3Valve(GenericSubDevice):
         self._last_active_time = None
         self.__adjust = {}
 
-    async def _execute_command(self, method: str, namespace: Namespace, payload: dict, timeout: Optional[float] = None) -> dict:
-        raise NotImplementedError("This method should never be called directly for subdevices.")
+    async def async_update(self,
+                           timeout: Optional[float] = None,
+                           *args,
+                           **kwargs) -> None:
+        # Make sure we issue an update at HUB level first
+        await super().async_update()
+
+        # We also need to trigger an update request for this specific sub-device
+        result = await self._hub._execute_command(method="GET",
+                                                  namespace=Namespace.HUB_MTS100_ALL,
+                                                  payload={'all': [{'id': self.subdevice_id}]},
+                                                  timeout=timeout)
+
+        # Retrieve the sub-device specific data and update the status
+        subdevices_states = result.get('all')
+        for subdev_state in subdevices_states:
+            subdev_id = subdev_state.get('id')
+            if subdev_id != self.subdevice_id:
+                continue
+            await self.async_handle_subdevice_notification(namespace=Namespace.HUB_MTS100_ALL, data=subdev_state)
+            break
 
     async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
