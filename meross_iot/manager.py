@@ -92,7 +92,7 @@ class MerossManager(object):
             loop: Optional[AbstractEventLoop] = None,
             mqtt_override_server: Optional[Tuple[str, int]] = None,
             auto_discovery_on_connection: bool = True,
-            ssl_context: Optional[ssl.SSLContext] = None,
+            mqtt_ssl_context: Optional[ssl.SSLContext] = None,
             *args,
             **kwords,
     ) -> None:
@@ -109,6 +109,7 @@ class MerossManager(object):
                                      obtained via HTTP API, and port 443 will be used.
         :param auto_discovery_on_connection: (Optional) When set instructs the manager to issue a discovery as soon as
                                              the mqtt connection is established against the MQTT broker (defaults to True)
+        :param mqtt_ssl_context: (Optional) SSL Context to use with MQTT connections.
         """
 
         # Store local attributes
@@ -125,8 +126,8 @@ class MerossManager(object):
 
         # Setup SSL context. If user passed one, use that.
         # Otherwise, assume a safe default: TLS client + CERT_REQUIRED
-        if ssl_context is not None:
-            self._ssl_context = ssl_context
+        if mqtt_ssl_context is not None:
+            self._ssl_context = mqtt_ssl_context
         else:
             self._ssl_context = ssl.SSLContext(protocol=ssl.PROTOCOL_TLS_CLIENT)
             self._ssl_context.verify_mode = ssl.CERT_REQUIRED
