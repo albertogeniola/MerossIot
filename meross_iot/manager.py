@@ -1,5 +1,4 @@
 import asyncio
-import functools
 import json
 import logging
 import random
@@ -90,11 +89,10 @@ class MerossManager(object):
             self,
             http_client: MerossHttpClient,
             auto_reconnect: Optional[bool] = True,
-            mqtt_skip_cert_validation: bool = False,
-            ca_cert: Optional[str] = None,
             loop: Optional[AbstractEventLoop] = None,
             mqtt_override_server: Optional[Tuple[str, int]] = None,
             auto_discovery_on_connection: bool = True,
+            ssl_context: Optional[ssl.SSLContext] = None,
             *args,
             **kwords,
     ) -> None:
@@ -104,9 +102,6 @@ class MerossManager(object):
                             (for device discovery, etc)
         :param auto_reconnect: (Optional) When True, the mqtt client will automatically reconnect when the connection
                                drops. Defaults to True.
-        :param mqtt_skip_cert_validation: (Optional) When set the Manager will accept unverified SSL/TLS certificates
-                                          from the remote MQTT server. Defaults to False.
-        :param ca_cert: (Optional) Path to the PEM certificate to trust (Intermediate/CA)
         :param loop: (Optional) Asyncio loop to use
         :param args:
         :param mqtt_override_server: (Optional) Tuple (hostname, port) of the MQTT server to use for MQTT connection.
@@ -120,15 +115,22 @@ class MerossManager(object):
         self._http_client = http_client
         self._cloud_creds = self._http_client.cloud_credentials
         self._auto_reconnect = auto_reconnect
-        self._ca_cert = ca_cert
         self._app_id, self._client_id = generate_client_and_app_id()
         self._pending_messages_futures = {}
         self._device_registry = DeviceRegistry()
         self._push_coros = []
-        self._mqtt_skip_validation = mqtt_skip_cert_validation
         self._mqtt_clients = {}
         self._mqtt_connected_and_subscribed = {}
         self._auto_discovery_on_connection = auto_discovery_on_connection
+
+        # Setup SSL context. If user passed one, use that.
+        # Otherwise, assume a safe default: TLS client + CERT_REQUIRED
+        if ssl_context is not None:
+            self._ssl_context = ssl_context
+        else:
+            self._ssl_context = ssl.SSLContext(protocol=ssl.PROTOCOL_TLS_CLIENT)
+            self._ssl_context.verify_mode = ssl.CERT_REQUIRED
+            self._ssl_context.load_default_certs(purpose=ssl.Purpose.SERVER_AUTH)
 
         # By default, assume MQTT-Only transport mode
         self._default_transport_mode = TransportMode.MQTT_ONLY
@@ -214,15 +216,7 @@ class MerossManager(object):
         client.username_pw_set(username=self._cloud_creds.user_id, password=self._mqtt_password)
 
         # Certificate validation setup
-        client.tls_set(
-            ca_certs=self._ca_cert,
-            certfile=None,
-            keyfile=None,
-            cert_reqs=ssl.CERT_NONE if self._mqtt_skip_validation else ssl.CERT_REQUIRED,
-            tls_version=ssl.PROTOCOL_TLS_CLIENT,
-            ciphers=None,
-        )
-        client.tls_insecure_set(self._mqtt_skip_validation)
+        client.tls_set_context(self._ssl_context)
 
         # Setup Callbacks
         client.on_connect = self._on_connect
