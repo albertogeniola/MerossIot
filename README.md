@@ -32,7 +32,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```bash
-pip install meross_iot==0.4.10.1
+pip install meross_iot==0.4.10.2
 ```
 
 ## Usage & Full Documentation
@@ -199,7 +199,7 @@ Anyway, feel free to contribute via donations!
 </p>
 
 ## Changelog
-### 0.4.10.1
+### 0.4.10.2
 - Allows to pass a specific ssl context to the manager to perform MQTT ssl connections using that SSL context. 
 This is a breaking change: signature of MerossManager() has changed.
 
