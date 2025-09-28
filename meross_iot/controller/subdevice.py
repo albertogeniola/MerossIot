@@ -3,7 +3,10 @@ from datetime import datetime
 from typing import Optional, Iterable
 
 from meross_iot.controller.device import GenericSubDevice
-from meross_iot.model.enums import Namespace, OnlineStatus, ThermostatV3Mode
+from meross_iot.model.enums import OnlineStatus, ThermostatV3Mode
+from meross_iot.model.enums import Namespace
+
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -453,3 +456,81 @@ class Mts100v3Valve(GenericSubDevice):
         # Update local state
         self.__adjust.update({'temperature': adjust_temp})
         self.__adjust['latestSampleTime'] = datetime.utcnow().timestamp()
+
+
+class Ms405Sensor(GenericSubDevice):
+    """
+    Class that represents a Meross MS400 Smart Water Leak Sensor.
+    """
+
+    def __init__(self, hubdevice_uuid: str, subdevice_id: str, manager, **kwargs):
+        super().__init__(hubdevice_uuid, subdevice_id, manager, **kwargs)
+        self.__water_leak = {}
+        self._last_active_time = None
+
+    @property
+    def is_leaking(self) -> Optional[bool]:
+        """
+        Returns True if a water leak is detected (1), False otherwise (0).
+        Returns None if the state has not been fetched yet.
+        """
+        cur_val = self.__water_leak.get("latestWaterLeak")
+        if cur_val is None:
+            return None
+        else:
+            return cur_val == 1
+
+    async def async_update(self,
+                           timeout: Optional[float] = None,
+                           *args,
+                           **kwargs) -> None:
+        # Make sure we issue an update at HUB level first
+        await super().async_update()
+
+        # We also need to trigger an update request for this specific sub-device
+        result = await self._hub._execute_command(method="GET",
+                                                  #namespace=Namespace.HUB_MTS100_ALL,
+                                                  namespace=Namespace.HUB_SENSOR_ALL,
+                                                  payload={'all': [{'id': self.subdevice_id}]},
+                                                  timeout=timeout)
+
+        # Retrieve the sub-device specific data and update the status
+        subdevices_states = result.get('all')
+        for subdev_state in subdevices_states:
+            subdev_id = subdev_state.get('id')
+            if subdev_id != self.subdevice_id:
+                continue
+            await self.async_handle_subdevice_notification(namespace=Namespace.HUB_SENSOR_ALL, data=subdev_state)
+            break
+
+    async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
+        locally_handled = False
+        if namespace == Namespace.HUB_ONLINE:
+            update_element = self._prepare_push_notification_data(data=data, filter_accessor='online')
+            if update_element is not None:
+                self._online = OnlineStatus(update_element.get('status', -1))
+                locally_handled = True
+        return locally_handled
+
+    async def async_handle_subdevice_notification(self, namespace: Namespace, data: dict) -> bool:
+        locally_handled = False
+        if namespace == Namespace.HUB_ONLINE:
+            self._online = OnlineStatus(data.get('online', {}).get('status', -1))
+            self._last_active_time = data.get('online', {}).get('lastActiveTime')
+        elif namespace == Namespace.HUB_SENSOR_WATERLEAK:
+            self.__water_leak = data.get('waterLeak')
+            locally_handled = True
+        elif namespace == Namespace.HUB_SENSOR_ALL:
+            self._online = OnlineStatus(data.get('online', {}).get('status', -1))
+            self.__water_leak.update(data.get('waterLeak', {}))
+            locally_handled = True
+        else:
+            _LOGGER.warning(f"Could not handle event %s in subdevice %s handler", namespace, self.name)
+
+        # Always call the parent handler when done with local specific logic. This gives the opportunity to all
+        # ancestors to catch all events.
+        parent_handled = await super().async_handle_push_notification(namespace=namespace, data=data)
+        return locally_handled or parent_handled
+
+    def __repr__(self) -> str:
+        return f"<Ms400Device(uuid={self.uuid}, is_leaking={self.is_leaking})>"
