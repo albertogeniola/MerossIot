@@ -18,12 +18,17 @@ async def main():
 
     # Retrieve all the MS100 devices that are registered on this account
     await manager.async_device_discovery()
-    sensors = manager.find_devices(device_type="ms405")
 
-    if len(sensors) < 1:
+    msh400 = manager.find_devices(device_type="msh400")
+    hub = msh400[0]
+
+
+    water_leak_sensors = manager.find_devices(device_type="ms405")
+
+    if len(water_leak_sensors) < 1:
         print("No MSH405 sensor found...")
     else:
-        dev = sensors[0]
+        dev = water_leak_sensors[0]
 
         # Manually force and update to retrieve the latest temperature sensed from
         # the device. This ensures we get the most recent data and not a cached value
@@ -31,6 +36,10 @@ async def main():
 
         # Access read cached data
         print(f"IS_LEAKING={dev.is_leaking}")
+
+        # Let's wait a bit for some events to occur
+        await asyncio.sleep(3600)
+
     # Close the manager and logout from http_api
     manager.close()
     await http_api_client.async_logout()

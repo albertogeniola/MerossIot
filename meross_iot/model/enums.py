@@ -93,6 +93,7 @@ class Namespace(Enum):
     CONTROL_UNBIND = 'Appliance.Control.Unbind'
     CONTROL_TRIGGER = 'Appliance.Control.Trigger'
     CONTROL_TRIGGERX = 'Appliance.Control.TriggerX'
+    CONTROL_ALARM = 'Appliance.Control.Alarm'
 
     CONFIG_WIFI_LIST = 'Appliance.Config.WifiList'
     CONFIG_TRACE = 'Appliance.Config.Trace'

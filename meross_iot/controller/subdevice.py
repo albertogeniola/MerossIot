@@ -510,6 +510,10 @@ class Ms405Sensor(GenericSubDevice):
             if update_element is not None:
                 self._online = OnlineStatus(update_element.get('status', -1))
                 locally_handled = True
+        elif namespace == Namespace.HUB_SENSOR_WATERLEAK:
+            self.__water_leak = data.get('waterLeak')
+            locally_handled = True
+
         return locally_handled
 
     async def async_handle_subdevice_notification(self, namespace: Namespace, data: dict) -> bool:
@@ -518,7 +522,12 @@ class Ms405Sensor(GenericSubDevice):
             self._online = OnlineStatus(data.get('online', {}).get('status', -1))
             self._last_active_time = data.get('online', {}).get('lastActiveTime')
         elif namespace == Namespace.HUB_SENSOR_WATERLEAK:
-            self.__water_leak = data.get('waterLeak')
+            latestWaterLeak = data.get('latestWaterLeak')
+            latestSaampleTime = data.get('latestSampleTime')
+            if latestWaterLeak is not None:
+                self.__water_leak["latestWaterLeak"]=latestWaterLeak
+            if latestSaampleTime is not None:
+                self.__water_leak["latestSaampleTime"] = latestSaampleTime
             locally_handled = True
         elif namespace == Namespace.HUB_SENSOR_ALL:
             self._online = OnlineStatus(data.get('online', {}).get('status', -1))

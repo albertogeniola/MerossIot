@@ -2,6 +2,7 @@ import logging
 from typing import Optional
 
 from meross_iot.controller.device import BaseDevice, HubDevice, GenericSubDevice
+from meross_iot.controller.mixins.alarm import AlarmMixin
 from meross_iot.controller.mixins.consumption import ConsumptionXMixin, ConsumptionMixin
 from meross_iot.controller.mixins.diffuser_light import DiffuserLightMixin
 from meross_iot.controller.mixins.diffuser_spray import DiffuserSprayMixin
@@ -39,6 +40,7 @@ _ABILITY_MATRIX = {
     Namespace.CONTROL_CONSUMPTIONX.value: ConsumptionXMixin,
     Namespace.CONTROL_CONSUMPTION.value: ConsumptionMixin,
     Namespace.CONTROL_ELECTRICITY.value: ElectricityMixin,
+    Namespace.CONTROL_ALARM.value: AlarmMixin,
 
     # Encryption
     Namespace.SYSTEM_ENCRYPTION.value: EncryptionSuiteMixin,

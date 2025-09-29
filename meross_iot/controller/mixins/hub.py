@@ -10,7 +10,8 @@ class HubMixn(object):
     __PUSH_MAP = {
         Namespace.HUB_ONLINE: 'online',
         Namespace.HUB_TOGGLEX: 'togglex',
-        Namespace.HUB_BATTERY: 'battery'
+        Namespace.HUB_BATTERY: 'battery',
+        Namespace.HUB_SENSOR_WATERLEAK: 'waterLeak',
     }
 
     def __init__(self, device_uuid: str,

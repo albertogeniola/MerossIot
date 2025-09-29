@@ -2,17 +2,21 @@ import logging
 from typing import Optional, Union
 
 from meross_iot.model.enums import Namespace, get_or_parse_namespace
+from meross_iot.model.push.alarm import AlarmPushNotification
 from meross_iot.model.push.bind import BindPushNotification
 from meross_iot.model.push.generic import GenericPushNotification
 from meross_iot.model.push.online import OnlinePushNotification
 from meross_iot.model.push.unbind import UnbindPushNotification
+from meross_iot.model.push.water_leak import WaterLeakPushNotification
 
 _LOGGER = logging.getLogger(__name__)
 
 _PUSH_NOTIFICATION_BINDING = {
     Namespace.CONTROL_BIND: BindPushNotification,
     Namespace.CONTROL_UNBIND: UnbindPushNotification,
-    Namespace.SYSTEM_ONLINE: OnlinePushNotification
+    Namespace.SYSTEM_ONLINE: OnlinePushNotification,
+    Namespace.CONTROL_ALARM: AlarmPushNotification,
+    Namespace.HUB_SENSOR_WATERLEAK: WaterLeakPushNotification,
 }
 
 
