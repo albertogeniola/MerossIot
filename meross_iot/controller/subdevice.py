@@ -1,6 +1,7 @@
 import logging
+from collections import deque
 from datetime import datetime
-from typing import Optional, Iterable
+from typing import Optional, Iterable, List, Dict
 
 from meross_iot.controller.device import GenericSubDevice
 from meross_iot.model.enums import OnlineStatus, ThermostatV3Mode
@@ -463,22 +464,51 @@ class Ms405Sensor(GenericSubDevice):
     Class that represents a Meross MS400 Smart Water Leak Sensor.
     """
 
-    def __init__(self, hubdevice_uuid: str, subdevice_id: str, manager, **kwargs):
+    def __init__(self, hubdevice_uuid: str, subdevice_id: str, manager, max_events_queue_len=30, **kwargs):
         super().__init__(hubdevice_uuid, subdevice_id, manager, **kwargs)
-        self.__water_leak = {}
-        self._last_active_time = None
+
+        self._last_active_time: Optional[int] = None
+        # Represents the last time we contacted the device
+
+        self.__water_leak_state: Optional[bool] = None
+        # Represents the current state
+
+        self.__last_event_ts: Optional[int] = None
+        # Represents the timestamp of the last sample (current state sampling)
+
+        self.__cached_events: deque = deque(maxlen=max_events_queue_len)
+        # Last N samples we collected
+
+        self.__last_waterleak_event_ts: Optional[int] = None
+        # Last timestamp we've seen a leak
 
     @property
     def is_leaking(self) -> Optional[bool]:
         """
-        Returns True if a water leak is detected (1), False otherwise (0).
-        Returns None if the state has not been fetched yet.
+        Returns the latest updated state available for the water leak sensor, if available.
         """
-        cur_val = self.__water_leak.get("latestWaterLeak")
-        if cur_val is None:
-            return None
-        else:
-            return cur_val == 1
+        return self.__water_leak_state
+
+    @property
+    def latest_sample_time(self) -> Optional[int]:
+        """
+        Returns the timestamp (GMT) of the latest available sampling.
+        """
+        return self.__last_event_ts
+
+    @property
+    def latest_detected_water_leak_ts(self) -> Optional[int]:
+        """
+        Return the timestamp (GMT) of the latest time the sensor sampled a water leak.
+        """
+        return self.__last_waterleak_event_ts
+
+    @property
+    def get_last_events(self) -> List[Dict]:
+        """
+        Returns the last cached items
+        """
+        return [x for x in self.__cached_events]
 
     async def async_update(self,
                            timeout: Optional[float] = None,
@@ -503,6 +533,26 @@ class Ms405Sensor(GenericSubDevice):
             await self.async_handle_subdevice_notification(namespace=Namespace.HUB_SENSOR_ALL, data=subdev_state)
             break
 
+    def _handle_water_leak_fresh_data(self, leaking: bool, timestamp: int):
+        # If handling an event with an older timestamp than the one we have, just discard it.
+        if self.latest_sample_time is not None and timestamp <= self.latest_sample_time:
+            return
+
+        # If this is the first update or if it's more recent than the last we have, update the current state.
+        if self.__last_event_ts is None or timestamp >= self.__last_event_ts:
+            self.__last_event_ts = timestamp
+            self.__water_leak_state = leaking
+
+        # If the event is a leak and is more recent than the latest leak event, update it.
+        if leaking and (self.__last_waterleak_event_ts is None or timestamp >= self.__last_waterleak_event_ts):
+            self.__last_waterleak_event_ts = timestamp
+
+        # In any case, register the event in the queue
+        self.__cached_events.append({
+            "leaking": leaking,
+            "timestamp": timestamp
+        })
+
     async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
         if namespace == Namespace.HUB_ONLINE:
@@ -511,7 +561,10 @@ class Ms405Sensor(GenericSubDevice):
                 self._online = OnlineStatus(update_element.get('status', -1))
                 locally_handled = True
         elif namespace == Namespace.HUB_SENSOR_WATERLEAK:
-            self.__water_leak = data.get('waterLeak')
+            water_leak_state = data.get('waterLeak')
+            latestWaterLeak = water_leak_state.get('latestWaterLeak')
+            latestSampleTime = water_leak_state.get('latestSampleTime')
+            self._handle_water_leak_fresh_data(leaking=latestWaterLeak==1, timestamp=latestSampleTime)
             locally_handled = True
 
         return locally_handled
@@ -523,15 +576,17 @@ class Ms405Sensor(GenericSubDevice):
             self._last_active_time = data.get('online', {}).get('lastActiveTime')
         elif namespace == Namespace.HUB_SENSOR_WATERLEAK:
             latestWaterLeak = data.get('latestWaterLeak')
-            latestSaampleTime = data.get('latestSampleTime')
-            if latestWaterLeak is not None:
-                self.__water_leak["latestWaterLeak"]=latestWaterLeak
-            if latestSaampleTime is not None:
-                self.__water_leak["latestSaampleTime"] = latestSaampleTime
+            latestSampleTime = data.get('latestSampleTime')
+            self._handle_water_leak_fresh_data(leaking=latestWaterLeak==1, timestamp=latestSampleTime)
             locally_handled = True
         elif namespace == Namespace.HUB_SENSOR_ALL:
             self._online = OnlineStatus(data.get('online', {}).get('status', -1))
-            self.__water_leak.update(data.get('waterLeak', {}))
+            water_leak_state = data.get('waterLeak')
+            if water_leak_state is not None:
+                latestWaterLeak = water_leak_state.get('latestWaterLeak')
+                latestSampleTime = water_leak_state.get('latestSampleTime')
+                self._handle_water_leak_fresh_data(leaking=latestWaterLeak == 1, timestamp=latestSampleTime)
+
             locally_handled = True
         else:
             _LOGGER.warning(f"Could not handle event %s in subdevice %s handler", namespace, self.name)

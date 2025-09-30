@@ -32,7 +32,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```bash
-pip install meross_iot==0.4.10.2
+pip install meross_iot==0.4.10.3
 ```
 
 ## Usage & Full Documentation
@@ -124,6 +124,7 @@ The list of tested devices is the following:
 - MS100F (temperature/humidity sensor)
 - MSS710
 - MSXH0 (Smart Humidifier)
+- MS400 and MS405 (Water leak sensors)
 
 I'd like to thank all the people who contributed to the early stage of library development,
 who stimulated me to continue the development and making this library support more devices.
@@ -199,13 +200,16 @@ Anyway, feel free to contribute via donations!
 </p>
 
 ## Changelog
-### 0.4.10.2
-- Allows to pass a specific ssl context to the manager to perform MQTT ssl connections using that SSL context. 
-This is a breaking change: signature of MerossManager() has changed.
-
+### 0.4.10.3
+- Add support for water leak sensors such as MS400 and MS405
+- Add water-leak sensor examples
 
 <details>
     <summary>Older</summary>
+
+### 0.4.10.2
+- Allows to pass a specific ssl context to the manager to perform MQTT ssl connections using that SSL context. 
+This is a breaking change: signature of MerossManager() has changed.
 
 ### 0.4.9.2
 - Partially Address #569, fix error when dealing with unknown sub-devices. Water leak sensor not supported yet.

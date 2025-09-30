@@ -1,11 +1,24 @@
 import asyncio
 import os
+from typing import List
 
+from meross_iot.controller.subdevice import Ms405Sensor
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
+from meross_iot.model.enums import Namespace, OnlineStatus
 
 EMAIL = os.environ.get('MEROSS_EMAIL') or "YOUR_MEROSS_CLOUD_EMAIL"
 PASSWORD = os.environ.get('MEROSS_PASSWORD') or "YOUR_MEROSS_CLOUD_PASSWORD"
+
+
+async def water_leak_event(namespace: Namespace, data: dict, device_internal_id: str, *args, **kwargs):
+    print("An event has occurred!")
+    if namespace == Namespace.CONTROL_ALARM:
+        print(f"Alarm occurred! Event data: {data}")
+    elif namespace == Namespace.HUB_SENSOR_WATERLEAK:
+        print(f"Water leak occurred! Event data: {data}")
+    else:
+        print(f"Another event occurred: {namespace.value}, Event data: {data}")
 
 
 async def main():
@@ -19,26 +32,29 @@ async def main():
     # Retrieve all the MS100 devices that are registered on this account
     await manager.async_device_discovery()
 
-    msh400 = manager.find_devices(device_type="msh400")
-    hub = msh400[0]
-
-
-    water_leak_sensors = manager.find_devices(device_type="ms405")
+    # Retrieve water leak sensors. Can either be ms400 or ms405
+    water_leak_sensors: List[Ms405Sensor] = manager.find_devices(device_class=Ms405Sensor, online_status=OnlineStatus.ONLINE)
 
     if len(water_leak_sensors) < 1:
-        print("No MSH405 sensor found...")
+        print("No online water leak sensors found!")
     else:
-        dev = water_leak_sensors[0]
+        # Let's register an event handle to quickly react in case of water leaks
+        for sensor in water_leak_sensors:
+            sensor.register_push_notification_handler_coroutine(water_leak_event)
 
         # Manually force and update to retrieve the latest temperature sensed from
         # the device. This ensures we get the most recent data and not a cached value
-        await dev.async_update()
-
-        # Access read cached data
-        print(f"IS_LEAKING={dev.is_leaking}")
-
-        # Let's wait a bit for some events to occur
-        await asyncio.sleep(3600)
+        while True:
+            try:
+                for sensor in water_leak_sensors:
+                    print(f"Sensor {sensor.name} - Current leak status = {sensor.is_leaking}. "
+                          f"Is currently leaking? {sensor.is_leaking}. "
+                          f"Last timestamp of leak = {sensor.latest_detected_water_leak_ts if sensor.latest_detected_water_leak_ts is not None else 'NEVER'}")
+                    print("Press CTRL+C to terminate.")
+                    # Let's wait a bit for some events to occur
+                    await asyncio.sleep(10)
+            except InterruptedError as e:
+                print("Execution terminated by the user")
 
     # Close the manager and logout from http_api
     manager.close()
