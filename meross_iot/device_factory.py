@@ -92,7 +92,8 @@ _SUBDEVICE_MAPPING = {
     "mts100v3": Mts100v3Valve,
     "ms100": Ms100Sensor,
     "ms100f": Ms100Sensor,
-    "ms405": Ms405Sensor
+    "ms405": Ms405Sensor,
+    "ms400": Ms405Sensor
 }
 
 _dynamic_types = {}
