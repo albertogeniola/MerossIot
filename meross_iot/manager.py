@@ -19,7 +19,6 @@ from aiohttp import ClientSession
 from meross_iot.controller.device import BaseDevice, HubDevice, GenericSubDevice
 from meross_iot.device_factory import (
     build_meross_device_from_abilities,
-    build_meross_subdevice,
     build_meross_device_from_known_types,
 )
 from meross_iot.error_budget import ErrorBudgetManager
@@ -33,10 +32,7 @@ from meross_iot.model.exception import (
 )
 from meross_iot.model.http.device import HttpDeviceInfo
 from meross_iot.model.http.subdevice import HttpSubdeviceInfo
-from meross_iot.model.push.factory import parse_push_notification
 from meross_iot.model.push.generic import GenericPushNotification
-from meross_iot.model.push.online import OnlinePushNotification
-from meross_iot.model.push.unbind import UnbindPushNotification
 from meross_iot.utilities.mqtt import (
     generate_mqtt_password,
     generate_client_and_app_id,
@@ -319,9 +315,9 @@ class MerossManager(object):
 
     async def async_device_discovery(
             self,
-            update_subdevice_status: bool = True,
             meross_device_uuid: str = None,
-            cached_http_device_list: Optional[Iterable[HttpDeviceInfo]] = None
+            discover_hub_subdevices: bool = True,
+            cached_http_device_list: Optional[Iterable[HttpDeviceInfo]] = None,
     ) -> Iterable[BaseDevice]:
         """
         Fetch devices and online status from HTTP API. This method also notifies/updates local device online/offline
@@ -330,8 +326,7 @@ class MerossManager(object):
         :param meross_device_uuid: Meross UUID of the device that the user wants to discover (is already known).
             This parameter restricts the discovery only to that particular device.
 
-        :param update_subdevice_status: When True, tells the manager to retrieve the HUB status in order to update
-            hub-subdevice online status, which would be UNKNOWN if not explicitly retrieved.
+        :param discover_hub_subdevices: Enable the discovery of sub-devices registered to the discovered hubs.
 
         :param cached_http_device_list: List/Iterable structure of HttpDeviceInfo to be used for the discovery.
             When passed, the manger skips the HTTP API call and uses this data to perform MQTT discovery.
@@ -370,50 +365,33 @@ class MerossManager(object):
                 _LOGGER.debug(f"New device found %s, it will be enrolled.", hdevice.uuid)
                 discovered_new_http_devices.append(hdevice)
                 dev = await self._async_enroll_new_http_dev(hdevice)
-                handled_devices.append(dev)
+                if dev is not None:
+                    handled_devices.append(dev)
 
         _LOGGER.info(f"Discovery completed for HTTP devices. Handling sub-devices...")
 
-        # SubDevices are not published to the HTTP APIs. To register them, we must use local
-        #  gateway devices. We'll therefore run the list_sub_device command on every HUB
-        #  we have at our disposal, if they are online.
+        # SubDevices are published to the HTTP APIs but we don't want to rely on HTTP APIs to discover them.
+        # Instead, we prefer using local hubs to discover SubDevices, via the list_sub_device command.
         handled_subdevices = []
-        for online_hub in filter(lambda x: isinstance(x, HubDevice) and x.online_status==OnlineStatus.ONLINE, handled_devices):
-            for sd in (await self._http_client.async_list_hub_subdevices(hub_id=online_hub.uuid)):
-                dev = await self._async_enroll_new_http_subdev(
-                    subdevice_info=sd,
-                    hub=online_hub,
-                    hub_reported_abilities=online_hub.abilities)
-                handled_subdevices.append(dev)
-            if update_subdevice_status:
-                await online_hub.async_update(drop_on_overquota=False)
+        if discover_hub_subdevices:
+            discovered_subdevices = False
+            for online_hub in filter(lambda x: isinstance(x, HubDevice) and x.online_status==OnlineStatus.ONLINE, handled_devices):
+                sub_devices = await online_hub.async_discover_subdevices()
+                for sd in sub_devices:
+                    self._device_registry.enroll_device(sd)
+                    handled_subdevices.append(sd)
+                if len(sub_devices)>0:
+                    discovered_subdevices = True
+
+            # If a SubDevice has been discovered within a hub, we must update the hub data to determine if the
+            # subdevices are online
+            if discovered_subdevices:
+                await online_hub.async_update()
 
         res = []
         res.extend(handled_devices)
         res.extend(handled_subdevices)
         return res
-
-    async def _async_enroll_new_http_subdev(
-            self,
-            subdevice_info: HttpSubdeviceInfo,
-            hub: HubDevice,
-            hub_reported_abilities: dict,
-    ) -> Optional[GenericSubDevice]:
-        subdevice = build_meross_subdevice(
-            http_subdevice_info=subdevice_info,
-            hub_uuid=hub.uuid,
-            hub_reported_abilities=hub_reported_abilities,
-            manager=self,
-        )
-        # Register the device to the hub
-        if hub.get_subdevice(subdevice_id=subdevice.subdevice_id) is None:
-            hub.register_subdevice(subdevice=subdevice)
-        else:
-            _LOGGER.debug("HUB %s already knows subdevice %s", hub.uuid, subdevice)
-
-        # Enroll the device
-        self._device_registry.enroll_device(subdevice)
-        return subdevice
 
     async def async_init(self):
         """
@@ -548,7 +526,7 @@ class MerossManager(object):
             _prev_online_status = {d.uuid: d.online_status for d in self.find_devices()}
 
             # Issue a new discovery to update their connection status. This will rely on HTTP api to update it
-            await self.async_device_discovery(update_subdevice_status=True)
+            await self.async_device_discovery()
 
             i = 0
             for d in self.find_devices():
@@ -578,8 +556,8 @@ class MerossManager(object):
         if dev.online_status != old_status:
             _LOGGER.warning("Device %s changed its online status while manager was offline (was %s, now is %s). "
                             "Sending event manually.", dev, old_status, dev.online_status)
-            await dev.async_handle_push_notification(namespace=Namespace.SYSTEM_ONLINE,
-                                                     data={'online': {'status': dev.online_status.value}})
+            await dev.dispatch_push_notification(namespace=Namespace.SYSTEM_ONLINE,
+                                                      data={'online': {'status': dev.online_status.value}})
 
     def _on_message(self, client, userdata, msg):
         # NOTE! This method is called by the paho-mqtt thread, thus any invocation to the
@@ -661,23 +639,14 @@ class MerossManager(object):
             namespace = header.get("namespace")
             payload = message.get("payload")
             origin_device_uuid = device_uuid_from_push_notification(source_topic)
-
-            parsed_push_notification = parse_push_notification(
-                namespace=namespace,
-                message_payload=payload,
-                originating_device_uuid=origin_device_uuid,
+            asyncio.run_coroutine_threadsafe(
+                self._handle_and_dispatch_push_notification(
+                    namespace=namespace,
+                    payload=payload,
+                    origin_device_uuid=origin_device_uuid
+                ),
+                loop=self._loop,
             )
-            if parsed_push_notification is None:
-                _LOGGER.error(
-                    "Push notification parsing failed. That message won't be dispatched."
-                )
-            else:
-                asyncio.run_coroutine_threadsafe(
-                    self._handle_and_dispatch_push_notification(
-                        parsed_push_notification
-                    ),
-                    loop=self._loop,
-                )
         else:
             _LOGGER.warning(
                 f"The current implementation of this library does not handle messages received on topic "
@@ -687,23 +656,23 @@ class MerossManager(object):
             )
 
     async def _async_dispatch_push_notification(
-            self, push_notification: GenericPushNotification
+            self, namespace:str, data:Any, origin_device_uuid:str
     ) -> bool:
         handled = False
         # Lookup the originating device and deliver the push notification to that one.
         # Exclude subdevices: event dispatching among them is handled by their relative HUB.
         target_devs = self._device_registry.find_all_by(
-            device_uuids=(push_notification.originating_device_uuid,),
+            device_uuids=(origin_device_uuid,),
             exclude_classes=(GenericSubDevice,)
         )
         dev = None
 
         if len(target_devs) < 1:
             _LOGGER.warning(
-                f"Received a push notification ({push_notification.namespace}, "
-                f"raw_data: {json.dumps(push_notification.raw_data)}) for device(s) "
-                f"({push_notification.originating_device_uuid}) that "
-                f"are not available in the local registry. Trigger a discovery to intercept those events."
+                f"Received a push notification ({namespace}, "
+                f"raw_data: {json.dumps(data)}) for device(s) "
+                f"({origin_device_uuid}) that are not available in the local registry. "
+                f"Trigger a discovery to intercept those events."
             )
 
         if len(target_devs) > 0:
@@ -711,11 +680,7 @@ class MerossManager(object):
             for dev in target_devs:
                 try:
                     handled = (
-                            await dev.async_handle_push_notification(
-                                namespace=push_notification.namespace,
-                                data=push_notification.raw_data,
-                            )
-                            or handled
+                            await dev.dispatch_push_notification(namespace=namespace, data=data) or handled
                     )
                 except Exception as e:
                     _LOGGER.exception(
@@ -726,20 +691,20 @@ class MerossManager(object):
             _LOGGER.warning(
                 "Received a push notification for a device that is not available in the local registry. "
                 "You may need to trigger a discovery to catch those updates. Device-UUID: "
-                f"{push_notification.originating_device_uuid}"
+                f"{origin_device_uuid}"
             )
 
         return handled
 
     async def _async_handle_push_notification_post_dispatching(
-            self, push_notification: GenericPushNotification
+            self, namespace: str, data:Any, origin_device_uuid:str
     ) -> bool:
-        if isinstance(push_notification, UnbindPushNotification):
+        if namespace==Namespace.CONTROL_UNBIND:
             _LOGGER.info(
                 "Received an Unbind PushNotification. Releasing device resources..."
             )
             devs = self._device_registry.find_all_by(
-                device_uuids=(push_notification.originating_device_uuid)
+                device_uuids=(origin_device_uuid)
             )
             for d in devs:
                 _LOGGER.info(f"Releasing resources for device {d.internal_id}")
@@ -750,41 +715,38 @@ class MerossManager(object):
         return False
 
     async def _handle_and_dispatch_push_notification(
-            self, push_notification: GenericPushNotification
+            self, namespace:str, payload:Any, origin_device_uuid:str
     ) -> None:
         """
         This method runs within the event loop and is responsible for handling and dispatching push notifications
         to the relative meross device within the registry.
-
-        :param push_notification:
-        :return:
         """
         # Dispatching
         handled_device = await self._async_dispatch_push_notification(
-            push_notification=push_notification
+            namespace=namespace, data=payload, origin_device_uuid=origin_device_uuid
         )
 
         # Notify any listener that registered explicitly to push_notification
         target_devs = self._device_registry.find_all_by(
-            device_uuids=(push_notification.originating_device_uuid,)
+            device_uuids=(origin_device_uuid,)
         )
 
         for handler in self._push_coros:
             try:
-                await handler(push_notification, target_devs, self)
+                await handler(namespace, payload, target_devs, self)
             except Exception as e:
                 _LOGGER.exception(f"Uncaught error occurred while executing push notification "
-                                  f"handler {handler} for {push_notification}")
+                                  f"handler {handler} for {namespace} ({payload})")
 
         # Handling post-dispatching
         handled_post = await self._async_handle_push_notification_post_dispatching(
-            push_notification=push_notification
+            namespace=namespace, data=payload, origin_device_uuid=origin_device_uuid
         )
 
         if not (handled_device or handled_post):
             _LOGGER.warning(
-                f"Uncaught push notification {push_notification.namespace}. "
-                f"Raw data: {json.dumps(push_notification.raw_data)}"
+                f"Uncaught push notification {namespace}. "
+                f"Raw data: {json.dumps(payload)}"
             )
 
     async def async_execute_cmd(
@@ -937,8 +899,7 @@ class MerossManager(object):
 
     async def _notify_connection_drop(self):
         for d in self._device_registry.find_all_by():
-            pushn = OnlinePushNotification(originating_device_uuid=d.uuid, raw_data={'online': {'status': -1}})
-            await self._handle_and_dispatch_push_notification(pushn)
+            await self._handle_and_dispatch_push_notification(namespace=Namespace.SYSTEM_ONLINE, payload={'online': {'status': -1}}, origin_device_uuid=d.uuid)
 
     def _build_mqtt_message(self, method: str, namespace: Union[Namespace, str], payload: dict, destination_device_uuid: str):
         """

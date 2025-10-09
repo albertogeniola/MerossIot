@@ -10,7 +10,7 @@ from meross_iot.controller.mixins.dnd import SystemDndMixin
 from meross_iot.controller.mixins.electricity import ElectricityMixin
 from meross_iot.controller.mixins.encryption import EncryptionSuiteMixin
 from meross_iot.controller.mixins.garage import GarageOpenerMixin
-from meross_iot.controller.mixins.hub import HubMts100Mixin, HubMixn, HubMs100Mixin
+from meross_iot.controller.mixins.hub import HubMixin
 from meross_iot.controller.mixins.light import LightMixin
 from meross_iot.controller.mixins.roller_shutter import RollerShutterTimerMixin
 from meross_iot.controller.mixins.runtime import SystemRuntimeMixin
@@ -18,20 +18,15 @@ from meross_iot.controller.mixins.spray import SprayMixin
 from meross_iot.controller.mixins.system import SystemAllMixin, SystemOnlineMixin
 from meross_iot.controller.mixins.thermostat import ThermostatModeMixin, ThermostatModeBMixin
 from meross_iot.controller.mixins.toggle import ToggleXMixin, ToggleMixin
-from meross_iot.controller.subdevice import Mts100v3Valve, Ms100Sensor, Ms405Sensor
+from meross_iot.controller.subdevice_mixins.leakage_sensor import LeakageSensorMixin
+from meross_iot.controller.subdevice_mixins.valve_thermostat import Mts100Mixin
 from meross_iot.model.enums import Namespace
 from meross_iot.model.exception import UnknownDeviceType
 from meross_iot.model.http.device import HttpDeviceInfo
-from meross_iot.model.http.subdevice import HttpSubdeviceInfo
 
 _LOGGER = logging.getLogger(__name__)
 
-_KNOWN_DEV_TYPES_CLASSES = {
-    "mts100v3": Mts100v3Valve,
-    "ms100": Ms100Sensor,
-    "ms100f": Ms100Sensor,
-    "ms405": Ms405Sensor
-}
+_KNOWN_DEV_TYPES_CLASSES = {}
 
 _ABILITY_MATRIX = {
     # Power plugs abilities
@@ -67,16 +62,19 @@ _ABILITY_MATRIX = {
     Namespace.SYSTEM_RUNTIME.value: SystemRuntimeMixin,
 
     # Hub
-    Namespace.HUB_ONLINE.value: HubMixn,
-    Namespace.HUB_TOGGLEX.value: HubMixn,
+    # TODO: implement the following mixins
+    #Namespace.HUB_ONLINE.value: HubOnlineMixn,
+    #Namespace.HUB_BATTERY.value: HubBatteryMixin,
 
-    Namespace.HUB_SENSOR_ALL.value: HubMs100Mixin,
-    Namespace.HUB_SENSOR_ALERT.value: HubMs100Mixin,
-    Namespace.HUB_SENSOR_TEMPHUM.value: HubMs100Mixin,
+    #Namespace.HUB_TOGGLEX.value: HubMixn,
 
-    Namespace.HUB_MTS100_ALL.value: HubMts100Mixin,
-    Namespace.HUB_MTS100_MODE.value: HubMts100Mixin,
-    Namespace.HUB_MTS100_TEMPERATURE.value: HubMts100Mixin,
+    Namespace.HUB_SENSOR_ALL.value: HubMixin,
+    Namespace.HUB_SENSOR_ALERT.value: HubMixin,
+    Namespace.HUB_SENSOR_TEMPHUM.value: HubMixin,
+
+    Namespace.HUB_MTS100_ALL.value: HubMixin,
+    Namespace.HUB_MTS100_MODE.value: HubMixin,
+    Namespace.HUB_MTS100_TEMPERATURE.value: HubMixin,
 
     # DND
     Namespace.SYSTEM_DND_MODE.value: SystemDndMixin,
@@ -88,13 +86,15 @@ _ABILITY_MATRIX = {
     # TODO: BIND, UNBIND, ONLINE, WIFI, ETC!
 }
 
-_SUBDEVICE_MAPPING = {
-    "mts100v3": Mts100v3Valve,
-    "ms100": Ms100Sensor,
-    "ms100f": Ms100Sensor,
-    "ms405": Ms405Sensor,
-    "ms400": Ms405Sensor
+_SUB_DEVICE_MIXIN_MAP = {
+    "waterLeak": LeakageSensorMixin,
+    "mts100": Mts100Mixin,
+    #"ms100": Ms100Sensor,
+    #"ms100f": Ms100Sensor,
+    #"ms405": Ms405Sensor,
+    #"ms400": Ms405Sensor
 }
+
 
 _dynamic_types = {}
 
@@ -238,18 +238,21 @@ def build_meross_device_from_known_types(http_device_info: HttpDeviceInfo,
     return target_clazz(device_uuid=http_device_info.uuid, manager=manager, **http_device_info.to_dict())
 
 
-def build_meross_subdevice(http_subdevice_info: HttpSubdeviceInfo, hub_uuid: str, hub_reported_abilities: dict,
-                           manager) -> GenericSubDevice:
-    _LOGGER.debug(f"Building managed device for {http_subdevice_info.sub_device_name} "
-                  f"({http_subdevice_info.sub_device_id}).")
+def build_subdevice_from_digest_payload(hub_device: HubDevice, digest_payload: dict) -> GenericSubDevice:
+    """Builds a managed meross SubDevice instance, starting from the digest payload obtained by via the hub"""
+    subdevice_id = digest_payload.get('id')
+    status = digest_payload.get('status')
+    last_active_time = digest_payload.get('lastActiveTime')
+    _LOGGER.debug(f"Building managed SubDevice {subdevice_id} (hub {hub_device.name} - {hub_device.uuid}) ")
 
-    # Build the device in accordance with the device type
-    subdevtype = _SUBDEVICE_MAPPING.get(http_subdevice_info.sub_device_type)
-    if subdevtype is None:
-        _LOGGER.warning(f"Could not find any specific subdevice class for type {http_subdevice_info.sub_device_type}."
-                        f" Applying generic SubDevice class.")
-        subdevtype = GenericSubDevice
-    return subdevtype(hubdevice_uuid=hub_uuid,
-                      subdevice_id=http_subdevice_info.sub_device_id,
-                      manager=manager,
-                      **http_subdevice_info.to_dict())
+    # We build the device abilities via SubdeviceMixins, based digest keys, handled statically.
+    mixin_classes = []
+    for k in digest_payload:
+        mixin = _SUB_DEVICE_MIXIN_MAP.get(k)
+        if mixin is not None:
+            mixin_classes.append(mixin)
+
+    mixin_classes.append(GenericSubDevice)
+    t = type(subdevice_id, tuple(mixin_classes), {})
+    dev = t(hubdevice_uuid=hub_device.uuid, subdevice_id=subdevice_id, status=status, last_active_time=last_active_time, manager=hub_device._manager)
+    return dev

@@ -22,10 +22,10 @@ class RollerShutterTimerMixin:
         self._shutter__position_by_channel = {}
         self._shutter__config_by_channel = {}
 
-    async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
+    async def _async_handle_push_notification(self, namespace: str, data: dict) -> bool:
         locally_handled = False
 
-        if namespace == Namespace.ROLLER_SHUTTER_STATE:
+        if namespace == Namespace.ROLLER_SHUTTER_STATE.value:
             _LOGGER.debug(f"{self.__class__.__name__} handling push notification for namespace "
                           f"{namespace}")
             payload = data.get('state')
@@ -41,7 +41,7 @@ class RollerShutterTimerMixin:
                     state = RollerShutterState(roller_shutter['state']) # open (position=100, state=1), close (position=0, state=2), stop (position=-1, state=0)
                     self._shutter__state_by_channel[channel_index] = state
                     locally_handled = True
-        elif namespace == Namespace.ROLLER_SHUTTER_POSITION:
+        elif namespace == Namespace.ROLLER_SHUTTER_POSITION.value:
             _LOGGER.debug(f"{self.__class__.__name__} handling push notification for namespace "
                           f"{namespace}")
             payload = data.get('position')
@@ -60,7 +60,7 @@ class RollerShutterTimerMixin:
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
-        parent_handled = await super().async_handle_push_notification(namespace=namespace, data=data)
+        parent_handled = await super()._async_handle_push_notification(namespace=namespace, data=data)
         return locally_handled or parent_handled
 
     async def async_open(self, channel: int = 0, *args, **kwargs) -> None:

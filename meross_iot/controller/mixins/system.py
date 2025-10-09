@@ -49,10 +49,10 @@ class SystemOnlineMixin(object):
         super_handled = await super().async_handle_update(namespace=namespace, data=data)
         return super_handled or locally_handled
 
-    async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
+    async def _async_handle_push_notification(self, namespace: str, data: dict) -> bool:
         locally_handled = False
 
-        if namespace == Namespace.SYSTEM_ONLINE:
+        if namespace == Namespace.SYSTEM_ONLINE.value:
             _LOGGER.debug(f"OnlineMixin handling push notification for namespace {namespace}")
             payload = data.get('online')
             if payload is None:
@@ -66,5 +66,5 @@ class SystemOnlineMixin(object):
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
-        parent_handled = await super().async_handle_push_notification(namespace=namespace, data=data)
+        parent_handled = await super()._async_handle_push_notification(namespace=namespace, data=data)
         return locally_handled or parent_handled

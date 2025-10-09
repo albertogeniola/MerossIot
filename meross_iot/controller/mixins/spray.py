@@ -19,10 +19,10 @@ class SprayMixin(object):
         # Dictionary keeping the status for every channel
         self._channel_spray_status = {}
 
-    async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
+    async def _async_handle_push_notification(self, namespace: str, data: dict) -> bool:
         locally_handled = False
 
-        if namespace == Namespace.CONTROL_SPRAY:
+        if namespace == Namespace.CONTROL_SPRAY.value:
             _LOGGER.debug(f"{self.__class__.__name__} handling push notification for namespace {namespace}")
             payload = data.get('spray')
             if payload is None:
@@ -42,7 +42,7 @@ class SprayMixin(object):
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
-        parent_handled = await super().async_handle_push_notification(namespace=namespace, data=data)
+        parent_handled = await super()._async_handle_push_notification(namespace=namespace, data=data)
         return locally_handled or parent_handled
 
     def get_current_mode(self, channel: int = 0, *args, **kwargs) -> Optional[SprayMode]:

@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import time
 from datetime import datetime
-from typing import List, Union, Optional, Iterable, Callable, Awaitable, Dict
+from typing import List, Union, Optional, Iterable, Callable, Awaitable, Dict, Any
 
 from meross_iot.model.constants import DEFAULT_MQTT_PORT, DEFAULT_MQTT_HOST, DEFAULT_COMMAND_TIMEOUT
 from meross_iot.model.enums import OnlineStatus, Namespace
@@ -143,7 +142,7 @@ class BaseDevice(object):
         else:
             _LOGGER.error(f"Coroutine {coro} was not registered as handler for this device")
 
-    async def _fire_push_notification_event(self, namespace: Namespace, data: dict, device_internal_id: str):
+    async def _fire_push_notification_event(self, namespace: str, data: Any, device_internal_id: str):
         for c in self._push_coros:
             try:
                 await c(namespace=namespace, data=data, device_internal_id=device_internal_id)
@@ -232,12 +231,33 @@ class BaseDevice(object):
         # TODO: fire some sort of events to let users see changed data?
         return self
 
-    async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
-        _LOGGER.debug(f"MerossBaseDevice {self.name} handling notification {namespace}")
+    async def _async_handle_push_notification(self, namespace: str, data: Any) -> bool:
+        """
+        Handles push notification updates
+        :param namespace: Push notification header
+        :param data: Push notification data
+        :return:
+        """
+        _LOGGER.debug(f"MerossBaseDevice {self.name} handling notification {namespace} -> {data}")
 
-        # However, we want to notify any registered event handler
-        await self._fire_push_notification_event(namespace=namespace, data=data, device_internal_id=self.internal_id)
+        # The base implementation will just return FALSE, as we do not handle any push notification within the base-class
         return False
+
+    async def dispatch_push_notification(self, namespace: str, data: Any) -> bool:
+        """
+        Delivers a push notification to the device, so that it can update its internal state
+        :param namespace: Push notification header
+        :param data: Push notification data
+        :return: True if the dispatching has been handled correctly. Returns False if the push notification is unhandled
+        """
+        # Let the current implementation handle the push notification
+        handled = await self._async_handle_push_notification(namespace=namespace, data=data)
+
+        # Once the notification has been handled, fire the push-notification handler to notify all the listeners
+        #  that are registered on this specific event on this device
+        await self._fire_push_notification_event(namespace=namespace, data=data, device_internal_id=self.internal_id)
+
+        return handled
 
     async def async_handle_update(self, namespace: Namespace, data: dict) -> bool:
         # Catch SYSTEM_ALL case and update the generic device info
@@ -247,7 +267,6 @@ class BaseDevice(object):
             self._inner_ip = system.get('firmware', {}).get('innerIp')
             self._mac_address = system.get('hardware', {}).get('macAddress', None)
 
-        await self._fire_push_notification_event(namespace=namespace, data=data, device_internal_id=self.internal_id)
         self._last_full_update_ts = time.time() * 1000
 
         # Even though we handle the event, we return False as we did not handle the event in any way
@@ -387,11 +406,10 @@ class BaseDevice(object):
 
 
 class HubDevice(BaseDevice):
-    # TODO: provide meaningful comment here describing what this class does
-    #  Discvoery?? Bind/unbind?? Online??
+
     def __init__(self, device_uuid: str, manager, **kwargs):
         super().__init__(device_uuid, manager, **kwargs)
-        self._sub_devices = {}
+        self._sub_devices:Dict[str, GenericSubDevice] = {}
 
     def get_subdevices(self) -> Iterable[GenericSubDevice]:
         return self._sub_devices.values()
@@ -399,18 +417,69 @@ class HubDevice(BaseDevice):
     def get_subdevice(self, subdevice_id: str) -> Optional[GenericSubDevice]:
         return self._sub_devices.get(subdevice_id)
 
-    def register_subdevice(self, subdevice: GenericSubDevice) -> None:
-        # If the device is already registed, skip it
-        if subdevice.subdevice_id in self._sub_devices:
-            _LOGGER.info(f"Subdevice {subdevice.subdevice_id} has been already registered to this HUB ({self.name})")
-            return
+    async def _async_handle_push_notification(self, namespace:str, data:Any) -> bool:
+        """
+        Handles push notification updates and optionally delivers the notification to the specific
+        SubDevice it refers to.
+        :param namespace:
+        :param data:
+        :return:
+        """
+        super_handled = await super()._async_handle_push_notification(namespace=namespace, data=data)
 
-        self._sub_devices[subdevice.subdevice_id] = subdevice
+        # The HubDevice implementation will take care of dispatching the push-notification to the
+        #  SubDevice it refers to, in case the notification is somehow related to a SubDevice.
+        #  For now, we discriminate a push notification by looking at its data: if we find an "id", we assume its
+        #  a push notification for a sub-device.
+        # TODO: ensure this is correct and applicable to all sub-device events.
+        locally_handled = False
+
+        # The push notification data should contain a key entry matching the camel-cased version of the namesoace.
+        # Let's calculate the key and access the data to determine if the event is targeting a sub-device.
+        dataKey = namespace.split(".")[-1]
+        dataKey = dataKey[0].lower()+dataKey[1:]
+        event_data = data.get(dataKey)
+        if event_data is None:
+            _LOGGER.error(f"Cannot find calculated event-key {dataKey} within event data: {data}. Event won't be dispatched to subdevices.")
+        # In case the event looks like a list, handle them one by one
+        elif isinstance(event_data,List):
+            for event in event_data:
+                if 'id' in event:
+                    subdevice_id = event['id']
+                    target_device = self._sub_devices.get(subdevice_id)
+                    if target_device is not None:
+                        locally_handled = locally_handled or await target_device.dispatch_push_notification(namespace=namespace, data=event)
+                    else:
+                        _LOGGER.warning(f"HUB {self.name} ({self.uuid}) received a push notification ({data}) targeting an unknown sub-device ({subdevice_id}).")
+
+        # In case the event looks like an object, handle it as  single event
+        elif isinstance(event_data, Dict):
+            if 'id' in event_data:
+                subdevice_id = event_data['id']
+                target_device = self._sub_devices.get(subdevice_id)
+                if target_device is not None:
+                    locally_handled = locally_handled or await target_device.dispatch_push_notification(namespace=namespace, data=event_data)
+                else:
+                    _LOGGER.warning(
+                        f"HUB {self.name} ({self.uuid}) received a push notification ({data}) targeting an unknown sub-device ({subdevice_id}).")
+
+        return super_handled or locally_handled
+
+    async def async_discover_subdevices(self)-> List[GenericSubDevice]:
+        from meross_iot.device_factory import build_subdevice_from_digest_payload
+        res = []
+        data = await super()._execute_command(method="GET", namespace=Namespace.SYSTEM_ALL, payload={})
+        for sd in data.get('all').get('digest').get('hub').get('subdevice'):
+            sub_device = build_subdevice_from_digest_payload(hub_device=self, digest_payload=sd)
+            if sub_device.subdevice_id not in self._sub_devices:
+                self._sub_devices[sub_device.subdevice_id] = sub_device
+                res.append(sub_device)
+        return res
 
 
 class GenericSubDevice(BaseDevice):
 
-    def __init__(self, hubdevice_uuid: str, subdevice_id: str, manager, **kwargs):
+    def __init__(self, hubdevice_uuid: str, subdevice_id: str, status:int, last_active_time:int, manager, **kwargs):
         hubs = manager.find_devices(device_uuids=(hubdevice_uuid,))  # type: List[HubDevice]
         if len(hubs) < 1:
             raise ValueError("Specified hub device is not present")
@@ -420,9 +489,8 @@ class GenericSubDevice(BaseDevice):
         self._subdevice_id = subdevice_id
         self._type = kwargs.get('subDeviceType')
         self._name = kwargs.get('subDeviceName')
-        self._onoff = None
-        self._mode = None
-        self._temperature = None
+        self._online = OnlineStatus(status)
+        self._last_active_time = last_active_time
         self._hub = hub
 
     async def _execute_command(self,
@@ -431,21 +499,19 @@ class GenericSubDevice(BaseDevice):
                                payload: dict,
                                timeout: Optional[float] = None
                                ) -> dict:
-        # Every command should be invoked via HUB?
-        raise NotImplementedError("Subdevices should rely on Hub in order to send commands.")
+        # SubDevices talk to the meross cloud using the HUB.
+        return await self._hub._execute_command(method=method, namespace=namespace, payload=payload, timeout=timeout)
 
-    async def async_update(self,
-                           timeout: Optional[float] = None,
-                           *args,
-                           **kwargs) -> None:
+    async def async_notify_hub_update(self, data: Dict):
         """
-        Performs a full device update of the device attributes.
+        This method is called by the HUB whenever a full update is received at hub-level.
+        SubDevices mixins will handle state update accordingly, if necessary.
+        :param data:
+        :return:
         """
+        pass
 
-        # The default implementation of the async_update for a GenericSubdevice will just issue an update
-        # at hub-level
-        await super().async_update(*args, **kwargs)
-
+    # TODO: move this into a separate mixin
     async def async_get_battery_life(self,
                                      timeout: Optional[float] = None,
                                      *args,
@@ -462,10 +528,25 @@ class GenericSubDevice(BaseDevice):
         timestamp = datetime.utcnow()
         return BatteryInfo(battery_charge=battery_life_perc, sample_ts=timestamp)
 
-    async def async_handle_subdevice_notification(self, namespace: Namespace, data: dict) -> bool:
-        _LOGGER.error("Unhandled/NotImplemented event handler for %s (data: %s) - Subdevice %s (hub %s)", namespace,
-                      json.dumps(data), self.subdevice_id, self._hub.uuid)
-        return False
+    async def _async_handle_push_notification(self, namespace: str, data: Any) -> bool:
+        parent_handled = await super()._async_handle_push_notification(namespace=namespace, data=data)
+        locally_handled = False
+        if namespace==Namespace.SYSTEM_ONLINE:
+            self._online = OnlineStatus(data['online']['status'])
+            self._last_active_time = data['online']['lastActiveTime']
+            locally_handled = True
+
+        return parent_handled or locally_handled
+
+    async def notify_hub_update(self, data: Dict):
+        """
+        This method is called by the HUB to notify state updates received at hub
+        level for this SubDevice.
+        :param data:
+        :return:
+        """
+        # The base class, won't do anything. Mixins are in charge of handling state updates.
+        return
 
     @property
     def internal_id(self) -> str:
@@ -474,14 +555,6 @@ class GenericSubDevice(BaseDevice):
     @property
     def subdevice_id(self):
         return self._subdevice_id
-
-    @property
-    def online_status(self) -> OnlineStatus:
-        # If the HUB device is offline, return offline
-        if self._hub.online_status != OnlineStatus.ONLINE:
-            return self._hub.online_status
-
-        return self._online
 
     def _prepare_push_notification_data(self, data: dict, filter_accessor: str = None) -> Optional[Dict]:
         if filter_accessor is not None:

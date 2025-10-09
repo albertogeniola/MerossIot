@@ -2,7 +2,7 @@ import asyncio
 import os
 from typing import List
 
-from meross_iot.controller.subdevice import Ms405Sensor
+from meross_iot.controller.subdevice_mixins.leakage_sensor import LeakageSensorMixin
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
 from meross_iot.model.enums import Namespace, OnlineStatus
@@ -11,18 +11,18 @@ EMAIL = os.environ.get('MEROSS_EMAIL') or "YOUR_MEROSS_CLOUD_EMAIL"
 PASSWORD = os.environ.get('MEROSS_PASSWORD') or "YOUR_MEROSS_CLOUD_PASSWORD"
 
 
-async def water_leak_event(namespace: Namespace, data: dict, device_internal_id: str, *args, **kwargs):
+async def water_leak_event(namespace: str, data: dict, device_internal_id: str, *args, **kwargs):
     print("An event has occurred!")
-    if namespace == Namespace.CONTROL_ALARM:
+    if namespace == Namespace.CONTROL_ALARM.value:
         print(f"Alarm occurred! Event data: {data}")
-    elif namespace == Namespace.HUB_SENSOR_WATERLEAK:
+    elif namespace == Namespace.HUB_SENSOR_WATERLEAK.value:
         print(f"Water leak occurred! Event data: {data}")
     else:
-        print(f"Another event occurred: {namespace.value}, Event data: {data}")
+        print(f"Another event occurred: {namespace}, Event data: {data}")
 
 
 async def main():
-    # Setup the HTTP client API from user-password
+    # Set up the HTTP client API from user-password
     http_api_client = await MerossHttpClient.async_from_user_password(email=EMAIL, password=PASSWORD, api_base_url="https://iot.meross.com")
 
     # Setup and start the device manager
@@ -33,7 +33,7 @@ async def main():
     await manager.async_device_discovery()
 
     # Retrieve water leak sensors. Can either be ms400 or ms405
-    water_leak_sensors: List[Ms405Sensor] = manager.find_devices(device_class=Ms405Sensor, online_status=OnlineStatus.ONLINE)
+    water_leak_sensors: List[LeakageSensorMixin] = manager.find_devices(device_class=LeakageSensorMixin, online_status=OnlineStatus.ONLINE)
 
     if len(water_leak_sensors) < 1:
         print("No online water leak sensors found!")
@@ -41,6 +41,7 @@ async def main():
         # Let's register an event handle to quickly react in case of water leaks
         for sensor in water_leak_sensors:
             sensor.register_push_notification_handler_coroutine(water_leak_event)
+            await sensor.async_update()
 
         # Manually force and update to retrieve the latest temperature sensed from
         # the device. This ensures we get the most recent data and not a cached value
@@ -59,6 +60,7 @@ async def main():
     # Close the manager and logout from http_api
     manager.close()
     await http_api_client.async_logout()
+
 
 if __name__ == '__main__':
     if os.name == 'nt':

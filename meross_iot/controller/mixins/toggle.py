@@ -23,10 +23,10 @@ class ToggleXMixin(object):
         # _channel_status is a dictionary keeping the status for every channel
         self._channel_togglex_status = {}
 
-    async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
+    async def _async_handle_push_notification(self, namespace: str, data: dict) -> bool:
         locally_handled = False
 
-        if namespace == Namespace.CONTROL_TOGGLEX:
+        if namespace == Namespace.CONTROL_TOGGLEX.value:
             _LOGGER.debug(f"{self.__class__.__name__} handling push notification for namespace {namespace}")
             payload = data.get('togglex')
             if payload is None:
@@ -49,7 +49,7 @@ class ToggleXMixin(object):
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
-        parent_handled = await super().async_handle_push_notification(namespace=namespace, data=data)
+        parent_handled = await super()._async_handle_push_notification(namespace=namespace, data=data)
         return locally_handled or parent_handled
 
     async def async_handle_update(self, namespace: Namespace, data: dict) -> bool:
@@ -135,10 +135,10 @@ class ToggleMixin(object):
         # _channel_status is a dictionary keeping the status for every channel
         self._channel_toggle_status = {}
 
-    async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
+    async def _async_handle_push_notification(self, namespace: str, data: dict) -> bool:
         locally_handled = False
 
-        if namespace == Namespace.CONTROL_TOGGLE:
+        if namespace == Namespace.CONTROL_TOGGLE.value:
             _LOGGER.debug(f"ToggleMixin handling push notification for namespace {namespace}")
             payload = data.get('toggle')
             if payload is None:
@@ -151,7 +151,7 @@ class ToggleMixin(object):
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
-        parent_handled = await super().async_handle_push_notification(namespace=namespace, data=data)
+        parent_handled = await super()._async_handle_push_notification(namespace=namespace, data=data)
         return locally_handled or parent_handled
 
     async def async_handle_update(self, namespace: Namespace, data: dict) -> bool:
