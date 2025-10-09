@@ -219,7 +219,7 @@ class BaseDevice(object):
         # Careful with online  status: not all the devices might expose an online mixin.
         if hdevice.uuid != self.uuid:
             raise ValueError(f"Cannot update device ({self.uuid}) with HttpDeviceInfo for device id {hdevice.uuid}")
-        self._cached_http_info=hdevice
+        self._cached_http_info = hdevice
         self._cached_http_info = hdevice
         self._name = hdevice.dev_name
         self._channels = self._parse_channels(hdevice.channels)
@@ -388,7 +388,7 @@ class BaseDevice(object):
         """
         pass
 
-    def encrypt(self, message_data_bytes: bytes)->str:
+    def encrypt(self, message_data_bytes: bytes) -> str:
         """
         Encrypts the message into a base64 string
         :param message_data_bytes:
@@ -409,7 +409,7 @@ class HubDevice(BaseDevice):
 
     def __init__(self, device_uuid: str, manager, **kwargs):
         super().__init__(device_uuid, manager, **kwargs)
-        self._sub_devices:Dict[str, GenericSubDevice] = {}
+        self._sub_devices: Dict[str, GenericSubDevice] = {}
 
     def get_subdevices(self) -> Iterable[GenericSubDevice]:
         return self._sub_devices.values()
@@ -417,7 +417,7 @@ class HubDevice(BaseDevice):
     def get_subdevice(self, subdevice_id: str) -> Optional[GenericSubDevice]:
         return self._sub_devices.get(subdevice_id)
 
-    async def _async_handle_push_notification(self, namespace:str, data:Any) -> bool:
+    async def _async_handle_push_notification(self, namespace: str, data: Any) -> bool:
         """
         Handles push notification updates and optionally delivers the notification to the specific
         SubDevice it refers to.
@@ -436,21 +436,31 @@ class HubDevice(BaseDevice):
 
         # The push notification data should contain a key entry matching the camel-cased version of the namesoace.
         # Let's calculate the key and access the data to determine if the event is targeting a sub-device.
-        dataKey = namespace.split(".")[-1]
-        dataKey = dataKey[0].lower()+dataKey[1:]
-        event_data = data.get(dataKey)
+        data_key = namespace.split(".")[-1]
+        data_key = data_key[0].lower() + data_key[1:]
+
+        # There might be cases in which the data_key is expected to be totally lower-case (togglex is an example)
+        # This happens for older Namespaces.
+        if data_key not in data:
+            _LOGGER.debug(f"Cannot find calculated event-key {data_key} within event data: {data}.")
+            data_key = data_key.lower()
+
+        event_data = data.get(data_key)
         if event_data is None:
-            _LOGGER.error(f"Cannot find calculated event-key {dataKey} within event data: {data}. Event won't be dispatched to subdevices.")
+            _LOGGER.error(
+                f"Cannot find calculated event-key {data_key} within event data: {data}. Event won't be dispatched to subdevices.")
         # In case the event looks like a list, handle them one by one
-        elif isinstance(event_data,List):
+        elif isinstance(event_data, List):
             for event in event_data:
                 if 'id' in event:
                     subdevice_id = event['id']
                     target_device = self._sub_devices.get(subdevice_id)
                     if target_device is not None:
-                        locally_handled = locally_handled or await target_device.dispatch_push_notification(namespace=namespace, data=event)
+                        locally_handled = locally_handled or await target_device.dispatch_push_notification(
+                            namespace=namespace, data=event)
                     else:
-                        _LOGGER.warning(f"HUB {self.name} ({self.uuid}) received a push notification ({data}) targeting an unknown sub-device ({subdevice_id}).")
+                        _LOGGER.warning(
+                            f"HUB {self.name} ({self.uuid}) received a push notification ({data}) targeting an unknown sub-device ({subdevice_id}).")
 
         # In case the event looks like an object, handle it as  single event
         elif isinstance(event_data, Dict):
@@ -458,14 +468,15 @@ class HubDevice(BaseDevice):
                 subdevice_id = event_data['id']
                 target_device = self._sub_devices.get(subdevice_id)
                 if target_device is not None:
-                    locally_handled = locally_handled or await target_device.dispatch_push_notification(namespace=namespace, data=event_data)
+                    locally_handled = locally_handled or await target_device.dispatch_push_notification(
+                        namespace=namespace, data=event_data)
                 else:
                     _LOGGER.warning(
                         f"HUB {self.name} ({self.uuid}) received a push notification ({data}) targeting an unknown sub-device ({subdevice_id}).")
 
         return super_handled or locally_handled
 
-    async def async_discover_subdevices(self)-> List[GenericSubDevice]:
+    async def async_discover_subdevices(self) -> List[GenericSubDevice]:
         from meross_iot.device_factory import build_subdevice_from_digest_payload
         res = []
         data = await super()._execute_command(method="GET", namespace=Namespace.SYSTEM_ALL, payload={})
@@ -479,7 +490,7 @@ class HubDevice(BaseDevice):
 
 class GenericSubDevice(BaseDevice):
 
-    def __init__(self, hubdevice_uuid: str, subdevice_id: str, status:int, last_active_time:int, manager, **kwargs):
+    def __init__(self, hubdevice_uuid: str, subdevice_id: str, status: int, last_active_time: int, manager, **kwargs):
         hubs = manager.find_devices(device_uuids=(hubdevice_uuid,))  # type: List[HubDevice]
         if len(hubs) < 1:
             raise ValueError("Specified hub device is not present")
@@ -531,7 +542,7 @@ class GenericSubDevice(BaseDevice):
     async def _async_handle_push_notification(self, namespace: str, data: Any) -> bool:
         parent_handled = await super()._async_handle_push_notification(namespace=namespace, data=data)
         locally_handled = False
-        if namespace==Namespace.SYSTEM_ONLINE:
+        if namespace == Namespace.SYSTEM_ONLINE:
             self._online = OnlineStatus(data['online']['status'])
             self._last_active_time = data['online']['lastActiveTime']
             locally_handled = True

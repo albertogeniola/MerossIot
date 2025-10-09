@@ -141,8 +141,6 @@ class Mts100Mixin(Generic[T_SubDevice]):
                 self.__temperature.update(update_element)
                 self.__temperature['latestSampleTime'] = datetime.utcnow().timestamp()
                 locally_handled = True
-        else:
-            _LOGGER.error(f"Could not handle event %s in subdevice %s handler", namespace, self.name)
 
         return locally_handled or parent_handled
 

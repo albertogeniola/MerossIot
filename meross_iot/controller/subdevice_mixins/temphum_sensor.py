@@ -89,8 +89,6 @@ class TemperatureHumidityMixin(GenericSubDevice):
         elif namespace == Namespace.HUB_SENSOR_ALERT:
             locally_handled = False
             # TODO: not yet implemented
-        else:
-            _LOGGER.warning(f"Could not handle event %s in subdevice %s handler", namespace, self.name)
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
