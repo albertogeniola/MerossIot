@@ -899,7 +899,7 @@ class MerossManager(object):
 
     async def _notify_connection_drop(self):
         for d in self._device_registry.find_all_by():
-            await self._handle_and_dispatch_push_notification(namespace=Namespace.SYSTEM_ONLINE, payload={'online': {'status': -1}}, origin_device_uuid=d.uuid)
+            await self._handle_and_dispatch_push_notification(namespace=Namespace.SYSTEM_ONLINE.value, payload={'online': {'status': -1}}, origin_device_uuid=d.uuid)
 
     def _build_mqtt_message(self, method: str, namespace: Union[Namespace, str], payload: dict, destination_device_uuid: str):
         """

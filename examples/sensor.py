@@ -1,11 +1,16 @@
 import asyncio
 import os
 
+from meross_iot.controller.subdevice_mixins.ms100_sensor import Ms100Mixin
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
 
 EMAIL = os.environ.get('MEROSS_EMAIL') or "YOUR_MEROSS_CLOUD_EMAIL"
 PASSWORD = os.environ.get('MEROSS_PASSWORD') or "YOUR_MEROSS_CLOUD_PASSWORD"
+
+
+async def event_handler(namespace: str, data: dict, device_internal_id: str, *args, **kwargs):
+    print("An event has occurred!")
 
 
 async def main():
@@ -18,23 +23,35 @@ async def main():
 
     # Retrieve all the MS100 devices that are registered on this account
     await manager.async_device_discovery()
-    sensors = manager.find_devices(device_type="ms100")
+    sensors = manager.find_devices(device_class=Ms100Mixin)
 
     if len(sensors) < 1:
         print("No MS100 plugs found...")
     else:
         dev = sensors[0]
 
+        dev.register_push_notification_handler_coroutine(event_handler)
+
         # Manually force and update to retrieve the latest temperature sensed from
         # the device. This ensures we get the most recent data and not a cached value
         await dev.async_update()
 
-        # Access read cached data
-        temp = dev.last_sampled_temperature
-        humid = dev.last_sampled_humidity
-        time = dev.last_sampled_time
+        # Manually force and update to retrieve the latest temperature sensed from
+        # the device. This ensures we get the most recent data and not a cached value
+        while True:
+            try:
+                await dev.async_update()
+                # Access read cached data
+                temp = dev.last_sampled_temperature
+                humid = dev.last_sampled_humidity
+                time = dev.last_sampled_time
 
-        print(f"Current sampled data on {time.isoformat()}; Temperature={temp}°C, Humidity={humid}%")
+                print(f"Current sampled data on {time.isoformat()}; Temperature={temp}°C, Humidity={humid}%. Press CTRL+C to terminate.")
+                # Let's wait a bit for some events to occur
+                await asyncio.sleep(10)
+            except InterruptedError as e:
+                print("Execution terminated by the user")
+
     # Close the manager and logout from http_api
     manager.close()
     await http_api_client.async_logout()

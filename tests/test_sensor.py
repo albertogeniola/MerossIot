@@ -3,7 +3,7 @@ import os
 from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
-from meross_iot.controller.subdevice_mixins.temphum_sensor import TemperatureHumidityMixin
+from meross_iot.controller.subdevice_mixins.ms100_sensor import Ms100Mixin
 from meross_iot.manager import MerossManager
 from meross_iot.model.enums import OnlineStatus
 from meross_iot.model.plugin.hub import BatteryInfo
@@ -30,7 +30,7 @@ class TestSensor(AioHTTPTestCase):
         self.meross_manager = MerossManager(http_client=self.meross_client)
         await self.meross_manager.async_init()
         await self.meross_manager.async_device_discovery()
-        self.test_devices = self.meross_manager.find_devices(device_class=TemperatureHumidityMixin, online_status=OnlineStatus.ONLINE)
+        self.test_devices = self.meross_manager.find_devices(device_class=Ms100Mixin, online_status=OnlineStatus.ONLINE)
 
     @unittest_run_loop
     async def test_temperature(self):

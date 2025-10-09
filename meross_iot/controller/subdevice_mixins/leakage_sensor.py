@@ -16,7 +16,7 @@ class LeakageSensorMixin(Generic[T_SubDevice]):
     """
 
     def __init__(self: T_SubDevice, hubdevice_uuid: str, subdevice_id: str, status: int, last_active_time: int, manager,
-                 max_events_queue_len=30, **kwargs):
+                 max_events_queue_len:int=30, **kwargs):
         super(LeakageSensorMixin, self).__init__(hubdevice_uuid=hubdevice_uuid, subdevice_id=subdevice_id,
                                                  status=status, last_active_time=last_active_time, manager=manager,
                                                  **kwargs)

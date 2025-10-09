@@ -114,7 +114,7 @@ class BaseDevice(object):
                           "before accessing its state. Failure to do so may result in inconsistent state.")
         return update_done
 
-    def register_push_notification_handler_coroutine(self, coro: Callable[[Namespace, dict, str], Awaitable]) -> None:
+    def register_push_notification_handler_coroutine(self, coro: Callable[[str, dict, str], Awaitable]) -> None:
         """
         Registers a coroutine so that it gets invoked whenever a push notification is
         delivered to this device or when the device state is changed.
@@ -130,7 +130,7 @@ class BaseDevice(object):
             return
         self._push_coros.append(coro)
 
-    def unregister_push_notification_handler_coroutine(self, coro: Callable[[Namespace, dict, str], Awaitable]) -> None:
+    def unregister_push_notification_handler_coroutine(self, coro: Callable[[str, dict, str], Awaitable]) -> None:
         """
         Unregisters the event handler
         :param coro: coroutine-function: a function that, when invoked, returns a Coroutine object that can be awaited.
@@ -416,65 +416,6 @@ class HubDevice(BaseDevice):
 
     def get_subdevice(self, subdevice_id: str) -> Optional[GenericSubDevice]:
         return self._sub_devices.get(subdevice_id)
-
-    async def _async_handle_push_notification(self, namespace: str, data: Any) -> bool:
-        """
-        Handles push notification updates and optionally delivers the notification to the specific
-        SubDevice it refers to.
-        :param namespace:
-        :param data:
-        :return:
-        """
-        super_handled = await super()._async_handle_push_notification(namespace=namespace, data=data)
-
-        # The HubDevice implementation will take care of dispatching the push-notification to the
-        #  SubDevice it refers to, in case the notification is somehow related to a SubDevice.
-        #  For now, we discriminate a push notification by looking at its data: if we find an "id", we assume its
-        #  a push notification for a sub-device.
-        # TODO: ensure this is correct and applicable to all sub-device events.
-        locally_handled = False
-
-        # The push notification data should contain a key entry matching the camel-cased version of the namesoace.
-        # Let's calculate the key and access the data to determine if the event is targeting a sub-device.
-        data_key = namespace.split(".")[-1]
-        data_key = data_key[0].lower() + data_key[1:]
-
-        # There might be cases in which the data_key is expected to be totally lower-case (togglex is an example)
-        # This happens for older Namespaces.
-        if data_key not in data:
-            _LOGGER.debug(f"Cannot find calculated event-key {data_key} within event data: {data}.")
-            data_key = data_key.lower()
-
-        event_data = data.get(data_key)
-        if event_data is None:
-            _LOGGER.error(
-                f"Cannot find calculated event-key {data_key} within event data: {data}. Event won't be dispatched to subdevices.")
-        # In case the event looks like a list, handle them one by one
-        elif isinstance(event_data, List):
-            for event in event_data:
-                if 'id' in event:
-                    subdevice_id = event['id']
-                    target_device = self._sub_devices.get(subdevice_id)
-                    if target_device is not None:
-                        locally_handled = locally_handled or await target_device.dispatch_push_notification(
-                            namespace=namespace, data=event)
-                    else:
-                        _LOGGER.warning(
-                            f"HUB {self.name} ({self.uuid}) received a push notification ({data}) targeting an unknown sub-device ({subdevice_id}).")
-
-        # In case the event looks like an object, handle it as  single event
-        elif isinstance(event_data, Dict):
-            if 'id' in event_data:
-                subdevice_id = event_data['id']
-                target_device = self._sub_devices.get(subdevice_id)
-                if target_device is not None:
-                    locally_handled = locally_handled or await target_device.dispatch_push_notification(
-                        namespace=namespace, data=event_data)
-                else:
-                    _LOGGER.warning(
-                        f"HUB {self.name} ({self.uuid}) received a push notification ({data}) targeting an unknown sub-device ({subdevice_id}).")
-
-        return super_handled or locally_handled
 
     async def async_discover_subdevices(self) -> List[GenericSubDevice]:
         from meross_iot.device_factory import build_subdevice_from_digest_payload

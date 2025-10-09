@@ -98,6 +98,6 @@ class HubMixin:
                         return False
                     else:
                         await subdev._async_handle_push_notification(namespace=namespace, data=subdev_state)
-                locally_handled = True
+                    locally_handled = True
 
         return locally_handled or parent_handled
