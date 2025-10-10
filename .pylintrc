@@ -1,0 +1,51 @@
+[MAIN]
+# Specify a configuration file.
+#load-plugins=pylint.extensions.docstyle
+
+# Use multiple processes to speed up Pylint. Specifying 0 will auto-detect the
+# number of processors available to use.
+#jobs=0
+
+# Specify a score threshold to be exceeded before program exits with error.
+#fail-under=10.0
+
+[MESSAGES CONTROL]
+# Disable the message, report, category or checker with the given id(s).
+#disable=C0199,E0401,E0611
+
+# Disable the score feature, we want it right
+#score=no
+
+[FORMAT]
+
+# Maximum number of characters on a single line.
+#max-line-length=100
+
+# Allow the body of an if to be on the same line as the test if there is no
+# else.
+#single-line-if-stmt=no
+
+[DESIGN]
+
+# Maximum number of arguments for function / method.
+max-args=10
+max-positional-arguments=10
+
+[DOCSTRING]
+# Require all classes and methods to have a docstring.
+#docstring-min-length=10
+
+[CONVENTION]
+# Ensure docstrings are present for all modules, classes, methods, and functions.
+#good-names=i,j,k,ex,Run,_
+
+[REPORTS]
+# Tweak the output format. You can have a full report with `yes`.
+#reports=no
+
+[TYPECHECK]
+#generated-members=numpy.*,torch.*
+
+[EXCEPTIONS]
+# This option represents a list of qualified names for which no member or method should be checked.
+#ignored-classes=NotImplementedError

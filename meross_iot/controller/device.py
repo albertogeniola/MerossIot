@@ -502,10 +502,18 @@ class GenericSubDevice(BaseDevice):
 
     @property
     def internal_id(self) -> str:
+        """
+        Internal ID created by this library for this device.
+        :return:
+        """
         return f"#BASE:{self._uuid}#SUB:{self._subdevice_id}"
 
     @property
     def subdevice_id(self):
+        """
+        Meross SubDevice ID.
+        :return:
+        """
         return self._subdevice_id
 
     def _prepare_push_notification_data(self, data: dict, filter_accessor: str = None) -> Optional[Dict]:
