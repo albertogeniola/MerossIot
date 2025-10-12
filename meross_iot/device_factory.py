@@ -18,6 +18,7 @@ from meross_iot.controller.mixins.spray import SprayMixin
 from meross_iot.controller.mixins.system import SystemAllMixin, SystemOnlineMixin
 from meross_iot.controller.mixins.thermostat import ThermostatModeMixin, ThermostatModeBMixin
 from meross_iot.controller.mixins.toggle import ToggleXMixin, ToggleMixin
+from meross_iot.controller.subdevice_mixins.door_window import DoorWindowSensorMixin
 from meross_iot.controller.subdevice_mixins.hub_online import HubOnlineMixin
 from meross_iot.controller.subdevice_mixins.leakage_sensor import LeakageSensorMixin
 from meross_iot.controller.subdevice_mixins.ms100_sensor import Ms100Mixin
@@ -64,11 +65,9 @@ _ABILITY_MATRIX = {
     Namespace.SYSTEM_RUNTIME.value: SystemRuntimeMixin,
 
     # Hub
-    # TODO: implement the following mixins
-    #Namespace.HUB_ONLINE.value: HubOnlineMixn,
-    #Namespace.HUB_BATTERY.value: HubBatteryMixin,
-
-    #Namespace.HUB_TOGGLEX.value: HubMixn,
+    Namespace.HUB_ONLINE.value: HubMixin,
+    Namespace.HUB_BATTERY.value: HubMixin,
+    Namespace.HUB_TOGGLEX.value: HubMixin,
 
     Namespace.HUB_SENSOR_ALL.value: HubMixin,
     Namespace.HUB_SENSOR_ALERT.value: HubMixin,
@@ -89,13 +88,17 @@ _ABILITY_MATRIX = {
 }
 
 _SUB_DEVICE_MIXIN_MAP = {
-    "waterLeak": LeakageSensorMixin,
     "mts100": Mts100Mixin,
     "ms100": Ms100Mixin,
+
     "online": HubOnlineMixin,
-    #"ms100f": Ms100Sensor,
-    #"ms405": Ms405Sensor,
-    #"ms400": Ms405Sensor
+
+    "waterLeak": LeakageSensorMixin,
+    "doorWindow": DoorWindowSensorMixin,
+
+    # TODO: implement the following mixins at device level
+    #"battery": ,
+    #"togglex": ,
 }
 
 

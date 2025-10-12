@@ -20,6 +20,7 @@ class HubMixin:
         Namespace.HUB_SENSOR_ALL.value: 'all',
         Namespace.HUB_SENSOR_ALERT.value: 'alert',
         Namespace.HUB_SENSOR_TEMPHUM.value: 'tempHum',
+        Namespace.HUB_SENSOR_DOORWINDOW.value: 'doorWindow',
     }
 
     def __init__(self, device_uuid: str,
@@ -68,7 +69,14 @@ class HubMixin:
                 f"The namespace {namespace} is not explicitly handled by "
                 f"this mixin ({self.__class__}). We'll try guessing the accessor.")
             accessor = namespace.split(".")[-1]
-            normalized_accessor = accessor[0] + accessor[1:]
+            normalized_accessor = accessor[0].lower() + accessor[1:]
+
+            # Some accessors need to be lower-cased (e.g. togglex).
+            if normalized_accessor not in data:
+                lowercased = normalized_accessor.lower()
+                if lowercased in data:
+                    normalized_accessor = lowercased
+
             # We will only proceed with this accessor if it's actually available into the data payload
             if normalized_accessor in data:
                 _LOGGER.info(f"The namespace {namespace} is not explicitly handled by "
@@ -97,7 +105,7 @@ class HubMixin:
                             f"registered with this hub. The update will be skipped.")
                         return False
                     else:
-                        await subdev._async_handle_push_notification(namespace=namespace, data=subdev_state)
+                        await subdev.dispatch_push_notification(namespace=namespace, data=subdev_state)
                     locally_handled = True
 
         return locally_handled or parent_handled
