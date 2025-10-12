@@ -22,6 +22,7 @@ from meross_iot.controller.subdevice_mixins.door_window import DoorWindowSensorM
 from meross_iot.controller.subdevice_mixins.hub_online import HubOnlineMixin
 from meross_iot.controller.subdevice_mixins.leakage_sensor import LeakageSensorMixin
 from meross_iot.controller.subdevice_mixins.ms100_sensor import Ms100Mixin
+from meross_iot.controller.subdevice_mixins.togglex import ToggleXSensorMixin
 from meross_iot.controller.subdevice_mixins.valve_thermostat import Mts100Mixin
 from meross_iot.model.enums import Namespace
 from meross_iot.model.exception import UnknownDeviceType
@@ -96,9 +97,7 @@ _SUB_DEVICE_MIXIN_MAP = {
     "waterLeak": LeakageSensorMixin,
     "doorWindow": DoorWindowSensorMixin,
 
-    # TODO: implement the following mixins at device level
-    #"battery": ,
-    #"togglex": ,
+    "togglex": ToggleXSensorMixin,
 }
 
 

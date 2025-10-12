@@ -140,6 +140,13 @@ class Mts100Mixin(GenericSubDevice):
                 self.__temperature.update(update_element)
                 self.__temperature['latestSampleTime'] = datetime.utcnow().timestamp()
                 locally_handled = True
+        elif namespace == Namespace.HUB_TOGGLEX.value:
+            # It looks like MTS100 is also in charge of handling TOGGLEX updates
+            update_element = self._prepare_push_notification_data(data=data)
+            if update_element is not None:
+                if 'onoff' in update_element:
+                    self.__temperature['heating'] = update_element['onoff']
+                    locally_handled = True
 
         return locally_handled or parent_handled
 

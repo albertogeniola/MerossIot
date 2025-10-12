@@ -21,6 +21,7 @@ class HubMixin:
         Namespace.HUB_SENSOR_ALERT.value: 'alert',
         Namespace.HUB_SENSOR_TEMPHUM.value: 'tempHum',
         Namespace.HUB_SENSOR_DOORWINDOW.value: 'doorWindow',
+        Namespace.HUB_TOGGLEX.value: 'togglex',
     }
 
     def __init__(self, device_uuid: str,
