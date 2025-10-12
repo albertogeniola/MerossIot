@@ -40,6 +40,7 @@ async def main():
         # the device. This ensures we get the most recent data and not a cached value
         while True:
             try:
+                # In order to update the sensor's data, me must first issue an explicit UPDATE first
                 await dev.async_update()
                 # Access read cached data
                 temp = dev.last_sampled_temperature

@@ -18,6 +18,7 @@ from meross_iot.controller.mixins.spray import SprayMixin
 from meross_iot.controller.mixins.system import SystemAllMixin, SystemOnlineMixin
 from meross_iot.controller.mixins.thermostat import ThermostatModeMixin, ThermostatModeBMixin
 from meross_iot.controller.mixins.toggle import ToggleXMixin, ToggleMixin
+from meross_iot.controller.subdevice_mixins.hub_online import HubOnlineMixin
 from meross_iot.controller.subdevice_mixins.leakage_sensor import LeakageSensorMixin
 from meross_iot.controller.subdevice_mixins.ms100_sensor import Ms100Mixin
 from meross_iot.controller.subdevice_mixins.valve_thermostat import Mts100Mixin
@@ -91,6 +92,7 @@ _SUB_DEVICE_MIXIN_MAP = {
     "waterLeak": LeakageSensorMixin,
     "mts100": Mts100Mixin,
     "ms100": Ms100Mixin,
+    "online": HubOnlineMixin,
     #"ms100f": Ms100Sensor,
     #"ms405": Ms405Sensor,
     #"ms400": Ms405Sensor

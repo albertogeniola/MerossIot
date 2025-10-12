@@ -116,6 +116,3 @@ class LeakageSensorMixin(GenericSubDevice):
             locally_handled = True
 
         return locally_handled or parent_handled
-
-    def __repr__(self) -> str:
-        return f"<Ms400Device(uuid={self.uuid}, is_leaking={self.is_leaking})>"
