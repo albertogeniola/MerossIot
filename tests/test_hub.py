@@ -2,7 +2,7 @@ import os
 from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
-from meross_iot.controller.device import HubDevice
+from meross_iot.controller.mixins.hub import HubMixin
 from meross_iot.manager import MerossManager
 from meross_iot.model.enums import OnlineStatus
 from tests import async_get_client
@@ -28,7 +28,7 @@ class TestHub(AioHTTPTestCase):
         self.meross_manager = MerossManager(http_client=self.meross_client)
         await self.meross_manager.async_init()
         await self.meross_manager.async_device_discovery()
-        self.test_devices = self.meross_manager.find_devices(device_class=HubDevice,
+        self.test_devices = self.meross_manager.find_devices(device_class=HubMixin,
                                                              online_status=OnlineStatus.ONLINE)
 
     @unittest_run_loop

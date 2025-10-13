@@ -48,6 +48,7 @@ async def main():
         while True:
             try:
                 for sensor in water_leak_sensors:
+                    await sensor.async_update()
                     print(f"Sensor {sensor.name} - Current leak status = {sensor.is_leaking}. "
                           f"Is currently leaking? {sensor.is_leaking}. "
                           f"Last timestamp of leak = {sensor.latest_detected_water_leak_ts if sensor.latest_detected_water_leak_ts is not None else 'NEVER'}")

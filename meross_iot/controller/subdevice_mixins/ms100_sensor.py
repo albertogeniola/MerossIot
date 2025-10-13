@@ -104,16 +104,16 @@ class Ms100Mixin(GenericSubDevice):
             if subdev_id != self.subdevice_id:
                 continue
             found = True
-            await self._async_handle_ms100_all(data=subdev_state)
+            self._handle_ms100_all(data=subdev_state)
             break
 
         if not found:
             _LOGGER.error(f"Failed to get MS100 data for subdevice {self.subdevice_id}.")
 
-    async def async_notify_hub_update(self, data: Dict):
-        await super().async_notify_hub_update(data=data)
-        # TODO: shall we intercept any state here?
-        pass
+    async def async_notify_hub_update(self, data: Dict) -> bool:
+        super_handled = await super().async_notify_hub_update(data=data)
+        locally_handled = self._handle_ms100_all(data=data)
+        return super_handled or locally_handled
 
     async def _async_handle_push_notification(self, namespace: str, data: dict) -> bool:
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
@@ -122,36 +122,12 @@ class Ms100Mixin(GenericSubDevice):
 
         locally_handled = False
         if namespace == Namespace.HUB_SENSOR_TEMPHUM.value:
-            latest_temperature = data.get('latestTemperature')
-            latest_humidity = data.get('latestHumidity')
-            synced_time = data.get('syncedTime')
-            samples = data.get('sample')
-            if synced_time is not None and (
-                    self.last_sampled_time is None or synced_time > self.last_sampled_time.timestamp()):
-                self.__temperature['latestSampleTime'] = synced_time
-                self.__temperature['latest'] = latest_temperature
-                self.__humidity['latestSampleTime'] = synced_time
-                self.__humidity['latest'] = latest_humidity
-
-            if not isinstance(samples, List):
-                _LOGGER.error(f"Failed to update MS100 samples for {self.subdevice_id}. Samples data is not a list.")
-            else:
-                self.__samples.clear()
-                for sample in samples:
-                    temp, hum, from_ts, to_ts = sample
-                    self.__samples.append({
-                        'from_ts': from_ts,
-                        'to_ts': to_ts,
-                        'temperature': float(temp) / 10,
-                        'humidity': float(hum) / 10
-                    })
-                else:
-                    _LOGGER.debug("Skipping temperature update as synched time is None or old compared to the latest data")
+            self._handle_ms100_all(data=data)
             locally_handled = True
 
         return parent_handled or locally_handled
 
-    async def _async_handle_ms100_all(self, data: Dict):
+    def _handle_ms100_all(self, data: Dict):
         """
         Handles the HUB_MS100_ALL PAYLOAD
         :param data:

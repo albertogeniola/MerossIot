@@ -1,17 +1,18 @@
 import logging
 from datetime import datetime
-from typing import Optional, Iterable, Dict, List, Tuple
+from typing import Optional, Dict, List, Tuple
 
 from meross_iot.controller.device import GenericSubDevice
-from meross_iot.model.enums import Namespace, OnlineStatus, ThermostatV3Mode
+from meross_iot.model.enums import Namespace
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class DoorWindowSensorMixin(GenericSubDevice):
 
-    def __init__(self, hubdevice_uuid:str, subdevice_id:str, status:int, last_active_time:int, manager):
-        super().__init__(hubdevice_uuid=hubdevice_uuid, subdevice_id=subdevice_id, status=status, last_active_time=last_active_time, manager=manager)
+    def __init__(self, hubdevice_uuid: str, subdevice_id: str, status: int, last_active_time: int, manager):
+        super().__init__(hubdevice_uuid=hubdevice_uuid, subdevice_id=subdevice_id, status=status,
+                         last_active_time=last_active_time, manager=manager)
         self.__doorwindow_state: Optional[int] = None
         self.__doorwindow_state_timestamp: Optional[int] = -1
         self.__doorwindow_samples: List = []
@@ -44,7 +45,7 @@ class DoorWindowSensorMixin(GenericSubDevice):
         Each sample contains a boolean (True=Open, False=Closed) and an associated
         UTC timestamp
         """
-        return [(s[0]==1, datetime.fromtimestamp(s[1])) for s in self.__doorwindow_samples]
+        return [(s[0] == 1, datetime.fromtimestamp(s[1])) for s in self.__doorwindow_samples]
 
     async def async_update(self,
                            timeout: Optional[float] = None,
@@ -56,15 +57,16 @@ class DoorWindowSensorMixin(GenericSubDevice):
 
         # To update entirely the state of this device, we just need to trigger the MTS100_ALL command.
         result = await self._execute_command(method="GET",
-                                                  namespace=Namespace.HUB_SENSOR_DOORWINDOW,
-                                                  payload={'doorWindow': [{'id': self.subdevice_id}]},
-                                                  timeout=timeout)
+                                             namespace=Namespace.HUB_SENSOR_DOORWINDOW,
+                                             payload={'doorWindow': [{'id': self.subdevice_id}]},
+                                             timeout=timeout)
 
         # Retrieve the sub-device specific data and update the status
         found = False
         subdevices_states = result.get('doorWindow')
         if not isinstance(subdevices_states, List):
-            _LOGGER.error(f"Failed to get MTS100 data for subdevice {self.subdevice_id}. Returned command result is not a list.")
+            _LOGGER.error(
+                f"Failed to get MTS100 data for subdevice {self.subdevice_id}. Returned command result is not a list.")
             return
 
         for subdev_state in subdevices_states:
@@ -72,16 +74,16 @@ class DoorWindowSensorMixin(GenericSubDevice):
             if subdev_id != self.subdevice_id:
                 continue
             found = True
-            await self._async_handle_doorwindow_update(data=subdev_state)
+            self._handle_doorwindow_update(data=subdev_state)
             break
 
         if not found:
             _LOGGER.error(f"Failed to get MTS100 data for subdevice {self.subdevice_id}.")
 
-    async def async_notify_hub_update(self, data: Dict):
-        await super().async_notify_hub_update(data=data)
-        # TODO: shall we intercept any state here?
-        pass
+    async def async_notify_hub_update(self, data: Dict) -> bool:
+        super_handled = await super().async_notify_hub_update(data=data)
+        locally_handled = self._handle_doorwindow_update(data)
+        return super_handled or locally_handled
 
     async def _async_handle_push_notification(self, namespace: str, data: dict) -> bool:
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
@@ -90,12 +92,12 @@ class DoorWindowSensorMixin(GenericSubDevice):
 
         locally_handled = False
         if namespace == Namespace.HUB_SENSOR_DOORWINDOW.value:
-            await self._async_handle_doorwindow_update(data=data)
+            self._handle_doorwindow_update(data=data)
             locally_handled = True
 
         return locally_handled or parent_handled
 
-    async def _async_handle_doorwindow_update(self, data: Dict):
+    def _handle_doorwindow_update(self, data: Dict):
         """
         Updates the doorwindow state based on the payload received
         :param data:
@@ -107,7 +109,8 @@ class DoorWindowSensorMixin(GenericSubDevice):
             # Only update the current status if the timestamp associated to the event is the latest
             event_sample_timestamp = data.get('lmTime')
             if event_sample_timestamp is None:
-                _LOGGER.debug("Missing lmTime in doorwindow state update, assuming this is the most recent update available")
+                _LOGGER.debug(
+                    "Missing lmTime in doorwindow state update, assuming this is the most recent update available")
                 self.__doorwindow_state = data.get('status')
                 self.__doorwindow_state_timestamp = int(datetime.utcnow().timestamp())
             else:
@@ -115,7 +118,8 @@ class DoorWindowSensorMixin(GenericSubDevice):
                     self.__doorwindow_state = data.get('status')
                     self.__doorwindow_state_timestamp = int(datetime.utcnow().timestamp())
                 else:
-                    _LOGGER.debug("Skipping update for DoorWindow sensor as the received stample has an older timestamp")
+                    _LOGGER.debug(
+                        "Skipping update for DoorWindow sensor as the received stample has an older timestamp")
 
         if 'sample' in data:
-            self.__doorwindow_samples = data.get('sample',[])
+            self.__doorwindow_samples = data.get('sample', [])

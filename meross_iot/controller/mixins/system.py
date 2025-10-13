@@ -16,15 +16,23 @@ class SystemAllMixin(object):
         super().__init__(device_uuid=device_uuid, manager=manager, **kwargs)
 
     async def async_update(self, timeout: Optional[float] = None, *args, **kwargs) -> None:
-        # Call the super implementation
+        # The async_update implementation of SystemAllMixin is different from others
+        # We first trigger the update, then we call the async_handle_update for this device,
+        # so that all state is propagated and all the mixins have the opportunity to handle
+        # it correctly.
+
+        # Nevertheless, we always call the super implementation, so that the baseclass has the opportunity
+        # to specialize the behaviour.
         await super().async_update(timeout=timeout, *args, **kwargs)
 
+        # Let's now call the SYSTEM_ALL
         result = await self._execute_command(method="GET",
                                              namespace=Namespace.SYSTEM_ALL,
                                              payload={},
                                              timeout=timeout)
 
-        # Once we have the response, update all the mixin which are interested
+        # Once we have all the data in place, let's give each Mixin the opportunity to update
+        # the internal state
         await self.async_handle_update(namespace=Namespace.SYSTEM_ALL, data=result)
 
 

@@ -109,16 +109,16 @@ class Mts100Mixin(GenericSubDevice):
             if subdev_id != self.subdevice_id:
                 continue
             found = True
-            await self._async_handle_mts100_all(data=subdev_state)
+            self.handle_mts100_all(data=subdev_state)
             break
 
         if not found:
             _LOGGER.error(f"Failed to get MTS100 data for subdevice {self.subdevice_id}.")
 
-    async def async_notify_hub_update(self, data: Dict):
-        await super().async_notify_hub_update(data=data)
-        # TODO: shall we intercept any state here?
-        pass
+    async def async_notify_hub_update(self, data: Dict) -> bool:
+        super_handled = await super().async_notify_hub_update(data=data)
+        locally_handled = self.handle_mts100_all(data=data)
+        return super_handled or locally_handled
 
     async def _async_handle_push_notification(self, namespace: str, data: dict) -> bool:
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
@@ -126,31 +126,13 @@ class Mts100Mixin(GenericSubDevice):
         parent_handled = await super()._async_handle_push_notification(namespace=namespace, data=data)
 
         locally_handled = False
-        if namespace == Namespace.HUB_MTS100_ALL:
-            # TODO: handle this
-            pass
-        elif namespace == Namespace.HUB_MTS100_MODE.value:
-            update_element = self._prepare_push_notification_data(data=data)
-            if update_element is not None:
-                self.__mode.update(update_element)
-                locally_handled = True
-        elif namespace == Namespace.HUB_MTS100_TEMPERATURE.value:
-            update_element = self._prepare_push_notification_data(data=data)
-            if update_element is not None:
-                self.__temperature.update(update_element)
-                self.__temperature['latestSampleTime'] = datetime.utcnow().timestamp()
-                locally_handled = True
-        elif namespace == Namespace.HUB_TOGGLEX.value:
-            # It looks like MTS100 is also in charge of handling TOGGLEX updates
-            update_element = self._prepare_push_notification_data(data=data)
-            if update_element is not None:
-                if 'onoff' in update_element:
-                    self.__temperature['heating'] = update_element['onoff']
-                    locally_handled = True
+        if namespace in (Namespace.HUB_MTS100_MODE.value, Namespace.HUB_MTS100_TEMPERATURE.value, Namespace.HUB_TOGGLEX.value):
+            self.handle_mts100_all(data=data)
+            locally_handled = True
 
         return locally_handled or parent_handled
 
-    async def _async_handle_mts100_all(self, data: Dict):
+    def handle_mts100_all(self, data: Dict):
         """
         Handles the HUB_MTS100_PAYLOAD
         :param data:
@@ -170,13 +152,18 @@ class Mts100Mixin(GenericSubDevice):
                 self._last_active_time = last_active_time
 
         # The following attributes are instead private to this mixin
-        self.__schedule_b_mode = data.get('scheduleBMode', {})
-        self.__timeSync = data.get('timeSync', {})
-        self.__mode.update(data.get('mode', {}))
-        self.__temperature.update(data.get('temperature', {}))
-        self.__temperature['latestSampleTime'] = datetime.utcnow().timestamp()
-        self.__adjust.update(data.get('temperature', {}))
-        self.__adjust['latestSampleTime'] = datetime.utcnow().timestamp()
+        if 'scheduleBMode' in data:
+            self.__schedule_b_mode = data['scheduleBMode']
+        if 'timeSync' in data:
+            self.__timeSync = data['timeSync']
+        if 'mode' in data:
+            self.__mode.update(data['mode'])
+        if 'temperature' in data:
+            self.__temperature.update(data['temperature'])
+            self.__temperature['latestSampleTime'] = datetime.utcnow().timestamp()
+        if 'adjust' in data:
+            self.__adjust.update(data.get('temperature', {}))
+            self.__adjust['latestSampleTime'] = datetime.utcnow().timestamp()
 
     async def async_get_temperature(self, timeout: Optional[float] = None, *args, **kwargs) -> Optional[
         float]:

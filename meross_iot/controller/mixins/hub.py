@@ -1,6 +1,7 @@
 import logging
-from typing import Optional
+from typing import Optional, List, Iterable, Dict
 
+from meross_iot.controller.device import GenericSubDevice, BaseDevice
 from meross_iot.model.enums import Namespace
 
 _LOGGER = logging.getLogger(__name__)
@@ -9,9 +10,12 @@ _LOGGER = logging.getLogger(__name__)
 # TODO: implement HUB_BATTERY and HUB_ONLINE Mixins
 
 
-class HubMixin:
+class HubMixin(BaseDevice):
     __PUSH_MAP = {
         Namespace.HUB_MTS100_ALL.value: 'all',
+
+        Namespace.HUB_ONLINE.value: 'online',
+        Namespace.HUB_BATTERY.value: 'battery',
 
         Namespace.HUB_MTS100_TEMPERATURE.value: 'temperature',
         Namespace.HUB_MTS100_MODE.value: 'mode',
@@ -28,30 +32,51 @@ class HubMixin:
                  manager,
                  **kwargs):
         super().__init__(device_uuid=device_uuid, manager=manager, **kwargs)
+        self.__sub_devices: Dict[str, GenericSubDevice] = {}
 
-    async def async_update(self, timeout: Optional[float] = None, *args, **kwargs) -> None:
-        # Call the super implementation
-        await super().async_update(*args, **kwargs)
+    def get_subdevices(self) -> Iterable[GenericSubDevice]:
+        return self.__sub_devices.values()
 
-        # When invoking an async update on a HubDevice, just use the HUB_SENSOR_ALL command, as it gets all the data
-        # we need with a single update, if available. For now, we don't support sensors not implementing that
-        # ability.
-        if Namespace.HUB_SENSOR_ALL in self._abilities:
-            result = await self._execute_command(method="GET",
-                                                 namespace=Namespace.HUB_SENSOR_ALL,
-                                                 payload={'all': []},
-                                                 timeout=timeout)
-            # TODO: handle sensor all update.
-            subdevs_data = result.get('all', [])
-            for d in subdevs_data:
-                dev_id = d.get('id')
-                target_device = self.get_subdevice(subdevice_id=dev_id)
-                if target_device is None:
-                    _LOGGER.warning(
-                        f"Received data for subdevice {target_device}, which has not been registered with this"
-                        f"hub yet. This update will be ignored.")
+    def get_subdevice(self, subdevice_id: str) -> Optional[GenericSubDevice]:
+        return self.__sub_devices.get(subdevice_id)
+
+    async def async_discover_subdevices(self) -> List[GenericSubDevice]:
+        from meross_iot.device_factory import build_subdevice_from_digest_payload
+        res = []
+        data = await self._execute_command(method="GET", namespace=Namespace.SYSTEM_ALL, payload={})
+        for sd in data['all']['digest']['hub']['subdevice']:
+            sub_device = build_subdevice_from_digest_payload(hub_device=self, digest_payload=sd)
+            if sub_device.subdevice_id not in self.__sub_devices:
+                self.__sub_devices[sub_device.subdevice_id] = sub_device
+                res.append(sub_device)
+        return res
+
+    # We do not override the async_update here: we rely on the base implementation
+    #  specifically the SYSTEM_ALL mixin will also take care of handling subdevice
+    #  updates
+
+    async def async_handle_update(self, namespace: Namespace, data: dict) -> bool:
+        # The hub is in charge of handling the update also for its managed subdevices
+        # Here we should add/remove subdevices and propagate their state update.
+        locally_handled = False
+        if namespace == Namespace.SYSTEM_ALL:
+            hub_data = data["all"]["digest"]["hub"]
+            # TODO: make sure we have all subdevices in place and remove the ones
+            #  that are no longer in place.
+
+            for subdevice_state in hub_data["subdevice"]:
+                subdev_id = subdevice_state["id"]
+
+                device = self.__sub_devices.get(subdev_id)
+                if device is None:
+                    _LOGGER.error(f"SubDevice {subdev_id} is not registered to hub {self.name} ({self.uuid})."
+                                  f"State update for this SubDevice will be ignored.")
                 else:
-                    await target_device.notify_hub_update(data=d)
+                    # Propagate state update
+                    locally_handled = locally_handled or await device.async_notify_hub_update(data=subdevice_state)
+
+        super_handled = await super().async_handle_update(namespace=namespace, data=data)
+        return super_handled or locally_handled
 
     async def _async_handle_push_notification(self, namespace: str, data: dict) -> bool:
         locally_handled = False
@@ -106,7 +131,7 @@ class HubMixin:
                             f"registered with this hub. The update will be skipped.")
                         return False
                     else:
-                        await subdev.dispatch_push_notification(namespace=namespace, data=subdev_state)
+                        await subdev.async_dispatch_push_notification(namespace=namespace, data=subdev_state)
                     locally_handled = True
 
         return locally_handled or parent_handled

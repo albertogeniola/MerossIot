@@ -4,7 +4,7 @@ import asyncio
 import logging
 import time
 from datetime import datetime
-from typing import List, Union, Optional, Iterable, Callable, Awaitable, Dict, Any
+from typing import List, Union, Optional, Callable, Awaitable, Dict, Any
 
 from meross_iot.model.constants import DEFAULT_MQTT_PORT, DEFAULT_MQTT_HOST, DEFAULT_COMMAND_TIMEOUT
 from meross_iot.model.enums import OnlineStatus, Namespace
@@ -21,6 +21,38 @@ class BaseDevice(object):
     Any BaseDevice is characterized by some generic information, such as user's defined
     name, type (i.e. device specific model), firmware/hardware version, a Meross internal
     identifier, a library assigned internal identifier.
+
+    The BaseDevice class takes care of handling internal device state in dynamic way.
+    Each BaseDevice can be specialized via Mixins, which defines "pluggable" behaviour based
+    on device abilities, fetched via the GET Ability command, via MQTT.
+
+    Each Mixin can override the following methods
+    - async_update()
+      Used to trigger an update of the device. Mixins **MUST always** call the super() implementation
+      to ensure correct event handling. Usually, Mixins won't need to issue dedicated updates: the
+      SYSTEM_ALL mixin would generally collect the entire state and let all mixin parse their portion of
+      the state, by calling async_handle_update(). However, there might be edge cases in which this
+      is not enough (SubDevices): in such cases, we can issue additional update commands within
+      this method to ensure a complete state update.
+
+    - async_handle_update()
+      This method is called by the SYSTEM_ALL mixin, when a fresh state has been requested/fetched.
+      Mixins can override this method and parse the portion of the SYTEM_ALL payload they
+      are interested into, and update the internal state representation.
+      Mixins **must always** call the super() implementation to ensure correct event bubbling, and
+      give the opportunity to other mixin in the __mro__ to handle the state change.
+
+    - async_dispatch_push_notification()
+      Called by the `MerossManager` whenever a push notification is received for this device.
+      This method is usually used by the Manager or by the HubMixin to deliver push notifications
+      to devices and SubDevices.
+
+    - _async_handle_push_notification():
+      This method can be overridden by Mixins in order to handle PushNotification data.
+      Internally, this method is called by async_dispatch_push_notification(), before any registered
+      event handler is Notified. In this way, Devices and SubDevices are expected to provide
+      updated data when push notifications are handled by external handlers (registered by the user).
+
     """
     _name: str = "unknown"
     _type: str = "unknown"
@@ -70,9 +102,9 @@ class BaseDevice(object):
                                 DEFAULT_MQTT_HOST, DEFAULT_MQTT_PORT)
 
         if hasattr(self, "_abilities_spec"):
-            self._abilities = self._abilities_spec
+            self._abilities: Dict[str, str] = self._abilities_spec
         else:
-            self._abilities = {}
+            self._abilities: Dict[str, str] = {}
         self._push_coros = []
         self._last_full_update_ts = None
 
@@ -243,7 +275,7 @@ class BaseDevice(object):
         # The base implementation will just return FALSE, as we do not handle any push notification within the base-class
         return False
 
-    async def dispatch_push_notification(self, namespace: str, data: Any) -> bool:
+    async def async_dispatch_push_notification(self, namespace: str, data: Any) -> bool:
         """
         Delivers a push notification to the device, so that it can update its internal state
         :param namespace: Push notification header
@@ -405,34 +437,15 @@ class BaseDevice(object):
         raise NotImplementedError("Encryption not supported by this device")
 
 
-class HubDevice(BaseDevice):
-
-    def __init__(self, device_uuid: str, manager, **kwargs):
-        super().__init__(device_uuid, manager, **kwargs)
-        self._sub_devices: Dict[str, GenericSubDevice] = {}
-
-    def get_subdevices(self) -> Iterable[GenericSubDevice]:
-        return self._sub_devices.values()
-
-    def get_subdevice(self, subdevice_id: str) -> Optional[GenericSubDevice]:
-        return self._sub_devices.get(subdevice_id)
-
-    async def async_discover_subdevices(self) -> List[GenericSubDevice]:
-        from meross_iot.device_factory import build_subdevice_from_digest_payload
-        res = []
-        data = await super()._execute_command(method="GET", namespace=Namespace.SYSTEM_ALL, payload={})
-        for sd in data.get('all').get('digest').get('hub').get('subdevice'):
-            sub_device = build_subdevice_from_digest_payload(hub_device=self, digest_payload=sd)
-            if sub_device.subdevice_id not in self._sub_devices:
-                self._sub_devices[sub_device.subdevice_id] = sub_device
-                res.append(sub_device)
-        return res
-
-
 class GenericSubDevice(BaseDevice):
+    """
+    A SubDevice is a device that is not capable of handling direct communication with
+    the cloud or via HTTP. It is generally battery powered and equipped with low-power
+    radio and communicates with one HUB.
+    """
 
     def __init__(self, hubdevice_uuid: str, subdevice_id: str, status: int, last_active_time: int, manager, **kwargs):
-        hubs = manager.find_devices(device_uuids=(hubdevice_uuid,))  # type: List[HubDevice]
+        hubs = manager.find_devices(device_uuids=(hubdevice_uuid,))  # type: List['HubMixin']
         if len(hubs) < 1:
             raise ValueError("Specified hub device is not present")
         hub = hubs[0]
@@ -454,14 +467,18 @@ class GenericSubDevice(BaseDevice):
         # SubDevices talk to the meross cloud using the HUB.
         return await self._hub._execute_command(method=method, namespace=namespace, payload=payload, timeout=timeout)
 
-    async def async_notify_hub_update(self, data: Dict):
+    async def async_notify_hub_update(self, data: Dict) -> bool:
         """
-        This method is called by the HUB whenever a full update is received at hub-level.
-        SubDevices mixins will handle state update accordingly, if necessary.
-        :param data:
-        :return:
+        This method must be called by the HubMixin whenever a full update (SYSTEM_ALL) is received at hub-level.
+        This allows the library to be more efficient: whenever you need to update the state of all SubDevices
+        attached to a hub, just call the hub's async_update() and that will fetch and update the state of
+        all related SubDevices.
+        :param data: Contains the data as per SYSTEM_ALL digest key.
+        :return: True if the state was handled, False otherwise
         """
-        pass
+
+        # The base handler, will just do nothing.
+        return False
 
     # TODO: move this into a separate mixin
     async def async_get_battery_life(self,
@@ -481,24 +498,28 @@ class GenericSubDevice(BaseDevice):
         return BatteryInfo(battery_charge=battery_life_perc, sample_ts=timestamp)
 
     async def _async_handle_push_notification(self, namespace: str, data: Any) -> bool:
-        parent_handled = await super()._async_handle_push_notification(namespace=namespace, data=data)
-        locally_handled = False
-        if namespace == Namespace.SYSTEM_ONLINE:
-            self._online = OnlineStatus(data['online']['status'])
-            self._last_active_time = data['online']['lastActiveTime']
-            locally_handled = True
-
-        return parent_handled or locally_handled
-
-    async def notify_hub_update(self, data: Dict):
         """
-        This method is called by the HUB to notify state updates received at hub
-        level for this SubDevice.
+        Handles SubDevice state update based on PushNotifications.
+        Mixins can override this method in order to catch specific PushNotifications
+        and update their internal state accordingly.
+        :param namespace:
         :param data:
         :return:
         """
-        # The base class, won't do anything. Mixins are in charge of handling state updates.
-        return
+
+        # Mixins are not able to receive push notifications via MQTT/HTTP.
+        # This method is called via dispatch_push_notification() at HubMixin level
+        parent_handled = await super()._async_handle_push_notification(namespace=namespace, data=data)
+        locally_handled = False
+        if namespace == Namespace.SYSTEM_ONLINE.value:
+            self._online = OnlineStatus(data['online']['status'])
+            self._last_active_time = data['online']['lastActiveTime']
+            locally_handled = True
+        elif namespace == Namespace.HUB_BATTERY.value:
+            self._battery = data['battery']['value']
+            locally_handled = True
+
+        return parent_handled or locally_handled
 
     @property
     def internal_id(self) -> str:

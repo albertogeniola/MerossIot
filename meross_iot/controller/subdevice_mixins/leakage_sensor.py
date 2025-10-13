@@ -32,7 +32,7 @@ class LeakageSensorMixin(GenericSubDevice):
         """
         Returns the latest updated state available for the water leak sensor, if available.
         """
-        return self.__water_leak_state
+        return self.__water_leak_state == 1
 
     @property
     def latest_sample_time(self) -> Optional[int]:
@@ -55,25 +55,34 @@ class LeakageSensorMixin(GenericSubDevice):
         """
         return [x for x in self.__cached_events]
 
-    def _handle_water_leak_fresh_data(self, leaking: bool, timestamp: int):
-        # If handling an event with an older timestamp than the one we have, just discard it.
-        if self.latest_sample_time is not None and timestamp <= self.latest_sample_time:
-            return
+    def _handle_water_leak_fresh_data(self, data: Dict):
+        leaking = data.get('latestWaterLeak')
+        if leaking is None:
+            _LOGGER.error("Missing keyword 'latestWaterLeak' in data payload.")
 
-        # If this is the first update or if it's more recent than the last we have, update the current state.
-        if self.__last_event_ts is None or timestamp >= self.__last_event_ts:
-            self.__last_event_ts = timestamp
-            self.__water_leak_state = leaking
+        timestamp = data.get('latestSampleTime')
+        if timestamp is None:
+            _LOGGER.error("Missing keyword 'latestSampleTime' in data payload.")
 
-        # If the event is a leak and is more recent than the latest leak event, update it.
-        if leaking and (self.__last_waterleak_event_ts is None or timestamp >= self.__last_waterleak_event_ts):
-            self.__last_waterleak_event_ts = timestamp
+        if leaking is not None and timestamp is not None:
+            # If handling an event with an older timestamp than the one we have, just discard it.
+            if self.latest_sample_time is not None and timestamp <= self.latest_sample_time:
+                return
 
-        # In any case, register the event in the queue
-        self.__cached_events.append({
-            "leaking": leaking,
-            "timestamp": timestamp
-        })
+            # If this is the first update or if it's more recent than the last we have, update the current state.
+            if self.__last_event_ts is None or timestamp >= self.__last_event_ts:
+                self.__last_event_ts = timestamp
+                self.__water_leak_state = leaking
+
+            # If the event is a leak and is more recent than the latest leak event, update it.
+            if leaking and (self.__last_waterleak_event_ts is None or timestamp >= self.__last_waterleak_event_ts):
+                self.__last_waterleak_event_ts = timestamp
+
+            # In any case, register the event in the queue
+            self.__cached_events.append({
+                "leaking": leaking,
+                "timestamp": timestamp
+            })
 
     async def async_update(self,
                            timeout: Optional[float] = None,
@@ -97,13 +106,12 @@ class LeakageSensorMixin(GenericSubDevice):
             _LOGGER.error(
                 f"Returned data is missing the SubDevice id we are looking for '{self.subdevice_id}'. Data: {data}.")
             return
-        self._handle_water_leak_fresh_data(leaking=data.get("latestWaterLeak", 0) == 1,
-                                           timestamp=data.get("latestSampleTime"))
+        self._handle_water_leak_fresh_data(data=data)
 
-    async def async_notify_hub_update(self, data: Dict) -> None:
-        await super().async_notify_hub_update(data=data)
-        # TODO: shall we intercept any state here?
-        pass
+    async def async_notify_hub_update(self, data: Dict) -> bool:
+        super_handled = await super().async_notify_hub_update(data=data)
+        locally_handled = self._handle_water_leak_fresh_data(data=data)
+        return super_handled or locally_handled
 
     async def _async_handle_push_notification(self, namespace: str, data: Any) -> bool:
         # Let's call the super implementation first (bubbling up). This is useful
@@ -112,7 +120,7 @@ class LeakageSensorMixin(GenericSubDevice):
 
         locally_handled = False
         if namespace == Namespace.HUB_SENSOR_WATERLEAK.value:
-            self._handle_water_leak_fresh_data(leaking=data['latestWaterLeak'] == 1, timestamp=data['latestSampleTime'])
+            self._handle_water_leak_fresh_data(data=data)
             locally_handled = True
 
         return locally_handled or parent_handled

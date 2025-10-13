@@ -16,7 +16,8 @@ from typing import Optional, List, TypeVar, Iterable, Callable, Awaitable, Tuple
 import paho.mqtt.client as mqtt
 from aiohttp import ClientSession
 
-from meross_iot.controller.device import BaseDevice, HubDevice, GenericSubDevice
+from meross_iot.controller.device import BaseDevice, GenericSubDevice
+from meross_iot.controller.mixins.hub import HubMixin
 from meross_iot.device_factory import (
     build_meross_device_from_abilities,
     build_meross_device_from_known_types,
@@ -295,7 +296,7 @@ class MerossManager(object):
             :code:`meross_iot.controller.mixins.toggle.ToggleXMixin` (returns all the devices supporting ToggleX
             capability) or :code:`meross_iot.controller.mixins.light.LightMixin`
             (returns all the device that supports light control). Similarly, you can identify all the HUB devices
-            by specifying :code:`meross_iot.controller.device.HubDevice`, Sensors as
+            by specifying :code:`meross_iot.controller.device.HubMixin`, Sensors as
             :code:`meross_iot.controller.subdevice.Ms100Sensor` and Valves as
             :code:`meross_iot.controller.subdevice.Mts100v3Valve`.
         :param device_name: Filter the devices based on their assigned name (case sensitive)
@@ -375,7 +376,7 @@ class MerossManager(object):
         handled_subdevices = []
         if discover_hub_subdevices:
             discovered_subdevices = False
-            for online_hub in filter(lambda x: isinstance(x, HubDevice) and x.online_status==OnlineStatus.ONLINE, handled_devices):
+            for online_hub in filter(lambda x: isinstance(x, HubMixin) and x.online_status==OnlineStatus.ONLINE, handled_devices):
                 sub_devices = await online_hub.async_discover_subdevices()
                 for sd in sub_devices:
                     self._device_registry.enroll_device(sd)
@@ -556,8 +557,8 @@ class MerossManager(object):
         if dev.online_status != old_status:
             _LOGGER.warning("Device %s changed its online status while manager was offline (was %s, now is %s). "
                             "Sending event manually.", dev, old_status, dev.online_status)
-            await dev.dispatch_push_notification(namespace=Namespace.SYSTEM_ONLINE,
-                                                      data={'online': {'status': dev.online_status.value}})
+            await dev.async_dispatch_push_notification(namespace=Namespace.SYSTEM_ONLINE,
+                                                       data={'online': {'status': dev.online_status.value}})
 
     def _on_message(self, client, userdata, msg):
         # NOTE! This method is called by the paho-mqtt thread, thus any invocation to the
@@ -680,7 +681,7 @@ class MerossManager(object):
             for dev in target_devs:
                 try:
                     handled = (
-                            await dev.dispatch_push_notification(namespace=namespace, data=data) or handled
+                            await dev.async_dispatch_push_notification(namespace=namespace, data=data) or handled
                     )
                 except Exception as e:
                     _LOGGER.exception(

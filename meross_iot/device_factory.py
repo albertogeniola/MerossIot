@@ -1,7 +1,7 @@
 import logging
 from typing import Optional
 
-from meross_iot.controller.device import BaseDevice, HubDevice, GenericSubDevice
+from meross_iot.controller.device import BaseDevice, GenericSubDevice
 from meross_iot.controller.mixins.alarm import AlarmMixin
 from meross_iot.controller.mixins.consumption import ConsumptionXMixin, ConsumptionMixin
 from meross_iot.controller.mixins.diffuser_light import DiffuserLightMixin
@@ -19,10 +19,9 @@ from meross_iot.controller.mixins.system import SystemAllMixin, SystemOnlineMixi
 from meross_iot.controller.mixins.thermostat import ThermostatModeMixin, ThermostatModeBMixin
 from meross_iot.controller.mixins.toggle import ToggleXMixin, ToggleMixin
 from meross_iot.controller.subdevice_mixins.door_window import DoorWindowSensorMixin
-from meross_iot.controller.subdevice_mixins.hub_online import HubOnlineMixin
 from meross_iot.controller.subdevice_mixins.leakage_sensor import LeakageSensorMixin
 from meross_iot.controller.subdevice_mixins.ms100_sensor import Ms100Mixin
-from meross_iot.controller.subdevice_mixins.togglex import ToggleXSensorMixin
+from meross_iot.controller.subdevice_mixins.hub_togglex import ToggleXSensorMixin
 from meross_iot.controller.subdevice_mixins.valve_thermostat import Mts100Mixin
 from meross_iot.model.enums import Namespace
 from meross_iot.model.exception import UnknownDeviceType
@@ -66,6 +65,7 @@ _ABILITY_MATRIX = {
     Namespace.SYSTEM_RUNTIME.value: SystemRuntimeMixin,
 
     # Hub
+    Namespace.HUB_SUBDEVICELIST.value: HubMixin,
     Namespace.HUB_ONLINE.value: HubMixin,
     Namespace.HUB_BATTERY.value: HubMixin,
     Namespace.HUB_TOGGLEX.value: HubMixin,
@@ -91,8 +91,6 @@ _ABILITY_MATRIX = {
 _SUB_DEVICE_MIXIN_MAP = {
     "mts100": Mts100Mixin,
     "ms100": Ms100Mixin,
-
-    "online": HubOnlineMixin,
 
     "waterLeak": LeakageSensorMixin,
     "doorWindow": DoorWindowSensorMixin,
@@ -194,24 +192,9 @@ def build_meross_device_from_abilities(http_device_info: HttpDeviceInfo,
                                                        http_device_info.hdware_version,
                                                        http_device_info.fmware_version)
 
-        # Let's now pick the base class where to attach all the mixin.
-        # We basically offer two possible base implementations:
-        # - BaseMerossDevice: suitable for all non-hub devices
-        # - HubMerossDevice: to be used when dealing with Hubs.
-        # Unfortunately, it's not clear how we should discriminate a hub from a non-hub.
-        # The current implementation decides which base class to use by looking at the presence
-        # of 'Appliance.Hub.SubdeviceList': if exposed, we assume the device is a fully featured hub.
-        discriminating_abilities = [Namespace.HUB_SUBDEVICELIST.value]
-        base_class = BaseDevice
-        if any (da in device_abilities for da in discriminating_abilities):
-            _LOGGER.warning(f"Device {http_device_info.dev_name} ({http_device_info.device_type}, "
-                            f"uuid {http_device_info.uuid}) reported one ability of {discriminating_abilities}. "
-                            f"Assuming this is a full-featured HUB.")
-            base_class = HubDevice
-
         cached_type = _build_cached_type(type_string=device_type_name,
                                          device_abilities=device_abilities,
-                                         base_class=base_class)
+                                         base_class=BaseDevice)
         _dynamic_types[device_type_name] = cached_type
 
     #component = cached_type(device_uuid=http_device_info.uuid, manager=manager, **http_device_info.to_dict())
@@ -243,7 +226,7 @@ def build_meross_device_from_known_types(http_device_info: HttpDeviceInfo,
     return target_clazz(device_uuid=http_device_info.uuid, manager=manager, **http_device_info.to_dict())
 
 
-def build_subdevice_from_digest_payload(hub_device: HubDevice, digest_payload: dict) -> GenericSubDevice:
+def build_subdevice_from_digest_payload(hub_device: HubMixin, digest_payload: dict) -> GenericSubDevice:
     """Builds a managed meross SubDevice instance, starting from the digest payload obtained by via the hub"""
     subdevice_id = digest_payload.get('id')
     status = digest_payload.get('status')
