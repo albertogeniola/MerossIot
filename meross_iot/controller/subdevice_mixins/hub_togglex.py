@@ -11,9 +11,9 @@ class ToggleXSensorMixin(GenericSubDevice):
     """
     Mixin class that provides basic ON/OFF toggle features for HUB subdevices.
     """
-    def __init__(self, hubdevice_uuid: str, subdevice_id: str, status: int, last_active_time: int, manager):
+    def __init__(self, hubdevice_uuid: str, subdevice_id: str, status: int, last_active_time: int, manager, **kwargs):
         super().__init__(hubdevice_uuid=hubdevice_uuid, subdevice_id=subdevice_id, status=status,
-                         last_active_time=last_active_time, manager=manager)
+                         last_active_time=last_active_time, manager=manager, **kwargs)
         self.__onoff: Optional[int] = None
 
     @property

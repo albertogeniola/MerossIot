@@ -316,7 +316,7 @@ class MerossManager(object):
 
     async def async_device_discovery(
             self,
-            meross_device_uuid: str = None,
+            meross_device_uuid: Optional[str] = None,
             discover_hub_subdevices: bool = True,
             cached_http_device_list: Optional[Iterable[HttpDeviceInfo]] = None,
     ) -> Iterable[BaseDevice]:
@@ -359,7 +359,7 @@ class MerossManager(object):
             if ldevice is not None:
                 # Device known, just update the state.
                 _LOGGER.debug(f"Device %s was was already present into registry. We'll just update its state.", hdevice.uuid)
-                dev = await ldevice.update_from_http_state(hdevice)
+                dev = ldevice.update_from_http_state(hdevice)
                 handled_devices.append(dev)
             else:
                 # New device, enroll it.
@@ -376,12 +376,17 @@ class MerossManager(object):
         handled_subdevices = []
         if discover_hub_subdevices:
             discovered_subdevices = False
-            for online_hub in filter(lambda x: isinstance(x, HubMixin) and x.online_status==OnlineStatus.ONLINE, handled_devices):
-                sub_devices = await online_hub.async_discover_subdevices()
-                for sd in sub_devices:
+            for online_hub in filter(lambda x: isinstance(x, HubMixin) and x.online_status==OnlineStatus.ONLINE, handled_devices): # type: HubMixin
+                # We will need both MQTT data and HTTP data to populate the device
+                mqtt_sub_devices = await online_hub.async_discover_subdevices()
+                http_sub_devices = await self._http_client.async_list_hub_subdevices(hub_id=online_hub.uuid)
+
+                for sd in mqtt_sub_devices:  # type: GenericSubDevice
+                    http_state: Optional[HttpSubdeviceInfo] = next(filter(lambda x:x.sub_device_id == sd.subdevice_id, http_sub_devices))
+                    sd.update_subdevice_from_http_state(http_state)
                     self._device_registry.enroll_device(sd)
                     handled_subdevices.append(sd)
-                if len(sub_devices)>0:
+                if len(mqtt_sub_devices)>0:
                     discovered_subdevices = True
 
             # If a SubDevice has been discovered within a hub, we must update the hub data to determine if the

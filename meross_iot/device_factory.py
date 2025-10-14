@@ -1,5 +1,5 @@
 import logging
-from typing import Optional
+from typing import Optional, Dict
 
 from meross_iot.controller.device import BaseDevice, GenericSubDevice
 from meross_iot.controller.mixins.alarm import AlarmMixin
@@ -226,7 +226,7 @@ def build_meross_device_from_known_types(http_device_info: HttpDeviceInfo,
     return target_clazz(device_uuid=http_device_info.uuid, manager=manager, **http_device_info.to_dict())
 
 
-def build_subdevice_from_digest_payload(hub_device: HubMixin, digest_payload: dict) -> GenericSubDevice:
+def build_subdevice_from_digest_payload(hub_device: HubMixin, digest_payload: Dict, version_payload: Optional[Dict]) -> GenericSubDevice:
     """Builds a managed meross SubDevice instance, starting from the digest payload obtained by via the hub"""
     subdevice_id = digest_payload.get('id')
     status = digest_payload.get('status')
@@ -242,5 +242,5 @@ def build_subdevice_from_digest_payload(hub_device: HubMixin, digest_payload: di
 
     mixin_classes.append(GenericSubDevice)
     t = type(subdevice_id, tuple(mixin_classes), {})
-    dev = t(hubdevice_uuid=hub_device.uuid, subdevice_id=subdevice_id, status=status, last_active_time=last_active_time, manager=hub_device._manager)
+    dev = t(hubdevice_uuid=hub_device.uuid, subdevice_id=subdevice_id, status=status, last_active_time=last_active_time, manager=hub_device._manager, **version_payload)
     return dev

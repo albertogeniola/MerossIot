@@ -9,6 +9,7 @@ from typing import List, Union, Optional, Callable, Awaitable, Dict, Any
 from meross_iot.model.constants import DEFAULT_MQTT_PORT, DEFAULT_MQTT_HOST, DEFAULT_COMMAND_TIMEOUT
 from meross_iot.model.enums import OnlineStatus, Namespace
 from meross_iot.model.http.device import HttpDeviceInfo
+from meross_iot.model.http.subdevice import HttpSubdeviceInfo
 from meross_iot.model.plugin.hub import BatteryInfo
 from meross_iot.utilities.network import extract_domain, extract_port
 
@@ -247,7 +248,7 @@ class BaseDevice(object):
         """
         return self._channels
 
-    async def update_from_http_state(self, hdevice: HttpDeviceInfo) -> BaseDevice:
+    def update_from_http_state(self, hdevice: HttpDeviceInfo) -> BaseDevice:
         # Careful with online  status: not all the devices might expose an online mixin.
         if hdevice.uuid != self.uuid:
             raise ValueError(f"Cannot update device ({self.uuid}) with HttpDeviceInfo for device id {hdevice.uuid}")
@@ -444,7 +445,10 @@ class GenericSubDevice(BaseDevice):
     radio and communicates with one HUB.
     """
 
-    def __init__(self, hubdevice_uuid: str, subdevice_id: str, status: int, last_active_time: int, manager, **kwargs):
+    def __init__(self, hubdevice_uuid: str, subdevice_id: str, status: int, last_active_time: int, manager,
+                 subdevice_name: str = 'not_discovered', subdevice_type: str = 'not_discovered',
+                 subdevice_true_id: str = 'not_discovered',
+                 vendor: str = 'not_discovered', **kwargs):
         hubs = manager.find_devices(device_uuids=(hubdevice_uuid,))  # type: List['HubMixin']
         if len(hubs) < 1:
             raise ValueError("Specified hub device is not present")
@@ -452,11 +456,21 @@ class GenericSubDevice(BaseDevice):
         super().__init__(device_uuid=hubdevice_uuid, manager=manager, domain=hub.mqtt_host, port=hub.mqtt_port,
                          **kwargs)
         self._subdevice_id = subdevice_id
-        self._type = kwargs.get('subDeviceType')
-        self._name = kwargs.get('subDeviceName')
+        self._type = subdevice_type
+        self._name = subdevice_name
         self._online = OnlineStatus(status)
         self._last_active_time = last_active_time
         self._hub = hub
+        self._vendor = vendor
+        self._subdevice_true_id = subdevice_true_id
+        self._fwversion = kwargs.get('firmware')
+        self._hwversion = kwargs.get('hardware')
+
+    def update_subdevice_from_http_state(self, device_info: HttpSubdeviceInfo):
+        self._name = device_info.sub_device_name
+        self._type = device_info.sub_device_type
+        self._vendor = device_info.sub_device_vendor
+        self._subdevice_true_id = device_info.true_id
 
     async def _execute_command(self,
                                method: str,

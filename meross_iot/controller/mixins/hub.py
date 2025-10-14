@@ -41,9 +41,12 @@ class HubMixin(BaseDevice):
     async def async_discover_subdevices(self) -> List[GenericSubDevice]:
         from meross_iot.device_factory import build_subdevice_from_digest_payload
         res = []
-        data = await self._execute_command(method="GET", namespace=Namespace.SYSTEM_ALL, payload={})
-        for sd in data['all']['digest']['hub']['subdevice']:
-            sub_device = build_subdevice_from_digest_payload(hub_device=self, digest_payload=sd)
+        data_digest = await self._execute_command(method="GET", namespace=Namespace.SYSTEM_ALL, payload={})
+        data_version = await self._execute_command(method="GET", namespace=Namespace.HUB_SUBDEVICE_VERSION, payload={'version':[]})
+
+        for sd in data_digest['all']['digest']['hub']['subdevice']:
+            subdevice_version = next(filter(lambda x: x, data_version['version']))
+            sub_device = build_subdevice_from_digest_payload(hub_device=self, digest_payload=sd, version_payload=subdevice_version)
             if sub_device.subdevice_id not in self.__sub_devices:
                 self.__sub_devices[sub_device.subdevice_id] = sub_device
                 res.append(sub_device)

@@ -13,8 +13,8 @@ class LeakageSensorMixin(GenericSubDevice):
     Mixin class that provides support for water leakage sensors (MS400).
     """
 
-    def __init__(self, hubdevice_uuid:str, subdevice_id:str, status:int, last_active_time:int, manager):
-        super().__init__(hubdevice_uuid=hubdevice_uuid, subdevice_id=subdevice_id, status=status, last_active_time=last_active_time, manager=manager)
+    def __init__(self, hubdevice_uuid:str, subdevice_id:str, status:int, last_active_time:int, manager, **kwargs):
+        super().__init__(hubdevice_uuid=hubdevice_uuid, subdevice_id=subdevice_id, status=status, last_active_time=last_active_time, manager=manager, **kwargs)
         self.__water_leak_state: Optional[bool] = None
         # Represents the current state
 
