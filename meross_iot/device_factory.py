@@ -22,7 +22,7 @@ from meross_iot.controller.subdevice_mixins.door_window import DoorWindowSensorM
 from meross_iot.controller.subdevice_mixins.leakage_sensor import LeakageSensorMixin
 from meross_iot.controller.subdevice_mixins.ms100_sensor import Ms100Mixin
 from meross_iot.controller.subdevice_mixins.hub_togglex import ToggleXSensorMixin
-from meross_iot.controller.subdevice_mixins.valve_thermostat import Mts100Mixin
+from meross_iot.controller.subdevice_mixins.mts100_thermostat import Mts100Mixin
 from meross_iot.model.enums import Namespace
 from meross_iot.model.exception import UnknownDeviceType
 from meross_iot.model.http.device import HttpDeviceInfo

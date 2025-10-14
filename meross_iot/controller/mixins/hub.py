@@ -2,12 +2,9 @@ import logging
 from typing import Optional, List, Iterable, Dict
 
 from meross_iot.controller.device import GenericSubDevice, BaseDevice
-from meross_iot.model.enums import Namespace
+from meross_iot.model.enums import Namespace, OnlineStatus
 
 _LOGGER = logging.getLogger(__name__)
-
-
-# TODO: implement HUB_BATTERY and HUB_ONLINE Mixins
 
 
 class HubMixin(BaseDevice):
@@ -25,6 +22,7 @@ class HubMixin(BaseDevice):
         Namespace.HUB_SENSOR_ALERT.value: 'alert',
         Namespace.HUB_SENSOR_TEMPHUM.value: 'tempHum',
         Namespace.HUB_SENSOR_DOORWINDOW.value: 'doorWindow',
+        Namespace.HUB_SENSOR_WATERLEAK.value: 'waterLeak',
         Namespace.HUB_TOGGLEX.value: 'togglex',
     }
 
@@ -61,8 +59,25 @@ class HubMixin(BaseDevice):
         locally_handled = False
         if namespace == Namespace.SYSTEM_ALL:
             hub_data = data["all"]["digest"]["hub"]
-            # TODO: make sure we have all subdevices in place and remove the ones
-            #  that are no longer in place.
+
+            # A full update can reveal sub-device pairing changes: e.g. a subdevice has been removed or added
+            # to the hub. In case we see inconsistency, we show that here.
+            # For now, just log this edge case.
+            state_update_ids = set([x['id'] for x in hub_data["subdevice"]])
+            known_ids = set(self.__sub_devices.keys())
+            removed_ids = known_ids - state_update_ids
+            for removed_id in removed_ids:
+                sd = self.__sub_devices[removed_id]
+                if sd.online_status != OnlineStatus.UNKNOWN:
+                    _LOGGER.warning(f"Subdevice {removed_id} no longer present into Hub {self.name} ({self.uuid})."
+                                    f"Setting their state to UNKNOWN.")
+                    # We are simulating an update from the broker to put the device into an unknown state.
+                    await sd.async_notify_hub_update(data={'status': OnlineStatus.UNKNOWN.value})
+
+            added_ids = state_update_ids - known_ids
+            if added_ids:
+                _LOGGER.info(f"New subdevices {added_ids} detected for Hub {self.name} ({self.uuid}) during"
+                             f"state update. Please run the manager's discovery to handle them. ")
 
             for subdevice_state in hub_data["subdevice"]:
                 subdev_id = subdevice_state["id"]
@@ -73,7 +88,8 @@ class HubMixin(BaseDevice):
                                   f"State update for this SubDevice will be ignored.")
                 else:
                     # Propagate state update
-                    locally_handled = locally_handled or await device.async_notify_hub_update(data=subdevice_state)
+                    handled = await device.async_notify_hub_update(data=subdevice_state)
+                    locally_handled = locally_handled or handled
 
         super_handled = await super().async_handle_update(namespace=namespace, data=data)
         return super_handled or locally_handled
@@ -105,9 +121,7 @@ class HubMixin(BaseDevice):
 
             # We will only proceed with this accessor if it's actually available into the data payload
             if normalized_accessor in data:
-                _LOGGER.info(f"The namespace {namespace} is not explicitly handled by "
-                             f"this mixin ({self.__class__}), however we guessed an accessor that seems compatible "
-                             f"with the namespace ({normalized_accessor}). We'll attempt to use that.")
+                _LOGGER.debug(f"Guessing accessor ({normalized_accessor}) for namespace ({normalized_accessor}).")
                 target_data_key = normalized_accessor
 
         if target_data_key is not None:
@@ -129,9 +143,8 @@ class HubMixin(BaseDevice):
                         _LOGGER.warning(
                             f"Received an update for a subdevice (id {subdev_id}) that has not yet been "
                             f"registered with this hub. The update will be skipped.")
-                        return False
+                        continue
                     else:
-                        await subdev.async_dispatch_push_notification(namespace=namespace, data=subdev_state)
-                    locally_handled = True
+                        locally_handled = await subdev.async_dispatch_push_notification(namespace=namespace, data=subdev_state)
 
         return locally_handled or parent_handled

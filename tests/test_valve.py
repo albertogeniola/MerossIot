@@ -2,7 +2,7 @@ from random import randint
 
 from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
-from meross_iot.controller.subdevice_mixins.valve_thermostat import Mts100Mixin
+from meross_iot.controller.subdevice_mixins.mts100_thermostat import Mts100Mixin
 from meross_iot.manager import MerossManager
 from meross_iot.model.enums import ThermostatV3Mode, OnlineStatus
 from meross_iot.model.plugin.hub import BatteryInfo

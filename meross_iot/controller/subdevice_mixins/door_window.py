@@ -9,7 +9,9 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class DoorWindowSensorMixin(GenericSubDevice):
-
+    """
+    Mixin class that provides support for door/window sensors (MS200).
+    """
     def __init__(self, hubdevice_uuid: str, subdevice_id: str, status: int, last_active_time: int, manager):
         super().__init__(hubdevice_uuid=hubdevice_uuid, subdevice_id=subdevice_id, status=status,
                          last_active_time=last_active_time, manager=manager)
@@ -51,6 +53,12 @@ class DoorWindowSensorMixin(GenericSubDevice):
                            timeout: Optional[float] = None,
                            *args,
                            **kwargs) -> None:
+        """
+        Updates the state of the door/window sensor by fetching the latest status from the hub.
+        Calling this method on the SubDevice class, will only trigger data-fetching for the specific
+        device. Call the async_update() method at hub level if you want to update all SubDevices
+        states at the same time.
+        """
         # Let's call the super implementation first (bubbling up). This is useful
         # when we are nesting multiple mixins and need to handle an event at multiple levels
         await super().async_update()
@@ -81,11 +89,30 @@ class DoorWindowSensorMixin(GenericSubDevice):
             _LOGGER.error(f"Failed to get MTS100 data for subdevice {self.subdevice_id}.")
 
     async def async_notify_hub_update(self, data: Dict) -> bool:
+        """
+        This method is called by the HubMixin whenever a full update (SYSTEM_ALL) is received at hub-level.
+        This allows the library to be more efficient: whenever you need to update the state of all SubDevices
+        attached to a hub, just call the hub's async_update() and that will fetch and update the state of
+        all related SubDevices.
+        :param data: Contains the data as per SYSTEM_ALL digest key.
+        :return: True if the state was handled, False otherwise
+        """
         super_handled = await super().async_notify_hub_update(data=data)
-        locally_handled = self._handle_doorwindow_update(data)
+        locally_handled = False
+        if 'doorWindow' in data:
+            self._handle_doorwindow_update(data['doorWindow'])
+            locally_handled = True
         return super_handled or locally_handled
 
     async def _async_handle_push_notification(self, namespace: str, data: dict) -> bool:
+        """
+        Handles SubDevice state update based on PushNotifications.
+        Mixins can override this method in order to catch specific PushNotifications
+        and update their internal state accordingly.
+        :param namespace:
+        :param data:
+        :return:
+        """
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
         parent_handled = await super()._async_handle_push_notification(namespace=namespace, data=data)
@@ -99,11 +126,11 @@ class DoorWindowSensorMixin(GenericSubDevice):
 
     def _handle_doorwindow_update(self, data: Dict):
         """
-        Updates the doorwindow state based on the payload received
-        :param data:
+        Handles the HUB_SENSOR_DOORWINDOW data payload.
+        :param data: HUB_SENSOR_DOORWINDOW data payload
         :return:
         """
-        if not 'status' in data:
+        if 'status' not in data:
             _LOGGER.warning("Missing status keyword in doorwindow state update.")
         else:
             # Only update the current status if the timestamp associated to the event is the latest

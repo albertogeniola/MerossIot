@@ -476,9 +476,17 @@ class GenericSubDevice(BaseDevice):
         :param data: Contains the data as per SYSTEM_ALL digest key.
         :return: True if the state was handled, False otherwise
         """
+        # The base handler will just update the online and lastActiveTime, if available
+        # Handling both the "online" push notification and the "system_all" "status" notification
+        locally_handled = False
+        if 'status' in data:
+            self._online = OnlineStatus(data['status'])
+        if 'lastActiveTime' in data:
+            self._last_active_time = data['lastActiveTime']
+            locally_handled = True
 
         # The base handler, will just do nothing.
-        return False
+        return locally_handled
 
     # TODO: move this into a separate mixin
     async def async_get_battery_life(self,
@@ -511,7 +519,7 @@ class GenericSubDevice(BaseDevice):
         # This method is called via dispatch_push_notification() at HubMixin level
         parent_handled = await super()._async_handle_push_notification(namespace=namespace, data=data)
         locally_handled = False
-        if namespace == Namespace.SYSTEM_ONLINE.value:
+        if namespace in (Namespace.SYSTEM_ONLINE.value, Namespace.HUB_ONLINE.value):
             self._online = OnlineStatus(data['online']['status'])
             self._last_active_time = data['online']['lastActiveTime']
             locally_handled = True
