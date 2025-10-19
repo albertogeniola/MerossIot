@@ -314,90 +314,109 @@ class MerossManager(object):
             online_status=online_status,
         )
 
-    async def async_device_discovery(
-            self,
-            meross_device_uuid: Optional[str] = None,
-            discover_hub_subdevices: bool = True,
-            cached_http_device_list: Optional[Iterable[HttpDeviceInfo]] = None,
-    ) -> Iterable[BaseDevice]:
+    async def async_update_device_registry(self,
+                                           http_devices: Optional[List[HttpDeviceInfo]] = None,
+                                           http_sub_devices: Optional[List[HttpSubdeviceInfo]] = None,
+                                           mqtt_sub_devices: Optional[List[GenericSubDevice]] = None,
+                                           remove_missing_devices:bool = False) -> Iterable[
+        BaseDevice]:
         """
-        Fetch devices and online status from HTTP API. This method also notifies/updates local device online/offline
-        status.
-
-        :param meross_device_uuid: Meross UUID of the device that the user wants to discover (is already known).
-            This parameter restricts the discovery only to that particular device.
-
-        :param discover_hub_subdevices: Enable the discovery of sub-devices registered to the discovered hubs.
-
-        :param cached_http_device_list: List/Iterable structure of HttpDeviceInfo to be used for the discovery.
-            When passed, the manger skips the HTTP API call and uses this data to perform MQTT discovery.
-            When not passed, the manager will issue the HTTP API call to retrieve the latest HTTP devices list
-
-        :return: A list of discovered device, which implement `BaseDevice`
+        Updates the internal DeviceRegistry with the provided data.
+        It handles the creation of new discovered BaseDevices and SubDevices based on the info
+        provided. The user can invoke this method to pass "cached" information so to avoid
+        calls to the Meross endpoints. This method also updates the devices' info using
+        the HTTP data passed in (such as its name, etc).
+        :param http_devices:
+        :param http_sub_devices:
+        :param mqtt_sub_devices:
+        :param remove_missing_devices: If true, the manager will remove from the registry all the previously
+                                       registered devices that have not been found among the inputs.
+        :return:
         """
-        # If a cache has been provided, don't issue a "device-list" command; instead load the list
-        #  directly. Otherwise, run a "device-list" command.
-        _LOGGER.info(f"DISCOVERY: Device discovery triggered.")
-        if cached_http_device_list is None:
-            http_devices = await self._http_client.async_list_devices()
-        else:
-            _LOGGER.info("DISCOVERY: cached_http_device_list has been provided: the discovery won't talk to the HTTP server.")
-            http_devices = cached_http_device_list
-
-        # If the user only wanted to discover a single device, filter the discovery by the specific uuid.
-        if meross_device_uuid is not None:
-            _LOGGER.info("DISCOVERY: updating only device with UUID=%s.", meross_device_uuid)
-            http_devices = filter(lambda d: d.uuid == meross_device_uuid, http_devices)
-
-        # Everytime a discovery is issued, we must update the state of the registry. To do so, we must take
-        #  track of known devices and new devices, by looking up their UUIDs within the registry.
-        discovered_new_http_devices = []
         handled_devices = []
-        for hdevice in http_devices:
-            # Check if the device is already present into the registry.
-            ldevice = self._device_registry.lookup_base_by_uuid(hdevice.uuid)
-            if ldevice is not None:
-                # Device known, just update the state.
-                _LOGGER.debug(f"Device %s was was already present into registry. We'll just update its state.", hdevice.uuid)
-                dev = ldevice.update_from_http_state(hdevice)
-                handled_devices.append(dev)
-            else:
-                # New device, enroll it.
-                _LOGGER.debug(f"New device found %s, it will be enrolled.", hdevice.uuid)
-                discovered_new_http_devices.append(hdevice)
-                dev = await self._async_enroll_new_http_dev(hdevice)
-                if dev is not None:
+
+        # Handle registry update for Base Devices
+        if http_devices is not None:
+            _LOGGER.debug(f"Updating registry for Full Devices")
+            for hdevice in http_devices:
+                # Check if the device is already present into the registry.
+                ldevice = self._device_registry.lookup_base_by_uuid(hdevice.uuid)
+                if ldevice is not None:
+                    # Device known, just update the state.
+                    _LOGGER.debug(f"Device %s was was already present into registry. We'll just update its state.",
+                                  hdevice.uuid)
+                    dev = ldevice.update_from_http_state(hdevice)
                     handled_devices.append(dev)
+                else:
+                    # New device, enroll it.
+                    _LOGGER.debug(f"New device found %s, it will be enrolled.", hdevice.uuid)
+                    dev = await self._async_enroll_new_http_dev(hdevice)
+                    if dev is not None:
+                        handled_devices.append(dev)
 
-        _LOGGER.info(f"Discovery completed for HTTP devices. Handling sub-devices...")
-
-        # SubDevices are published to the HTTP APIs but we don't want to rely on HTTP APIs to discover them.
-        # Instead, we prefer using local hubs to discover SubDevices, via the list_sub_device command.
+        # Handle registry update for SubDevices.
+        # SubDevices are published to the HTTP APIs. However, we need to fetch info from MQTT too in order
+        # to completely handle their state. So the user must provide both the lists in order for the discvoery
+        # to work correctly.
         handled_subdevices = []
-        if discover_hub_subdevices:
-            discovered_subdevices = False
-            for online_hub in filter(lambda x: isinstance(x, HubMixin) and x.online_status==OnlineStatus.ONLINE, handled_devices): # type: HubMixin
-                # We will need both MQTT data and HTTP data to populate the device
-                mqtt_sub_devices = await online_hub.async_discover_subdevices()
-                http_sub_devices = await self._http_client.async_list_hub_subdevices(hub_id=online_hub.uuid)
-
-                for sd in mqtt_sub_devices:  # type: GenericSubDevice
-                    http_state: Optional[HttpSubdeviceInfo] = next(filter(lambda x:x.sub_device_id == sd.subdevice_id, http_sub_devices))
-                    sd.update_subdevice_from_http_state(http_state)
-                    self._device_registry.enroll_device(sd)
-                    handled_subdevices.append(sd)
-                if len(mqtt_sub_devices)>0:
-                    discovered_subdevices = True
-
-            # If a SubDevice has been discovered within a hub, we must update the hub data to determine if the
-            # subdevices are online
-            if discovered_subdevices:
-                await online_hub.async_update()
+        if http_sub_devices is not None and mqtt_sub_devices is not None:
+            _LOGGER.debug(f"Updating registry for SubDevices")
+            for sd in mqtt_sub_devices:  # type: GenericSubDevice
+                http_state: Optional[HttpSubdeviceInfo] = next(
+                    filter(lambda x: x.sub_device_id == sd.subdevice_id, http_sub_devices))
+                sd.update_subdevice_from_http_state(http_state)
+                self._device_registry.enroll_device(sd)
+                handled_subdevices.append(sd)
+            _LOGGER.debug(f"Completed registry for SubDevices")
+        elif (http_sub_devices is not None and mqtt_sub_devices is None) or (
+                mqtt_sub_devices is not None and http_sub_devices is None):
+            raise ValueError(
+                "You must provide both http_sub_devices and mqtt_sub_devices in order to handle subdevices.")
 
         res = []
         res.extend(handled_devices)
         res.extend(handled_subdevices)
+
+        # Handle device removal
+        if remove_missing_devices:
+            _LOGGER.debug(f"Removing unhandled devices from registry...")
+            all_base_devs = self._device_registry.find_all_by(device_class=BaseDevice)
+            base_devs_interal_uuids = [u.internal_id for u in all_base_devs]
+            for d in res:
+                if d.internal_id not in base_devs_interal_uuids:
+                    _LOGGER.debug("Removing device %s from registry", d.internal_id)
+                    self._device_registry.relinquish_device(d.internal_id)
+            _LOGGER.debug(f"Removal completed.")
         return res
+
+    async def async_device_discovery(
+            self,
+            discover_hub_subdevices: bool = True
+    ) -> Iterable[BaseDevice]:
+        """
+        Performs device discovery.
+        :param discover_hub_subdevices: Enable the discovery of sub-devices registered to the discovered hubs.
+        :return: A list of discovered device, which implement `BaseDevice`
+        """
+        all_discovered_devices: List[BaseDevice] = []
+        http_devices = await self._http_client.async_list_devices()
+        all_discovered_devices.extend(await self.async_update_device_registry(http_devices=http_devices))
+
+        if discover_hub_subdevices:
+            discovered_sub_devs_http = []
+            discovered_sub_devs_mqtt = []
+            for online_hub in filter(lambda x: isinstance(x, HubMixin) and x.online_status == OnlineStatus.ONLINE,
+                                     all_discovered_devices):  # type: HubMixin
+                # We will need both MQTT data and HTTP data to populate the device
+                discovered_sub_devs_mqtt.extend(await online_hub.async_discover_subdevices())
+                discovered_sub_devs_http.extend(
+                    await self._http_client.async_list_hub_subdevices(hub_id=online_hub.uuid))
+
+            all_discovered_devices.extend(
+                await self.async_update_device_registry(http_sub_devices=discovered_sub_devs_http,
+                                                        mqtt_sub_devices=discovered_sub_devs_mqtt))
+
+        return all_discovered_devices
 
     async def async_init(self):
         """
@@ -439,7 +458,7 @@ class MerossManager(object):
                 # that falls under the known types.
         else:
             _LOGGER.debug(
-            f"ENROLLEMENT: Device %s (%s) is OFFLINE, we are unable to query it for fetching abilities.",
+                f"ENROLLEMENT: Device %s (%s) is OFFLINE, we are unable to query it for fetching abilities.",
                 str(device_info.dev_name), str(device_info.uuid)
             )
 
@@ -475,7 +494,6 @@ class MerossManager(object):
                 device_info.dev_name, str(device_info.uuid)
             )
 
-
     def _on_connect(self, client: mqtt.Client, userdata, rc, other):
         # NOTE! This method is called by the paho-mqtt thread, thus any invocation to the
         # asyncio platform must be scheduled via `self._loop.call_soon_threadsafe()` method.
@@ -499,7 +517,7 @@ class MerossManager(object):
             self._notify_connection_drop(), loop=self._loop
         )
 
-        conn_evt = self._mqtt_connected_and_subscribed.get(userdata) # type: asyncio.Event
+        conn_evt = self._mqtt_connected_and_subscribed.get(userdata)  # type: asyncio.Event
         conn_evt.clear()
 
     def _on_unsubscribe(self):
@@ -622,14 +640,16 @@ class MerossManager(object):
                     if not self._loop.is_closed():
                         self._loop.call_soon_threadsafe(_handle_future, future, None, err)
                     else:
-                        _LOGGER.warning("Could not return message %s to caller as the event loop has been closed already", message)
+                        _LOGGER.warning(
+                            "Could not return message %s to caller as the event loop has been closed already", message)
                 elif message_method in ("SETACK", "GETACK"):
                     if not self._loop.is_closed():
                         self._loop.call_soon_threadsafe(
                             _handle_future, future, message, None
                         )  # future.set_exception
                     else:
-                        _LOGGER.warning("Could not return message %s to caller as the event loop has been closed already", message)
+                        _LOGGER.warning(
+                            "Could not return message %s to caller as the event loop has been closed already", message)
                 else:
                     _LOGGER.error(
                         f"Unhandled message method {message_method}. Please report it to the developer."
@@ -662,7 +682,7 @@ class MerossManager(object):
             )
 
     async def _async_dispatch_push_notification(
-            self, namespace:str, data:Any, origin_device_uuid:str
+            self, namespace: str, data: Any, origin_device_uuid: str
     ) -> bool:
         handled = False
         # Lookup the originating device and deliver the push notification to that one.
@@ -703,9 +723,9 @@ class MerossManager(object):
         return handled
 
     async def _async_handle_push_notification_post_dispatching(
-            self, namespace: str, data:Any, origin_device_uuid:str
+            self, namespace: str, data: Any, origin_device_uuid: str
     ) -> bool:
-        if namespace==Namespace.CONTROL_UNBIND:
+        if namespace == Namespace.CONTROL_UNBIND:
             _LOGGER.info(
                 "Received an Unbind PushNotification. Releasing device resources..."
             )
@@ -721,7 +741,7 @@ class MerossManager(object):
         return False
 
     async def _handle_and_dispatch_push_notification(
-            self, namespace:str, payload:Any, origin_device_uuid:str
+            self, namespace: str, payload: Any, origin_device_uuid: str
     ) -> None:
         """
         This method runs within the event loop and is responsible for handling and dispatching push notifications
@@ -787,22 +807,34 @@ class MerossManager(object):
             # Check if the LocalIP is available for the given device
             device = self._device_registry.lookup_base_by_uuid(destination_device_uuid)
             if device is None:
-                _LOGGER.debug("Cannot issue command via LAN (http) against device with uuid %s as the device is not yet available on the registry", destination_device_uuid)
+                _LOGGER.debug(
+                    "Cannot issue command via LAN (http) against device with uuid %s as the device is not yet available on the registry",
+                    destination_device_uuid)
                 attempt_lan = False
             elif device.lan_ip is None:
-                _LOGGER.debug("Cannot issue command via LAN (http) against device with uuid %s as the device has not reported any internal LAN ip.", destination_device_uuid)
+                _LOGGER.debug(
+                    "Cannot issue command via LAN (http) against device with uuid %s as the device has not reported any internal LAN ip.",
+                    destination_device_uuid)
                 attempt_lan = False
             elif self._error_budget_manager.is_out_of_budget(destination_device_uuid):
-                _LOGGER.debug("Cannot issue command via LAN (http) against device with uuid %s as the device has no more error budget left.", destination_device_uuid)
+                _LOGGER.debug(
+                    "Cannot issue command via LAN (http) against device with uuid %s as the device has no more error budget left.",
+                    destination_device_uuid)
                 attempt_lan = False
             if attempt_lan:
                 try:
                     # In case we succeed here, return the data we got.
                     # Otherwise, try again with MQTT.
-                    _LOGGER.debug("Sending %s-%s command via HTTP to %s via %s", method, str(namespace), destination_device_uuid, device.lan_ip)
-                    return await self._async_execute_cmd_http(device_ip=device.lan_ip,destination_device_uuid=destination_device_uuid,method=method,namespace=namespace,payload=payload,timeout=min(timeout, 1.0))
+                    _LOGGER.debug("Sending %s-%s command via HTTP to %s via %s", method, str(namespace),
+                                  destination_device_uuid, device.lan_ip)
+                    return await self._async_execute_cmd_http(device_ip=device.lan_ip,
+                                                              destination_device_uuid=destination_device_uuid,
+                                                              method=method, namespace=namespace, payload=payload,
+                                                              timeout=min(timeout, 1.0))
                 except Exception as e:
-                    _LOGGER.exception("An error occurred while attempting to send a message over internal LAN to device %s. Retrying with MQTT transport.", destination_device_uuid)
+                    _LOGGER.exception(
+                        "An error occurred while attempting to send a message over internal LAN to device %s. Retrying with MQTT transport.",
+                        destination_device_uuid)
                     self._error_budget_manager.notify_error(destination_device_uuid)
 
         # Retrieve the mqtt client for the given domain:port broker
@@ -825,7 +857,7 @@ class MerossManager(object):
                                       device_ip: str,
                                       destination_device_uuid: str,
                                       method: str,
-                                      namespace: Union[Namespace,str],
+                                      namespace: Union[Namespace, str],
                                       payload: dict,
                                       timeout: float = 10.0):
         # Send the message over the network
@@ -844,7 +876,8 @@ class MerossManager(object):
                 message_data = device.encrypt(message)
                 decrypt_response = True
 
-            async with session.post(f"http://{device_ip}/config", data=message_data, timeout=timeout, headers=_DEFAULT_HEADERS) as response:
+            async with session.post(f"http://{device_ip}/config", data=message_data, timeout=timeout,
+                                    headers=_DEFAULT_HEADERS) as response:
                 response_data = await response.text("utf8")
 
             if decrypt_response:
@@ -905,9 +938,12 @@ class MerossManager(object):
 
     async def _notify_connection_drop(self):
         for d in self._device_registry.find_all_by():
-            await self._handle_and_dispatch_push_notification(namespace=Namespace.SYSTEM_ONLINE.value, payload={'online': {'status': -1}}, origin_device_uuid=d.uuid)
+            await self._handle_and_dispatch_push_notification(namespace=Namespace.SYSTEM_ONLINE.value,
+                                                              payload={'online': {'status': -1}},
+                                                              origin_device_uuid=d.uuid)
 
-    def _build_mqtt_message(self, method: str, namespace: Union[Namespace, str], payload: dict, destination_device_uuid: str):
+    def _build_mqtt_message(self, method: str, namespace: Union[Namespace, str], payload: dict,
+                            destination_device_uuid: str):
         """
         Sends a message to the Meross MQTT broker, respecting the protocol payload.
 
@@ -956,7 +992,7 @@ class MerossManager(object):
             "payload": payload,
         }
 
-        strdata = json.dumps(data,separators=(',', ':'))
+        strdata = json.dumps(data, separators=(',', ':'))
         return strdata.encode("utf-8"), messageId
 
     def set_proxy(self, proxy_type, proxy_addr, proxy_port):
@@ -994,11 +1030,14 @@ class DeviceRegistry(object):
         for devid in ids:
             self.relinquish_device(devid)
 
-    def dump_to_file(self, filename: str)->None:
+    def dump_to_file(self, filename: str) -> None:
         """Dump the current device list to a file"""
-        dumped_base_devices = [{'abilities': x.abilities, 'info': x.cached_http_info.to_dict()} for x in self._devices_by_internal_id.values() if not isinstance(x, GenericSubDevice)]
+        dumped_base_devices = [{'abilities': x.abilities, 'info': x.cached_http_info.to_dict()} for x in
+                               self._devices_by_internal_id.values() if not isinstance(x, GenericSubDevice)]
         with open(filename, "wt") as f:
-            json.dump(dumped_base_devices, f, default=lambda x: x.isoformat() if isinstance(x, datetime) else x.value if(isinstance(x,OnlineStatus)) else 'Not-Serializable')
+            json.dump(dumped_base_devices, f,
+                      default=lambda x: x.isoformat() if isinstance(x, datetime) else x.value if (
+                          isinstance(x, OnlineStatus)) else 'Not-Serializable')
 
     def load_from_dump(self, filename: str, manager: MerossManager) -> None:
         """Load the device registry from a file"""
@@ -1009,7 +1048,8 @@ class DeviceRegistry(object):
         for deviced in dumped_json_data:
             device_abilities = deviced['abilities']
             device_info = HttpDeviceInfo.from_dict(deviced['info'])
-            device = build_meross_device_from_abilities(http_device_info=device_info, device_abilities=device_abilities, manager=manager)
+            device = build_meross_device_from_abilities(http_device_info=device_info, device_abilities=device_abilities,
+                                                        manager=manager)
             self.enroll_device(device)
 
     def relinquish_device(self, device_internal_id: str):
@@ -1128,7 +1168,8 @@ async def delayed_execution(coro, delay, cancel_event):
 
 def _schedule_later(coroutine, start_delay, loop):
     cancel_event = asyncio.Event()
-    future = asyncio.run_coroutine_threadsafe(coro=delayed_execution(coro=coroutine, delay=start_delay, cancel_event=cancel_event), loop=loop)
+    future = asyncio.run_coroutine_threadsafe(
+        coro=delayed_execution(coro=coroutine, delay=start_delay, cancel_event=cancel_event), loop=loop)
     _PENDING_FUTURES.append(DelayedCoroFutureHandler(future, coroutine, cancel_event))
 
 
