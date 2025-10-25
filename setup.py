@@ -44,7 +44,7 @@ setup(
         'aiohttp[speedups]>=3.7.4.post0,<4.0.0',
         'pycryptodomex>=3.20.0'
     ],
-    python_requires='>=3.8',
+    python_requires='>=3.11',
     test_suite='tests',
     entry_points={
         'console_scripts': ['meross_sniffer=utilities.meross_sniffer:main', 'meross_api_cli=meross_iot.http_api:main']
