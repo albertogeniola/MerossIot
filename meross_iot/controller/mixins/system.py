@@ -57,10 +57,10 @@ class SystemOnlineMixin(object):
         super_handled = await super().async_handle_update(namespace=namespace, data=data)
         return super_handled or locally_handled
 
-    async def _async_handle_push_notification(self, namespace: str, data: dict) -> bool:
+    async def _async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
 
-        if namespace == Namespace.SYSTEM_ONLINE.value:
+        if namespace == Namespace.SYSTEM_ONLINE:
             _LOGGER.debug(f"OnlineMixin handling push notification for namespace {namespace}")
             payload = data.get('online')
             if payload is None:

@@ -11,14 +11,14 @@ EMAIL = os.environ.get('MEROSS_EMAIL') or "YOUR_MEROSS_CLOUD_EMAIL"
 PASSWORD = os.environ.get('MEROSS_PASSWORD') or "YOUR_MEROSS_CLOUD_PASSWORD"
 
 
-async def thermostat_event(namespace: str, data: dict, device_internal_id: str, *args, **kwargs):
-    if namespace == Namespace.HUB_MTS100_MODE.value:
+async def thermostat_event(namespace: Namespace, data: dict, device_internal_id: str, *args, **kwargs):
+    if namespace == Namespace.HUB_MTS100_MODE:
         print(f"Device {device_internal_id} - Thermostat MODE CHANGE -> {data}")
-    elif namespace == Namespace.HUB_MTS100_ADJUST.value:
+    elif namespace == Namespace.HUB_MTS100_ADJUST:
         print(f"Device {device_internal_id} - Thermostat ADJUST CHANGE -> {data}")
-    elif namespace == Namespace.HUB_MTS100_TEMPERATURE.value:
+    elif namespace == Namespace.HUB_MTS100_TEMPERATURE:
         print(f"Device {device_internal_id} - Thermostat HUB_MTS100_TEMPERATURE CHANGE -> {data}")
-    elif namespace == Namespace.HUB_TOGGLEX.value:
+    elif namespace == Namespace.HUB_TOGGLEX:
         print(f"Device {device_internal_id} - Thermostat STATE CHANGE CHANGE -> {data}")
     else:
         print("An event has occurred, but that is not a MTS100 open/close state update")

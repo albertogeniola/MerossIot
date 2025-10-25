@@ -25,7 +25,7 @@ class EncryptionSuiteMixin(object):
         super().__init__(device_uuid=device_uuid, manager=manager, **kwargs)
         self._encryption_key = None
 
-        if Namespace.SYSTEM_ENCRYPTION_ECDHE.value in self._abilities:
+        if Namespace.SYSTEM_ENCRYPTION_ECDHE in self._abilities:
             self._encryption_alg = EncryptionAlg.ECDHE256
         else:
             raise ValueError("Unsupported/undetected encryption method")

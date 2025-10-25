@@ -131,7 +131,7 @@ class Ms100Mixin(GenericSubDevice):
             locally_handled = True
         return super_handled or locally_handled
 
-    async def _async_handle_push_notification(self, namespace: str, data: dict) -> bool:
+    async def _async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         """
         Handles SubDevice state update based on PushNotifications.
         Mixins can override this method in order to catch specific PushNotifications
@@ -145,7 +145,7 @@ class Ms100Mixin(GenericSubDevice):
         parent_handled = await super()._async_handle_push_notification(namespace=namespace, data=data)
 
         locally_handled = False
-        if namespace == Namespace.HUB_SENSOR_TEMPHUM.value:
+        if namespace == Namespace.HUB_SENSOR_TEMPHUM:
             self._handle_ms100_all(data=data)
             locally_handled = True
 

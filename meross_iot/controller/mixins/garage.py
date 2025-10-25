@@ -25,10 +25,10 @@ class GarageOpenerMixin:
             self._door_open_state_by_channel[c.index] = None
             self._door_config_state_by_channel[c.index] = None
 
-    async def _async_handle_push_notification(self, namespace: str, data: dict) -> bool:
+    async def _async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
 
-        if namespace == Namespace.GARAGE_DOOR_STATE.value:
+        if namespace == Namespace.GARAGE_DOOR_STATE:
             _LOGGER.debug(f"{self.__class__.__name__} handling push notification for namespace "
                           f"{namespace}")
             payload = data.get('state')
@@ -44,7 +44,7 @@ class GarageOpenerMixin:
                     state = door['open'] == 1
                     self._door_open_state_by_channel[channel_index] = state
                     locally_handled = True
-        elif namespace == Namespace.GARAGE_DOOR_MULTIPLECONFIG.value:
+        elif namespace == Namespace.GARAGE_DOOR_MULTIPLECONFIG:
             _LOGGER.debug(f"{self.__class__.__name__} handling push notification for namespace "
                           f"{namespace}")
             payload = data.get('config')

@@ -11,7 +11,7 @@ from datetime import datetime
 from enum import Enum
 from hashlib import md5
 from time import time
-from typing import Optional, List, TypeVar, Iterable, Callable, Awaitable, Tuple, Union, Any
+from typing import Optional, List, TypeVar, Iterable, Callable, Awaitable, Tuple, Union, Any, Dict
 
 import paho.mqtt.client as mqtt
 from aiohttp import ClientSession
@@ -120,6 +120,7 @@ class MerossManager(object):
         self._mqtt_clients = {}
         self._mqtt_connected_and_subscribed = {}
         self._auto_discovery_on_connection = auto_discovery_on_connection
+        self._mqtt_disconnections_count: Dict[str,int] = {}
 
         # Setup SSL context. If user passed one, use that.
         # Otherwise, assume a safe default: TLS client + CERT_REQUIRED
@@ -418,13 +419,6 @@ class MerossManager(object):
 
         return all_discovered_devices
 
-    async def async_init(self):
-        """
-        @deprecated
-        Ignored, signature left for backward compatibility
-        """
-        pass
-
     async def _async_enroll_new_http_dev(
             self, device_info: HttpDeviceInfo
     ) -> Optional[BaseDevice]:
@@ -512,6 +506,17 @@ class MerossManager(object):
         # asyncio platform must be scheduled via `self._loop.call_soon_threadsafe()` method.
         _LOGGER.info("Disconnection detected. Reason: %s" % str(rc))
 
+        # If the disconnection happens because of an error, mark update the disconnection
+        # counter. Otherwise, clear it.
+        disconnections_count = self._mqtt_disconnections_count.get(userdata)
+        if rc != 0:
+            if disconnections_count is None:
+                disconnections_count = 0
+            self._mqtt_disconnections_count[userdata] = disconnections_count + 1
+        else:
+            if disconnections_count is None:
+                del self._mqtt_disconnections_count[userdata]
+
         # When a disconnection occurs, we need to set "unavailable" status.
         asyncio.run_coroutine_threadsafe(
             self._notify_connection_drop(), loop=self._loop
@@ -550,6 +555,7 @@ class MerossManager(object):
             _prev_online_status = {d.uuid: d.online_status for d in self.find_devices()}
 
             # Issue a new discovery to update their connection status. This will rely on HTTP api to update it
+            _LOGGER.info("MQTT broker connection established: launching device discovery() to update device online status.")
             await self.async_device_discovery()
 
             i = 0
@@ -557,7 +563,7 @@ class MerossManager(object):
                 old_status = _prev_online_status.get(d.uuid)
                 if old_status is None:
                     # This is a new device that has been added while we were offline.
-                    _LOGGER.warning("Found a new device %s that has become online while we were offline.", d)
+                    _LOGGER.info("Found a new device %s that has become online while we were offline.", d)
                     # TODO: do we need to issue a BINDING event manually here?
                     continue
                 else:
@@ -568,12 +574,15 @@ class MerossManager(object):
         # If a connection drop occurs, we must update the device state in order to be consistent
         # TODO: Do we need to issue this command only when connection drops occur or also at first connection attempt?
         if self._auto_discovery_on_connection:
-            asyncio.run_coroutine_threadsafe(coro=_update_devices_after_reconnection(), loop=self._loop)
+            # Only schedule a discovery if this is a re-connection and not a new connection.
+            disconnections_count = self._mqtt_disconnections_count.get(userdata)
+            if disconnections_count is not None and disconnections_count > 0:
+                asyncio.run_coroutine_threadsafe(coro=_update_devices_after_reconnection(), loop=self._loop)
 
     async def _update_and_send_push(self, dev: BaseDevice, old_status: OnlineStatus) -> None:
         if dev.online_status == OnlineStatus.ONLINE:
             # In case the device was known and is ONLINE, we want to manually update its status
-            _LOGGER.warning("Updating status for device %s", dev)
+            _LOGGER.info("Updating status for device %s", dev)
             await dev.async_update()
 
         # In case the device was known and is not ONLINE, we just send the ONLINE push notification
@@ -682,7 +691,7 @@ class MerossManager(object):
             )
 
     async def _async_dispatch_push_notification(
-            self, namespace: str, data: Any, origin_device_uuid: str
+            self, namespace: Namespace, data: Any, origin_device_uuid: str
     ) -> bool:
         handled = False
         # Lookup the originating device and deliver the push notification to that one.
@@ -723,9 +732,9 @@ class MerossManager(object):
         return handled
 
     async def _async_handle_push_notification_post_dispatching(
-            self, namespace: str, data: Any, origin_device_uuid: str
+            self, namespace: Namespace, data: Any, origin_device_uuid: str
     ) -> bool:
-        if namespace == Namespace.CONTROL_UNBIND:
+        if namespace in (Namespace.CONTROL_UNBIND, Namespace.HUB_UNBIND):
             _LOGGER.info(
                 "Received an Unbind PushNotification. Releasing device resources..."
             )
@@ -741,7 +750,7 @@ class MerossManager(object):
         return False
 
     async def _handle_and_dispatch_push_notification(
-            self, namespace: str, payload: Any, origin_device_uuid: str
+            self, namespace: Namespace, payload: Any, origin_device_uuid: str
     ) -> None:
         """
         This method runs within the event loop and is responsible for handling and dispatching push notifications
@@ -891,7 +900,7 @@ class MerossManager(object):
                                        client: mqtt.Client,
                                        destination_device_uuid: str,
                                        method: str,
-                                       namespace: Namespace,
+                                       namespace: Namespace | str,
                                        payload: dict,
                                        timeout: float = 10.0):
         # Send the message over the network
@@ -938,11 +947,11 @@ class MerossManager(object):
 
     async def _notify_connection_drop(self):
         for d in self._device_registry.find_all_by():
-            await self._handle_and_dispatch_push_notification(namespace=Namespace.SYSTEM_ONLINE.value,
+            await self._handle_and_dispatch_push_notification(namespace=Namespace.SYSTEM_ONLINE,
                                                               payload={'online': {'status': -1}},
                                                               origin_device_uuid=d.uuid)
 
-    def _build_mqtt_message(self, method: str, namespace: Union[Namespace, str], payload: dict,
+    def _build_mqtt_message(self, method: str, namespace: Namespace|str, payload: dict,
                             destination_device_uuid: str):
         """
         Sends a message to the Meross MQTT broker, respecting the protocol payload.

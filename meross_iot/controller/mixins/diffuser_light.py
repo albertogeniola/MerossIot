@@ -20,10 +20,10 @@ class DiffuserLightMixin(object):
         # Dictionary keeping the status for every channel
         self._channel_diffuser_light_status = {}
 
-    async def _async_handle_push_notification(self, namespace: str, data: dict) -> bool:
+    async def _async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
 
-        if namespace == Namespace.DIFFUSER_LIGHT.value:
+        if namespace == Namespace.DIFFUSER_LIGHT:
             _LOGGER.debug(f"{self.__class__.__name__} handling push notification for namespace {namespace}")
             payload = data.get('light')
             if payload is None:

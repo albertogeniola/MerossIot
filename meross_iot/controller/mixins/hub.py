@@ -9,21 +9,23 @@ _LOGGER = logging.getLogger(__name__)
 
 class HubMixin(BaseDevice):
     __PUSH_MAP = {
-        Namespace.HUB_MTS100_ALL.value: 'all',
+        Namespace.HUB_MTS100_ALL: 'all',
 
-        Namespace.HUB_ONLINE.value: 'online',
-        Namespace.HUB_BATTERY.value: 'battery',
+        Namespace.HUB_UNBIND: 'unbind',
+        Namespace.HUB_ONLINE: 'online',
+        Namespace.HUB_BATTERY: 'battery',
 
-        Namespace.HUB_MTS100_TEMPERATURE.value: 'temperature',
-        Namespace.HUB_MTS100_MODE.value: 'mode',
-        Namespace.HUB_MTS100_ADJUST.value: 'adjust',
+        Namespace.HUB_MTS100_TEMPERATURE: 'temperature',
+        Namespace.HUB_MTS100_MODE: 'mode',
+        Namespace.HUB_MTS100_ADJUST: 'adjust',
 
-        Namespace.HUB_SENSOR_ALL.value: 'all',
-        Namespace.HUB_SENSOR_ALERT.value: 'alert',
-        Namespace.HUB_SENSOR_TEMPHUM.value: 'tempHum',
-        Namespace.HUB_SENSOR_DOORWINDOW.value: 'doorWindow',
-        Namespace.HUB_SENSOR_WATERLEAK.value: 'waterLeak',
-        Namespace.HUB_TOGGLEX.value: 'togglex',
+        Namespace.HUB_SENSOR_ALL: 'all',
+        Namespace.HUB_SENSOR_ALERT: 'alert',
+        Namespace.HUB_SENSOR_TEMPHUM: 'tempHum',
+        Namespace.HUB_SENSOR_DOORWINDOW: 'doorWindow',
+        Namespace.HUB_SENSOR_WATERLEAK: 'waterLeak',
+
+        Namespace.HUB_TOGGLEX: 'togglex',
     }
 
     def __init__(self, device_uuid: str,
@@ -97,16 +99,42 @@ class HubMixin(BaseDevice):
         super_handled = await super().async_handle_update(namespace=namespace, data=data)
         return super_handled or locally_handled
 
-    async def _async_handle_push_notification(self, namespace: str, data: dict) -> bool:
+    async def _async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
+        subdevice_to_release: GenericSubDevice|None = None
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
         parent_handled = await super()._async_handle_push_notification(namespace=namespace, data=data)
 
-        # We will take into account all events that are explicitly handled by this mixin or if the associated
-        # namespace starts with the "Appliance.Hub." prefix. In case we don't explicitly handle that
-        # we'll try to parse the payload key-accessor by looking at the last token.
+        # Let's first handle push notifications at hub level.
+        # Fist handle subdevice-bind and subdevice-unbind.
+        # For now, we just log a message.
+        if namespace == Namespace.HUB_BIND:
+            bind_data = data['bind'][0]
+            _LOGGER.info(f"A new subdevice has been bound to this hub. Subdevice id {bind_data['id']} - type {bind_data['deviceType']}.")
+            return True  # We assume we handled the push notification
+
+        elif namespace == Namespace.HUB_UNBIND:
+            # When handling unbinding notifications, we need to first push the notification to the subdevices
+            # and only then we can unload the underlying objects. This is necessary in order to allow subdevice
+            # event handlers to run correctly.
+            unbind_data = data['unbind'][0]
+            subdevice_to_release = self.get_subdevice(subdevice_id=unbind_data['id'])
+            if subdevice_to_release is not None:
+                _LOGGER.warning(f"Subdevice has been unbound from this hub. Subdevice id {unbind_data['id']}.")
+                # We do nothing more now: the SubDevice base implementation will update the "onlinestatus" to
+                # UNKNOWN to reflect the device unavailability.
+            else:
+                _LOGGER.error(f"Received an unbind event for a subdevice ({unbind_data['id']}) that does not belong to this HUB ({self.name} - {self.uuid}).")
+
+        # Hubs receive push notifications for their sub-devices.
+        # This method routes the push notification to the corresponding subdevice.
+        # We assume that all push notifications with a namespace starting with "Appliance.Hub.*"
+        # and containing an "id" attribute should be routed to sub-devices.
+        # The data format is typically {'accessor': [{'id':'', ...}]}.
+        # The accessor key can be derived from the last part of the namespace (e.g., "Appliance.Hub.WaterLeak" -> "waterLeak").
+        # We use a combination of static map strings and dynamic accessor guessing via the namespace.
         target_data_key = self.__PUSH_MAP.get(namespace)
 
         if target_data_key is None and namespace.startswith("Appliance.Hub."):
@@ -149,5 +177,9 @@ class HubMixin(BaseDevice):
                         continue
                     else:
                         locally_handled = await subdev.async_dispatch_push_notification(namespace=namespace, data=subdev_state)
+
+        if subdevice_to_release is not None:
+            subdevice_to_release.dismiss()
+            del self.__sub_devices[subdevice_to_release.subdevice_id]
 
         return locally_handled or parent_handled

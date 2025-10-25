@@ -111,7 +111,7 @@ class LeakageSensorMixin(GenericSubDevice):
             locally_handled = True
         return super_handled or locally_handled
 
-    async def _async_handle_push_notification(self, namespace: str, data: Any) -> bool:
+    async def _async_handle_push_notification(self, namespace: Namespace, data: Any) -> bool:
         """
         Handles SubDevice state update based on PushNotifications.
         Mixins can override this method in order to catch specific PushNotifications
@@ -125,7 +125,7 @@ class LeakageSensorMixin(GenericSubDevice):
         parent_handled = await super()._async_handle_push_notification(namespace=namespace, data=data)
 
         locally_handled = False
-        if namespace == Namespace.HUB_SENSOR_WATERLEAK.value:
+        if namespace == Namespace.HUB_SENSOR_WATERLEAK:
             self._handle_waterleak_update(data=data)
             locally_handled = True
 

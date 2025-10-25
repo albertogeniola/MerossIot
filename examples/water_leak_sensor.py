@@ -11,11 +11,11 @@ EMAIL = os.environ.get('MEROSS_EMAIL') or "YOUR_MEROSS_CLOUD_EMAIL"
 PASSWORD = os.environ.get('MEROSS_PASSWORD') or "YOUR_MEROSS_CLOUD_PASSWORD"
 
 
-async def water_leak_event(namespace: str, data: dict, device_internal_id: str, *args, **kwargs):
+async def water_leak_event(namespace: Namespace, data: dict, device_internal_id: str, *args, **kwargs):
     print("An event has occurred!")
-    if namespace == Namespace.CONTROL_ALARM.value:
+    if namespace == Namespace.CONTROL_ALARM:
         print(f"Alarm occurred! Event data: {data}")
-    elif namespace == Namespace.HUB_SENSOR_WATERLEAK.value:
+    elif namespace == Namespace.HUB_SENSOR_WATERLEAK:
         print(f"Water leak occurred! Event data: {data}")
     else:
         print(f"Another event occurred: {namespace}, Event data: {data}")

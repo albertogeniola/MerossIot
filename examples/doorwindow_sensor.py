@@ -12,8 +12,8 @@ EMAIL = os.environ.get('MEROSS_EMAIL') or "YOUR_MEROSS_CLOUD_EMAIL"
 PASSWORD = os.environ.get('MEROSS_PASSWORD') or "YOUR_MEROSS_CLOUD_PASSWORD"
 
 
-async def doorwindow_event(namespace: str, data: dict, device_internal_id: str, *args, **kwargs):
-    if namespace == Namespace.HUB_SENSOR_DOORWINDOW.value:
+async def doorwindow_event(namespace: Namespace, data: dict, device_internal_id: str, *args, **kwargs):
+    if namespace == Namespace.HUB_SENSOR_DOORWINDOW:
         print(f"Device {device_internal_id} - DOOR status -> {data}")
     else:
         print("An event has occurred, but that is not a door-window open/close state update")

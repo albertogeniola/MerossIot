@@ -4,12 +4,13 @@ import os
 from meross_iot.controller.subdevice_mixins.ms100_sensor import Ms100Mixin
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
+from meross_iot.model.enums import Namespace
 
 EMAIL = os.environ.get('MEROSS_EMAIL') or "YOUR_MEROSS_CLOUD_EMAIL"
 PASSWORD = os.environ.get('MEROSS_PASSWORD') or "YOUR_MEROSS_CLOUD_PASSWORD"
 
 
-async def event_handler(namespace: str, data: dict, device_internal_id: str, *args, **kwargs):
+async def event_handler(namespace: Namespace, data: dict, device_internal_id: str, *args, **kwargs):
     print("An event has occurred!")
 
 

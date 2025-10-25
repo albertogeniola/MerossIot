@@ -1,5 +1,5 @@
 import logging
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import Union
 
 _LOGGER = logging.getLogger(__name__)
@@ -77,7 +77,7 @@ class DNDMode(Enum):
     DND_ENABLED = 1
 
 
-class Namespace(Enum):
+class Namespace(StrEnum):
     # Common abilities
     SYSTEM_ALL = 'Appliance.System.All'
     SYSTEM_ABILITY = 'Appliance.System.Ability'
@@ -135,6 +135,8 @@ class Namespace(Enum):
     HUB_ONLINE = 'Appliance.Hub.Online'
     HUB_SUBDEVICELIST = 'Appliance.Hub.SubdeviceList'
     HUB_SUBDEVICE_VERSION = 'Appliance.Hub.SubDevice.Version'
+    HUB_BIND = 'Appliance.Hub.Bind'
+    HUB_UNBIND = 'Appliance.Hub.Unbind'
 
     # SENSORS
     HUB_SENSOR_ALL = 'Appliance.Hub.Sensor.All'

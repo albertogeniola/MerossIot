@@ -27,10 +27,10 @@ class LightMixin(object):
         # Dictionary keeping the status for every channel
         self._channel_light_status = {}
 
-    async def _async_handle_push_notification(self, namespace: str, data: dict) -> bool:
+    async def _async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
 
-        if namespace == Namespace.CONTROL_LIGHT.value:
+        if namespace == Namespace.CONTROL_LIGHT:
             _LOGGER.debug(f"{self.__class__.__name__} handling push notification for namespace {namespace}")
             payload = data.get('light')
             if payload is None:
@@ -67,7 +67,7 @@ class LightMixin(object):
         return super_handled or locally_handled
 
     def _supports_mode(self, mode: LightMode, channel: int = 0) -> bool:
-        capacity = self.abilities.get(Namespace.CONTROL_LIGHT.value, {}).get('capacity')
+        capacity = self.abilities.get(Namespace.CONTROL_LIGHT, {}).get('capacity')
         if capacity is None:
             return False
 

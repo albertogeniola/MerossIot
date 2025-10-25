@@ -19,10 +19,10 @@ class DiffuserSprayMixin(object):
         # Dictionary keeping the status for every channel
         self._channel_diffuser_spray_status = {}
 
-    async def _async_handle_push_notification(self, namespace: str, data: dict) -> bool:
+    async def _async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
 
-        if namespace == Namespace.DIFFUSER_SPRAY.value:
+        if namespace == Namespace.DIFFUSER_SPRAY:
             _LOGGER.debug(f"{self.__class__.__name__} handling push notification for namespace {namespace}")
             payload = data.get('spray')
             if payload is None:

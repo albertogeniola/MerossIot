@@ -22,10 +22,10 @@ class RollerShutterTimerMixin:
         self._shutter__position_by_channel = {}
         self._shutter__config_by_channel = {}
 
-    async def _async_handle_push_notification(self, namespace: str, data: dict) -> bool:
+    async def _async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
 
-        if namespace == Namespace.ROLLER_SHUTTER_STATE.value:
+        if namespace == Namespace.ROLLER_SHUTTER_STATE:
             _LOGGER.debug(f"{self.__class__.__name__} handling push notification for namespace "
                           f"{namespace}")
             payload = data.get('state')
@@ -41,7 +41,7 @@ class RollerShutterTimerMixin:
                     state = RollerShutterState(roller_shutter['state']) # open (position=100, state=1), close (position=0, state=2), stop (position=-1, state=0)
                     self._shutter__state_by_channel[channel_index] = state
                     locally_handled = True
-        elif namespace == Namespace.ROLLER_SHUTTER_POSITION.value:
+        elif namespace == Namespace.ROLLER_SHUTTER_POSITION:
             _LOGGER.debug(f"{self.__class__.__name__} handling push notification for namespace "
                           f"{namespace}")
             payload = data.get('position')

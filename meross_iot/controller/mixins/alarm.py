@@ -23,7 +23,7 @@ class AlarmMixin(object):
 
     async def _async_handle_push_notification(self, namespace:str, data:Any) -> bool:
         locally_handled = False
-        if namespace == Namespace.CONTROL_ALARM.value:
+        if namespace == Namespace.CONTROL_ALARM:
             # Note: we are not storing the channel the alarm refers to.
             _LOGGER.debug(f"AlarmMixin handling push notification for namespace {namespace}")
             self.__last_alarm_events.append(data['alarm'][0]['event']['interConn']['value'])

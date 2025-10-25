@@ -23,10 +23,10 @@ class ToggleXMixin(object):
         # _channel_status is a dictionary keeping the status for every channel
         self._channel_togglex_status = {}
 
-    async def _async_handle_push_notification(self, namespace: str, data: dict) -> bool:
+    async def _async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
 
-        if namespace == Namespace.CONTROL_TOGGLEX.value:
+        if namespace == Namespace.CONTROL_TOGGLEX:
             _LOGGER.debug(f"{self.__class__.__name__} handling push notification for namespace {namespace}")
             payload = data.get('togglex')
             if payload is None:
@@ -135,10 +135,10 @@ class ToggleMixin(object):
         # _channel_status is a dictionary keeping the status for every channel
         self._channel_toggle_status = {}
 
-    async def _async_handle_push_notification(self, namespace: str, data: dict) -> bool:
+    async def _async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
 
-        if namespace == Namespace.CONTROL_TOGGLE.value:
+        if namespace == Namespace.CONTROL_TOGGLE:
             _LOGGER.debug(f"ToggleMixin handling push notification for namespace {namespace}")
             payload = data.get('toggle')
             if payload is None:

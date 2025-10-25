@@ -3,6 +3,7 @@ from collections import deque
 from datetime import timedelta
 from typing import Optional, Deque, Dict, ItemsView
 
+from meross_iot.model.enums import Namespace
 from meross_iot.model.http.error_codes import ErrorCodes
 
 
@@ -70,7 +71,7 @@ class ApiCallSample:
     """
     def __init__(self,
                  device_uuid: str,
-                 namespace: str,
+                 namespace: Namespace,
                  method: str,
                  timestamp: Optional[float] = None):
 
@@ -325,7 +326,7 @@ class ApiCounter:
         self.delayed_calls: Deque[ApiCallSample] = deque([], maxlen=max_samples)
         self.dropped_calls: Deque[ApiCallSample] = deque([], maxlen=max_samples)
 
-    def notify_api_call(self, device_uuid: str, namespace: str, method: str):
+    def notify_api_call(self, device_uuid: str, namespace: Namespace, method: str):
         """
         Method called internally by the manager itself, whenever a message is sent to the
         MQTT broker.
@@ -338,7 +339,7 @@ class ApiCounter:
         )
         self.api_calls.append(sample)
 
-    def notify_delayed_call(self, device_uuid: str, namespace: str, method: str):
+    def notify_delayed_call(self, device_uuid: str, namespace: Namespace, method: str):
         """
         Method called internally by the manager itself, whenever a message is delayed instead of being sent to the
         MQTT broker.
@@ -351,7 +352,7 @@ class ApiCounter:
         )
         self.delayed_calls.append(sample)
 
-    def notify_dropped_call(self, device_uuid: str, namespace: str, method: str):
+    def notify_dropped_call(self, device_uuid: str, namespace: Namespace, method: str):
         """
         Method called internally by the manager itself, whenever a message is dropped instead of being sent to the
         MQTT broker.

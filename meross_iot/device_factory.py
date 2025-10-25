@@ -33,57 +33,57 @@ _KNOWN_DEV_TYPES_CLASSES = {}
 
 _ABILITY_MATRIX = {
     # Power plugs abilities
-    Namespace.CONTROL_TOGGLEX.value: ToggleXMixin,
-    Namespace.CONTROL_TOGGLE.value: ToggleMixin,
-    Namespace.CONTROL_CONSUMPTIONX.value: ConsumptionXMixin,
-    Namespace.CONTROL_CONSUMPTION.value: ConsumptionMixin,
-    Namespace.CONTROL_ELECTRICITY.value: ElectricityMixin,
-    Namespace.CONTROL_ALARM.value: AlarmMixin,
+    Namespace.CONTROL_TOGGLEX: ToggleXMixin,
+    Namespace.CONTROL_TOGGLE: ToggleMixin,
+    Namespace.CONTROL_CONSUMPTIONX: ConsumptionXMixin,
+    Namespace.CONTROL_CONSUMPTION: ConsumptionMixin,
+    Namespace.CONTROL_ELECTRICITY: ElectricityMixin,
+    Namespace.CONTROL_ALARM: AlarmMixin,
 
     # Encryption
-    Namespace.SYSTEM_ENCRYPTION.value: EncryptionSuiteMixin,
+    Namespace.SYSTEM_ENCRYPTION: EncryptionSuiteMixin,
 
     # Light abilities
-    Namespace.CONTROL_LIGHT.value: LightMixin,
+    Namespace.CONTROL_LIGHT: LightMixin,
 
     # Garage opener
-    Namespace.GARAGE_DOOR_STATE.value: GarageOpenerMixin,
+    Namespace.GARAGE_DOOR_STATE: GarageOpenerMixin,
 
     # Roller shutter timer
-    Namespace.ROLLER_SHUTTER_STATE.value: RollerShutterTimerMixin,
+    Namespace.ROLLER_SHUTTER_STATE: RollerShutterTimerMixin,
 
     # Spray
-    Namespace.CONTROL_SPRAY.value: SprayMixin,
+    Namespace.CONTROL_SPRAY: SprayMixin,
 
     # Oil diffuser
-    Namespace.DIFFUSER_LIGHT.value: DiffuserLightMixin,
-    Namespace.DIFFUSER_SPRAY.value: DiffuserSprayMixin,
+    Namespace.DIFFUSER_LIGHT: DiffuserLightMixin,
+    Namespace.DIFFUSER_SPRAY: DiffuserSprayMixin,
 
     # System
-    Namespace.SYSTEM_ALL.value: SystemAllMixin,
-    Namespace.SYSTEM_ONLINE.value: SystemOnlineMixin,
-    Namespace.SYSTEM_RUNTIME.value: SystemRuntimeMixin,
+    Namespace.SYSTEM_ALL: SystemAllMixin,
+    Namespace.SYSTEM_ONLINE: SystemOnlineMixin,
+    Namespace.SYSTEM_RUNTIME: SystemRuntimeMixin,
 
     # Hub
-    Namespace.HUB_SUBDEVICELIST.value: HubMixin,
-    Namespace.HUB_ONLINE.value: HubMixin,
-    Namespace.HUB_BATTERY.value: HubMixin,
-    Namespace.HUB_TOGGLEX.value: HubMixin,
+    Namespace.HUB_SUBDEVICELIST: HubMixin,
+    Namespace.HUB_ONLINE: HubMixin,
+    Namespace.HUB_BATTERY: HubMixin,
+    Namespace.HUB_TOGGLEX: HubMixin,
 
-    Namespace.HUB_SENSOR_ALL.value: HubMixin,
-    Namespace.HUB_SENSOR_ALERT.value: HubMixin,
-    Namespace.HUB_SENSOR_TEMPHUM.value: HubMixin,
+    Namespace.HUB_SENSOR_ALL: HubMixin,
+    Namespace.HUB_SENSOR_ALERT: HubMixin,
+    Namespace.HUB_SENSOR_TEMPHUM: HubMixin,
 
-    Namespace.HUB_MTS100_ALL.value: HubMixin,
-    Namespace.HUB_MTS100_MODE.value: HubMixin,
-    Namespace.HUB_MTS100_TEMPERATURE.value: HubMixin,
+    Namespace.HUB_MTS100_ALL: HubMixin,
+    Namespace.HUB_MTS100_MODE: HubMixin,
+    Namespace.HUB_MTS100_TEMPERATURE: HubMixin,
 
     # DND
-    Namespace.SYSTEM_DND_MODE.value: SystemDndMixin,
+    Namespace.SYSTEM_DND_MODE: SystemDndMixin,
 
     # Thermostat
-    Namespace.CONTROL_THERMOSTAT_MODE.value: ThermostatModeMixin,
-    Namespace.CONTROL_THERMOSTAT_MODEB.value: ThermostatModeBMixin,
+    Namespace.CONTROL_THERMOSTAT_MODE: ThermostatModeMixin,
+    Namespace.CONTROL_THERMOSTAT_MODEB: ThermostatModeBMixin,
 
     # TODO: BIND, UNBIND, ONLINE, WIFI, ETC!
 }

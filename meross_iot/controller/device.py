@@ -175,7 +175,7 @@ class BaseDevice(object):
         else:
             _LOGGER.error(f"Coroutine {coro} was not registered as handler for this device")
 
-    async def _fire_push_notification_event(self, namespace: str, data: Any, device_internal_id: str):
+    async def _fire_push_notification_event(self, namespace: Namespace, data: Any, device_internal_id: str):
         for c in self._push_coros:
             try:
                 await c(namespace=namespace, data=data, device_internal_id=device_internal_id)
@@ -264,7 +264,7 @@ class BaseDevice(object):
         # TODO: fire some sort of events to let users see changed data?
         return self
 
-    async def _async_handle_push_notification(self, namespace: str, data: Any) -> bool:
+    async def _async_handle_push_notification(self, namespace: Namespace, data: Any) -> bool:
         """
         Handles push notification updates
         :param namespace: Push notification header
@@ -276,7 +276,7 @@ class BaseDevice(object):
         # The base implementation will just return FALSE, as we do not handle any push notification within the base-class
         return False
 
-    async def async_dispatch_push_notification(self, namespace: str, data: Any) -> bool:
+    async def async_dispatch_push_notification(self, namespace: Namespace, data: Any) -> bool:
         """
         Delivers a push notification to the device, so that it can update its internal state
         :param namespace: Push notification header
@@ -328,7 +328,7 @@ class BaseDevice(object):
         pass
 
     def dismiss(self):
-        # TODO: Should we do something here?
+        self._push_coros.clear()
         pass
 
     @property
@@ -519,7 +519,7 @@ class GenericSubDevice(BaseDevice):
         timestamp = datetime.utcnow()
         return BatteryInfo(battery_charge=battery_life_perc, sample_ts=timestamp)
 
-    async def _async_handle_push_notification(self, namespace: str, data: Any) -> bool:
+    async def _async_handle_push_notification(self, namespace: Namespace, data: Any) -> bool:
         """
         Handles SubDevice state update based on PushNotifications.
         Mixins can override this method in order to catch specific PushNotifications
@@ -533,12 +533,15 @@ class GenericSubDevice(BaseDevice):
         # This method is called via dispatch_push_notification() at HubMixin level
         parent_handled = await super()._async_handle_push_notification(namespace=namespace, data=data)
         locally_handled = False
-        if namespace in (Namespace.SYSTEM_ONLINE.value, Namespace.HUB_ONLINE.value):
+        if namespace in (Namespace.SYSTEM_ONLINE, Namespace.HUB_ONLINE):
             self._online = OnlineStatus(data['online']['status'])
             self._last_active_time = data['online']['lastActiveTime']
             locally_handled = True
-        elif namespace == Namespace.HUB_BATTERY.value:
+        elif namespace == Namespace.HUB_BATTERY:
             self._battery = data['battery']['value']
+            locally_handled = True
+        elif namespace == Namespace.HUB_UNBIND:
+            self._online = OnlineStatus.UNKNOWN
             locally_handled = True
 
         return parent_handled or locally_handled

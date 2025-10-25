@@ -152,10 +152,10 @@ class ThermostatModeMixin:
             else:
                 state.update(c)
 
-    async def _async_handle_push_notification(self, namespace: str, data: dict) -> bool:
+    async def _async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
 
-        if namespace == Namespace.CONTROL_THERMOSTAT_MODE.value:
+        if namespace == Namespace.CONTROL_THERMOSTAT_MODE:
             _LOGGER.debug(f"{self.__class__.__name__} handling push notification for namespace "
                           f"{namespace}")
             mode_data = data.get('mode')
@@ -281,10 +281,10 @@ class ThermostatModeBMixin:
             else:
                 state.update(c)
 
-    async def async_handle_push_notification(self, namespace: str, data: dict) -> bool:
+    async def async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
 
-        if namespace == Namespace.CONTROL_THERMOSTAT_MODEB.value:
+        if namespace == Namespace.CONTROL_THERMOSTAT_MODEB:
             _LOGGER.debug(f"{self.__class__.__name__} handling push notification for namespace "
                           f"{namespace}")
             mode_data = data.get('modeB')
