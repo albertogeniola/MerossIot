@@ -4,7 +4,7 @@ import asyncio
 import logging
 import time
 from datetime import datetime
-from typing import List, Union, Optional, Callable, Awaitable, Dict, Any
+from typing import List, Union, Optional, Callable, Awaitable, Dict, Any, Coroutine
 
 from meross_iot.model.constants import DEFAULT_MQTT_PORT, DEFAULT_MQTT_HOST, DEFAULT_COMMAND_TIMEOUT
 from meross_iot.model.enums import OnlineStatus, Namespace
@@ -24,14 +24,13 @@ class BaseDevice(object):
     identifier, a library assigned internal identifier.
 
     The BaseDevice class takes care of handling internal device state in dynamic way.
-    Each BaseDevice can be specialized via Mixins, which defines "pluggable" behaviour based
+    Each BaseDevice instance can be specialized via Mixins, which defines "pluggable" behaviour based
     on device abilities, fetched via the GET Ability command, via MQTT.
 
     Each Mixin can override the following methods
     - async_update()
-      Used to trigger an update of the device. Mixins **MUST always** call the super() implementation
-      to ensure correct event handling. Usually, Mixins won't need to issue dedicated updates: the
-      SYSTEM_ALL mixin would generally collect the entire state and let all mixin parse their portion of
+      Used to trigger an update of the device. Usually, Mixins won't need to issue dedicated updates: the
+      SYSTEM_ALL MixIn would generally collect the entire state and let all mixin parse their portion of
       the state, by calling async_handle_update(). However, there might be edge cases in which this
       is not enough (SubDevices): in such cases, we can issue additional update commands within
       this method to ensure a complete state update.
@@ -42,6 +41,10 @@ class BaseDevice(object):
       are interested into, and update the internal state representation.
       Mixins **must always** call the super() implementation to ensure correct event bubbling, and
       give the opportunity to other mixin in the __mro__ to handle the state change.
+      This method is **not intended to deal with push notifications**, for that rely on
+      `_async_handle_push_notification`, instead.
+      The BaseDevice class uses this method to take track of "last full update" received (this is one
+      of the reasons why each subclass must always call the super().async_handle_update implementation).
 
     - async_dispatch_push_notification()
       Called by the `MerossManager` whenever a push notification is received for this device.
@@ -60,87 +63,96 @@ class BaseDevice(object):
     _fwversion: str = "unknown"
     _hwversion: str = "unknown"
     _online: OnlineStatus = OnlineStatus.UNKNOWN
-    _inner_ip: Optional[str] = None
-    _mac_address: Optional[str] = None
+    _inner_ip: str | None = None
+    _mac_address: str | None = None
     _mqtt_host: str = DEFAULT_MQTT_HOST
     _mqtt_port: int = DEFAULT_MQTT_PORT
 
     def __init__(self, device_uuid: str,
                  manager,
                  **kwargs):
-        self._uuid = device_uuid
         self._manager = manager
+        self._channels: List[ChannelInfo] = []
+        self._push_coros: List[Callable[[str, dict, str], Awaitable]] = []
+        self._last_full_update_ts: int | None = None
+        self._abilities: Dict[str, str] = {}
 
-        self._cached_http_info = None
-        self._channels = []
+        self._uuid = device_uuid
+        self._cached_http_info: HttpDeviceInfo | None = None
 
-        # Parse device info, if any
         if 'http_device_info' in kwargs:
-            self._cached_http_info: HttpDeviceInfo = kwargs.get('http_device_info', {})
-            self._channels = self._parse_channels(self._cached_http_info.channels)
-
-            # Information about device
-            self._name = self._cached_http_info.dev_name
-            self._type = self._cached_http_info.device_type
-            self._fwversion = self._cached_http_info.fmware_version
-            self._hwversion = self._cached_http_info.hdware_version
-            self._online = self._cached_http_info.online_status
-            self._inner_ip = None
-
-            # Domain and port
-            domain = self._cached_http_info.domain
-            reserved_domain = self._cached_http_info.reserved_domain
-
-            # Prefer domain to reserved domain
-            if domain is not None:
-                self._mqtt_host = extract_domain(domain)
-                self._mqtt_port = extract_port(domain, DEFAULT_MQTT_PORT)
-            elif reserved_domain is not None:
-                self._mqtt_host = extract_domain(reserved_domain)
-                self._mqtt_port = extract_port(reserved_domain, DEFAULT_MQTT_PORT)
-            else:
-                _LOGGER.warning("No MQTT DOMAIN/RESERVED DOMAIN specified in args, assuming default value %s:%d",
-                                DEFAULT_MQTT_HOST, DEFAULT_MQTT_PORT)
-
+            self.update_from_http_state(kwargs['http_device_info'])
         if hasattr(self, "_abilities_spec"):
-            self._abilities: Dict[str, str] = self._abilities_spec
-        else:
-            self._abilities: Dict[str, str] = {}
-        self._push_coros = []
-        self._last_full_update_ts = None
+            self._abilities = self._abilities_spec
 
         # Set default timeout value for command execution
         self._timeout = DEFAULT_COMMAND_TIMEOUT
 
     @property
-    def cached_http_info(self) -> Optional[HttpDeviceInfo]:
+    def cached_http_info(self) -> HttpDeviceInfo | None:
+        """The cached http info as returned by the Meross API"""
         return self._cached_http_info
 
     @property
-    def lan_ip(self):
+    def lan_ip(self) -> str | None:
+        """
+        The LAN IP address of the device. This is known only after a full update.
+        Ony the devices equipped with a WIFI radio will have this information.
+        For SubDevice this value is None.
+        """
         return self._inner_ip
 
     @property
-    def mac_address(self):
+    def mac_address(self) -> str | None:
+        """
+        The MAC ADDRESS of the device. This is known only after a full update.
+        Ony the devices equipped with a WIFI radio will have this information.
+        For SubDevice this value is None.
+        """
         return self._mac_address
 
     @property
-    def mqtt_host(self):
+    def mqtt_host(self) -> str | None:
+        """
+        Host name of the Meross MQTT server that this device should use.
+        The host assigned is generally provided via HTTP APIs, after the login.
+        :return:
+        """
         return self._mqtt_host
 
     @property
-    def mqtt_port(self):
+    def mqtt_port(self) -> int | None:
+        """
+        MQTT Host port of the Meross MQTT server that this device should use.
+        This is provided via HTTP APIs, after the login.
+        :return:
+        """
         return self._mqtt_port
 
     @property
-    def abilities(self):
+    def abilities(self) ->  Dict[str, str]:
+        """
+        List of Meross abilities as provided by the Meross API.
+        :return:
+        """
         return self._abilities
 
     @property
-    def last_full_update_timestamp(self):
+    def last_full_update_timestamp(self) -> int | None:
+        """
+        Timestamp when the last full update was received.
+        Timestamp is in seconds.
+        :return:
+        """
         return self._last_full_update_ts
 
-    def check_full_update_done(self):
+    def check_full_update_done(self) -> bool:
+        """
+        Returns True if a full update was ever performed.
+        Note: this does not guarantee that the data is fresh.
+        Check `last_full_update_timestamp` for that.
+        :return:
+        """
         update_done = self._last_full_update_ts is not None
         if not update_done:
             _LOGGER.error(f"Please invoke async_update() for this device ({self._name}) "
@@ -178,7 +190,7 @@ class BaseDevice(object):
     async def _fire_push_notification_event(self, namespace: Namespace, data: Any, device_internal_id: str):
         for c in self._push_coros:
             try:
-                await c(namespace=namespace, data=data, device_internal_id=device_internal_id)
+                await c(namespace=namespace, data=data, device_internal_id=device_internal_id)  # type: ignore
             except Exception as e:
                 _LOGGER.exception(f"Error occurred while firing push notification event {namespace} with data: {data}")
 
@@ -252,16 +264,29 @@ class BaseDevice(object):
         # Careful with online  status: not all the devices might expose an online mixin.
         if hdevice.uuid != self.uuid:
             raise ValueError(f"Cannot update device ({self.uuid}) with HttpDeviceInfo for device id {hdevice.uuid}")
+
         self._cached_http_info = hdevice
-        self._cached_http_info = hdevice
-        self._name = hdevice.dev_name
         self._channels = self._parse_channels(hdevice.channels)
+        self._name = hdevice.dev_name
         self._type = hdevice.device_type
         self._fwversion = hdevice.fmware_version
         self._hwversion = hdevice.hdware_version
         self._online = hdevice.online_status
 
-        # TODO: fire some sort of events to let users see changed data?
+        # Domain and port parsing
+        domain = self._cached_http_info.domain
+        reserved_domain = self._cached_http_info.reserved_domain
+        # Prefer domain to reserved domain
+        if domain is not None:
+            self._mqtt_host = extract_domain(domain)
+            self._mqtt_port = extract_port(domain, DEFAULT_MQTT_PORT)
+        elif reserved_domain is not None:
+            self._mqtt_host = extract_domain(reserved_domain)
+            self._mqtt_port = extract_port(reserved_domain, DEFAULT_MQTT_PORT)
+        else:
+            _LOGGER.warning("No MQTT DOMAIN/RESERVED DOMAIN specified in args, assuming default value %s:%d",
+                            DEFAULT_MQTT_HOST, DEFAULT_MQTT_PORT)
+
         return self
 
     async def _async_handle_push_notification(self, namespace: Namespace, data: Any) -> bool:
@@ -293,14 +318,28 @@ class BaseDevice(object):
         return handled
 
     async def async_handle_update(self, namespace: Namespace, data: dict) -> bool:
-        # Catch SYSTEM_ALL case and update the generic device info
+        """
+        Handles the update dispatched by the specific namespace.
+        It is generally used by some mixins such as SystemAllMixin to broadly
+        propagate the data updates on each instance.
+
+        Note: this method is not intended to deal with push notifications, for that rely on
+        `_async_handle_push_notification`.
+        :param namespace: Namespace describing the data payload to handle (result of a GET <NAMESPACE> command).
+        :param data: Result of the command
+        :return: True if the dispatching has been handled correctly. Returns False if the update is unhandled
+        """
+        # The Base implementation only takes care of updating inner_ip and mac_address from
+        # system_all mixin.
         if namespace == Namespace.SYSTEM_ALL:
             # TODO: we might update name/uuid/other stuff in here...
             system = data.get('all', {}).get('system', {})
             self._inner_ip = system.get('firmware', {}).get('innerIp')
             self._mac_address = system.get('hardware', {}).get('macAddress', None)
+            if self._mac_address is not None:
+                self._mac_address = self._mac_address.lower()
 
-        self._last_full_update_ts = time.time() * 1000
+        self._last_full_update_ts = int(time.time() * 1000)
 
         # Even though we handle the event, we return False as we did not handle the event in any way
         # rather than updating the last_full_update_ts
@@ -310,29 +349,28 @@ class BaseDevice(object):
                            *args,
                            **kwargs) -> None:
         """
-        Forces a full data update on the device. If your network bandwidth is limited or you are running
+        Forces a full data update on the device. If your network bandwidth is limited or if you are running
         this program on an embedded device, try to invoke this method only when strictly needed.
         Most of the parameters of a device are updated automatically upon push-notification received
         by the meross MQTT cloud.
         :return: None
         """
-        """
-        # This method should be overridden implemented by mixins and never called directly. Its main
-        # objective is to call the corresponding GET ALL command, which varies in accordance with the
-        # device type. For instance, wifi devices use GET System.Appliance.ALL while HUBs use a different one.
-        # Implementing mixin should never call the super() implementation (as it happens
-        # with _handle_update) as we want to use only an UPDATE_ALL method.
-        # Howe                               ver, we want to keep it within the MerossBaseDevice so that we expose a consistent
-        # interface.
-        """
+        # The BaseDevice implementation does basically nothing. The update is handled generally by
+        # mixin classes. Specifically, Wifi-equipped devices usually rely on the SystemAll Mixin.
+        # Other subclasses might need to override this method to prevent or specialize the default behavior.
         pass
 
-    def dismiss(self):
+    def dismiss(self) -> None:
+        """
+        Perform necessary memory disposal operations on this instance to
+        ensure graceful clean up.
+        :return:
+        """
         self._push_coros.clear()
         pass
 
     @property
-    def default_command_timeout(self):
+    def default_command_timeout(self) -> float:
         """
         Represents the default timeout that is applied to command execution against this device.
         Usually, every method allows to override this timeout via an appropriate timeout argument: that argument
@@ -412,7 +450,7 @@ class BaseDevice(object):
         """
         return False
 
-    def set_encryption_key(self, *args, **kwargs):
+    def set_encryption_key(self, *args, **kwargs) -> None:
         """
         Sets the encryption key to be used for encryption and decryption
         :param args:
@@ -463,8 +501,8 @@ class GenericSubDevice(BaseDevice):
         self._hub = hub
         self._vendor = vendor
         self._subdevice_true_id = subdevice_true_id
-        self._fwversion = kwargs.get('firmware')
-        self._hwversion = kwargs.get('hardware')
+        self._fwversion = kwargs.get('firmware', 'unknown')
+        self._hwversion = kwargs.get('hardware', 'unknown')
 
     def update_subdevice_from_http_state(self, device_info: HttpSubdeviceInfo):
         self._name = device_info.sub_device_name
@@ -562,29 +600,9 @@ class GenericSubDevice(BaseDevice):
         """
         return self._subdevice_id
 
-    def _prepare_push_notification_data(self, data: dict, filter_accessor: str = None) -> Optional[Dict]:
-        if filter_accessor is not None:
-            # Operate only on relative accessor
-            context = data.get(filter_accessor)
-            if context is None:
-                raise ValueError(
-                    "Could not find accessor %s within data %s. This push notification will be ignored." % (
-                        filter_accessor, str(data)))
-            pertinent_notifications = filter(lambda n: n.get('id') == self.subdevice_id, context)
-            next(pertinent_notifications, None)
 
-        else:
-            notification = data.copy()
-            if 'id' in notification:
-                if notification.get('id') != self.subdevice_id:
-                    _LOGGER.error("Ignoring notification %s as it does not target "
-                                  "to subdevice id %s", notification, self.subdevice_id)
-                notification.pop('id')
-            return notification
-
-
-class ChannelInfo(object):
-    def __init__(self, index: int, name: str = None, channel_type: str = None, is_master_channel: bool = False):
+class ChannelInfo:
+    def __init__(self, index: int, name: str | None = None, channel_type: str | None = None, is_master_channel: bool = False):
         self._index = index
         self._name = name
         self._type = channel_type
@@ -592,16 +610,32 @@ class ChannelInfo(object):
 
     @property
     def index(self) -> int:
+        """
+        Index of the channel.
+        :return:
+        """
         return self._index
 
     @property
     def is_usb(self) -> bool:
+        """
+        True if the channel type is USB.
+        :return:
+        """
         return self._type == 'USB'
 
     @property
     def is_master_channel(self) -> bool:
+        """
+        True if this represents the master channel of the device.
+        :return:
+        """
         return self._master
 
     @property
-    def name(self) -> str:
+    def name(self) -> str | None:
+        """
+        Name of the channel.
+        :return:
+        """
         return self._name
