@@ -50,7 +50,7 @@ class AlarmMixin(BaseDevice):
         return locally_handled or parent_handled
 
     @property
-    def last_events(self) -> Deque[Dict]:
+    def alarm_last_events(self) -> Deque[Dict]:
         """
         Returns the last events received from the device.
         :return:

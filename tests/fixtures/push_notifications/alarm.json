@@ -1,0 +1,19 @@
+{
+  "alarm": [
+    {
+      "event": {
+        "interConn": {
+          "timestamp": 1762026355,
+          "source": [
+            {
+              "uuid": "${UUID}",
+              "subId": "${SUB_UUID}"
+            }
+          ],
+          "value": 1
+        }
+      },
+      "channel": 0
+    }
+  ]
+}
