@@ -1,22 +1,28 @@
+"""
+The device module contains the base classes for handling Meross devices.
+"""
+
 from __future__ import annotations
 
 import asyncio
 import logging
 import time
-from datetime import datetime
-from typing import List, Union, Optional, Callable, Awaitable, Dict, Any, Coroutine
-
+from typing import List, Union, Optional, Callable, Awaitable, Dict, Any
+from typing import TYPE_CHECKING
 from meross_iot.model.constants import DEFAULT_MQTT_PORT, DEFAULT_MQTT_HOST, DEFAULT_COMMAND_TIMEOUT
 from meross_iot.model.enums import OnlineStatus, Namespace
 from meross_iot.model.http.device import HttpDeviceInfo
 from meross_iot.model.http.subdevice import HttpSubdeviceInfo
-from meross_iot.model.plugin.hub import BatteryInfo
 from meross_iot.utilities.network import extract_domain, extract_port
+
+
+if TYPE_CHECKING:
+    from meross_iot.controller.mixins.hub import HubMixin
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class BaseDevice(object):
+class BaseDevice:
     """
     A `BaseDevice` is a generic representation of a Meross device.
     Any BaseDevice is characterized by some generic information, such as user's defined
@@ -457,7 +463,7 @@ class BaseDevice(object):
         :param kwargs:
         :return:
         """
-        pass
+        ...
 
     def encrypt(self, message_data_bytes: bytes) -> str:
         """
@@ -487,7 +493,7 @@ class GenericSubDevice(BaseDevice):
                  subdevice_name: str = 'not_discovered', subdevice_type: str = 'not_discovered',
                  subdevice_true_id: str = 'not_discovered',
                  vendor: str = 'not_discovered', **kwargs):
-        hubs = manager.find_devices(device_uuids=(hubdevice_uuid,))  # type: List['HubMixin']
+        hubs = manager.find_devices(device_uuids=(hubdevice_uuid,))  # type: List[HubMixin]
         if len(hubs) < 1:
             raise ValueError("Specified hub device is not present")
         hub = hubs[0]
@@ -540,23 +546,6 @@ class GenericSubDevice(BaseDevice):
         # The base handler, will just do nothing.
         return locally_handled
 
-    # TODO: move this into a separate mixin
-    async def async_get_battery_life(self,
-                                     timeout: Optional[float] = None,
-                                     *args,
-                                     **kwargs) -> BatteryInfo:
-        """
-        Polls the HUB/DEVICE to get its current battery status.
-        :return:
-        """
-        data = await self._hub._execute_command(method='GET',
-                                                namespace=Namespace.HUB_BATTERY,
-                                                payload={'battery': [{'id': self.subdevice_id}]},
-                                                timeout=timeout)
-        battery_life_perc = data.get('battery', {})[0].get('value')
-        timestamp = datetime.utcnow()
-        return BatteryInfo(battery_charge=battery_life_perc, sample_ts=timestamp)
-
     async def _async_handle_push_notification(self, namespace: Namespace, data: Any) -> bool:
         """
         Handles SubDevice state update based on PushNotifications.
@@ -574,9 +563,6 @@ class GenericSubDevice(BaseDevice):
         if namespace in (Namespace.SYSTEM_ONLINE, Namespace.HUB_ONLINE):
             self._online = OnlineStatus(data['online']['status'])
             self._last_active_time = data['online']['lastActiveTime']
-            locally_handled = True
-        elif namespace == Namespace.HUB_BATTERY:
-            self._battery = data['battery']['value']
             locally_handled = True
         elif namespace == Namespace.HUB_UNBIND:
             self._online = OnlineStatus.UNKNOWN

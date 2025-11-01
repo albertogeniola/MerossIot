@@ -6,7 +6,6 @@ from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 from meross_iot.controller.subdevice_mixins.ms100_sensor import Ms100Mixin
 from meross_iot.manager import MerossManager
 from meross_iot.model.enums import OnlineStatus
-from meross_iot.model.plugin.hub import BatteryInfo
 from tests import async_get_client
 
 
@@ -43,24 +42,3 @@ class TestSensor(AioHTTPTestCase):
 
         self.assertIsNotNone(dev.last_sampled_temperature)
         self.assertIsNotNone(dev.last_sampled_time)
-
-    @unittest_run_loop
-    async def test_battery(self):
-        if len(self.test_devices) < 1:
-            self.skipTest("No sensor device has been found to run this test.")
-
-        dev = self.test_devices[0]
-        print(f"Testing device {dev.name}")
-        await dev.async_update()
-        res = await dev.async_get_battery_life()
-
-        self.assertIsInstance(res, BatteryInfo)
-        self.assertGreater(res.remaining_charge, 0)
-
-    async def tearDownAsync(self):
-        if self.requires_logout:
-            await self.meross_client.async_logout()
-        self.meross_manager.close()
-
-        # Give a change to asyncio clean everything up
-        await asyncio.sleep(1)
