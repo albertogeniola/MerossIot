@@ -1,6 +1,10 @@
+"""
+This module contains the Mixins related to alarms functionalities.
+"""
+
 import logging
 from collections import deque
-from typing import Any
+from typing import Any, Dict, Deque
 
 from meross_iot.controller.device import BaseDevice
 from meross_iot.model.enums import Namespace
@@ -11,7 +15,11 @@ _MAX_ALARM_EVENTS_MEMORY = 10
 
 
 class AlarmMixin(BaseDevice):
-    __last_alarm_events: deque
+    """
+    Handles the events and the functionalities related to the
+    `Namespace.CONTROL_ALARM` namespace.
+    """
+    __last_alarm_events: Deque[Dict]
 
     def __init__(self, device_uuid: str,
                  manager,
@@ -23,10 +31,16 @@ class AlarmMixin(BaseDevice):
     #  does not carry information about latest alarms.
 
     async def _async_handle_push_notification(self, namespace: Namespace, data: Any) -> bool:
+        """
+        Handles push notification updates
+        :param namespace: Push notification header
+        :param data: Push notification data
+        :return:
+        """
         locally_handled = False
         if namespace == Namespace.CONTROL_ALARM:
             # Note: we are not storing the channel the alarm refers to.
-            _LOGGER.debug(f"AlarmMixin handling push notification for namespace {namespace}")
+            _LOGGER.debug("AlarmMixin handling push notification for namespace %s", str(namespace))
             self.__last_alarm_events.append(data['alarm'][0]['event']['interConn']['value'])
             locally_handled = True
 
@@ -36,5 +50,9 @@ class AlarmMixin(BaseDevice):
         return locally_handled or parent_handled
 
     @property
-    def last_events(self):
+    def last_events(self) -> Deque[Dict]:
+        """
+        Returns the last events received from the device.
+        :return:
+        """
         return self.__last_alarm_events.copy()
