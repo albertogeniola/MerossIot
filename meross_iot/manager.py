@@ -17,6 +17,7 @@ import paho.mqtt.client as mqtt
 from aiohttp import ClientSession
 
 from meross_iot.controller.device import BaseDevice, GenericSubDevice
+from meross_iot.controller.mixins.encryption import EncryptionSuiteMixin
 from meross_iot.controller.mixins.hub import HubMixin
 from meross_iot.device_factory import (
     build_meross_device_from_abilities,
@@ -872,12 +873,12 @@ class MerossManager(object):
         # Send the message over the network
         # Build the mqtt message we will send to the broker
         message, message_id = self._build_mqtt_message(method, namespace, payload, destination_device_uuid)
-        device: BaseDevice = self._device_registry.lookup_base_by_uuid(destination_device_uuid)
+        device: BaseDevice | EncryptionSuiteMixin = self._device_registry.lookup_base_by_uuid(destination_device_uuid)
 
         async with ClientSession() as session:
             message_data = message_id
             decrypt_response = False
-            if device.support_encryption():
+            if isinstance(device, EncryptionSuiteMixin):
                 # Ensure we have correctly set the encryption key. If not, set it right away
                 if not device.is_encryption_key_set():
                     device.set_encryption_key(uuid=device.uuid, mrskey=self._cloud_creds.key, mac=device.mac_address)
