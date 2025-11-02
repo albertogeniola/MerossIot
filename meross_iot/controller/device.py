@@ -16,6 +16,9 @@ from meross_iot.model.http.subdevice import HttpSubdeviceInfo
 from meross_iot.utilities.network import extract_domain, extract_port
 
 
+DISABLE_ASYNC_UPDATE_WARNING = False
+
+
 if TYPE_CHECKING:
     from meross_iot.controller.mixins.hub import HubMixin
 
@@ -160,7 +163,7 @@ class BaseDevice:
         :return:
         """
         update_done = self._last_full_update_ts is not None
-        if not update_done:
+        if not update_done and not DISABLE_ASYNC_UPDATE_WARNING:
             _LOGGER.warning(f"Please invoke async_update() for this device ({self._name}) "
                           "before accessing its state. Failure to do so may result in inconsistent state.")
         return update_done
