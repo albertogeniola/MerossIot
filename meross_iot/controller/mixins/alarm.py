@@ -54,7 +54,8 @@ class AlarmMixin(BaseDevice):
         locally_handled = False
         if namespace == Namespace.CONTROL_ALARM:
             # Note: we are not storing the channel the alarm refers to.
-            _LOGGER.debug("AlarmMixin handling push notification for namespace %s", str(namespace))
+            _LOGGER.debug("%s handling push notification for namespace %s", self.__class__.__name__, namespace,
+                          str(namespace))
             self.__handle_alarm_data(data['alarm'])
             locally_handled = True
 
@@ -77,6 +78,7 @@ class AlarmMixin(BaseDevice):
         Returns the last events received from the device.
         :return:
         """
+        self.check_full_update_done()
         return self.__last_alarm_events.copy()
 
     def __handle_alarm_data(self, data: List[Dict]) -> None:

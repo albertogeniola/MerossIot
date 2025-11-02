@@ -161,7 +161,7 @@ class BaseDevice:
         """
         update_done = self._last_full_update_ts is not None
         if not update_done:
-            _LOGGER.error(f"Please invoke async_update() for this device ({self._name}) "
+            _LOGGER.warning(f"Please invoke async_update() for this device ({self._name}) "
                           "before accessing its state. Failure to do so may result in inconsistent state.")
         return update_done
 
