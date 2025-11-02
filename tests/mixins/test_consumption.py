@@ -8,14 +8,14 @@ from meross_iot.manager import MerossManager
 
 @pytest.fixture()
 def device_x(manager_mock: MerossManager, replacer_mock: Dict[str, Any]) -> Generator[ConsumptionXMixin, Any, None]:
-    alarm_mock_device = ConsumptionXMixin(device_uuid=replacer_mock["UUID"], manager=manager_mock)
-    yield alarm_mock_device
+    dev = ConsumptionXMixin(device_uuid=replacer_mock["UUID"], manager=manager_mock)
+    yield dev
 
 
 @pytest.fixture()
 def device(manager_mock: MerossManager, replacer_mock: Dict[str, Any]) -> Generator[ConsumptionMixin, Any, None]:
-    alarm_mock_device = ConsumptionMixin(device_uuid=replacer_mock["UUID"], manager=manager_mock)
-    yield alarm_mock_device
+    dev = ConsumptionMixin(device_uuid=replacer_mock["UUID"], manager=manager_mock)
+    yield dev
 
 
 # We are not testing push notifications here, as the CONSUMPTION
