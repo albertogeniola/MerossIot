@@ -51,6 +51,7 @@ class BaseConsumptionXMixin(BaseDevice):
         Returns the daily power consumption data
         :return:
         """
+        self.check_full_update_done()
         return self.__consumption_x.copy()
 
     async def async_consumption_fetch_summary(self,
