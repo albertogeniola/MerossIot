@@ -1,21 +1,69 @@
-from typing import Any, Generator, Dict, Callable
+from typing import Any, Generator, Dict
 
 import pytest
 
-from meross_iot.controller.mixins.consumption import ConsumptionXMixin
+from meross_iot.controller.mixins.consumption import ConsumptionXMixin, ConsumptionMixin
 from meross_iot.manager import MerossManager
-from meross_iot.model.enums import Namespace
 
 
 @pytest.fixture()
-def device(manager_mock: MerossManager, replacer_mock: Dict[str, Any]) -> Generator[ConsumptionXMixin, Any, None]:
+def device_x(manager_mock: MerossManager, replacer_mock: Dict[str, Any]) -> Generator[ConsumptionXMixin, Any, None]:
     alarm_mock_device = ConsumptionXMixin(device_uuid=replacer_mock["UUID"], manager=manager_mock)
     yield alarm_mock_device
+
+
+@pytest.fixture()
+def device(manager_mock: MerossManager, replacer_mock: Dict[str, Any]) -> Generator[ConsumptionMixin, Any, None]:
+    alarm_mock_device = ConsumptionMixin(device_uuid=replacer_mock["UUID"], manager=manager_mock)
+    yield alarm_mock_device
+
 
 # We are not testing push notifications here, as the CONSUMPTION
 # mixin seems not to send any
 
-async def test_refresh_last_event(device: ConsumptionXMixin,
+
+async def test_refresh_last_event_x(device_x: ConsumptionXMixin,
+                                    manager_mock,
+                                    replacer_mock: Dict[str, Any]):
+    """
+    Tests the capabilities of retrieving last consumption data.
+    :param device:
+    :param replacer_mock:
+    :return:
+    """
+    # Before initialization, the event list must be empty
+    assert len(device_x.consumption_daily_summary) == 0
+
+    # Simulate updating the device state
+    with manager_mock.mock_execute_command("GET", "CONTROL_CONSUMPTIONX", replacer_mock):
+        await device_x.async_consumption_fetch_summary()
+
+    # Make sure we now have the event.
+    assert len(device_x.consumption_daily_summary) == 30
+
+
+async def test_update_x(device_x: ConsumptionXMixin,
+                        manager_mock,
+                        replacer_mock: Dict[str, Any]):
+    """
+    Test async_update functionality
+    :param device:
+    :param manager_mock:
+    :param replacer_mock:
+    :return:
+    """
+    # Before initialization, the summary list must be empty
+    assert len(device_x.consumption_daily_summary) == 0
+
+    # Simulate updating the device state
+    with manager_mock.mock_execute_command("GET", "CONTROL_CONSUMPTIONX", replacer_mock):
+        await device_x.async_update()
+
+    # Make sure we now have the event.
+    assert len(device_x.consumption_daily_summary) == 30
+
+
+async def test_refresh_last_event(device: ConsumptionMixin,
                                   manager_mock,
                                   replacer_mock: Dict[str, Any]):
     """
@@ -24,18 +72,18 @@ async def test_refresh_last_event(device: ConsumptionXMixin,
     :param replacer_mock:
     :return:
     """
-    # Before initialization, the summary must be empty
+    # Before initialization, the event list must be empty
     assert len(device.consumption_daily_summary) == 0
 
     # Simulate updating the device state
-    with manager_mock.mock_execute_command("GET", "CONTROL_CONSUMPTIONX", replacer_mock):
+    with manager_mock.mock_execute_command("GET", "CONTROL_CONSUMPTION", replacer_mock):
         await device.async_consumption_fetch_summary()
 
     # Make sure we now have the event.
-    assert len(device.consumption_daily_summary) == 30  # We expect 30 samples
+    assert len(device.consumption_daily_summary) == 30
 
 
-async def test_update(device: ConsumptionXMixin,
+async def test_update(device: ConsumptionMixin,
                       manager_mock,
                       replacer_mock: Dict[str, Any]):
     """
@@ -45,12 +93,12 @@ async def test_update(device: ConsumptionXMixin,
     :param replacer_mock:
     :return:
     """
-    # Before initialization, the summary must be empty
+    # Before initialization, the summary list must be empty
     assert len(device.consumption_daily_summary) == 0
 
     # Simulate updating the device state
-    with manager_mock.mock_execute_command("GET", "CONTROL_CONSUMPTIONX", replacer_mock):
-        await device.async_consumption_fetch_summary()
+    with manager_mock.mock_execute_command("GET", "CONTROL_CONSUMPTION", replacer_mock):
+        await device.async_update()
 
     # Make sure we now have the event.
-    assert len(device.consumption_daily_summary) == 30  # We expect 30 samples
+    assert len(device.consumption_daily_summary) == 30
