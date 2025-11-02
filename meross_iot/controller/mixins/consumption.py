@@ -4,7 +4,7 @@ This module contains the Mixins related to alarms power consumption.
 
 import logging
 from datetime import datetime
-from typing import List, Dict
+from typing import List, Dict, Any
 
 from meross_iot.controller.device import BaseDevice
 from meross_iot.model.enums import Namespace
@@ -29,18 +29,34 @@ class BaseConsumptionXMixin(BaseDevice):
         self.__accessor = accessor
         self.__consumption_x: List[Dict] = []
 
+    # Note: we are not overriding async_handle_update, as it seems the SYSTEM_ALL update
+    #  does not carry information about daily power consumption.
+
+    async def async_update(self, *args, **kwargs) -> None:
+        """
+        Forces a full data update on the device.
+        """
+        # Let's call the super implementation first (bubbling up).
+        await super().async_update()
+
+        # Let's enrich the state update
+        await self.async_consumption_fetch_summary()
+
+    # Note: we are not overriding _async_handle_push_notification, as it seems there
+    # is no CONSUMPTIONX or CONSUMPTION push notifications being dispatched.
+
     @property
-    def daily_power_consumption(self) -> List[Dict[datetime, float]]:
+    def consumption_daily_summary(self) -> List[Dict]:
         """
         Returns the daily power consumption data
         :return:
         """
         return self.__consumption_x.copy()
 
-    async def async_update_daily_power_consumption(self,
-                                                   channel=0,
-                                                   timeout: float | None = None,
-                                                   *args, **kwargs) -> List[Dict[datetime, float]]:
+    async def async_consumption_fetch_summary(self,
+                                              channel=0,
+                                              timeout: float | None = None,
+                                              *args, **kwargs) -> List[Dict]:
         """
         Returns the power consumption registered by this device.
         :param channel: channel to read data from
@@ -52,10 +68,10 @@ class BaseConsumptionXMixin(BaseDevice):
                                                    timeout=timeout)
 
         data: List[Dict] = result[self.__accessor]
-        self._handle_daily_power_consumption(data)
-        return self.daily_power_consumption
+        self.__handle_consumption_data(data)
+        return self.consumption_daily_summary
 
-    def _handle_daily_power_consumption(self, data: List[Dict]) -> None:
+    def __handle_consumption_data(self, data: List[Dict]) -> None:
         self.__consumption_x = [{
             'date': datetime.strptime(x['date'], _DATE_FORMAT),
             'total_consumption_kwh': float(x['value']) / 1000

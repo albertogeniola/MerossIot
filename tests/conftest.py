@@ -15,14 +15,17 @@ _PUSH_SERIALIZED_FIXTURES_PATH = os.path.join(cur_dir, "fixtures", "push_notific
 _MQTT_RESPONSE_PAYLOADS_SERIALIZED_FIXTURES_PATH = os.path.join(cur_dir, "fixtures", "mqtt_response_payloads")
 
 
-@pytest.fixture
-def uuid_mock() -> str:
-    return "11111111111111111111111111111111"
-
 
 @pytest.fixture
-def sub_uuid_mock() -> str:
-    return "111111111111"
+def replacer_mock() -> Dict[str, Any]:
+    return {
+        "UUID": "11111111111111111111111111111111",
+        "SUB_UUID": "111111111111",
+        "MAC_ADDRESS": "a1:a1:a1:a1:a1:a1",
+        "WIFI_MAC": "a1:a1:a1:a1:a1:a1",
+        "USER_ID": "9999999",
+        "INNER_IP": "192.168.1.10"
+    }
 
 
 class CommandExecuteMocker:
