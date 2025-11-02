@@ -3,8 +3,7 @@ This module contains the Mixins related to alarms functionalities.
 """
 
 import logging
-from collections import deque
-from typing import Any, Dict, Deque, List
+from typing import Any, Dict, List
 
 from meross_iot.controller.device import BaseDevice
 from meross_iot.model.enums import Namespace
