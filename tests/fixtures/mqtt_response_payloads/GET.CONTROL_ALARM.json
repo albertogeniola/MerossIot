@@ -1,1 +1,1 @@
-{"alarm":[{"channel":0,"event":{"interConn":{"value":2,"timestamp":1762081275,"source":[{"uuid":"25051373484278620801c4e7ae1742ad","subId":"151011100BE9"}]},"security":{"value":2,"timestamp":0}}}]}
+{"alarm":[{"channel":0,"event":{"interConn":{"value":2,"timestamp":1762081275,"source":[{"uuid":"${UUID}","subId":"${SUB_UUID}"}]},"security":{"value":2,"timestamp":0}}}]}

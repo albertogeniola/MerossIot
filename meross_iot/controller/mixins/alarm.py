@@ -42,7 +42,7 @@ class AlarmMixin(BaseDevice):
         await super().async_update()
 
         # Let's enrich the state update
-        await self.alarm_refresh_last_event()
+        await self.async_alarm_fetch_events()
 
     async def _async_handle_push_notification(self, namespace: Namespace, data: Any) -> bool:
         """
@@ -63,7 +63,7 @@ class AlarmMixin(BaseDevice):
         parent_handled = await super()._async_handle_push_notification(namespace=namespace, data=data)
         return locally_handled or parent_handled
 
-    async def alarm_refresh_last_event(self) -> None:
+    async def async_alarm_fetch_events(self) -> None:
         """
         Queries the HUB regarding the last alarm events
         :return:
