@@ -1,0 +1,13 @@
+{
+  "light": [
+    {
+      "channel": 0,
+      "lmTime": 1762116220,
+      "luminance": 100,
+      "mode": 0,
+      "onoff": 1,
+      "rgb": 16711680
+    }
+  ],
+  "type": "mod100"
+}

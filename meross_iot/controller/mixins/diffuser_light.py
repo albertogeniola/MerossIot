@@ -45,18 +45,13 @@ class DiffuserLightMixin(BaseDevice):
         if namespace == Namespace.DIFFUSER_LIGHT:
             _LOGGER.debug("%s handling push notification for namespace %s", self.__class__.__name__, namespace,
                           str(namespace))
-            payload = data.get('light')
-            if payload is None:
-                _LOGGER.error(f"{self.__class__.__name__} could not find 'light' attribute in push notification data: "
-                              f"{data}")
-                locally_handled = False
-            else:
-                # Update the status of every channel that has been reported in this push
-                # notification.
-                for c in payload:
-                    channel = c['channel']
-                    self.__diffuser_light_status_by_channel[channel] = c
-                locally_handled = True
+            payload = data['light']
+            # Update the status of every channel that has been reported in this push
+            # notification.
+            for c in payload:
+                channel = c['channel']
+                self.__diffuser_light_status_by_channel[channel] = c
+            locally_handled = True
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
         parent_handled = await super()._async_handle_push_notification(namespace=namespace, data=data)
