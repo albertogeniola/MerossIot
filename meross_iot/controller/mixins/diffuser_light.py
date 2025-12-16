@@ -5,7 +5,7 @@ This module contains the Mixins related to diffuser light functionalities.
 import logging
 from typing import Optional, Dict
 
-from meross_iot.controller.device import BaseDevice
+from meross_iot.controller.device import BaseDevice, ensure_full_update
 from meross_iot.model.enums import Namespace, DiffuserLightMode
 from meross_iot.model.typing import RgbTuple
 from meross_iot.utilities.conversion import rgb_to_int, int_to_rgb
@@ -57,64 +57,54 @@ class DiffuserLightMixin(BaseDevice):
         parent_handled = await super()._async_handle_push_notification(namespace=namespace, data=data)
         return locally_handled or parent_handled
 
-    def diffuser_light_get_mode(self, channel: int = 0, *args, **kwargs) -> DiffuserLightMode | None:
+    @ensure_full_update
+    def diffuser_light_get_mode(self, channel: int = 0, *args, **kwargs) -> DiffuserLightMode:
         """
         Returns the operating mode for this device
         :param channel: channel to fetch info from
         :return:
         """
-        if not self.check_full_update_done():
-            return None
         if channel not in self.__diffuser_light_status_by_channel:
             raise ValueError("Invalid or unsupported channel specified")
-        mode = self.__diffuser_light_status_by_channel[channel].get("mode")
-        if mode is None:
-            return None
-        else:
-            return DiffuserLightMode(mode)
+        mode = self.__diffuser_light_status_by_channel[channel]["mode"]
+        return DiffuserLightMode(mode)
 
-    def diffuser_light_get_brightness(self, channel: int = 0, *args, **kwargs) -> int | None:
+    @ensure_full_update
+    def diffuser_light_get_brightness(self, channel: int = 0, *args, **kwargs) -> int:
         """
         Returns the current configured led brightness
         :param channel: channel index to fetch info from
         :return:
         """
-        if not self.check_full_update_done():
-            return None
         if channel not in self.__diffuser_light_status_by_channel:
             raise ValueError("Invalid or unsupported channel specified")
-        return self.__diffuser_light_status_by_channel[channel].get("luminance")
+        return self.__diffuser_light_status_by_channel[channel]["luminance"]
 
-    def diffuser_light_get_rgb_color(self, channel=0, *args, **kwargs) -> RgbTuple | None:
+    @ensure_full_update
+    def diffuser_light_get_rgb_color(self, channel=0, *args, **kwargs) -> RgbTuple:
         """
         Returns the current RGB configuration of the device.
         :param channel: channel to control, defaults to 0.
         :return: a Tuple containing three integer 8bits values (red, green, blue)
         """
-        if not self.check_full_update_done():
-            return None
         if channel not in self.__diffuser_light_status_by_channel:
             raise ValueError("Invalid or unsupported channel specified")
-        info = self.__diffuser_light_status_by_channel[channel].get('rgb')
-        if info is None:
-            return None
+        info = self.__diffuser_light_status_by_channel[channel]['rgb']
         return int_to_rgb(info)
 
-    def diffuser_light_get_is_on(self, channel: int = 0, *args, **kwargs) -> bool | None:
+    @ensure_full_update
+    def diffuser_light_get_is_on(self, channel: int = 0, *args, **kwargs) -> bool:
         """
         Returns True if the light is ON, False otherwise.
         :param channel: channel to control, defaults to 0 (bulbs generally have only one channel)
         :return: current onoff state
         """
-        if not self.check_full_update_done():
-            return None
         if channel not in self.__diffuser_light_status_by_channel:
             raise ValueError("Invalid or unsupported channel specified")
-        onoff = self.__diffuser_light_status_by_channel[channel].get('onoff')
-        if onoff is None:
-            return None
+        onoff = self.__diffuser_light_status_by_channel[channel]['onoff']
         return onoff == 1
 
+    @ensure_full_update
     async def async_diffuser_light_set_light_mode(self, channel: int = 0, onoff: bool = None,
                                                   mode: DiffuserLightMode = None,
                                                   brightness: int = None, rgb: Optional[RgbTuple] = None,
@@ -144,10 +134,9 @@ class DiffuserLightMixin(BaseDevice):
                                     payload=payload,
                                     timeout=timeout)
         # Immediately update local state
-        if channel not in self.__diffuser_light_status_by_channel:
-            self.__diffuser_light_status_by_channel[channel] = {}
         self.__diffuser_light_status_by_channel[channel].update(light_payload)
 
+    @ensure_full_update
     async def async_diffuser_light_turn_on(self, channel:int=0, *args, **kwargs) -> None:
         """
         Turns on the light of the diffuser.
@@ -159,6 +148,7 @@ class DiffuserLightMixin(BaseDevice):
         await self.async_diffuser_light_set_light_mode(channel=channel, onoff=True)
         # No need to update local state as this is done by the set_light_mode method
 
+    @ensure_full_update
     async def async_diffuser_light_turn_off(self, channel=0, *args, **kwargs) -> None:
         """
         Turns off the light of the diffuser

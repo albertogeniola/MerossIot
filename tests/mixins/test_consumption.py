@@ -4,6 +4,8 @@ import pytest
 
 from meross_iot.controller.mixins.consumption import ConsumptionXMixin, ConsumptionMixin
 from meross_iot.manager import MerossManager
+from meross_iot.model.enums import Namespace
+from meross_iot.model.exception import OutOfSyncError
 
 
 @pytest.fixture()
@@ -24,6 +26,7 @@ def device(manager_mock: MerossManager, replacer_mock: Dict[str, Any]) -> Genera
 
 async def test_refresh_last_event_x(device_x: ConsumptionXMixin,
                                     manager_mock,
+                                    handle_update_fixture_getter,
                                     replacer_mock: Dict[str, Any]):
     """
     Tests the capabilities of retrieving last consumption data.
@@ -31,8 +34,9 @@ async def test_refresh_last_event_x(device_x: ConsumptionXMixin,
     :param replacer_mock:
     :return:
     """
-    # Before initialization, the event list must be empty
-    assert len(device_x.consumption_daily_summary) == 0
+    # Simulate updating the device state
+    await device_x.async_handle_update(namespace=Namespace.SYSTEM_ALL,
+                                       data=handle_update_fixture_getter("mss310", replacer_mock))
 
     # Simulate updating the device state
     with manager_mock.mock_execute_command("GET", "CONTROL_CONSUMPTIONX", replacer_mock):
@@ -44,6 +48,7 @@ async def test_refresh_last_event_x(device_x: ConsumptionXMixin,
 
 async def test_update_x(device_x: ConsumptionXMixin,
                         manager_mock,
+                        handle_update_fixture_getter,
                         replacer_mock: Dict[str, Any]):
     """
     Test async_update functionality
@@ -52,8 +57,9 @@ async def test_update_x(device_x: ConsumptionXMixin,
     :param replacer_mock:
     :return:
     """
-    # Before initialization, the summary list must be empty
-    assert len(device_x.consumption_daily_summary) == 0
+    # Simulate updating the device state
+    await device_x.async_handle_update(namespace=Namespace.SYSTEM_ALL,
+                                       data=handle_update_fixture_getter("mss310", replacer_mock))
 
     # Simulate updating the device state
     with manager_mock.mock_execute_command("GET", "CONTROL_CONSUMPTIONX", replacer_mock):
@@ -65,6 +71,7 @@ async def test_update_x(device_x: ConsumptionXMixin,
 
 async def test_refresh_last_event(device: ConsumptionMixin,
                                   manager_mock,
+                                  handle_update_fixture_getter,
                                   replacer_mock: Dict[str, Any]):
     """
     Tests the capabilities of retrieving last consumption data.
@@ -72,8 +79,9 @@ async def test_refresh_last_event(device: ConsumptionMixin,
     :param replacer_mock:
     :return:
     """
-    # Before initialization, the event list must be empty
-    assert len(device.consumption_daily_summary) == 0
+    # Simulate updating the device state
+    await device.async_handle_update(namespace=Namespace.SYSTEM_ALL,
+                                       data=handle_update_fixture_getter("mss310", replacer_mock))
 
     # Simulate updating the device state
     with manager_mock.mock_execute_command("GET", "CONTROL_CONSUMPTION", replacer_mock):
@@ -85,6 +93,7 @@ async def test_refresh_last_event(device: ConsumptionMixin,
 
 async def test_update(device: ConsumptionMixin,
                       manager_mock,
+                      handle_update_fixture_getter,
                       replacer_mock: Dict[str, Any]):
     """
     Test async_update functionality
@@ -93,8 +102,9 @@ async def test_update(device: ConsumptionMixin,
     :param replacer_mock:
     :return:
     """
-    # Before initialization, the summary list must be empty
-    assert len(device.consumption_daily_summary) == 0
+    # Simulate updating the device state
+    await device.async_handle_update(namespace=Namespace.SYSTEM_ALL,
+                                       data=handle_update_fixture_getter("mss310", replacer_mock))
 
     # Simulate updating the device state
     with manager_mock.mock_execute_command("GET", "CONTROL_CONSUMPTION", replacer_mock):

@@ -23,3 +23,11 @@ class CommandError(Exception):
 
 class UnknownDeviceType(Exception):
     pass
+
+
+class OutOfSyncError(Exception):
+    """
+    Raised in case an entity has not been synchronized
+    and requires a full update().
+    """
+    pass

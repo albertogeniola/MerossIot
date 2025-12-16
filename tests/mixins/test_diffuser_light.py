@@ -5,6 +5,7 @@ import pytest
 from meross_iot.controller.mixins.diffuser_light import DiffuserLightMixin
 from meross_iot.manager import MerossManager
 from meross_iot.model.enums import Namespace
+from meross_iot.model.exception import OutOfSyncError
 
 
 @pytest.fixture()
@@ -22,8 +23,9 @@ async def test_async_handle_update(device: DiffuserLightMixin,
     :param replacer_mock:
     :return:
     """
-    # Before initialization, the light state should be undefined
-    assert device.diffuser_light_get_is_on() is None
+    # Attempting to access before async_update must trigger OutOfSync error
+    with pytest.raises(OutOfSyncError):
+        assert device.diffuser_light_get_is_on() is None
 
     # Simulate updating the device state
     await device.async_handle_update(namespace=Namespace.SYSTEM_ALL,

@@ -6,7 +6,7 @@ import logging
 from datetime import datetime
 from typing import List, Dict, Any
 
-from meross_iot.controller.device import BaseDevice
+from meross_iot.controller.device import BaseDevice, ensure_full_update
 from meross_iot.model.enums import Namespace
 
 _LOGGER = logging.getLogger(__name__)
@@ -46,12 +46,12 @@ class BaseConsumptionXMixin(BaseDevice):
     # is no CONSUMPTIONX or CONSUMPTION push notifications being dispatched.
 
     @property
+    @ensure_full_update
     def consumption_daily_summary(self) -> List[Dict]:
         """
         Returns the daily power consumption data
         :return:
         """
-        self.check_full_update_done()
         return self.__consumption_x.copy()
 
     async def async_consumption_fetch_summary(self,

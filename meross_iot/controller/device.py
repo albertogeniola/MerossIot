@@ -5,15 +5,18 @@ The device module contains the base classes for handling Meross devices.
 from __future__ import annotations
 
 import asyncio
+import inspect
 import logging
 import time
-from typing import List, Union, Optional, Callable, Awaitable, Dict, Any
+from typing import List, Union, Optional, Callable, Awaitable, Dict, Any, Coroutine
 from typing import TYPE_CHECKING
 from meross_iot.model.constants import DEFAULT_MQTT_PORT, DEFAULT_MQTT_HOST, DEFAULT_COMMAND_TIMEOUT
 from meross_iot.model.enums import OnlineStatus, Namespace
+from meross_iot.model.exception import OutOfSyncError
 from meross_iot.model.http.device import HttpDeviceInfo
 from meross_iot.model.http.subdevice import HttpSubdeviceInfo
 from meross_iot.utilities.network import extract_domain, extract_port
+from functools import wraps
 
 
 DISABLE_ASYNC_UPDATE_WARNING = False
@@ -65,6 +68,10 @@ class BaseDevice:
       Internally, this method is called by async_dispatch_push_notification(), before any registered
       event handler is Notified. In this way, Devices and SubDevices are expected to provide
       updated data when push notifications are handled by external handlers (registered by the user).
+
+    A device can implement one or more channels. A channel represents a specific actuator or
+    sensor on the device. Complex devices can have multiple channels. For instance, a power
+    strip can have multiple switch channels, each one controlling a single socket.
 
     """
     _name: str = "unknown"
@@ -589,3 +596,31 @@ class ChannelInfo:
         :return:
         """
         return self._name
+
+
+def _check_update_or_raise(device: BaseDevice, f: Callable ) -> None:
+    if not device.check_full_update_done():
+        raise OutOfSyncError(f"Attempting to call a method ({f.__name__}) on device {device.name} "
+                             f"({device.type}) before a full update was performed.")
+
+
+def ensure_full_update(f):
+    """
+    This decorator ensures the called function is invoked only if a full-update
+    was priorly executed successfully on the instance.
+    In case that is not the case, it throws an exception of type "OutOfSyncError".
+    :param f:
+    :return:
+    """
+    if inspect.iscoroutinefunction(f):
+        @wraps(f)
+        async def wrapper(*args, **kwargs):
+            _check_update_or_raise(args[0], f)
+            return await f(*args, **kwargs)
+    else:
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            _check_update_or_raise(args[0],f )
+            return f(*args, **kwargs)
+    return wrapper
+

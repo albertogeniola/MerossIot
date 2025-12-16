@@ -1,15 +1,21 @@
-import logging
-from typing import Optional
+"""
+This module contains the Mixins related to diffuser spray functionalities.
+"""
 
+import logging
+from typing import Optional, Dict
+
+from meross_iot.controller.device import BaseDevice, ensure_full_update
 from meross_iot.model.enums import Namespace, DiffuserSprayMode
 
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class DiffuserSprayMixin(object):
-    _execute_command: callable
-    check_full_update_done: callable
+class DiffuserSprayMixin(BaseDevice):
+    """
+    Handles the capabilities offered by `Namespace.DIFFUSER_SPRAY` namespace.
+    """
 
     def __init__(self, device_uuid: str,
                  manager,
@@ -17,26 +23,24 @@ class DiffuserSprayMixin(object):
         super().__init__(device_uuid=device_uuid, manager=manager, **kwargs)
 
         # Dictionary keeping the status for every channel
-        self._channel_diffuser_spray_status = {}
+        self.__diffuser_spray_status_by_channel: Dict[int, Dict] = {}
+
+    # We don't override async_update, as the SYSTEM_ALL data brings all the necessary
+    # info this mixin needs.
 
     async def _async_handle_push_notification(self, namespace: Namespace, data: dict) -> bool:
         locally_handled = False
 
         if namespace == Namespace.DIFFUSER_SPRAY:
             _LOGGER.debug(f"{self.__class__.__name__} handling push notification for namespace {namespace}")
-            payload = data.get('spray')
-            if payload is None:
-                _LOGGER.error(f"{self.__class__.__name__} could not find 'spray' attribute in push notification data: "
-                              f"{data}")
-                locally_handled = False
-            else:
-                # Update the status of every channel that has been reported in this push
-                # notification.
-                for c in payload:
-                    channel = c['channel']
-                    self._channel_diffuser_spray_status[channel] = c
+            payload = data['spray']
+            # Update the status of every channel that has been reported in this push
+            # notification.
+            for c in payload:
+                channel = c['channel']
+                self.__diffuser_spray_status_by_channel[channel] = c
 
-                locally_handled = True
+            locally_handled = True
 
         # Always call the parent handler when done with local specific logic. This gives the opportunity to all
         # ancestors to catch all events.
@@ -47,16 +51,17 @@ class DiffuserSprayMixin(object):
         _LOGGER.debug(f"Handling {self.__class__.__name__} mixin data update.")
         locally_handled = False
         if namespace == Namespace.SYSTEM_ALL:
-            diffuser_data = data.get('all', {}).get('digest', {}).get('diffuser', {}).get('spray',[])
+            diffuser_data = data.get('all', {}).get('digest', {}).get('diffuser', {}).get('spray', [])
             for l in diffuser_data:
                 channel = l['channel']
-                self._channel_diffuser_spray_status[channel] = l
+                self.__diffuser_spray_status_by_channel[channel] = l
             locally_handled = True
 
         super_handled = await super().async_handle_update(namespace=namespace, data=data)
         return super_handled or locally_handled
 
-    def get_current_spray_mode(self, channel: int = 0, *args, **kwargs) -> Optional[DiffuserSprayMode]:
+    @ensure_full_update
+    def diffuser_spray_get_mode(self, channel: int = 0, *args, **kwargs) -> DiffuserSprayMode:
         """
         Returns the current spray mode
         :param channel: channel to fetch info from
@@ -64,12 +69,11 @@ class DiffuserSprayMixin(object):
         :param kwargs:
         :return:
         """
-        mode = self._channel_diffuser_spray_status.get(channel, {}).get('mode')
-        if mode is not None:
-            return DiffuserSprayMode(mode)
-        return None
+        mode = self.__diffuser_spray_status_by_channel[channel]['mode']
+        return DiffuserSprayMode(mode)
 
-    async def async_set_spray_mode(self, mode: DiffuserSprayMode, channel: int = 0, timeout: Optional[float] = None, *args, **kwargs) -> None:
+    @ensure_full_update
+    async def async_diffuser_spray_set_mode(self, mode: DiffuserSprayMode, channel: int = 0, timeout: Optional[float] = None, *args, **kwargs) -> None:
         """
         Changes the operating mode for this device
         :param mode: mode to set
@@ -84,4 +88,4 @@ class DiffuserSprayMixin(object):
                                     payload=payload,
                                     timeout=timeout)
         # Immediately update local state
-        self._channel_diffuser_spray_status[channel].update(spray_payload)
+        self.__diffuser_spray_status_by_channel[channel].update(spray_payload)
