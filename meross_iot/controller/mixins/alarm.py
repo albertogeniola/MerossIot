@@ -5,7 +5,7 @@ This module contains the Mixins related to alarms functionalities.
 import logging
 from typing import Any, Dict, List
 
-from meross_iot.controller.device import BaseDevice
+from meross_iot.controller.device import BaseDevice, ensure_full_update
 from meross_iot.model.enums import Namespace
 
 _LOGGER = logging.getLogger(__name__)
@@ -73,12 +73,12 @@ class AlarmMixin(BaseDevice):
         self.__handle_alarm_data(data['alarm'])
 
     @property
+    @ensure_full_update
     def alarm_last_events(self) -> List[Dict]:
         """
         Returns the last events received from the device.
         :return:
         """
-        self.check_full_update_done()
         return self.__last_alarm_events.copy()
 
     def __handle_alarm_data(self, data: List[Dict]) -> None:

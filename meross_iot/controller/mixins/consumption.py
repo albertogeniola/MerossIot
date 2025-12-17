@@ -25,9 +25,9 @@ class BaseConsumptionXMixin(BaseDevice):
                  accessor: str,
                  **kwargs):
         super().__init__(device_uuid=device_uuid, manager=manager, **kwargs)
-        self.__namespace = namespace
-        self.__accessor = accessor
-        self.__consumption_x: List[Dict] = []
+        self._namespace = namespace
+        self._accessor = accessor
+        self._consumption_x: List[Dict] = []
 
     # Note: we are not overriding async_handle_update, as it seems the SYSTEM_ALL update
     #  does not carry information about daily power consumption.
@@ -52,8 +52,9 @@ class BaseConsumptionXMixin(BaseDevice):
         Returns the daily power consumption data
         :return:
         """
-        return self.__consumption_x.copy()
+        return self._consumption_x.copy()
 
+    @ensure_full_update
     async def async_consumption_fetch_summary(self,
                                               channel=0,
                                               timeout: float | None = None,
@@ -64,16 +65,16 @@ class BaseConsumptionXMixin(BaseDevice):
         :return: the historical consumption data
         """
         result: Dict = await self._execute_command(method="GET",
-                                                   namespace=self.__namespace,
+                                                   namespace=self._namespace,
                                                    payload={'channel': channel},
                                                    timeout=timeout)
 
-        data: List[Dict] = result[self.__accessor]
-        self.__handle_consumption_data(data)
+        data: List[Dict] = result[self._accessor]
+        self._handle_consumption_data(data)
         return self.consumption_daily_summary
 
-    def __handle_consumption_data(self, data: List[Dict]) -> None:
-        self.__consumption_x = [{
+    def _handle_consumption_data(self, data: List[Dict]) -> None:
+        self._consumption_x = [{
             'date': datetime.strptime(x['date'], _DATE_FORMAT),
             'total_consumption_kwh': float(x['value']) / 1000
         } for x in data]
@@ -101,3 +102,4 @@ class ConsumptionMixin(BaseConsumptionXMixin):
                  **kwargs):
         super().__init__(device_uuid=device_uuid, manager=manager, namespace=Namespace.CONTROL_CONSUMPTION,
                          accessor="consumption", **kwargs)
+

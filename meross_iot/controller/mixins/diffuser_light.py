@@ -101,16 +101,20 @@ class DiffuserLightMixin(BaseDevice):
         """
         if channel not in self.__diffuser_light_status_by_channel:
             raise ValueError("Invalid or unsupported channel specified")
+
         onoff = self.__diffuser_light_status_by_channel[channel]['onoff']
         return onoff == 1
 
-    @ensure_full_update
-    async def async_diffuser_light_set_light_mode(self, channel: int = 0, onoff: bool = None,
-                                                  mode: DiffuserLightMode = None,
-                                                  brightness: int = None, rgb: Optional[RgbTuple] = None,
-                                                  timeout: Optional[float] = None, *args, **kwargs) -> None:
+    async def _async_diffuser_light_set_light_mode(self,
+                                                   onoff: bool,
+                                                   channel: int = 0,
+                                                   mode: DiffuserLightMode | None = None,
+                                                   brightness: int | None = None,
+                                                   rgb: Optional[RgbTuple] = None,
+                                                   timeout: Optional[float] = None, *args, **kwargs) -> None:
         """
-        Sets the light mode for this device.
+        Low-level method to control the light mode for this device.
+
         :param channel: channel to configure
         :param onoff: when True, sets the light ON, otherwise OFF.
         :param mode: defines the operation mode for this light
@@ -119,6 +123,9 @@ class DiffuserLightMixin(BaseDevice):
         :param timeout: command timeout
         :return:
         """
+        if channel not in self.__diffuser_light_status_by_channel:
+            raise ValueError("Invalid or unsupported channel specified")
+
         light_payload = {'channel': channel}
         if mode is not None:
             light_payload['mode'] = mode.value
@@ -137,7 +144,59 @@ class DiffuserLightMixin(BaseDevice):
         self.__diffuser_light_status_by_channel[channel].update(light_payload)
 
     @ensure_full_update
-    async def async_diffuser_light_turn_on(self, channel:int=0, *args, **kwargs) -> None:
+    async def async_diffuser_light_set_rgb_color(self,
+                                                 rgb: RgbTuple,
+                                                 brightness: int | None = None,
+                                                 channel: int = 0,
+                                                 timeout: Optional[float] = None,
+                                                 *args, **kwargs) -> None:
+        """
+        Sets the RGB color for the diffuser. This method will also turn the light ON if it was OFF.
+
+        :param rgb: tuple of three integers (each from 0 to 255) for red, green, blue
+        :param brightness: brightness value (from 0 to 100), optional
+        :param channel: channel to configure, optional, defaults to 0
+        :param timeout: command timeout
+        :return:
+        """
+        return await self._async_diffuser_light_set_light_mode(channel=channel, mode=DiffuserLightMode.FIXED_RGB, onoff=True, rgb=rgb, brightness=brightness, timeout=timeout)
+
+
+    @ensure_full_update
+    async def async_diffuser_light_set_temperature(self,
+                                                 brightness: int,
+                                                 channel: int = 0,
+                                                 timeout: Optional[float] = None,
+                                                 *args, **kwargs) -> None:
+        """
+        Sets the temperature for the diffuser light. This method will also turn the light ON if it was OFF.
+
+        :param brightness: brightness value (from 0 to 100)
+        :param channel: channel to configure, optional, defaults to 0
+        :param timeout: command timeout
+        :return:
+        """
+        return await self._async_diffuser_light_set_light_mode(channel=channel, mode=DiffuserLightMode.FIXED_LUMINANCE, onoff=True, brightness=brightness, timeout=timeout)
+
+    @ensure_full_update
+    async def async_diffuser_light_set_rotating_colors(self,
+                                                   brightness: int | None,
+                                                   channel: int = 0,
+                                                   timeout: Optional[float] = None,
+                                                   *args, **kwargs) -> None:
+        """
+        Sets the diffuser light to rotating mode.
+        This method will also turn the light ON if it was OFF.
+
+        :param brightness: brightness value (from 0 to 100), optional
+        :param channel: channel to configure, optional, defaults to 0
+        :param timeout: command timeout
+        :return:
+        """
+        return await self._async_diffuser_light_set_light_mode(channel=channel, mode=DiffuserLightMode.ROTATING_COLORS, onoff=True, brightness=brightness, timeout=timeout)
+
+    @ensure_full_update
+    async def async_diffuser_light_turn_on(self, channel: int = 0, *args, **kwargs) -> None:
         """
         Turns on the light of the diffuser.
         :param channel:
@@ -145,7 +204,7 @@ class DiffuserLightMixin(BaseDevice):
         :param kwargs:
         :return:
         """
-        await self.async_diffuser_light_set_light_mode(channel=channel, onoff=True)
+        await self._async_diffuser_light_set_light_mode(channel=channel, onoff=True)
         # No need to update local state as this is done by the set_light_mode method
 
     @ensure_full_update
@@ -157,5 +216,6 @@ class DiffuserLightMixin(BaseDevice):
         :param kwargs:
         :return:
         """
-        await self.async_diffuser_light_set_light_mode(channel=channel, onoff=False)
+        await self._async_diffuser_light_set_light_mode(channel=channel, onoff=False)
         # No need to update local state as this is done by the set_light_mode method
+

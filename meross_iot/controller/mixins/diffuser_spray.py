@@ -69,6 +69,8 @@ class DiffuserSprayMixin(BaseDevice):
         :param kwargs:
         :return:
         """
+        if channel not in self.__diffuser_spray_status_by_channel:
+            raise ValueError("Invalid or unsupported channel specified")
         mode = self.__diffuser_spray_status_by_channel[channel]['mode']
         return DiffuserSprayMode(mode)
 
@@ -81,6 +83,9 @@ class DiffuserSprayMixin(BaseDevice):
         :param timeout: command timeout
         :return:
         """
+        if channel not in self.__diffuser_spray_status_by_channel:
+            raise ValueError("Invalid or unsupported channel specified")
+
         spray_payload = {"mode": mode.value, "channel": channel}
         payload = {'spray': [spray_payload]}
         await self._execute_command(method='SET',

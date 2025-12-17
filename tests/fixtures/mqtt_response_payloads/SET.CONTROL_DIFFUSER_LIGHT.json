@@ -1,0 +1,10 @@
+{
+    "type": "mod100",
+    "spray": [
+        {
+            "channel": 0,
+            "mode": 1,
+            "lmTime": 1765838969
+        }
+    ]
+}

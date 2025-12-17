@@ -1,4 +1,5 @@
 from typing import Any, Generator, Dict, Callable
+from datetime import datetime
 
 import pytest
 
@@ -27,6 +28,9 @@ async def test_subdevice_alarm_push_notification(device: AlarmMixin,
     # Prepare the push notification object
     payload = push_notification_fixture("alarm", replacer_mock)
 
+    # Simulate a full update to satisfy the decorator
+    device._last_full_update_ts = datetime.now().timestamp()
+
     # Ensure clean initial state
     assert len(device.alarm_last_events) == 0
 
@@ -44,6 +48,9 @@ async def test_refresh_last_event(device: AlarmMixin,
     :param replacer_mock:
     :return:
     """
+    # Simulate a full update to satisfy the decorator
+    device._last_full_update_ts = datetime.now().timestamp()
+
     # Before initialization, the event list must be empty
     assert len(device.alarm_last_events) == 0
 
@@ -65,6 +72,9 @@ async def test_update(device: AlarmMixin,
     :param replacer_mock:
     :return:
     """
+    # Simulate a full update to satisfy the decorator
+    device._last_full_update_ts = datetime.now().timestamp()
+
     # Before initialization, the event list must be empty
     assert len(device.alarm_last_events) == 0
 
