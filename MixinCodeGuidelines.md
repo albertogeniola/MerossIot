@@ -1,6 +1,15 @@
 # Basic implementation
 Mixins must extend BaseDevice class.
 
+## Internal state
+Every mixin can have internal state variables, for their specific functionalities. 
+Such internal state can be updated in multiple ways:
+- by triggering a manual update, via the "async_update" method.
+- by receiving a push notification, via the "_async_handle_push_notification" method.
+- by receiving a SystemAll update, via the "async_handle_update" method.
+
+There are some Mixins that do not handle any internal state, as they do not need to.
+
 ## Constructor
 The Mixin constructor must initialize any mixin-private state variable.
 The mixin constructor must call its parent implementation.
