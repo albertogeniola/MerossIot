@@ -1,5 +1,5 @@
 # Basic implementation
-Mixins must extend BaseDevice class.
+Mixin classes must extend BaseDevice class.
 
 ## Internal state
 Every mixin can have internal state variables, for their specific functionalities. 
