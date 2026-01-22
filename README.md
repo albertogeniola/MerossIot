@@ -8,8 +8,9 @@
 
 ⚠ !Attention! ⚠
 ---
-Meross did change the login API without notice and that caused the library to break. 
-Please make sure to upgrade your library to v0.4.7.3 to fix the issue.
+Meross did change the HTTP SubDevice info API without notice. 
+This has caused the library (versions <=0.4.10.3) to break when used with accounts handling sub-devices.  
+Please make sure to upgrade your library to v0.4.10.4 to fix the issue.
 ---
 
 # Meross IoT library
@@ -32,7 +33,7 @@ Due to the popularity of the library, I've decided to list it publicly on the Pi
 So, the installation is as simple as typing the following command:
 
 ```bash
-pip install meross_iot==0.4.10.3
+pip install meross_iot==0.4.10.4
 ```
 
 ## Usage & Full Documentation
@@ -200,12 +201,14 @@ Anyway, feel free to contribute via donations!
 </p>
 
 ## Changelog
-### 0.4.10.3
-- Add support for water leak sensors such as MS400 and MS405
-- Add water-leak sensor examples
+### 0.4.10.4
+- Address #428 in response to unnotified HTTP API changes from meross cloud.
 
 <details>
     <summary>Older</summary>
+### 0.4.10.3
+- Add support for water leak sensors such as MS400 and MS405
+- Add water-leak sensor examples
 
 ### 0.4.10.2
 - Allows to pass a specific ssl context to the manager to perform MQTT ssl connections using that SSL context. 
