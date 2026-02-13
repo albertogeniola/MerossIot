@@ -82,7 +82,7 @@ class Ms100Sensor(GenericSubDevice):
 
             self.__samples.clear()
             for sample in samples:
-                temp, hum, from_ts, to_ts, unknown = sample
+                temp, hum, from_ts, to_ts = sample
                 self.__samples.append({
                     'from_ts': from_ts,
                     'to_ts': to_ts,
