@@ -78,3 +78,45 @@ class ConsumptionMixin(object):
         } for x in data]
 
         return res
+
+class ConsumptionHMixin(object):
+    _execute_command: callable
+
+    def __init__(self, device_uuid: str,
+                 manager,
+                 **kwargs):
+        super().__init__(device_uuid=device_uuid, manager=manager, **kwargs)
+
+    async def async_get_hourly_power_consumption(self,
+                                                channel=0,
+                                                timeout: Optional[float] = None,
+                                                *args, **kwargs) -> List[dict]:
+        """
+        Returns the power consumption registered by this device.
+
+        :param channel: channel to read data from
+
+        :return: the historical consumption data
+        """
+
+        payload = {
+            "consumptionH": [
+                {
+                    "channel": channel
+                }
+        ]}
+
+        # TODO: returning a nice PowerConsumtpionReport object rather than a list of dict?
+        result = await self._execute_command(method="GET",
+                                             namespace=Namespace.CONTROL_CONSUMPTIONH,
+                                             payload=payload,
+                                             timeout=timeout)
+        data = result.get('consumptionH')
+
+        # Parse the json data into nice-python native objects
+        res = [{
+                'datetime': datetime.fromtimestamp(x.get('timestamp')),
+                'total_consumption_kwh': float(x.get('value'))/1000
+        } for x in data[0]["data"]]
+
+        return res

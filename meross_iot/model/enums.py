@@ -106,6 +106,7 @@ class Namespace(Enum):
     CONTROL_ELECTRICITY = 'Appliance.Control.Electricity'
     CONTROL_CONSUMPTION = 'Appliance.Control.Consumption'
     CONTROL_CONSUMPTIONX = 'Appliance.Control.ConsumptionX'
+    CONTROL_CONSUMPTIONH = 'Appliance.Control.ConsumptionH'
 
     # Bulbs-only abilities
     CONTROL_LIGHT = 'Appliance.Control.Light'
