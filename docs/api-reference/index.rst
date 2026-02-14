@@ -11,7 +11,8 @@ API Reference
    stats
    controller/device/base
    controller/device/channel
-   controller/mixins/consumption
+   controller/mixins/consumptionx
+   controller/mixins/consumptionh
    controller/mixins/diffuserlight
    controller/mixins/diffuserspray
    controller/mixins/dnd

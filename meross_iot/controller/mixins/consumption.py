@@ -23,7 +23,7 @@ class ConsumptionXMixin(object):
                                                 timeout: Optional[float] = None,
                                                 *args, **kwargs) -> List[dict]:
         """
-        Returns the power consumption registered by this device.
+        Returns the daily power consumption registered by this device.
 
         :param channel: channel to read data from
 
@@ -58,7 +58,7 @@ class ConsumptionMixin(object):
                                                 timeout: Optional[float] = None,
                                                 *args, **kwargs) -> List[dict]:
         """
-        Returns the power consumption registered by this device.
+        Returns the daily power consumption registered by this device.
 
         :param channel: channel to read data from
 
@@ -92,7 +92,7 @@ class ConsumptionHMixin(object):
                                                 timeout: Optional[float] = None,
                                                 *args, **kwargs) -> List[dict]:
         """
-        Returns the power consumption registered by this device.
+        Returns the hourly power consumption registered by this device.
 
         :param channel: channel to read data from
 
