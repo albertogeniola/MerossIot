@@ -65,9 +65,9 @@ async def test_garage_opener_update(device: GarageOpenerMixin, manager_mock, rep
     with manager_mock.mock_execute_command("GET", "GARAGE_DOOR_MULTIPLECONFIG", replacer_mock):
         await device.async_update()
     
-    config = device.garage_opener_get_config(channel=0)
+    config = device.garage_opener_get_config(channel=1)
     assert config is not None
-    assert config['signalDuration'] == 1000
+    assert config['signalClose'] == 2000
 
 async def test_garage_opener_default_channel(device: GarageOpenerMixin, manager_mock, replacer_mock):
     device._last_full_update_ts = datetime.now().timestamp()
@@ -87,3 +87,42 @@ async def test_garage_opener_multiple_channels(manager_mock, replacer_mock):
     dev.check_full_update_done = MagicMock()
     dev._last_full_update_ts = datetime.now().timestamp()
     assert dev.garage_opener_is_open(channel=None) is None
+
+async def test_garage_opener_set_config(device: GarageOpenerMixin, manager_mock, replacer_mock):
+    device._last_full_update_ts = datetime.now().timestamp()
+    device._GarageOpenerMixin__garage_opener_config_state_by_channel[1] = {'channel': 1}
+    with manager_mock.mock_execute_command("SET", "GARAGE_DOOR_MULTIPLECONFIG", replacer_mock):
+        await device.async_garage_opener_set_config(
+            channel=1,
+            door_enable=True,
+            door_close_duration_mesec=15000,
+            door_open_duration_mesec=14000,
+            close_signal_mesec=2000,
+            open_signal_mesec=1000,
+            buzzer_enable=False
+        )
+        
+async def test_garage_opener_set_config_edge_cases(device: GarageOpenerMixin, manager_mock, replacer_mock):
+    device._last_full_update_ts = datetime.now().timestamp()
+    
+    # Test setting config for a channel that isn't returned from the server (e.g., config array misses channel key)
+    # The current SET fixture returns channel 1.
+    # We call set_config for a different channel, and the server fixture returns channel 1 config.
+    # This invokes the `elif self.__garage_opener_config_state_by_channel.get(target_channel) is not None:`
+    # line 151-152
+    with patch.object(device, '_execute_command', return_value={'config': [{'channel': 1, 'doorEnable': 1}]}):
+        # Seed channel 2 with initial dict to pass the "is not None" check
+        device._GarageOpenerMixin__garage_opener_config_state_by_channel[2] = {"channel": 2, "doorEnable": 1}
+        # Call set_config passing channel=2, which creates a door_config payload for channel=2 
+        # but the mock returns channel=1 in the response
+        await device.async_garage_opener_set_config(
+            channel=2,
+            door_enable=False
+        )
+        # Verify the local state was updated with door_config because the server response didn't contain channel 2
+        config2 = device.garage_opener_get_config(channel=2)
+        assert config2 is not None
+        assert config2['channel'] == 2
+        assert config2['doorEnable'] == 0
+        
+

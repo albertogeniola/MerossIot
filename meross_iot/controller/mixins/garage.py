@@ -135,9 +135,9 @@ class GarageOpenerMixin(BaseDevice):
             door_config["buzzerEnable"] =  1 if buzzer_enable else 0
         payload = { "config": door_config }
         response_data = await self._execute_command(method="SET", namespace=Namespace.GARAGE_DOOR_MULTIPLECONFIG, payload=payload)
-        self.__garage_opener_config_state_by_channel[target_channel].update(response_data)
+        del door_config['channel']
+        self.__garage_opener_config_state_by_channel[target_channel].update(door_config)
 
-    @ensure_full_update
     async def async_garage_opener_open(self, channel: Optional[int] = None, *args, **kwargs) -> None:
         """
         Operates the door: sends the open command.
@@ -147,7 +147,6 @@ class GarageOpenerMixin(BaseDevice):
         """
         await self.__async_garage_opener_operate(state=True, channel=channel, *args, **kwargs)
 
-    @ensure_full_update
     async def async_garage_opener_close(self, channel: Optional[int] = None, *args, **kwargs) -> None:
         """
         Operates the door: sends the close command.

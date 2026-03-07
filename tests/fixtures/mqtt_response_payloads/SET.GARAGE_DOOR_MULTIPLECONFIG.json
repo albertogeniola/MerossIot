@@ -1,0 +1,13 @@
+{
+    "config": [
+        {
+            "channel": 1,
+            "doorEnable": 1,
+            "doorCloseDuration": 15000,
+            "doorOpenDuration": 14000,
+            "signalClose": 2000,
+            "signalOpen": 1000,
+            "buzzerEnable": 0
+        }
+    ]
+}
