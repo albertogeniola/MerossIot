@@ -98,6 +98,45 @@ class GarageOpenerMixin(BaseDevice):
                 if channel_index is not None:
                     self.__garage_opener_config_state_by_channel[channel_index] = door
 
+    async def async_garage_opener_set_config(self, channel: Optional[int] = None,
+                                             door_enable: Optional[bool] = None,
+                                             door_close_duration_mesec: Optional[int] = None,
+                                             door_open_duration_mesec: Optional[int] = None,
+                                             close_signal_mesec: Optional[int] = None,
+                                             open_signal_mesec: Optional[int] = None,
+                                             buzzer_enable: Optional[bool] = None
+                                             , *args, **kwargs) -> None:
+        """
+        Configures the door device with specific parameters
+        :param channel: Channel to configure
+        :param door_enable: When true, enables the door. When false, disables it. Only useful with multi-door devices (e.g. msg200)
+        :param door_close_duration_mesec:
+        :param door_open_duration_mesec:
+        :param close_signal_mesec:
+        :param open_signal_mesec:
+        :param buzzer_enable:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        target_channel = self.__garage_opener_get_default_channel_index(channel)
+        door_config = {"channel": target_channel}
+        if door_enable is not None:
+            door_config["doorEnable"] = 1 if door_enable else 0
+        if door_close_duration_mesec is not None:
+            door_config["doorCloseDuration"] = door_close_duration_mesec
+        if door_open_duration_mesec is not None:
+            door_config["doorOpenDuration"] = door_open_duration_mesec
+        if close_signal_mesec is not None:
+            door_config["signalClose"] = close_signal_mesec
+        if open_signal_mesec is not None:
+            door_config["signalOpen"] = open_signal_mesec
+        if buzzer_enable is not None:
+            door_config["buzzerEnable"] =  1 if buzzer_enable else 0
+        payload = { "config": door_config }
+        response_data = await self._execute_command(method="SET", namespace=Namespace.GARAGE_DOOR_MULTIPLECONFIG, payload=payload)
+        self.__garage_opener_config_state_by_channel[target_channel].update(response_data)
+
     @ensure_full_update
     async def async_garage_opener_open(self, channel: Optional[int] = None, *args, **kwargs) -> None:
         """
