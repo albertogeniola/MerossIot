@@ -122,3 +122,5 @@ sniffed_data
 
 # Documentation
 docs/_static
+utilities/sniffed_commands.txt
+pytest_output.txt

@@ -1,0 +1,198 @@
+{
+    "all": {
+        "system": {
+            "hardware": {
+                "type": "msg200",
+                "subType": "us",
+                "version": "4.0.0",
+                "chipType": "MT7686",
+                "uuid": "${UUID}",
+                "macAddress": "${MAC_ADDRESS}"
+            },
+            "firmware": {
+                "version": "4.2.8",
+                "homekitVersion": "2.0.1",
+                "compileTime": "Nov 26 2021 15:47:15",
+                "encrypt": 1,
+                "wifiMac": "${WIFI_MAC}",
+                "innerIp": "${INNER_IP}",
+                "server": "mqtt-eu-5.meross.com",
+                "port": 443,
+                "userId": "${USER_ID}"
+            },
+            "time": {
+                "timestamp": 1772890980,
+                "timezone": "Europe/Rome",
+                "timeRule": [
+                    [
+                        1761440400,
+                        3600,
+                        0
+                    ],
+                    [
+                        1774746000,
+                        7200,
+                        1
+                    ],
+                    [
+                        1792890000,
+                        3600,
+                        0
+                    ],
+                    [
+                        1806195600,
+                        7200,
+                        1
+                    ],
+                    [
+                        1824944400,
+                        3600,
+                        0
+                    ],
+                    [
+                        1837645200,
+                        7200,
+                        1
+                    ],
+                    [
+                        1856394000,
+                        3600,
+                        0
+                    ],
+                    [
+                        1869094800,
+                        7200,
+                        1
+                    ],
+                    [
+                        1887843600,
+                        3600,
+                        0
+                    ],
+                    [
+                        1901149200,
+                        7200,
+                        1
+                    ],
+                    [
+                        1919293200,
+                        3600,
+                        0
+                    ],
+                    [
+                        1932598800,
+                        7200,
+                        1
+                    ],
+                    [
+                        1950742800,
+                        3600,
+                        0
+                    ],
+                    [
+                        1964048400,
+                        7200,
+                        1
+                    ],
+                    [
+                        1982797200,
+                        3600,
+                        0
+                    ],
+                    [
+                        1995498000,
+                        7200,
+                        1
+                    ],
+                    [
+                        2014246800,
+                        3600,
+                        0
+                    ],
+                    [
+                        2026947600,
+                        7200,
+                        1
+                    ],
+                    [
+                        2045696400,
+                        3600,
+                        0
+                    ],
+                    [
+                        2058397200,
+                        7200,
+                        1
+                    ]
+                ]
+            },
+            "online": {
+                "status": 1,
+                "bindId": "UcCvTIyIX3MCFfSQ",
+                "who": 1
+            }
+        },
+        "digest": {
+            "togglex": [
+                {
+                    "channel": 0,
+                    "onoff": 0,
+                    "lmTime": 0
+                },
+                {
+                    "channel": 1,
+                    "onoff": 0,
+                    "lmTime": 0
+                },
+                {
+                    "channel": 2,
+                    "onoff": 0,
+                    "lmTime": 0
+                },
+                {
+                    "channel": 3,
+                    "onoff": 0,
+                    "lmTime": 0
+                }
+            ],
+            "triggerx": [
+                {
+                    "channel": 2,
+                    "id": "3333333333333333",
+                    "count": 1
+                },
+                {
+                    "channel": 1,
+                    "id": "2222222222222222",
+                    "count": 1
+                },
+                {
+                    "channel": 3,
+                    "id": "4444444444444444",
+                    "count": 1
+                }
+            ],
+            "timerx": [],
+            "garageDoor": [
+                {
+                    "channel": 1,
+                    "doorEnable": 1,
+                    "open": 1,
+                    "lmTime": 0
+                },
+                {
+                    "channel": 2,
+                    "doorEnable": 1,
+                    "open": 1,
+                    "lmTime": 0
+                },
+                {
+                    "channel": 3,
+                    "doorEnable": 1,
+                    "open": 1,
+                    "lmTime": 0
+                }
+            ]
+        }
+    }
+}

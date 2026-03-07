@@ -1,0 +1,23 @@
+{
+    "state": [
+        {
+            "channel": 1,
+            "doorEnable": 1,
+            "open": 1,
+            "lmTime": 0
+        },
+        {
+            "channel": 2,
+            "doorEnable": 1,
+            "open": 1,
+            "lmTime": 0
+        },
+        {
+            "channel": 3,
+            "doorEnable": 1,
+            "open": 1,
+            "lmTime": 0
+        },
+        1
+    ]
+}
