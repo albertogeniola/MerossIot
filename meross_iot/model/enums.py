@@ -140,6 +140,7 @@ class Namespace(Enum):
     HUB_SENSOR_TEMPHUM = 'Appliance.Hub.Sensor.TempHum'
     HUB_SENSOR_ALERT = 'Appliance.Hub.Sensor.Alert'
     HUB_SENSOR_WATERLEAK = 'Appliance.Hub.Sensor.WaterLeak'
+    HUB_SENSOR_DOORWINDOW = 'Appliance.Hub.Sensor.DoorWindow'
 
     # MTS100
     HUB_MTS100_ALL = 'Appliance.Hub.Mts100.All'

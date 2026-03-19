@@ -601,7 +601,7 @@ class Ms405Sensor(GenericSubDevice):
 
 class Ms200Sensor(GenericSubDevice):
     """
-    Class that represents a Meross MS200 Door Window Sensor.
+    Class that represents a Meross MS200 Door Window Sensor
     """
 
     def __init__(self, hubdevice_uuid: str, subdevice_id: str, manager, max_events_queue_len=30, **kwargs):

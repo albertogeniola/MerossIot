@@ -12,6 +12,7 @@ class HubMixn(object):
         Namespace.HUB_TOGGLEX: 'togglex',
         Namespace.HUB_BATTERY: 'battery',
         Namespace.HUB_SENSOR_WATERLEAK: 'waterLeak',
+        Namespace.HUB_SENSOR_DOORWINDOW: 'doorWindow',
     }
 
     def __init__(self, device_uuid: str,

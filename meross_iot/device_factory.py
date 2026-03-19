@@ -18,7 +18,7 @@ from meross_iot.controller.mixins.spray import SprayMixin
 from meross_iot.controller.mixins.system import SystemAllMixin, SystemOnlineMixin
 from meross_iot.controller.mixins.thermostat import ThermostatModeMixin, ThermostatModeBMixin
 from meross_iot.controller.mixins.toggle import ToggleXMixin, ToggleMixin
-from meross_iot.controller.subdevice import Mts100v3Valve, Ms100Sensor, Ms405Sensor
+from meross_iot.controller.subdevice import Mts100v3Valve, Ms100Sensor, Ms405Sensor,Ms200Sensor
 from meross_iot.model.enums import Namespace
 from meross_iot.model.exception import UnknownDeviceType
 from meross_iot.model.http.device import HttpDeviceInfo
@@ -30,7 +30,8 @@ _KNOWN_DEV_TYPES_CLASSES = {
     "mts100v3": Mts100v3Valve,
     "ms100": Ms100Sensor,
     "ms100f": Ms100Sensor,
-    "ms405": Ms405Sensor
+    "ms405": Ms405Sensor,
+    "ms200" : Ms200Sensor 
 }
 
 _ABILITY_MATRIX = {
@@ -93,7 +94,8 @@ _SUBDEVICE_MAPPING = {
     "ms100": Ms100Sensor,
     "ms100f": Ms100Sensor,
     "ms405": Ms405Sensor,
-    "ms400": Ms405Sensor
+    "ms400": Ms405Sensor,
+    "ms200": Ms200Sensor,
 }
 
 _dynamic_types = {}
