@@ -1,7 +1,7 @@
 import json
 import logging
 from datetime import datetime
-from typing import Union, List
+from typing import Union, List, Optional
 
 from meross_iot.model.constants import DEFAULT_MQTT_PORT, DEFAULT_MQTT_HOST
 from meross_iot.model.enums import OnlineStatus
@@ -23,7 +23,7 @@ class HttpDeviceInfo(BaseDictPayload):
                  domain: str,
                  reserved_domain: str,
                  sub_type: str = None,
-                 bind_time: Union[int, datetime] = None,
+                 bind_time: Optional[Union[int, datetime, str]] = None,
                  skill_number: str = None,
                  user_dev_icon: str = None,
                  icon_type: int = None,
@@ -43,14 +43,16 @@ class HttpDeviceInfo(BaseDictPayload):
 
         self.dev_name = dev_name
         self.dev_icon_id = dev_icon_id
-        if isinstance(bind_time, int):
+        if bind_time is None:
+            self.bind_time = None
+        elif isinstance(bind_time, int):
             self.bind_time = datetime.utcfromtimestamp(bind_time)
         elif isinstance(bind_time, datetime):
             self.bind_time = bind_time
         elif isinstance(bind_time, str):
             self.bind_time = datetime.strptime(bind_time, "%Y-%m-%dT%H:%M:%S")
         else:
-            _LOGGER.warning(f"Provided bind_time is not int neither datetime. It will be ignored.")
+            _LOGGER.warning("Provided bind_time has unsupported type %s. It will be ignored.", type(bind_time).__name__)
             self.bind_time = None
 
         self.device_type = device_type
