@@ -368,23 +368,23 @@ class MerossHttpClient(object):
                                                           api_response_code=ErrorCodes.CODE_GENERIC_ERROR if error is None else error)
                     if error is None:
                         _LOGGER.error(f"Could not parse error code {code}.")
-                    elif error == ErrorCodes.CODE_NO_ERROR:
-                        return jsondata.get("data")
-                    elif error in (ErrorCodes.CODE_TOKEN_EXPIRED, ErrorCodes.CODE_TOKEN_ERROR):
-                        raise TokenExpiredException("The provided token has expired")
-                    elif error == ErrorCodes.CODE_TOO_MANY_TOKENS:
-                        raise TooManyTokensException("You have issued too many tokens without logging out and your "
-                                                     "account might have been temporarly disabled.")
-                    elif error in [ErrorCodes.CODE_WRONG_CREDENTIALS, ErrorCodes.CODE_UNEXISTING_ACCOUNT]:
-                        raise BadLoginException("Invalid username/Password combination")
-                    elif error == ErrorCodes.CODE_REDIRECT_REGION:
-                        api_domain = jsondata.get("data").get("domain")
-                        mqtt_domain = jsondata.get("data").get("mqttDomain")
-                        raise BadDomainException(f"Invalid URL/API Endpoint used. Use: {api_domain} instead.", api_domain, mqtt_domain)
-                    else:
-                        _LOGGER.error(f"Received non-ok API status code: {error.name}. "
-                                      f"Failed request to API. Response was: {jsondata}")
-                        raise HttpApiError(error)
+                if error == ErrorCodes.CODE_NO_ERROR:
+                    return jsondata.get("data")
+                elif error in (ErrorCodes.CODE_TOKEN_EXPIRED, ErrorCodes.CODE_TOKEN_ERROR):
+                    raise TokenExpiredException("The provided token has expired")
+                elif error == ErrorCodes.CODE_TOO_MANY_TOKENS:
+                    raise TooManyTokensException("You have issued too many tokens without logging out and your "
+                                                 "account might have been temporarly disabled.")
+                elif error in [ErrorCodes.CODE_WRONG_CREDENTIALS, ErrorCodes.CODE_UNEXISTING_ACCOUNT]:
+                    raise BadLoginException("Invalid username/Password combination")
+                elif error == ErrorCodes.CODE_REDIRECT_REGION:
+                    api_domain = jsondata.get("data").get("domain")
+                    mqtt_domain = jsondata.get("data").get("mqttDomain")
+                    raise BadDomainException(f"Invalid URL/API Endpoint used. Use: {api_domain} instead.", api_domain, mqtt_domain)
+                else:
+                    _LOGGER.error(f"Received non-ok API status code: {error.name}. "
+                                  f"Failed request to API. Response was: {jsondata}")
+                    raise HttpApiError(error)
 
     async def async_logout(self,
                            *args,
