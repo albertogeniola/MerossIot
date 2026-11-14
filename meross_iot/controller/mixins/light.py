@@ -56,12 +56,15 @@ class LightMixin(object):
         _LOGGER.debug(f"Handling {self.__class__.__name__} mixin data update.")
         locally_handled = False
         if namespace == Namespace.SYSTEM_ALL:
-            light_data = data.get('all', {}).get('digest', {}).get('light', [])
-            self._update_channel_status(channel=light_data.get('channel'),
-                                        rgb=light_data.get('rgb'),
-                                        luminance=light_data.get('luminance'),
-                                        temperature=light_data.get('temperature'),
-                                        onoff=light_data.get('onoff'))
+            light_data = data.get('all', {}).get('digest', {}).get('light', {})
+            if isinstance(light_data, list):
+                light_data = light_data[0] if light_data else {}
+            if light_data:
+                self._update_channel_status(channel=light_data.get('channel'),
+                                            rgb=light_data.get('rgb'),
+                                            luminance=light_data.get('luminance'),
+                                            temperature=light_data.get('temperature'),
+                                            onoff=light_data.get('onoff'))
             locally_handled = True
         super_handled = await super().async_handle_update(namespace=namespace, data=data)
         return super_handled or locally_handled
