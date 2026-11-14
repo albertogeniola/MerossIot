@@ -96,7 +96,7 @@ async def _async_print_device_list(client: MerossHttpClient) -> List[HttpDeviceI
 
 
 async def _async_select_device(devices: List[HttpDeviceInfo]) -> HttpDeviceInfo:
-    print("Please note that some devices rely on a HUB. Those devices won't be listed: in such cases, you need"
+    print("Please note that some devices rely on a HUB. Those devices won't be listed: in such cases, you need "
           "to select the corresponding HUB device.")
     while True:
         selection = input("Select the device you want to study (numeric index): ")
@@ -180,14 +180,14 @@ async def _async_sniff(device_sniffer: FakeDeviceSniffer, zip_obj: ZipFile, mero
     print("--------------------------------------\n"
           "PHASE 1: intercepting device commands.\n"
           "--------------------------------------\n"
-          "The goal of this phase is to 'intercept' the commands that the APP sends to the device, pretending to"
+          "The goal of this phase is to 'intercept' the commands that the APP sends to the device, pretending to "
           "be that specific device. In other words, we will 'spoof' the device connection so that the commands "
           "sent by the official APP are instead routed to this utility.\n\n"
           "To do so, you need to disconnect the real device from the 'power outlet', so that it gets cut out from "
-          "the Meross cloud, then issue the command you want to inspect from the Meross App. This command will FAIL,"
+          "the Meross cloud, then issue the command you want to inspect from the Meross App. This command will FAIL, "
           "as the message will not reach the real Meross Device, but this utility instead. When the command is "
           "received, it will be printed out.\n"
-          "If you need to test multiple states/commands, you can always re-attach the power to the real Meross device,"
+          "If you need to test multiple states/commands, you can always re-attach the power to the real Meross device, "
           "perform adjust its original state and then cut off the power and issue the command you want to get info.\n"
           "To simplify this process, the utility will guide you throughout the process.\n"
           "\nXXXXXXXXXXXXXX ATTENTION XXXXXXXXXXXXXX\n"
